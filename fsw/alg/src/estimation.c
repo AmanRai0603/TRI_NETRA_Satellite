@@ -28,10 +28,14 @@ estimation_mekf_init_out estimation_mekf_init(pc_a4f q0, double sa, double sb) {
     }
 }
 
-estimation_mekf_predict_out estimation_mekf_predict(pc_a4f q0, pc_a3f b, pc_a6a6f p0, double arw, double rrw, pc_a3f wm, double dt) {
+estimation_mekf_predict_out estimation_mekf_predict(pc_a4f q0, pc_a3f b, pc_a6a6f p0, double arw, double rrw, pc_a3f wm, double dt, bool stale) {
     pc_a4f q = ((pc_a4f){0});
     pc_a6a6f p = ((pc_a6a6f){0});
-    double sv2 = (arw * arw);
+    double arw_eff = arw;
+    if ((stale && ((0.002 * sqrt(dt)) > arw))) {
+        arw_eff = (0.002 * sqrt(dt));
+    }
+    double sv2 = (arw_eff * arw_eff);
     double su2 = (rrw * rrw);
     pc_a3f w = pc_sub_a3f(wm, b);
     q = math_qnorm(math_qmult(q0, math_fromrotvec(pc_scale_a3f(w, dt))));
@@ -120,6 +124,19 @@ estimation_mekf_predict_out estimation_mekf_predict(pc_a4f q0, pc_a3f b, pc_a6a6
         r__.p = p;
         return r__;
     }
+}
+
+pc_a3f estimation_att_rate(pc_a4f q0, pc_a4f q1, double dt) {
+    pc_a3f w = ((pc_a3f){0});
+    pc_a4f d = math_qerr(q0, q1);
+    w = ((pc_a3f){ { ((2.0 * d.v[0]) / dt), ((2.0 * d.v[1]) / dt), ((2.0 * d.v[2]) / dt) } });
+    return w;
+}
+
+bool estimation_st_coasting(double t, double t_st, double coast_s, bool stale) {
+    bool on = false;
+    on = (((t - t_st) < coast_s) && (!stale));
+    return on;
 }
 
 estimation_update3_out estimation_update3(pc_a4f q0, pc_a3f b0, pc_a6a6f p0, pc_a3a6f h, pc_a3a3f r, pc_a3f y, double gate) {

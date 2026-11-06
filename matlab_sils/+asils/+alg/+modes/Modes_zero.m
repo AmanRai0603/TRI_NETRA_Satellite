@@ -24,4 +24,5 @@ function s = Modes_zero()
     s.mag_seen = false;
     s.mag_age = 0;
     s.gyro_age = 0;
+    s.gyro_quiet = false;
 end

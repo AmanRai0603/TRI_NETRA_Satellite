@@ -81,7 +81,7 @@ static void t_estimation(void)
         adcs_fromrotvec(th, dq); adcs_qmult(q, dq, q0);
         adcs_mekf_init(&K, q0, 0.2, 1e-3, 1e-6, 1e-8);
         for (k = 0; k < 200; k++) {
-            adcs_mekf_predict(&K, w, 0.1);
+            adcs_mekf_predict(&K, w, 0.1, 0);
             adcs_mekf_vector(&K, b[0], r[0], 1e-3, 0); adcs_mekf_vector(&K, b[1], r[1], 1e-3, 0);
         }
         e = adcs_qangle(q, K.q)*180/ADCS_PI;
@@ -136,7 +136,7 @@ static int run_detumble(int16_t pwm_log[30][3])
     p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042; p.igrf_nmax = 10; p.rate_lpf_s = 0.3;
     /* the values params.toml requires to be positive (the flight software refuses a blob without them) */
     p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005; p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0;
-    p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0;
+    p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0; p.gyro_stale_ticks = 3;
     adcs_params_encode(&p, blob, sizeof blob);
     hal_stub_reset();
     in.abi_version = ADCS_FSW_ABI_VERSION; in.config_blob = blob; in.config_len = sizeof blob; in.start_ns = 0;
@@ -182,7 +182,7 @@ static void t_abi(void)
             p.jd0 = 2461407.25; p.dt = 0.1; p.mu = 3.986004418e14; p.start_mode = ADCS_MODE_DETUMBLE; p.auto_next = ADCS_MODE_NONE;
             p.mtq_period = 1.0; p.mtq_meas = 0.2; p.m_max = 0.2; p.bdot_k = 1e-3; p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042;
             p.igrf_nmax = 10; p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005;
-            p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0; p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0;
+            p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0; p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0; p.gyro_stale_ticks = 3;
             if (k == 1) p.nr = 9;                      /* more rotors than the arrays hold */
             if (k == 2) p.m_max = 0.0/0.0;             /* NaN */
             if (k == 3) p.start_mode = 11;             /* no such controller state */
@@ -228,7 +228,7 @@ static void t_safe(void)
         p.mtq_period = 1.0; p.mtq_meas = 0.2; p.m_max = 0.2; p.bdot_k = 1e-3; p.has_gyro = 1;
         p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042; p.igrf_nmax = 10; p.rate_lpf_s = 0.3;
         p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005; p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0;
-        p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0;
+        p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0; p.gyro_stale_ticks = 3;
         adcs_params_encode(&p, blob, sizeof blob);
         hal_stub_reset();
         in.abi_version = ADCS_FSW_ABI_VERSION; in.config_blob = blob; in.config_len = sizeof blob; in.start_ns = 0;
@@ -237,7 +237,7 @@ static void t_safe(void)
             double B[3] = {2e-5, -1e-5, 3e-5}, w[3] = {0.05, -0.02, 0.1};
             HS.now_ns = (uint64_t)k*100000000ull;
             HS.mag[0] = (uint8_t)(k < 30 || k == 719); for (i = 0; i < 3; i++) put16(HS.mag + 1 + 2*i, B[i]/ADCS_MAG_LSB_T);
-            HS.gyro[0] = 1; for (i = 0; i < 3; i++) put32(HS.gyro + 1 + 4*i, w[i]/ADCS_GYRO_LSB);
+            HS.gyro[0] = 1; for (i = 0; i < 3; i++) put32(HS.gyro + 1 + 4*i, w[i]/ADCS_GYRO_LSB + (double)((k*7 + i*3) % 5));   /* counts that change, as a gyro's do (a repeated sample is a quiet gyro, F2) */
             adcs_fsw_step(HS.now_ns);
             if (run == 0 && k < 30 && (HS.pwm[0] || HS.pwm[1] || HS.pwm[2])) on_before = 1;
             if (run == 0 && k >= 30 && k < 719 && (HS.pwm[0] || HS.pwm[1] || HS.pwm[2])) on_after = 1;
@@ -283,7 +283,7 @@ static void t_nonfinite(void)
 int32_t adcs_fsw_debug(double *out, int n);
 #define TK_JD0 2461407.25
 #define TK_DAY 86400.0
-#define TK_STALE_LIMIT_S 10.0       /* F2: shorter than the detumble hold, far shorter than the 60 s of today */
+#define TK_STALE_LIMIT_S 1.0        /* F2: DR-fdir-002 sets 3 ticks (0.3 s); the test looks once a second, so one second is its limit; far shorter than the 60 s fault */
 
 static void tk_params(adcs_params_t *p, int start, int sun_gps)
 {
@@ -292,7 +292,7 @@ static void tk_params(adcs_params_t *p, int start, int sun_gps)
     p->bdot_law = 0; p->mtq_period = 1.0; p->mtq_meas = 0.2; p->m_max = 0.2; p->bdot_k = 1e-3; p->has_gyro = 1;
     p->J[0][0] = 0.0067; p->J[1][1] = 0.042; p->J[2][2] = 0.042; p->igrf_nmax = 10; p->rate_lpf_s = 0.3;
     p->ss_eclipse = 1; p->gd_T = 1.0; p->mtq_phi = 0.01; p->rw_phi = 0.01; p->rw_dt = 0.1; p->fdir_s = 3.0; p->fdir_win_s = 120.0; p->fdir_h_frac = 0.005;
-    p->rcsd_T_damp_s = 20.0; p->rcsd_period_s = 1.0; p->st_coast_s = 900.0; p->mekf_sig_mag = 0.01; p->mekf_sig_sun = 0.005; p->mekf_meas_scale = 1.0; p->clock_step_max_s = 60.0;
+    p->rcsd_T_damp_s = 20.0; p->rcsd_period_s = 1.0; p->st_coast_s = 900.0; p->mekf_sig_mag = 0.01; p->mekf_sig_sun = 0.005; p->mekf_meas_scale = 1.0; p->clock_step_max_s = 60.0; p->gyro_stale_ticks = 3;
     if (sun_gps) {
         int i;
         p->has_sun = 1; p->has_gps = 1; p->gnss_ecef = 0; p->gyro_arw = 1e-6; p->gyro_rrw = 1e-8;
@@ -369,7 +369,8 @@ static void tk_feed(double t, double jd)
     adcs_sun_model(jd, S); adcs_mat3_vec(A, S, Sb);
     HS.mag[0] = 1; for (i = 0; i < 3; i++) put16(HS.mag + 1 + 2*i, Bb[i]/ADCS_MAG_LSB_T);
     HS.sun[0] = 1; for (i = 0; i < 3; i++) put16(HS.sun + 1 + 2*i, Sb[i]*ADCS_Q15);
-    HS.gyro[0] = 1;
+    HS.gyro[0] = 1;       /* a rate of zero with counts that change, as a gyro's do (a repeated sample is a quiet gyro, F2) */
+    { static unsigned tick_n; for (i = 0; i < 3; i++) put32(HS.gyro + 1 + 4*i, (double)((tick_n*7 + i*3) % 5)); tick_n++; }
     memset(pl, 0, sizeof pl); pl[0] = 1;
     for (i = 0; i < 3; i++) { put32(pl + 1 + 4*i, r[i]*100.0); put32(pl + 13 + 4*i, v[i]*1000.0); }
     put32(pl + 25, ws); put32(pl + 29, (ds - ws)*1e6);
@@ -476,7 +477,7 @@ static void tk_quiet_gyro(int silent)
         if (k >= 100 && k % 10 == 9) {
             int s = (k - 99)/10;
             adcs_fsw_peek(&st); adcs_fsw_debug(d, 13);
-            if (flagged < 0 && (st.faults & 0x200)) flagged = s;
+            if (flagged < 0 && (st.faults & 0x400)) flagged = s;     /* bit 10: the quiet gyro (the 60 s fault is bit 9) */
             if (s == (int)TK_STALE_LIMIT_S) w10 = sqrt(d[10]*d[10] + d[11]*d[11] + d[12]*d[12]);
         }
     }
@@ -494,6 +495,8 @@ static const struct { const char *name; void (*fn)(void); } ticks[] = {
     { "a clock step of +1 h keeps the date (F1)", tk_step_plus_1h },
     { "a clock step of -1 s never runs the time back (F1)", tk_step_minus_1s },
     { "a clock step back past the start does not wrap (F1)", tk_step_back_past_start },
+    { "a gyro that stops answering is flagged, its rate dropped (F2)", tk_gyro_stops_answering },
+    { "a gyro frozen on its last sample is flagged, rate dropped (F2)", tk_gyro_frozen },
 };
 
 static void t_ticks(void)
@@ -508,8 +511,7 @@ static void t_ticks(void)
 
 /* The skipped list: the tick tests no fix has made pass yet. The step that fixes one (named with it) moves it into main's run. */
 static const struct { const char *name; void (*fn)(void); const char *fixed_by; } skipped[] = {
-    { "a gyro that stops answering is flagged, its rate dropped (F2)", tk_gyro_stops_answering, "S11.4b/S11.5" },
-    { "a gyro frozen on its last sample is flagged, rate dropped (F2)", tk_gyro_frozen,        "S11.4b/S11.5" },
+    { NULL, NULL, NULL },       /* none: F2 (S11.5) was the last */
 };
 
 /* without ADCS_RUN_SKIPPED the list is named and not run; with it every test runs and says what it shows today, outside the count */
@@ -519,6 +521,7 @@ static void t_skipped(void)
     int run = getenv("ADCS_RUN_SKIPPED") != NULL;
     for (i = 0; i < sizeof skipped/sizeof skipped[0]; i++) {
         int p0 = n_pass, f0 = n_fail;
+        if (!skipped[i].name) continue;
         if (!run) { printf("SKIP %s: %s fixes it\n", skipped[i].name, skipped[i].fixed_by); continue; }
         skipped[i].fn();
         printf("%s %s (%d checks failed)\n", n_fail > f0 ? "FAILS TODAY" : "PASSES", skipped[i].name, n_fail - f0);

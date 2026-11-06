@@ -16,9 +16,16 @@ end
 
 ## The prediction over dt on the measured rate wm, with gyro angle and rate random walks arw, rrw:
 ## q <- q fromrotvec((wm - b) dt), P <- Phi P Phi' + Q.
+## With the gyro quiet (stale, DR-fdir-002, F2) the rate wm is the controllers' zero, not a measurement: the angle random
+## walk is raised to the rate the body may have, 2e-3 rad/s (about twice the orbital rate of a low orbit; the developer's
+## value, for fdir to sign) over the step, so that P grows by that uncertainty and the vector updates take the attitude back.
 fn mekf_predict(q0: quat in -1 .. 1, b: vec3[1] in -1e-3 .. 1e-3, p0: real[1][6][6] in -1e-4 .. 1e-4, arw: real[1] in 1e-6 .. 1e-3, \
-                rrw: real[1] in 1e-8 .. 1e-5, wm: vec3[1] in -0.1 .. 0.1, dt: real[1] in 0.01 .. 1) -> (q: quat, p: real[1][6][6])
-    let sv2 = arw*arw
+                rrw: real[1] in 1e-8 .. 1e-5, wm: vec3[1] in -0.1 .. 0.1, dt: real[1] in 0.01 .. 1, stale: bool) -> (q: quat, p: real[1][6][6])
+    let arw_eff = arw
+    if stale and 2e-3*sqrt(dt) > arw
+        arw_eff = 2e-3*sqrt(dt)
+    end
+    let sv2 = arw_eff*arw_eff
     let su2 = rrw*rrw
     let w = wm - b
     q = qnorm(qmult(q0, fromrotvec(w*dt)))
@@ -56,6 +63,21 @@ fn mekf_predict(q0: quat in -1 .. 1, b: vec3[1] in -1e-3 .. 1e-3, p0: real[1][6]
         p[i + 3][i] = p[i + 3][i] + -su2*dt*dt/2.0
         p[i + 3][i + 3] = p[i + 3][i + 3] + su2*dt
     end
+end
+
+## The body rate between two estimated attitudes dt apart, w = 2 vec(conj(q0) q1)/dt (a small rotation, its sign fixed
+## so that the scalar part is not negative). With a quiet gyro (DR-fdir-002, F2) it is the controllers' rate: their loops
+## have no damping without a rate, and the filter's attitude, held by the star tracker or the vector updates, has one.
+fn att_rate(q0: quat in -1 .. 1, q1: quat in -1 .. 1, dt: real[1] in 0.01 .. 1) -> w: vec3[1]
+    let d = qerr(q0, q1)
+    w = [2.0*d[0]/dt, 2.0*d[1]/dt, 2.0*d[2]/dt]
+end
+
+## Whether the star tracker's outage is still a coast on the gyro: within the coast time of the last tracker update, and
+## the gyro answering with fresh samples (a quiet gyro ends the coast, DR-fdir-002, F2: the attitude it carries is not
+## held by a rate nobody measures, and the vector updates take over).
+fn st_coasting(t: real[s] in 0 .. 3000, t_st: real[s] in 0 .. 3000, coast_s: real[s] in 0 .. 3000, stale: bool) -> on: bool
+    on = (t - t_st < coast_s) and not stale
 end
 
 ## The Joseph-form update with a 3-row measurement H (3 x 6), noise R and innovation y. With

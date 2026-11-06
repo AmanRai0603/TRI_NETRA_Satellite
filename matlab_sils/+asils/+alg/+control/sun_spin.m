@@ -15,9 +15,9 @@ function [m0] = sun_spin(b, w, s, eclipse, j, spin_dps, k1, k2, rz_floor)
     m0 = zeros(3, 1);
     if (~eclipse)
         fl = (rz_floor * j(3, 3));
-        h__63 = (spin_dps * (pi / 180));
-        if h__63 < 0, h__63 = -h__63; elseif h__63 == 0, h__63 = 0; end
-        ws = (-(h__63));
+        h__64 = (spin_dps * (pi / 180));
+        if h__64 < 0, h__64 = -h__64; elseif h__64 == 0, h__64 = 0; end
+        ws = (-(h__64));
         sg = sign(w(3));
         if (sg == 0)
             sg = 1;

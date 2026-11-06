@@ -16,18 +16,18 @@ function [s, on] = ctl_capture(st, cp, hdev)
     if (~((s.mode == 4) || (cp.capture_deg <= 0)))
         qe = asils.alg.math.qerr(s.q_ref, s.q);
         if (qe(4) > 1)
-            h__72 = 1;
+            h__73 = 1;
         else
-            h__72 = qe(4);
+            h__73 = qe(4);
         end
-        h__73 = acos(h__72);
-        if ~isreal(h__73), h__73 = NaN; end
-        th = (2 * h__73);
+        h__74 = acos(h__73);
+        if ~isreal(h__74), h__74 = NaN; end
+        th = (2 * h__74);
         if (~(th < (cp.capture_deg * (pi / 180))))
             on = true;
-            h__74 = (((qe(1) * qe(1)) + (qe(2) * qe(2))) + (qe(3) * qe(3)));
-            if h__74 < 0, h__74 = NaN; else, h__74 = sqrt(h__74); end
-            n = h__74;
+            h__75 = (((qe(1) * qe(1)) + (qe(2) * qe(2))) + (qe(3) * qe(3)));
+            if h__75 < 0, h__75 = NaN; else, h__75 = sqrt(h__75); end
+            n = h__75;
             if (n < 1e-12)
                 n = 1e-12;
             end
@@ -54,11 +54,11 @@ function [s, on] = ctl_capture(st, cp, hdev)
             if (((0.5 * minh) / jm) < wmax)
                 wmax = ((0.5 * minh) / jm);
             end
-            h__75 = asils.alg.math.dcm(qe);
-            wref = [h__75(1, 1)*s.w_ref(1) + h__75(1, 2)*s.w_ref(2) + h__75(1, 3)*s.w_ref(3); h__75(2, 1)*s.w_ref(1) + h__75(2, 2)*s.w_ref(2) + h__75(2, 3)*s.w_ref(3); h__75(3, 1)*s.w_ref(1) + h__75(3, 2)*s.w_ref(2) + h__75(3, 3)*s.w_ref(3)];
-            h__76 = ((2 * alpha) * th);
-            if h__76 < 0, h__76 = NaN; else, h__76 = sqrt(h__76); end
-            sp = h__76;
+            h__76 = asils.alg.math.dcm(qe);
+            wref = [h__76(1, 1)*s.w_ref(1) + h__76(1, 2)*s.w_ref(2) + h__76(1, 3)*s.w_ref(3); h__76(2, 1)*s.w_ref(1) + h__76(2, 2)*s.w_ref(2) + h__76(2, 3)*s.w_ref(3); h__76(3, 1)*s.w_ref(1) + h__76(3, 2)*s.w_ref(2) + h__76(3, 3)*s.w_ref(3)];
+            h__77 = ((2 * alpha) * th);
+            if h__77 < 0, h__77 = NaN; else, h__77 = sqrt(h__77); end
+            sp = h__77;
             if (wmax < sp)
                 sp = wmax;
             end
@@ -66,16 +66,16 @@ function [s, on] = ctl_capture(st, cp, hdev)
             i = ((0):((3) - 1)).';
             wc((i) + 1) = (reshape(wref((i) + 1), [], 1) - (reshape(e((i) + 1), [], 1) .* sp));
             if (wmax > 0.000001)
-                h__77 = wmax;
+                h__78 = wmax;
             else
-                h__77 = 0.000001;
+                h__78 = 0.000001;
             end
-            kr = ((4 * alpha) / h__77);
+            kr = ((4 * alpha) / h__78);
             if (kr > 0.5)
                 kr = 0.5;
             end
-            h__78 = ([cp.j(1, 1)*s.w_est(1) + cp.j(1, 2)*s.w_est(2) + cp.j(1, 3)*s.w_est(3); cp.j(2, 1)*s.w_est(1) + cp.j(2, 2)*s.w_est(2) + cp.j(2, 3)*s.w_est(3); cp.j(3, 1)*s.w_est(1) + cp.j(3, 2)*s.w_est(2) + cp.j(3, 3)*s.w_est(3)] + hdev);
-            gy = [s.w_est(2)*h__78(3) - s.w_est(3)*h__78(2); s.w_est(3)*h__78(1) - s.w_est(1)*h__78(3); s.w_est(1)*h__78(2) - s.w_est(2)*h__78(1)];
+            h__79 = ([cp.j(1, 1)*s.w_est(1) + cp.j(1, 2)*s.w_est(2) + cp.j(1, 3)*s.w_est(3); cp.j(2, 1)*s.w_est(1) + cp.j(2, 2)*s.w_est(2) + cp.j(2, 3)*s.w_est(3); cp.j(3, 1)*s.w_est(1) + cp.j(3, 2)*s.w_est(2) + cp.j(3, 3)*s.w_est(3)] + hdev);
+            gy = [s.w_est(2)*h__79(3) - s.w_est(3)*h__79(2); s.w_est(3)*h__79(1) - s.w_est(1)*h__79(3); s.w_est(1)*h__79(2) - s.w_est(2)*h__79(1)];
             x = zeros(3, 1);
             i = ((0):((3) - 1)).';
             x((i) + 1) = (kr .* (reshape(wc((i) + 1), [], 1) - reshape(s.w_est((i) + 1), [], 1)));

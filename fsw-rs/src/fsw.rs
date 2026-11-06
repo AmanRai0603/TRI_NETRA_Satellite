@@ -59,6 +59,9 @@ pub struct Fsw {
     clean: bool,
     // sensor health: seconds since the last good sample, the last good field
     mag_age: f64, gyro_age: f64, mag_seen: bool, b_good: V3,
+    // the gyro chain (DR-fdir-002, DR-gdn-003): the last sample, the ticks it has stayed the same, quiet (stale); the B-dot rate estimate of the coil cycle
+    w_prev: V3, gyro_same: i64, gyro_quiet: bool,
+    q_prev: Option<Q>,       // the filter's attitude of the last tick: with a quiet gyro its change is the controllers' rate
     have_r: bool, r: V3, v: V3,
     k: Mekf, ad_ok: bool, t_st: f64, mag_done: bool, n_rej: f64, gh_jd: f64,
     es_n: V3,
@@ -278,7 +281,7 @@ impl Fsw {
                     }
                 }
             } else {
-                self.k.predict(&z.w, dt);
+                self.k.predict(&z.w, dt, self.gyro_quiet);
                 if p.has_st != 0 && z.st_ok {
                     for h in 0..p.n_heads as usize {
                         let qs = &z.q_st[h];
@@ -290,8 +293,8 @@ impl Fsw {
                         }
                     }
                     self.t_st = self.t;
-                } else if p.has_st != 0 && self.t - self.t_st < p.st_coast_s {
-                    // short star-tracker outage: coast on the gyro
+                } else if p.has_st != 0 && crate::alg::estimation::st_coasting(self.t, self.t_st, p.st_coast_s, self.gyro_quiet) {
+                    // short star-tracker outage: coast on the gyro (a quiet gyro ends it: estimation::st_coasting)
                 } else {
                     // vector updates once per coil cycle; the field on the first clean tick of the cycle
                     let (mut tried, mut took) = (0.0, 0.0);
@@ -320,7 +323,15 @@ impl Fsw {
         }
         {
             let a = dt/(p.rate_lpf_s + dt);
-            let wr = if self.ad_ok { sub3(&z.w, &self.k.b) } else { z.w };
+            let wr = if self.ad_ok {
+                // a quiet gyro gives no rate: the attitude's change does (estimation::att_rate), the loops need a damping term
+                let w = match (self.gyro_quiet, self.q_prev) {
+                    (true, Some(q0)) => crate::alg::estimation::att_rate(q0, self.k.q, dt),
+                    _ => sub3(&z.w, &self.k.b),
+                };
+                self.q_prev = Some(self.k.q);
+                w
+            } else { self.q_prev = None; z.w };
             if p.rate_lpf_s <= 0.0 { self.w_est = wr; }
             else { for i in 0..3 { self.w_est[i] += a*(wr[i] - self.w_est[i]); } }
         }
@@ -635,6 +646,8 @@ const MAG_HOLD_CYCLES: f64 = 2.0;
 /// Fault bits a sensor silent too long sets (fdir.rs); the mode manager reads them.
 pub const FAULT_MAG_STALE: u16 = 1 << 8;
 pub const FAULT_GYRO_STALE: u16 = 1 << 9;
+/// A gyro quiet for fsw_param_gyro_stale_ticks ticks (bit 10; set and cleared by fdir_safe).
+pub const FAULT_GYRO_QUIET: u16 = 1 << 10;
 /// a star-tracker quaternion further than this from unit length is not a reading; its innovation is
 /// not gated (= adcs_fsw.c)
 const ST_NORM_TOL: f64 = 1e-3;

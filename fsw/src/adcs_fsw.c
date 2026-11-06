@@ -252,7 +252,7 @@ int32_t adcs_fsw_step(uint64_t now_ns)
                 }
             }
         } else {
-            adcs_mekf_predict(&S.K, z->w, dt);
+            adcs_mekf_predict(&S.K, z->w, dt, S.gyro_quiet);
             if (p->has_st && z->st_ok) {
                 int h;
                 for (h = 0; h < p->n_heads; h++) {
@@ -267,8 +267,8 @@ int32_t adcs_fsw_step(uint64_t now_ns)
                     }
                 }
                 S.t_st = S.t;
-            } else if (p->has_st && S.t - S.t_st < p->st_coast_s) {
-                /* short star-tracker outage: coast on the gyro */
+            } else if (p->has_st && estimation_st_coasting(S.t, S.t_st, p->st_coast_s, S.gyro_quiet != 0)) {
+                /* short star-tracker outage: coast on the gyro (a quiet gyro ends it: estimation::st_coasting) */
             } else {
                 /* vector updates once per coil cycle; the field on the first clean tick of the cycle (the
                  * coils are off from the cycle start, and the magnetometer sees the previous tick's dipole) */
@@ -293,7 +293,13 @@ int32_t adcs_fsw_step(uint64_t now_ns)
     }
     {   /* rate for the controllers: bias removed, first-order low-pass */
         adcs_real wr[3], a = dt/(p->rate_lpf_s + dt);
-        if (S.ad_ok) adcs_sub3(z->w, S.K.b, wr); else adcs_copy3(z->w, wr);
+        if (S.ad_ok) {
+            adcs_sub3(z->w, S.K.b, wr);
+            /* a quiet gyro gives no rate: the attitude's change does (estimation::att_rate), the loops need a damping term */
+            if (S.gyro_quiet && S.qp_ok) gl_o3(estimation_att_rate(gl_v4(S.q_prev), gl_v4(S.K.q), dt), wr);
+            for (i = 0; i < 4; i++) S.q_prev[i] = S.K.q[i];
+            S.qp_ok = 1;
+        } else { adcs_copy3(z->w, wr); S.qp_ok = 0; }
         if (p->rate_lpf_s <= 0) adcs_copy3(wr, S.w_est);
         else for (i = 0; i < 3; i++) S.w_est[i] += a*(wr[i] - S.w_est[i]);
     }

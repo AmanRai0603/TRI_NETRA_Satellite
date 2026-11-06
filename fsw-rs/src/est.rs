@@ -15,8 +15,8 @@ impl Mekf {
     }
 
     /// Written from the design: estimation::mekf_predict (src/alg).
-    pub fn predict(&mut self, wm: &V3, dt: f64) {
-        (self.q, self.p) = alg::mekf_predict(self.q, self.b, self.p, self.arw, self.rrw, *wm, dt);
+    pub fn predict(&mut self, wm: &V3, dt: f64, stale: bool) {
+        (self.q, self.p) = alg::mekf_predict(self.q, self.b, self.p, self.arw, self.rrw, *wm, dt, stale);
     }
 
     /// Joseph-form update on a vector measurement; with gate > 0 an innovation whose y' S^-1 y exceeds

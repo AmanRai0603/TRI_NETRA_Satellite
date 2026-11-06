@@ -34,6 +34,9 @@ pub fn mekf_init(q0: [f64; 4], sa: f64, sb: f64) -> ([f64; 4], [f64; 3], [[f64; 
 
 /// The prediction over dt on the measured rate wm, with gyro angle and rate random walks arw, rrw:
 /// q <- q fromrotvec((wm - b) dt), P <- Phi P Phi' + Q.
+/// With the gyro quiet (stale, DR-fdir-002, F2) the rate wm is the controllers' zero, not a measurement: the angle random
+/// walk is raised to the rate the body may have, 2e-3 rad/s (about twice the orbital rate of a low orbit; the developer's
+/// value, for fdir to sign) over the step, so that P grows by that uncertainty and the vector updates take the attitude back.
 /// - q0: real[1][4] (passed a plain number)
 /// - b: real[1][3] (passed a plain number)
 /// - p0: real[1][6][6] (passed a plain number)
@@ -41,13 +44,18 @@ pub fn mekf_init(q0: [f64; 4], sa: f64, sb: f64) -> ([f64; 4], [f64; 3], [[f64; 
 /// - rrw: real[1] (passed a plain number)
 /// - wm: real[1][3] (passed a plain number)
 /// - dt: real[1] (passed a plain number)
+/// - stale: bool (passed true or false)
 /// - returns q: real[1][4] (passed a plain number)
 /// - returns p: real[1][6][6] (passed a plain number)
 #[allow(clippy::too_many_arguments)]
-pub fn mekf_predict(q0: [f64; 4], b: [f64; 3], p0: [[f64; 6]; 6], arw: f64, rrw: f64, wm: [f64; 3], dt: f64) -> ([f64; 4], [[f64; 6]; 6]) {
+pub fn mekf_predict(q0: [f64; 4], b: [f64; 3], p0: [[f64; 6]; 6], arw: f64, rrw: f64, wm: [f64; 3], dt: f64, stale: bool) -> ([f64; 4], [[f64; 6]; 6]) {
     let mut q: [f64; 4] = [0.0; 4];
     let mut p: [[f64; 6]; 6] = [[0.0; 6]; 6];
-    let mut sv2: f64 = (arw * arw);
+    let mut arw_eff: f64 = arw;
+    if (stale && ((0.002 * crate::m::sqrt(dt)) > arw)) {
+        arw_eff = (0.002 * crate::m::sqrt(dt));
+    }
+    let mut sv2: f64 = (arw_eff * arw_eff);
     let mut su2: f64 = (rrw * rrw);
     let mut w: [f64; 3] = rt::vsub(wm, b);
     q = crate::alg::math::qnorm(crate::alg::math::qmult(q0, crate::alg::math::fromrotvec(rt::vscale(w, dt))));
@@ -131,6 +139,36 @@ pub fn mekf_predict(q0: [f64; 4], b: [f64; 3], p0: [[f64; 6]; 6], arw: f64, rrw:
         }
     }
     (q, p)
+}
+
+/// The body rate between two estimated attitudes dt apart, w = 2 vec(conj(q0) q1)/dt (a small rotation, its sign fixed
+/// so that the scalar part is not negative). With a quiet gyro (DR-fdir-002, F2) it is the controllers' rate: their loops
+/// have no damping without a rate, and the filter's attitude, held by the star tracker or the vector updates, has one.
+/// - q0: real[1][4] (passed a plain number)
+/// - q1: real[1][4] (passed a plain number)
+/// - dt: real[1] (passed a plain number)
+/// - returns w: real[1][3] (passed a plain number)
+#[allow(clippy::too_many_arguments)]
+pub fn att_rate(q0: [f64; 4], q1: [f64; 4], dt: f64) -> [f64; 3] {
+    let mut w: [f64; 3] = [0.0; 3];
+    let mut d: [f64; 4] = crate::alg::math::qerr(q0, q1);
+    w = [((2.0 * d[0]) / dt), ((2.0 * d[1]) / dt), ((2.0 * d[2]) / dt)];
+    w
+}
+
+/// Whether the star tracker's outage is still a coast on the gyro: within the coast time of the last tracker update, and
+/// the gyro answering with fresh samples (a quiet gyro ends the coast, DR-fdir-002, F2: the attitude it carries is not
+/// held by a rate nobody measures, and the vector updates take over).
+/// - t: real[s] (passed in s)
+/// - t_st: real[s] (passed in s)
+/// - coast_s: real[s] (passed in s)
+/// - stale: bool (passed true or false)
+/// - returns on: bool (passed true or false)
+#[allow(clippy::too_many_arguments)]
+pub fn st_coasting(t: f64, t_st: f64, coast_s: f64, stale: bool) -> bool {
+    let mut on: bool = false;
+    on = (((t - t_st) < coast_s) && (!stale));
+    on
 }
 
 /// The Joseph-form update with a 3-row measurement H (3 x 6), noise R and innovation y. With

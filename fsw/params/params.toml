@@ -659,3 +659,9 @@ type = "f64"
 doc = "the forward bound of the onboard clock [s]: a clock reading further on than this after the previous one is refused and counted (the time moves by one tick); a step back holds (DR-fsw-001)"
 positive = true
 max = 3600
+[[field]]
+name = "gyro_stale_ticks"
+type = "u8"
+doc = "ticks a gyro sample may stay unchanged (or unanswered) before the gyro is quiet: its rate is zeroed for the controllers, the estimator's process noise is raised and the star-tracker coast ends (DR-fdir-002)"
+min = 1
+max = 100

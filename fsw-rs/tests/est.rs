@@ -30,7 +30,7 @@ fn propagation_is_phi_p_phi_t_plus_the_discrete_noise() {
     k.p = covariance();
     let (q0, p0) = (k.q, k.p);
     let wm = [0.05, -0.08, 0.03];
-    k.predict(&wm, dt);
+    k.predict(&wm, dt, false);
 
     // the attitude turns by the measured rate less the bias
     let w = sub3(&wm, &k.b);
@@ -60,7 +60,7 @@ fn propagation_is_phi_p_phi_t_plus_the_discrete_noise() {
 fn a_constant_rate_integrates_to_its_rotation() {
     let mut k = Mekf::new(&[0.0, 0.0, 0.0, 1.0], 0.1, 1e-3, 0.0, 0.0);
     k.b = [0.0, 0.0, 0.01];
-    for _ in 0..100 { k.predict(&[0.0, 0.0, 0.11], 0.1); }
+    for _ in 0..100 { k.predict(&[0.0, 0.0, 0.11], 0.1, false); }
     assert!(qangle(&k.q, &fromrotvec(&[0.0, 0.0, 1.0])) < 1e-12, "0.1 rad/s for 10 s about z is 1 rad");
     assert!(close(norm3(&[k.q[0], k.q[1], k.q[2]]).hypot(k.q[3]), 1.0, 1e-15));
 }
@@ -129,7 +129,7 @@ fn the_filter_learns_the_gyro_bias() {
     let (r1, r2) = ([1.0, 0.0, 0.0], unit(&[0.3, 1.0, -0.2]));
     for _ in 0..3000 {
         truth = qnorm(&qmult(&truth, &fromrotvec(&scale3(&wt, 0.1))));
-        k.predict(&add3(&wt, &bias), 0.1);
+        k.predict(&add3(&wt, &bias), 0.1, false);
         assert!(k.vector(&mat3_vec(&dcm(&truth), &r1), &r1, 1e-3, 0.0) && k.vector(&mat3_vec(&dcm(&truth), &r2), &r2, 1e-3, 0.0));
     }
     assert!(qangle(&truth, &k.q).to_degrees() < 1e-3, "attitude {} deg", qangle(&truth, &k.q).to_degrees());

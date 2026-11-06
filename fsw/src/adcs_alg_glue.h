@@ -43,7 +43,7 @@ static inline Modes gl_modes(const fsw_t *s)
     m.ad_ok = s->ad_ok != 0; m.n_rej = s->n_rej; m.i_q = gl_v3(s->I_q); m.sz_sum = s->sz_sum; m.sz_n = s->sz_n;
     m.sz_t0 = s->sz_t0; m.sigma = s->sigma; m.s_prop = gl_v3(s->s_prop); m.s_prop_ok = s->s_prop_ok != 0;
     m.acq_hold = s->acq_hold; m.sched_i = s->sched_i; m.faults = s->faults; m.w_est = gl_v3(s->w_est);
-    m.mag_seen = s->mag_seen != 0; m.mag_age = s->mag_age; m.gyro_age = s->gyro_age;
+    m.mag_seen = s->mag_seen != 0; m.mag_age = s->mag_age; m.gyro_age = s->gyro_age; m.gyro_quiet = s->gyro_quiet != 0;
     return m;
 }
 static inline void gl_put_modes(Modes m, fsw_t *s)
@@ -52,7 +52,7 @@ static inline void gl_put_modes(Modes m, fsw_t *s)
     s->ad_ok = m.ad_ok; s->n_rej = (int)m.n_rej; gl_o3(m.i_q, s->I_q); s->sz_sum = m.sz_sum; s->sz_n = (int)m.sz_n;
     s->sz_t0 = m.sz_t0; s->sigma = m.sigma; gl_o3(m.s_prop, s->s_prop); s->s_prop_ok = m.s_prop_ok;
     s->acq_hold = m.acq_hold; s->sched_i = (int)m.sched_i; s->faults = (uint16_t)m.faults; gl_o3(m.w_est, s->w_est);
-    s->mag_seen = m.mag_seen; s->mag_age = m.mag_age; s->gyro_age = m.gyro_age;
+    s->mag_seen = m.mag_seen; s->mag_age = m.mag_age; s->gyro_age = m.gyro_age; s->gyro_quiet = m.gyro_quiet;
 }
 static inline ModeParams gl_mode_params(const adcs_params_t *p)
 {

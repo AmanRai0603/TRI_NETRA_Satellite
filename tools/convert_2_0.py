@@ -332,6 +332,9 @@ def revise(gdir, revs, report):
                     to = d.get("to", beh)
                     if d.get("from", beh) != beh:
                         raise SystemExit(f"convert: revision {r['id']}: {nid} is {beh}, not {d['from']}")
+                    if kind == "method" and beh == "method":
+                        # a method the node already has is replaced, not added to (S11.5: a flight algorithm the design changes)
+                        c.executemany("DELETE FROM content WHERE section = ? AND field = ?", {(s, fld) for s, fld, _v, _o in rows})
                     c.execute("UPDATE block SET behaviour = ?", (to,))
                     c.executemany("INSERT INTO content VALUES (?, ?, ?, ?)", rows)
                     n = c.execute("SELECT coalesce(max(n), 0) + 1 FROM revision").fetchone()[0]

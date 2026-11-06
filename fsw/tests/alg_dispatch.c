@@ -1202,7 +1202,7 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
         return 0;
     }
     if (strcmp(name, "estimation::mekf_predict") == 0) {
-        if (nx != 49) { return -1; }
+        if (nx != 50) { return -1; }
     {
         pc_a4f a0;
         pc_a3f a1;
@@ -1211,6 +1211,7 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
         double a4;
         pc_a3f a5;
         double a6;
+        bool a7;
         a0.v[0] = x[0];
         a0.v[1] = x[1];
         a0.v[2] = x[2];
@@ -1260,8 +1261,9 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
         a5.v[1] = x[46];
         a5.v[2] = x[47];
         a6 = x[48];
+        a7 = x[49] != 0.0;
         {
-            estimation_mekf_predict_out r = estimation_mekf_predict(a0, a1, a2, a3, a4, a5, a6);
+            estimation_mekf_predict_out r = estimation_mekf_predict(a0, a1, a2, a3, a4, a5, a6, a7);
             out[(*ny)++] = r.q.v[0];
             out[(*ny)++] = r.q.v[1];
             out[(*ny)++] = r.q.v[2];
@@ -1302,6 +1304,48 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
             out[(*ny)++] = r.p.v[5].v[3];
             out[(*ny)++] = r.p.v[5].v[4];
             out[(*ny)++] = r.p.v[5].v[5];
+        }
+    }
+        return 0;
+    }
+    if (strcmp(name, "estimation::att_rate") == 0) {
+        if (nx != 9) { return -1; }
+    {
+        pc_a4f a0;
+        pc_a4f a1;
+        double a2;
+        a0.v[0] = x[0];
+        a0.v[1] = x[1];
+        a0.v[2] = x[2];
+        a0.v[3] = x[3];
+        a1.v[0] = x[4];
+        a1.v[1] = x[5];
+        a1.v[2] = x[6];
+        a1.v[3] = x[7];
+        a2 = x[8];
+        {
+            pc_a3f r = estimation_att_rate(a0, a1, a2);
+            out[(*ny)++] = r.v[0];
+            out[(*ny)++] = r.v[1];
+            out[(*ny)++] = r.v[2];
+        }
+    }
+        return 0;
+    }
+    if (strcmp(name, "estimation::st_coasting") == 0) {
+        if (nx != 4) { return -1; }
+    {
+        double a0;
+        double a1;
+        double a2;
+        bool a3;
+        a0 = x[0];
+        a1 = x[1];
+        a2 = x[2];
+        a3 = x[3] != 0.0;
+        {
+            bool r = estimation_st_coasting(a0, a1, a2, a3);
+            out[(*ny)++] = r ? 1.0 : 0.0;
         }
     }
         return 0;
@@ -3582,7 +3626,7 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
         return 0;
     }
     if (strcmp(name, "modes::modes_enter") == 0) {
-        if (nx != 29) { return -1; }
+        if (nx != 30) { return -1; }
     {
         Modes a0;
         int64_t a1;
@@ -3614,7 +3658,8 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
         a0.mag_seen = x[25] != 0.0;
         a0.mag_age = x[26];
         a0.gyro_age = x[27];
-        a1 = (int64_t)x[28];
+        a0.gyro_quiet = x[28] != 0.0;
+        a1 = (int64_t)x[29];
         {
             Modes r = modes_modes_enter(a0, a1);
             out[(*ny)++] = (double)r.mode;
@@ -3645,6 +3690,7 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
             out[(*ny)++] = r.mag_seen ? 1.0 : 0.0;
             out[(*ny)++] = r.mag_age;
             out[(*ny)++] = r.gyro_age;
+            out[(*ny)++] = r.gyro_quiet ? 1.0 : 0.0;
         }
     }
         return 0;
@@ -3666,7 +3712,7 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
         return 0;
     }
     if (strcmp(name, "modes::spin_guards") == 0) {
-        if (nx != 69) { return -1; }
+        if (nx != 70) { return -1; }
     {
         Modes a0;
         ModeParams a1;
@@ -3701,47 +3747,48 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
         a0.mag_seen = x[25] != 0.0;
         a0.mag_age = x[26];
         a0.gyro_age = x[27];
-        a1.auto_next = (int64_t)x[28];
-        a1.n_sched = (int64_t)x[29];
-        a1.sched_t.v[0] = x[30];
-        a1.sched_t.v[1] = x[31];
-        a1.sched_t.v[2] = x[32];
-        a1.sched_t.v[3] = x[33];
-        a1.sched_t.v[4] = x[34];
-        a1.sched_t.v[5] = x[35];
-        a1.sched_t.v[6] = x[36];
-        a1.sched_t.v[7] = x[37];
-        a1.sched_mode.v[0] = (int64_t)x[38];
-        a1.sched_mode.v[1] = (int64_t)x[39];
-        a1.sched_mode.v[2] = (int64_t)x[40];
-        a1.sched_mode.v[3] = (int64_t)x[41];
-        a1.sched_mode.v[4] = (int64_t)x[42];
-        a1.sched_mode.v[5] = (int64_t)x[43];
-        a1.sched_mode.v[6] = (int64_t)x[44];
-        a1.sched_mode.v[7] = (int64_t)x[45];
-        a1.detumble_exit = x[46];
-        a1.detumble_hold_s = x[47];
-        a1.ss_law = (int64_t)x[48];
-        a1.ss_omega_max_dps = x[49];
-        a1.ss_spin_dps = x[50];
-        a1.ss_z_in_dps = x[51];
-        a1.ss_perp_in_dps = x[52];
-        a1.ss_t_check_s = x[53];
-        a1.ss_sun_min = x[54];
-        a1.ss_dwell_in_s = x[55];
-        a1.ss_omega_exit_dps = x[56];
-        a1.ss_perp_out_dps = x[57];
-        a1.ss_dwell_out_s = x[58];
-        a1.sun_axis.v[0] = x[59];
-        a1.sun_axis.v[1] = x[60];
-        a1.sun_axis.v[2] = x[61];
-        a1.sa_done_deg = x[62];
-        a1.sa_done_hold_s = x[63];
-        a2 = x[64] != 0.0;
-        a3.v[0] = x[65];
-        a3.v[1] = x[66];
-        a3.v[2] = x[67];
-        a4 = x[68];
+        a0.gyro_quiet = x[28] != 0.0;
+        a1.auto_next = (int64_t)x[29];
+        a1.n_sched = (int64_t)x[30];
+        a1.sched_t.v[0] = x[31];
+        a1.sched_t.v[1] = x[32];
+        a1.sched_t.v[2] = x[33];
+        a1.sched_t.v[3] = x[34];
+        a1.sched_t.v[4] = x[35];
+        a1.sched_t.v[5] = x[36];
+        a1.sched_t.v[6] = x[37];
+        a1.sched_t.v[7] = x[38];
+        a1.sched_mode.v[0] = (int64_t)x[39];
+        a1.sched_mode.v[1] = (int64_t)x[40];
+        a1.sched_mode.v[2] = (int64_t)x[41];
+        a1.sched_mode.v[3] = (int64_t)x[42];
+        a1.sched_mode.v[4] = (int64_t)x[43];
+        a1.sched_mode.v[5] = (int64_t)x[44];
+        a1.sched_mode.v[6] = (int64_t)x[45];
+        a1.sched_mode.v[7] = (int64_t)x[46];
+        a1.detumble_exit = x[47];
+        a1.detumble_hold_s = x[48];
+        a1.ss_law = (int64_t)x[49];
+        a1.ss_omega_max_dps = x[50];
+        a1.ss_spin_dps = x[51];
+        a1.ss_z_in_dps = x[52];
+        a1.ss_perp_in_dps = x[53];
+        a1.ss_t_check_s = x[54];
+        a1.ss_sun_min = x[55];
+        a1.ss_dwell_in_s = x[56];
+        a1.ss_omega_exit_dps = x[57];
+        a1.ss_perp_out_dps = x[58];
+        a1.ss_dwell_out_s = x[59];
+        a1.sun_axis.v[0] = x[60];
+        a1.sun_axis.v[1] = x[61];
+        a1.sun_axis.v[2] = x[62];
+        a1.sa_done_deg = x[63];
+        a1.sa_done_hold_s = x[64];
+        a2 = x[65] != 0.0;
+        a3.v[0] = x[66];
+        a3.v[1] = x[67];
+        a3.v[2] = x[68];
+        a4 = x[69];
         {
             Modes r = modes_spin_guards(a0, a1, a2, a3, a4);
             out[(*ny)++] = (double)r.mode;
@@ -3772,12 +3819,13 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
             out[(*ny)++] = r.mag_seen ? 1.0 : 0.0;
             out[(*ny)++] = r.mag_age;
             out[(*ny)++] = r.gyro_age;
+            out[(*ny)++] = r.gyro_quiet ? 1.0 : 0.0;
         }
     }
         return 0;
     }
     if (strcmp(name, "modes::modes_schedule") == 0) {
-        if (nx != 64) { return -1; }
+        if (nx != 65) { return -1; }
     {
         Modes a0;
         ModeParams a1;
@@ -3809,42 +3857,43 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
         a0.mag_seen = x[25] != 0.0;
         a0.mag_age = x[26];
         a0.gyro_age = x[27];
-        a1.auto_next = (int64_t)x[28];
-        a1.n_sched = (int64_t)x[29];
-        a1.sched_t.v[0] = x[30];
-        a1.sched_t.v[1] = x[31];
-        a1.sched_t.v[2] = x[32];
-        a1.sched_t.v[3] = x[33];
-        a1.sched_t.v[4] = x[34];
-        a1.sched_t.v[5] = x[35];
-        a1.sched_t.v[6] = x[36];
-        a1.sched_t.v[7] = x[37];
-        a1.sched_mode.v[0] = (int64_t)x[38];
-        a1.sched_mode.v[1] = (int64_t)x[39];
-        a1.sched_mode.v[2] = (int64_t)x[40];
-        a1.sched_mode.v[3] = (int64_t)x[41];
-        a1.sched_mode.v[4] = (int64_t)x[42];
-        a1.sched_mode.v[5] = (int64_t)x[43];
-        a1.sched_mode.v[6] = (int64_t)x[44];
-        a1.sched_mode.v[7] = (int64_t)x[45];
-        a1.detumble_exit = x[46];
-        a1.detumble_hold_s = x[47];
-        a1.ss_law = (int64_t)x[48];
-        a1.ss_omega_max_dps = x[49];
-        a1.ss_spin_dps = x[50];
-        a1.ss_z_in_dps = x[51];
-        a1.ss_perp_in_dps = x[52];
-        a1.ss_t_check_s = x[53];
-        a1.ss_sun_min = x[54];
-        a1.ss_dwell_in_s = x[55];
-        a1.ss_omega_exit_dps = x[56];
-        a1.ss_perp_out_dps = x[57];
-        a1.ss_dwell_out_s = x[58];
-        a1.sun_axis.v[0] = x[59];
-        a1.sun_axis.v[1] = x[60];
-        a1.sun_axis.v[2] = x[61];
-        a1.sa_done_deg = x[62];
-        a1.sa_done_hold_s = x[63];
+        a0.gyro_quiet = x[28] != 0.0;
+        a1.auto_next = (int64_t)x[29];
+        a1.n_sched = (int64_t)x[30];
+        a1.sched_t.v[0] = x[31];
+        a1.sched_t.v[1] = x[32];
+        a1.sched_t.v[2] = x[33];
+        a1.sched_t.v[3] = x[34];
+        a1.sched_t.v[4] = x[35];
+        a1.sched_t.v[5] = x[36];
+        a1.sched_t.v[6] = x[37];
+        a1.sched_t.v[7] = x[38];
+        a1.sched_mode.v[0] = (int64_t)x[39];
+        a1.sched_mode.v[1] = (int64_t)x[40];
+        a1.sched_mode.v[2] = (int64_t)x[41];
+        a1.sched_mode.v[3] = (int64_t)x[42];
+        a1.sched_mode.v[4] = (int64_t)x[43];
+        a1.sched_mode.v[5] = (int64_t)x[44];
+        a1.sched_mode.v[6] = (int64_t)x[45];
+        a1.sched_mode.v[7] = (int64_t)x[46];
+        a1.detumble_exit = x[47];
+        a1.detumble_hold_s = x[48];
+        a1.ss_law = (int64_t)x[49];
+        a1.ss_omega_max_dps = x[50];
+        a1.ss_spin_dps = x[51];
+        a1.ss_z_in_dps = x[52];
+        a1.ss_perp_in_dps = x[53];
+        a1.ss_t_check_s = x[54];
+        a1.ss_sun_min = x[55];
+        a1.ss_dwell_in_s = x[56];
+        a1.ss_omega_exit_dps = x[57];
+        a1.ss_perp_out_dps = x[58];
+        a1.ss_dwell_out_s = x[59];
+        a1.sun_axis.v[0] = x[60];
+        a1.sun_axis.v[1] = x[61];
+        a1.sun_axis.v[2] = x[62];
+        a1.sa_done_deg = x[63];
+        a1.sa_done_hold_s = x[64];
         {
             Modes r = modes_modes_schedule(a0, a1);
             out[(*ny)++] = (double)r.mode;
@@ -3875,12 +3924,13 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
             out[(*ny)++] = r.mag_seen ? 1.0 : 0.0;
             out[(*ny)++] = r.mag_age;
             out[(*ny)++] = r.gyro_age;
+            out[(*ny)++] = r.gyro_quiet ? 1.0 : 0.0;
         }
     }
         return 0;
     }
     if (strcmp(name, "modes::modes_step") == 0) {
-        if (nx != 72) { return -1; }
+        if (nx != 73) { return -1; }
     {
         Modes a0;
         ModeParams a1;
@@ -3916,50 +3966,51 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
         a0.mag_seen = x[25] != 0.0;
         a0.mag_age = x[26];
         a0.gyro_age = x[27];
-        a1.auto_next = (int64_t)x[28];
-        a1.n_sched = (int64_t)x[29];
-        a1.sched_t.v[0] = x[30];
-        a1.sched_t.v[1] = x[31];
-        a1.sched_t.v[2] = x[32];
-        a1.sched_t.v[3] = x[33];
-        a1.sched_t.v[4] = x[34];
-        a1.sched_t.v[5] = x[35];
-        a1.sched_t.v[6] = x[36];
-        a1.sched_t.v[7] = x[37];
-        a1.sched_mode.v[0] = (int64_t)x[38];
-        a1.sched_mode.v[1] = (int64_t)x[39];
-        a1.sched_mode.v[2] = (int64_t)x[40];
-        a1.sched_mode.v[3] = (int64_t)x[41];
-        a1.sched_mode.v[4] = (int64_t)x[42];
-        a1.sched_mode.v[5] = (int64_t)x[43];
-        a1.sched_mode.v[6] = (int64_t)x[44];
-        a1.sched_mode.v[7] = (int64_t)x[45];
-        a1.detumble_exit = x[46];
-        a1.detumble_hold_s = x[47];
-        a1.ss_law = (int64_t)x[48];
-        a1.ss_omega_max_dps = x[49];
-        a1.ss_spin_dps = x[50];
-        a1.ss_z_in_dps = x[51];
-        a1.ss_perp_in_dps = x[52];
-        a1.ss_t_check_s = x[53];
-        a1.ss_sun_min = x[54];
-        a1.ss_dwell_in_s = x[55];
-        a1.ss_omega_exit_dps = x[56];
-        a1.ss_perp_out_dps = x[57];
-        a1.ss_dwell_out_s = x[58];
-        a1.sun_axis.v[0] = x[59];
-        a1.sun_axis.v[1] = x[60];
-        a1.sun_axis.v[2] = x[61];
-        a1.sa_done_deg = x[62];
-        a1.sa_done_hold_s = x[63];
-        a2.v[0] = x[64];
-        a2.v[1] = x[65];
-        a2.v[2] = x[66];
-        a3 = x[67] != 0.0;
-        a4.v[0] = x[68];
-        a4.v[1] = x[69];
-        a4.v[2] = x[70];
-        a5 = x[71];
+        a0.gyro_quiet = x[28] != 0.0;
+        a1.auto_next = (int64_t)x[29];
+        a1.n_sched = (int64_t)x[30];
+        a1.sched_t.v[0] = x[31];
+        a1.sched_t.v[1] = x[32];
+        a1.sched_t.v[2] = x[33];
+        a1.sched_t.v[3] = x[34];
+        a1.sched_t.v[4] = x[35];
+        a1.sched_t.v[5] = x[36];
+        a1.sched_t.v[6] = x[37];
+        a1.sched_t.v[7] = x[38];
+        a1.sched_mode.v[0] = (int64_t)x[39];
+        a1.sched_mode.v[1] = (int64_t)x[40];
+        a1.sched_mode.v[2] = (int64_t)x[41];
+        a1.sched_mode.v[3] = (int64_t)x[42];
+        a1.sched_mode.v[4] = (int64_t)x[43];
+        a1.sched_mode.v[5] = (int64_t)x[44];
+        a1.sched_mode.v[6] = (int64_t)x[45];
+        a1.sched_mode.v[7] = (int64_t)x[46];
+        a1.detumble_exit = x[47];
+        a1.detumble_hold_s = x[48];
+        a1.ss_law = (int64_t)x[49];
+        a1.ss_omega_max_dps = x[50];
+        a1.ss_spin_dps = x[51];
+        a1.ss_z_in_dps = x[52];
+        a1.ss_perp_in_dps = x[53];
+        a1.ss_t_check_s = x[54];
+        a1.ss_sun_min = x[55];
+        a1.ss_dwell_in_s = x[56];
+        a1.ss_omega_exit_dps = x[57];
+        a1.ss_perp_out_dps = x[58];
+        a1.ss_dwell_out_s = x[59];
+        a1.sun_axis.v[0] = x[60];
+        a1.sun_axis.v[1] = x[61];
+        a1.sun_axis.v[2] = x[62];
+        a1.sa_done_deg = x[63];
+        a1.sa_done_hold_s = x[64];
+        a2.v[0] = x[65];
+        a2.v[1] = x[66];
+        a2.v[2] = x[67];
+        a3 = x[68] != 0.0;
+        a4.v[0] = x[69];
+        a4.v[1] = x[70];
+        a4.v[2] = x[71];
+        a5 = x[72];
         {
             Modes r = modes_modes_step(a0, a1, a2, a3, a4, a5);
             out[(*ny)++] = (double)r.mode;
@@ -3990,12 +4041,13 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
             out[(*ny)++] = r.mag_seen ? 1.0 : 0.0;
             out[(*ny)++] = r.mag_age;
             out[(*ny)++] = r.gyro_age;
+            out[(*ny)++] = r.gyro_quiet ? 1.0 : 0.0;
         }
     }
         return 0;
     }
     if (strcmp(name, "modes::fdir_safe") == 0) {
-        if (nx != 28) { return -1; }
+        if (nx != 29) { return -1; }
     {
         Modes a0;
         a0.mode = (int64_t)x[0];
@@ -4026,6 +4078,7 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
         a0.mag_seen = x[25] != 0.0;
         a0.mag_age = x[26];
         a0.gyro_age = x[27];
+        a0.gyro_quiet = x[28] != 0.0;
         {
             Modes r = modes_fdir_safe(a0);
             out[(*ny)++] = (double)r.mode;
@@ -4056,12 +4109,13 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
             out[(*ny)++] = r.mag_seen ? 1.0 : 0.0;
             out[(*ny)++] = r.mag_age;
             out[(*ny)++] = r.gyro_age;
+            out[(*ny)++] = r.gyro_quiet ? 1.0 : 0.0;
         }
     }
         return 0;
     }
     if (strcmp(name, "modes::fdir_sensors") == 0) {
-        if (nx != 20) { return -1; }
+        if (nx != 25) { return -1; }
     {
         bool a0;
         pc_a3f a1;
@@ -4075,6 +4129,9 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
         pc_a3f a9;
         double a10;
         double a11;
+        pc_a3f a12;
+        int64_t a13;
+        int64_t a14;
         a0 = x[0] != 0.0;
         a1.v[0] = x[1];
         a1.v[1] = x[2];
@@ -4095,8 +4152,13 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
         a9.v[2] = x[17];
         a10 = x[18];
         a11 = x[19];
+        a12.v[0] = x[20];
+        a12.v[1] = x[21];
+        a12.v[2] = x[22];
+        a13 = (int64_t)x[23];
+        a14 = (int64_t)x[24];
         {
-            modes_fdir_sensors_out r = modes_fdir_sensors(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+            modes_fdir_sensors_out r = modes_fdir_sensors(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14);
             out[(*ny)++] = r.mag_ok ? 1.0 : 0.0;
             out[(*ny)++] = r.b.v[0];
             out[(*ny)++] = r.b.v[1];
@@ -4110,6 +4172,11 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
             out[(*ny)++] = r.mag_age;
             out[(*ny)++] = r.mag_seen ? 1.0 : 0.0;
             out[(*ny)++] = r.gyro_age;
+            out[(*ny)++] = r.w_prev.v[0];
+            out[(*ny)++] = r.w_prev.v[1];
+            out[(*ny)++] = r.w_prev.v[2];
+            out[(*ny)++] = (double)r.same;
+            out[(*ny)++] = r.quiet ? 1.0 : 0.0;
         }
     }
         return 0;

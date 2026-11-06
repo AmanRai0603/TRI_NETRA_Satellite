@@ -42,6 +42,8 @@ static const char *const BY_NAME[][2] = {
     {"navorbit::gnss_usable", "called only by the generated onboard_orbit"},
     {"navorbit::verlet", "called only by the generated onboard_orbit"},
     {"navorbit::fix_eci", "called only by the generated onboard_orbit"},
+    {"estimation::st_coasting", "called by the tick as the generated function, no signature of its own"},
+    {"estimation::att_rate", "called by the tick as the generated function, no signature of its own"},
     {"clocktime::gnss_jd", "called by the driver and the tick as the generated function, no signature of their own"},
     {"clocktime::clock_advance", "called by the tick as the generated function, no signature of its own"},
     {"clocktime::clock_adopt", "called by the tick as the generated function, no signature of its own"},
@@ -67,14 +69,14 @@ static void get_modes(in_t *a)
     S.mode = (uint8_t)F(a); S.t = F(a); S.t_mode = F(a); S.hold = F(a); S.ho = F(a) != 0; S.ho_t = F(a); S.ad_ok = F(a) != 0;
     S.n_rej = (int)F(a); V(a, S.I_q, 3); S.sz_sum = F(a); S.sz_n = (int)F(a); S.sz_t0 = F(a); S.sigma = F(a); V(a, S.s_prop, 3);
     S.s_prop_ok = F(a) != 0; S.acq_hold = F(a); S.sched_i = (int)F(a); S.faults = (uint16_t)F(a); V(a, S.w_est, 3);
-    S.mag_seen = F(a) != 0; S.mag_age = F(a); S.gyro_age = F(a);
+    S.mag_seen = F(a) != 0; S.mag_age = F(a); S.gyro_age = F(a); S.gyro_quiet = F(a) != 0;
 }
 static void put_modes(out_t *o)
 {
     O(o, S.mode); O(o, S.t); O(o, S.t_mode); O(o, S.hold); O(o, S.ho ? 1 : 0); O(o, S.ho_t); O(o, S.ad_ok ? 1 : 0);
     O(o, S.n_rej); OV(o, S.I_q, 3); O(o, S.sz_sum); O(o, S.sz_n); O(o, S.sz_t0); O(o, S.sigma); OV(o, S.s_prop, 3);
     O(o, S.s_prop_ok ? 1 : 0); O(o, S.acq_hold); O(o, S.sched_i); O(o, S.faults); OV(o, S.w_est, 3);
-    O(o, S.mag_seen ? 1 : 0); O(o, S.mag_age); O(o, S.gyro_age);
+    O(o, S.mag_seen ? 1 : 0); O(o, S.mag_age); O(o, S.gyro_age); O(o, S.gyro_quiet ? 1 : 0);
 }
 static void get_mode_params(in_t *a)
 {
@@ -189,10 +191,10 @@ static int call(const char *name, const double *x, int nx, out_t *o)
         OV(o, k.q, 4); OV(o, k.b, 3); for (i = 0; i < 6; i++) OV(o, k.P[i], 6);
     }
     else if (!strcmp(name, "estimation::mekf_predict")) {
-        adcs_mekf_t k; double wm[3], dt; int i;
+        adcs_mekf_t k; double wm[3], dt; int i, stale;
         V(&a, k.q, 4); V(&a, k.b, 3); for (i = 0; i < 6; i++) V(&a, k.P[i], 6); k.arw = F(&a); k.rrw = F(&a);
-        V(&a, wm, 3); dt = F(&a);
-        adcs_mekf_predict(&k, wm, dt);
+        V(&a, wm, 3); dt = F(&a); stale = F(&a) != 0;
+        adcs_mekf_predict(&k, wm, dt, stale);
         OV(o, k.q, 4); for (i = 0; i < 6; i++) OV(o, k.P[i], 6);
     }
     else if (!strcmp(name, "estimation::mekf_vector") || !strcmp(name, "estimation::mekf_quat")) {
@@ -349,8 +351,10 @@ static int call(const char *name, const double *x, int nx, out_t *o)
         memset(&S, 0, sizeof S);
         S.z.mag_ok = F(&a) != 0; V(&a, S.z.B, 3); S.bref_ok = F(&a) != 0; V(&a, S.Bref, 3); V(&a, S.B_good, 3); S.mag_age = F(&a);
         S.mag_seen = F(&a) != 0; S.p.has_gyro = (uint8_t)(F(&a) != 0); S.z.gyro_ok = F(&a) != 0; V(&a, S.z.w, 3); S.gyro_age = F(&a); dt = F(&a);
+        V(&a, S.w_prev, 3); S.gyro_same = (int)F(&a); S.p.gyro_stale_ticks = (uint8_t)F(&a);
         adcs_fdir_sensors(&S, dt);
         O(o, S.z.mag_ok ? 1 : 0); OV(o, S.z.B, 3); OV(o, S.z.w, 3); OV(o, S.B_good, 3); O(o, S.mag_age); O(o, S.mag_seen ? 1 : 0); O(o, S.gyro_age);
+        OV(o, S.w_prev, 3); O(o, S.gyro_same); O(o, S.gyro_quiet ? 1 : 0);
     }
     else if (!strcmp(name, "modes::fdir_rotors")) {
         double dt;

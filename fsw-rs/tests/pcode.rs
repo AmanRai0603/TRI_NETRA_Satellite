@@ -55,6 +55,8 @@ const BY_NAME: &[(&str, &str)] = &[
     ("navorbit::gnss_usable", "called only by the generated onboard_orbit"),
     ("navorbit::verlet", "called only by the generated onboard_orbit"),
     ("navorbit::fix_eci", "called only by the generated onboard_orbit"),
+    ("estimation::st_coasting", "the runtime calls it in the tick's step 2 (fsw.rs Fsw::step): no public signature"),
+    ("estimation::att_rate", "the runtime calls it in the tick's step 2 (fsw.rs Fsw::step): no public signature"),
     ("clocktime::gnss_jd", "the driver calls it (drv.rs Drv::read): no public signature"),
     ("clocktime::clock_advance", "the runtime calls it in the tick's step 0 (fsw.rs Fsw::step): no public signature"),
     ("clocktime::clock_adopt", "the runtime calls it in the tick's step 0 (fsw.rs Fsw::step): no public signature"),
@@ -173,8 +175,8 @@ fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
         "estimation::mekf_predict" => {
             let (q, b, p, arw, rrw) = (a.q(), a.v3(), a.m::<6, 6>(), a.f(), a.f());
             let mut k = est::Mekf { q, b, p, arw, rrw };
-            let (wm, dt) = (a.v3(), a.f());
-            k.predict(&wm, dt);
+            let (wm, dt, stale) = (a.v3(), a.f(), a.b());
+            k.predict(&wm, dt, stale);
             o.s(&k.q).m(&k.p);
         }
         "estimation::mekf_vector" => {

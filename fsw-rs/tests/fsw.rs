@@ -95,7 +95,7 @@ fn estimation() {
     let q0 = qmult(&q, &fromrotvec(&[0.1, -0.12, 0.08]));
     let mut k = est::Mekf::new(&q0, 0.2, 1e-3, 1e-6, 1e-8);
     for _ in 0..200 {
-        k.predict(&[0.0; 3], 0.1);
+        k.predict(&[0.0; 3], 0.1, false);
         k.vector(&b[0], &r[0], 1e-3, 0.0);
         k.vector(&b[1], &r[1], 1e-3, 0.0);
     }
@@ -174,7 +174,7 @@ fn detumble_blob() -> Vec<u8> {
     p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042; p.igrf_nmax = 10; p.rate_lpf_s = 0.3;
     // the values params.toml requires to be positive (the flight software refuses a blob without them)
     p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005; p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0;
-    p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0;
+    p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0; p.gyro_stale_ticks = 3;
     let mut blob = vec![0u8; adcs_fsw::params::BLOB_SIZE];
     p.encode(&mut blob);
     blob
@@ -268,7 +268,7 @@ fn a_silent_magnetometer_brings_safe_mode() {
         p.mtq_period = 1.0; p.mtq_meas = 0.2; p.m_max = 0.2; p.bdot_k = 1e-3; p.has_gyro = 1;
         p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042; p.igrf_nmax = 10; p.rate_lpf_s = 0.3;
         p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005; p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0;
-        p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0;
+        p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0; p.gyro_stale_ticks = 3;
         let mut blob = vec![0u8; adcs_fsw::params::BLOB_SIZE];
         p.encode(&mut blob);
         let mut hal = Stub::default();
@@ -278,7 +278,8 @@ fn a_silent_magnetometer_brings_safe_mode() {
             let (b, w) = ([2e-5, -1e-5, 3e-5], [0.05, -0.02, 0.1]);
             hal.now_ns = k*100_000_000;
             hal.mag[0] = (k < 30 || k == 719) as u8; for i in 0..3 { put16(&mut hal.mag[1 + 2*i..], b[i]/MAG_LSB_T); }
-            hal.gyro[0] = 1; for i in 0..3 { put32(&mut hal.gyro[1 + 4*i..], w[i]/GYRO_LSB); }
+            // counts that change, as a gyro's do (a repeated sample is a quiet gyro, F2)
+            hal.gyro[0] = 1; for i in 0..3 { put32(&mut hal.gyro[1 + 4*i..], w[i]/GYRO_LSB + ((k*7 + i as u64*3) % 5) as f64); }
             let now = hal.now_ns; f.step(&mut hal, now);
             let on = hal.pwm[..3].iter().any(|x| *x != 0);
             if start == Mode::Detumble as u8 && k < 30 && on { on_before = true; }
@@ -298,7 +299,7 @@ fn a_silent_magnetometer_brings_safe_mode() {
     p.mtq_period = 1.0; p.mtq_meas = 0.2; p.m_max = 0.2; p.bdot_k = 1e-3; p.has_gyro = 1;
     p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042; p.igrf_nmax = 10; p.rate_lpf_s = 0.3;
     p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005; p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0;
-    p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0;
+    p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0; p.gyro_stale_ticks = 3;
     let mut blob = vec![0u8; adcs_fsw::params::BLOB_SIZE];
     p.encode(&mut blob);
     let mut f = Fsw::new();

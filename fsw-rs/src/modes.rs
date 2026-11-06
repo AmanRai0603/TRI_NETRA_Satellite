@@ -18,7 +18,7 @@ impl Fsw {
             n_rej: self.n_rej as i64, i_q: self.i_q, sz_sum: self.sz_sum, sz_n: self.sz_n as i64, sz_t0: self.sz_t0, sigma: self.sigma,
             s_prop: self.s_prop.unwrap_or([0.0; 3]), s_prop_ok: self.s_prop.is_some(), acq_hold: self.acq_hold,
             sched_i: self.sched_i as i64, faults: self.faults as i64, w_est: self.w_est, mag_seen: self.mag_seen,
-            mag_age: self.mag_age, gyro_age: self.gyro_age,
+            mag_age: self.mag_age, gyro_age: self.gyro_age, gyro_quiet: self.gyro_quiet,
         }
     }
 
@@ -27,7 +27,7 @@ impl Fsw {
         self.ad_ok = s.ad_ok; self.n_rej = s.n_rej as f64; self.i_q = s.i_q; self.sz_sum = s.sz_sum; self.sz_n = s.sz_n as u32;
         self.sz_t0 = s.sz_t0; self.sigma = s.sigma; self.s_prop = s.s_prop_ok.then_some(s.s_prop); self.acq_hold = s.acq_hold;
         self.sched_i = s.sched_i as usize; self.faults = s.faults as u16; self.w_est = s.w_est; self.mag_seen = s.mag_seen;
-        self.mag_age = s.mag_age; self.gyro_age = s.gyro_age;
+        self.mag_age = s.mag_age; self.gyro_age = s.gyro_age; self.gyro_quiet = s.gyro_quiet;
     }
 
     fn mode_params(&self) -> ModeParams {

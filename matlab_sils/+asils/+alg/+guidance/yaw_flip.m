@@ -14,16 +14,16 @@ function [flip_out] = yaw_flip(r, v, q_off, sun_axis, roll_axis, sun_eci, flip, 
     flip_out = false;
     z = zeros(3, 1);
     [q, w, wd] = asils.alg.guidance.guidance(0, r, v, 0, q_off, 0, 0, 1, z, [0; 0; 0; 1], sun_axis, roll_axis, sun_eci, false);
-    h__53 = asils.alg.math.dcm(q);
-    h__54 = sqrt(sun_eci(1)*sun_eci(1) + sun_eci(2)*sun_eci(2) + sun_eci(3)*sun_eci(3));
-    if 1e-30 > h__54, h__54 = 1e-30; end
-    h__55 = (sun_eci / h__54);
-    sb = [h__53(1, 1)*h__55(1) + h__53(1, 2)*h__55(2) + h__53(1, 3)*h__55(3); h__53(2, 1)*h__55(1) + h__53(2, 2)*h__55(2) + h__53(2, 3)*h__55(3); h__53(3, 1)*h__55(1) + h__53(3, 2)*h__55(2) + h__53(3, 3)*h__55(3)];
+    h__54 = asils.alg.math.dcm(q);
+    h__55 = sqrt(sun_eci(1)*sun_eci(1) + sun_eci(2)*sun_eci(2) + sun_eci(3)*sun_eci(3));
+    if 1e-30 > h__55, h__55 = 1e-30; end
+    h__56 = (sun_eci / h__55);
+    sb = [h__54(1, 1)*h__56(1) + h__54(1, 2)*h__56(2) + h__54(1, 3)*h__56(3); h__54(2, 1)*h__56(1) + h__54(2, 2)*h__56(2) + h__54(2, 3)*h__56(3); h__54(3, 1)*h__56(1) + h__54(3, 2)*h__56(2) + h__54(3, 3)*h__56(3)];
     a = [0; 0; (-(1))];
     if (sqrt(sun_axis(1)*sun_axis(1) + sun_axis(2)*sun_axis(2) + sun_axis(3)*sun_axis(3)) > 0)
-        h__56 = sqrt(sun_axis(1)*sun_axis(1) + sun_axis(2)*sun_axis(2) + sun_axis(3)*sun_axis(3));
-        if 1e-30 > h__56, h__56 = 1e-30; end
-        a = (sun_axis / h__56);
+        h__57 = sqrt(sun_axis(1)*sun_axis(1) + sun_axis(2)*sun_axis(2) + sun_axis(3)*sun_axis(3));
+        if 1e-30 > h__57, h__57 = 1e-30; end
+        a = (sun_axis / h__57);
     end
     d = (a(1)*sb(1) + a(2)*sb(2) + a(3)*sb(3));
     flip_out = flip;

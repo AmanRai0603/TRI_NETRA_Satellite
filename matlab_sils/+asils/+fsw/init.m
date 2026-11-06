@@ -35,6 +35,8 @@ function F = init(blob, start_ns)
     F.rx = {zeros(0, 1), zeros(0, 1), zeros(0, 1)};       % the UART frame assembly buffers, ports 0 to 2
     F.clean = true;
     F.mag_age = 0; F.gyro_age = 0; F.mag_seen = false; F.b_good = zeros(3, 1);
+    % the gyro chain (DR-fdir-002, DR-gdn-003): the last sample, the ticks it has stayed the same, quiet (stale); the B-dot rate estimate
+    F.w_prev = zeros(3, 1); F.gyro_same = 0; F.gyro_quiet = false; F.q_prev = [];
     F.have_r = false; F.r = zeros(3, 1); F.v = zeros(3, 1);
     F.K = struct('q', zeros(4, 1), 'b', zeros(3, 1), 'P', zeros(6, 6), 'arw', 0, 'rrw', 0);
     F.ad_ok = false; F.t_st = -1e9; F.mag_done = false; F.n_rej = 0; F.gh_jd = 0;

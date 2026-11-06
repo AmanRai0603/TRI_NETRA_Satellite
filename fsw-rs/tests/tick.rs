@@ -1,8 +1,8 @@
 //! The tick tests of the flight software (docs/S11_INVENTORY.md TS4, step S11.4): what the tick does with a warm reset, with a
 //! step or a jitter in the time it is handed, and with a gyro that has gone quiet. Each test states the BEHAVIOUR THE FIXES OWE
 //! (docs/TECHNICAL_ROADMAP.md F1 monotonic time kept through a reset and a step; F2 a silent gyro is flagged and its rate
-//! dropped; F3 the rate groups on an integer tick counter). F1 and F3 are fixed (S11.4b) and run; F2's fail today and are
-//! `#[ignore]`d with the step that fixes them. The step that fixes one removes its `#[ignore]` (and its name from the C list in
+//! dropped; F3 the rate groups on an integer tick counter). F1 and F3 (S11.4b) and F2 (S11.5) are fixed and run. A test of a
+//! fix still to come is `#[ignore]`d with the step that fixes it; that step removes the `#[ignore]` (and the test's name from the C list in
 //! fsw/tests/test_fsw.c); `cargo test -- --ignored` shows what each says today. Their scenario twins are `fault_fsw_reset_day30`, `fault_clock_step_back`/`_fwd`,
 //! `fault_clock_jitter_1us`/`_5ms` and `fault_gyro_silent`, flown by the engine.
 //! The sensors here are exact and the attitude is held (no noise, no dynamics): the test is of the tick, not of the estimate.
@@ -51,7 +51,7 @@ fn put32(b: &mut [u8], v: f64) { b[..4].copy_from_slice(&((if v < 0.0 { v - 0.5 
 
 const JD0: f64 = 2461407.25;
 const DAY: f64 = 86400.0;
-const STALE_LIMIT_S: f64 = 10.0;     // F2: shorter than the detumble hold, far shorter than the 60 s of today
+const STALE_LIMIT_S: f64 = 1.0;      // F2: DR-fdir-002 sets 3 ticks (0.3 s); the test looks once a second, so one second is its limit; far shorter than the 60 s fault
 
 /// A configuration that boots: the values params.toml requires to be positive, the fitted parts, the start state.
 fn params(start: Mode, sun_gps: bool) -> Params {
@@ -60,7 +60,7 @@ fn params(start: Mode, sun_gps: bool) -> Params {
     p.bdot_law = 0; p.mtq_period = 1.0; p.mtq_meas = 0.2; p.m_max = 0.2; p.bdot_k = 1e-3; p.has_gyro = 1;
     p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042; p.igrf_nmax = 10; p.rate_lpf_s = 0.3;
     p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005; p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0;
-    p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0;
+    p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0; p.gyro_stale_ticks = 3;
     if sun_gps {
         p.has_sun = 1; p.has_gps = 1; p.gnss_ecef = 0; p.gyro_arw = 1e-6; p.gyro_rrw = 1e-8;
         p.mtq_Kp = [1e-3; 3]; p.mtq_Kd = [1e-2; 3];
@@ -95,7 +95,8 @@ fn detumble_pwm(amp_s: f64) -> Vec<[i16; 3]> {
         let off = if k == 0 { 0.0 } else { amp_s*jit(&mut seed) };
         hal.now_ns = ((k as f64*0.1 + off)*1e9).round() as u64;
         hal.mag[0] = 1; for i in 0..3 { put16(&mut hal.mag[1 + 2*i..], b[i]/MAG_LSB_T); }
-        hal.gyro[0] = 1; for i in 0..3 { put32(&mut hal.gyro[1 + 4*i..], w[i]/GYRO_LSB); }
+        // counts that change, as a gyro's do (a repeated sample is a quiet gyro, F2)
+        hal.gyro[0] = 1; for i in 0..3 { put32(&mut hal.gyro[1 + 4*i..], w[i]/GYRO_LSB + ((k*7 + i as u64*3) % 5) as f64); }
         let now = hal.now_ns; f.step(&mut hal, now);
         out.push([hal.pwm[0], hal.pwm[1], hal.pwm[2]]);
     }
@@ -131,7 +132,8 @@ impl Scene {
         let s = mat3_vec(&a, &env::sun_model(jd));
         hal.mag[0] = 1; for i in 0..3 { put16(&mut hal.mag[1 + 2*i..], b[i]/MAG_LSB_T); }
         hal.sun[0] = 1; for i in 0..3 { put16(&mut hal.sun[1 + 2*i..], s[i]*ADCS_Q15); }
-        hal.gyro[0] = 1;                                                    // at rest: the counts are zero
+        hal.gyro[0] = 1;                                                    // at rest: counts that change a little, as a gyro's do (a repeated sample is a quiet gyro, F2)
+        let k = (t*10.0).round() as u64; for i in 0..3 { put32(&mut hal.gyro[1 + 4*i..], ((k*7 + i as u64*3) % 5) as f64); }
         let mut pl = [0u8; 33];
         pl[0] = 1;
         for i in 0..3 { put32(&mut pl[1 + 4*i..], r[i]*100.0); put32(&mut pl[13 + 4*i..], v[i]*1000.0); }
@@ -252,19 +254,17 @@ fn quiet_gyro(silent: bool) -> Vec<(u16, f64)> {
 
 fn gyro_quiet_is_flagged_and_dropped(silent: bool) {
     let seen = quiet_gyro(silent);
-    let flagged = seen.iter().position(|(fl, _)| fl & adcs_fsw::fsw::FAULT_GYRO_STALE != 0).map(|s| s as f64 + 1.0);
+    let flagged = seen.iter().position(|(fl, _)| fl & adcs_fsw::fsw::FAULT_GYRO_QUIET != 0).map(|s| s as f64 + 1.0);
     assert!(flagged.map(|s| s <= STALE_LIMIT_S).unwrap_or(false),
         "the gyro stale fault is raised {} s after the gyro went quiet (the limit is {STALE_LIMIT_S} s)", flagged.map(|s| s.to_string()).unwrap_or("never within 50".into()));
-    let w = seen[(STALE_LIMIT_S as usize).min(seen.len() - 1)].1;
+    let w = seen[(STALE_LIMIT_S as usize - 1).min(seen.len() - 1)].1;
     assert!(w < 0.1*0.114, "{STALE_LIMIT_S} s after, the controllers are still fed a rate of {w} rad/s from the quiet gyro");
 }
 
 /// A gyro that stops answering (its transfer fails): the driver keeps its last rate; it must be flagged and the rate dropped.
 #[test]
-#[ignore = "S11.4b/S11.5 fixes it"]
 fn a_gyro_that_stops_answering_is_flagged_and_its_rate_dropped() { gyro_quiet_is_flagged_and_dropped(true); }
 
 /// A gyro that answers with its last sample, flagged ok (the engine's gyro_fail): the same samples for ten seconds are no rate.
 #[test]
-#[ignore = "S11.4b/S11.5 fixes it"]
 fn a_gyro_frozen_on_its_last_sample_is_flagged_and_its_rate_dropped() { gyro_quiet_is_flagged_and_dropped(false); }

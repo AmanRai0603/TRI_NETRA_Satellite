@@ -398,7 +398,7 @@ end
 function m = t_blob_decode()
 %T_BLOB_DECODE  The engine's blob (adcs params) decodes field by field; a changed byte fails its CRC.
     P = asils.config('fine_hold_img', 'cases/ais_img_3u.csv', struct()); b = P.blob; p = P.fsw;
-    assert(numel(b) == 2257 && p.dt == 0.1 && p.nr == 3 && abs(p.jd0 - P.jd0) < 1e-9 && isequal(p.rot_a0(1:3, :), eye(3)), 'fields');
+    assert(numel(b) == 2258 && p.dt == 0.1 && p.nr == 3 && abs(p.jd0 - P.jd0) < 1e-9 && isequal(p.rot_a0(1:3, :), eye(3)), 'fields');
     b(100) = bitxor(b(100), 1); refused = false;
     try, asils.fsw.params_decode(b); catch e, refused = ~isempty(strfind(e.message, 'CRC')); end
     assert(refused, 'a changed byte was not refused');

@@ -6,7 +6,7 @@
  "fingerprint": {
   "rustc": "rustc 1.94.1 (e408947bf 2026-03-25)",
   "engine": "adcs-engine-rs/1.0.0 (adcs-case/1, POP v51 port in-loop, adcs-design, soft OILS)",
-  "fsw": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg b4775d4a964b63d3",
+  "fsw": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg 65b10ec566bbc6fa",
   "machine": "x86_64"
  },
  "scenarios": {
@@ -648,19 +648,19 @@
    "metrics": {
     "ake_3ax_max": {
      "kind": "ake",
-     "value": 179.98257773995522,
-     "pass": 0,
+     "value": 0.02028914622352086,
+     "pass": 1,
      "rel_tol": 1e-06
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 179.33127599808893,
+     "value": 0.02026467766674378,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 179.4214879003264,
+     "value": 1.6329655242970476,
      "pass": null,
      "rel_tol": 1e-06
     }

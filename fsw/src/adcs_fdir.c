@@ -18,9 +18,10 @@ void adcs_fdir_sensors(fsw_t *s, double dt)
     adcs_meas_t *z = &s->z;
     modes_fdir_sensors_out o = modes_fdir_sensors(z->mag_ok != 0, gl_v3(z->B), s->bref_ok != 0, gl_v3(s->Bref), gl_v3(s->B_good),
                                                   s->mag_age, s->mag_seen != 0, s->p.has_gyro != 0, z->gyro_ok != 0, gl_v3(z->w),
-                                                  s->gyro_age, dt);
+                                                  s->gyro_age, dt, gl_v3(s->w_prev), s->gyro_same, s->p.gyro_stale_ticks);
     z->mag_ok = o.mag_ok; gl_o3(o.b, z->B); gl_o3(o.w, z->w); gl_o3(o.b_good, s->B_good);
     s->mag_age = o.mag_age; s->mag_seen = o.mag_seen; s->gyro_age = o.gyro_age;
+    gl_o3(o.w_prev, s->w_prev); s->gyro_same = (int)o.same; s->gyro_quiet = o.quiet;
 }
 
 /* safe mode: a sensor silent too long holds the spacecraft in magnetorquer detumble */

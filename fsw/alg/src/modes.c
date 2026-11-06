@@ -148,13 +148,18 @@ Modes modes_fdir_safe(Modes st_) {
         f = (f | INT64_C(512));
     }
     s.faults = ((s.faults & (INT64_C(65535) ^ (INT64_C(256) | INT64_C(512)))) | f);
+    int64_t q = INT64_C(0);
+    if (s.gyro_quiet) {
+        q = INT64_C(1024);
+    }
+    s.faults = ((s.faults & (INT64_C(65535) ^ INT64_C(1024))) | q);
     if (((f != INT64_C(0)) && (s.mode != INT64_C(0)))) {
         s = modes_modes_enter(s, INT64_C(0));
     }
     return s;
 }
 
-modes_fdir_sensors_out modes_fdir_sensors(bool mag_ok0, pc_a3f b0, bool bref_ok, pc_a3f bref, pc_a3f b_good0, double mag_age0, bool mag_seen0, bool has_gyro, bool gyro_ok, pc_a3f w0, double gyro_age0, double dt) {
+modes_fdir_sensors_out modes_fdir_sensors(bool mag_ok0, pc_a3f b0, bool bref_ok, pc_a3f bref, pc_a3f b_good0, double mag_age0, bool mag_seen0, bool has_gyro, bool gyro_ok, pc_a3f w0, double gyro_age0, double dt, pc_a3f w_prev0, int64_t same0, int64_t stale_n) {
     bool mag_ok = false;
     pc_a3f b = ((pc_a3f){0});
     pc_a3f w = ((pc_a3f){0});
@@ -162,6 +167,9 @@ modes_fdir_sensors_out modes_fdir_sensors(bool mag_ok0, pc_a3f b0, bool bref_ok,
     double mag_age = 0.0;
     bool mag_seen = false;
     double gyro_age = 0.0;
+    pc_a3f w_prev = ((pc_a3f){0});
+    int64_t same = 0;
+    bool quiet = false;
     mag_ok = mag_ok0;
     b = b0;
     w = w0;
@@ -184,12 +192,26 @@ modes_fdir_sensors_out modes_fdir_sensors(bool mag_ok0, pc_a3f b0, bool bref_ok,
         b = b_good;
         mag_age = (mag_age + dt);
     }
-    if (((!has_gyro) || gyro_ok)) {
+    bool fresh = false;
+    if (gyro_ok) {
+        if ((((w0.v[0] != w_prev0.v[0]) || (w0.v[1] != w_prev0.v[1])) || (w0.v[2] != w_prev0.v[2]))) {
+            fresh = true;
+        }
+    }
+    same = same0;
+    if (((!has_gyro) || fresh)) {
+        same = INT64_C(0);
+    } else if ((same0 < INT64_C(1000))) {
+        same = (same0 + INT64_C(1));
+    }
+    w_prev = w0;
+    quiet = (has_gyro && (same >= stale_n));
+    if (((!has_gyro) || (gyro_ok && (!quiet)))) {
         gyro_age = 0.0;
     } else {
         gyro_age = (gyro_age + dt);
     }
-    if (((!gyro_ok) && (!has_gyro))) {
+    if ((quiet || ((!gyro_ok) && (!has_gyro)))) {
         w = ((pc_a3f){0});
     }
     {
@@ -201,6 +223,9 @@ modes_fdir_sensors_out modes_fdir_sensors(bool mag_ok0, pc_a3f b0, bool bref_ok,
         r__.mag_age = mag_age;
         r__.mag_seen = mag_seen;
         r__.gyro_age = gyro_age;
+        r__.w_prev = w_prev;
+        r__.same = same;
+        r__.quiet = quiet;
         return r__;
     }
 }

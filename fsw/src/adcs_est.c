@@ -15,9 +15,9 @@ void adcs_mekf_init(adcs_mekf_t *k, const adcs_real q0[4], adcs_real sa, adcs_re
 }
 
 /* written from the design: estimation::mekf_predict (fsw/alg) */
-void adcs_mekf_predict(adcs_mekf_t *k, const adcs_real wm[3], adcs_real dt)
+void adcs_mekf_predict(adcs_mekf_t *k, const adcs_real wm[3], adcs_real dt, int stale)
 {
-    estimation_mekf_predict_out r = estimation_mekf_predict(gl_v4(k->q), gl_v3(k->b), gl_m66(&k->P[0][0]), k->arw, k->rrw, gl_v3(wm), dt);
+    estimation_mekf_predict_out r = estimation_mekf_predict(gl_v4(k->q), gl_v3(k->b), gl_m66(&k->P[0][0]), k->arw, k->rrw, gl_v3(wm), dt, stale != 0);
     gl_o4(r.q, k->q); gl_om66(r.p, &k->P[0][0]);
 }
 

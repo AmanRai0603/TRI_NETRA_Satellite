@@ -464,7 +464,7 @@ end
             self.assertNotIn(gone, emu, gone)
 
     def test_the_flight_parameters_are_the_designs(self):
-        """S7.13 (closes S6's finding): every one of the 148 fsw_param_* nodes has its value from the design (147 at S7.13; S11.4b added fsw_param_clock_step_max_s). 77 are methods
+        """S7.13 (closes S6's finding): every one of the 149 fsw_param_* nodes has its value from the design (147 at S7.13; S11.4b added fsw_param_clock_step_max_s, S11.5 fsw_param_gyro_stale_ticks). 77 are methods
         of fsw, the developer's unsigned transcriptions generated into adcs-sim (the laws, the choices of law, the copies of
         the product's, the case's and the constants' values); 67 are stated as the 1.0.0 code gave them (the constants, and
         the value a run takes when its scenario states none); the schedule's three state none (a run whose scenario states
@@ -472,7 +472,7 @@ end
         the engine held with no node are stated too; the engine reads them from data/stated.json, and config.rs holds no
         law and no constant of the flight software."""
         params = sorted(n for n in self.nodes if n.startswith("fsw_param_"))
-        self.assertEqual(len(params), 148)
+        self.assertEqual(len(params), 149)
         stated = self.stated_file()
         methods, values, none, later = [], [], [], []
         for nid in params:
@@ -489,7 +489,7 @@ end
             else:
                 self.assertEqual(self.beh(nid), "stated", nid)
                 src = rows[("value", "source")][0]
-                if src.startswith("DR-"):       # a value a decision record states (S11.4b: DR-fsw-001's clock bound), not one 1.0.0's code gave
+                if src.startswith("DR-"):       # a value a decision record states (S11.4b: DR-fsw-001's clock bound; S11.5: DR-fdir-002's gyro limit), not one 1.0.0's code gave
                     later.append(nid)
                     self.assertIn(nid, stated, nid)
                     continue
@@ -501,8 +501,9 @@ end
                 else:
                     none.append(nid)
         self.assertEqual((len(methods), len(values)), (77, 67))
-        self.assertEqual(later, ["fsw_param_clock_step_max_s"])
+        self.assertEqual(later, ["fsw_param_clock_step_max_s", "fsw_param_gyro_stale_ticks"])
         self.assertEqual(stated["fsw_param_clock_step_max_s"], 60.0)
+        self.assertEqual(stated["fsw_param_gyro_stale_ticks"], 3.0)
         self.assertEqual(none, ["fsw_param_n_sched", "fsw_param_sched_mode", "fsw_param_sched_t"])
         self.assert_stated({"fsw_param_mtq_period": 1.0, "fsw_param_mtq_meas": 0.2, "fsw_param_mtq_eps": 1e-3, "fsw_param_mtq_phi": 5e-4,
                             "fsw_param_rw_phi": 2e-4,

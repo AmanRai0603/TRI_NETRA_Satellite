@@ -3862,3 +3862,36 @@ from = "stated"
 to = "stated"
 content = [["value", "number", "60"], ["value", "source", "DR-fsw-001 (design/decisions/DR-fsw-001.toml), option (a): the forward bound of the monotonic clock, a minute: a tick that reads further on than this after the previous one (a stalled processor sees seconds, not minutes) is a step of the time source, refused and counted; the developer's value, for the owner to sign or override"]]
 why = "the forward bound of DR-fsw-001's bounded clock (docs/S11_INVENTORY.md F1, S11.4b): a stated flight parameter, a minute"
+
+[[revision]]
+id = "S11.5"
+at = "2026-11-06T21:00:00Z"
+by = "the developer"
+about = "the gyro chain of the flight software (docs/S11_INVENTORY.md F2/G3, F5, G4; decisions DR-fdir-002 and DR-gdn-003): a gyro sample unchanged for fsw_param_gyro_stale_ticks ticks (3) is quiet, whether the gyro stopped answering or answers with its last sample flagged ok: its rate is zeroed for the controllers, the estimator propagates with a raised process noise and the star-tracker coast ends, and the loops, which a rate of zero leaves undamped (the scenario shows them diverging), take the change of the filter's attitude as their rate while the attitude is valid, the 60 s fault staying as the level above (fsw_modes fdir_sensors and fdir_safe, fsw_estimation mekf_predict, st_coasting and att_rate)"
+
+[[revision.method]]
+node = "fsw_modes"
+pseudocode = "design/revisions/S11.5/modes.pc"
+path = "fsw/pseudocode/08_mode_manager.pc"
+transcribes = "fsw/pseudocode/08_mode_manager.pc as S11.4b left it (fdir_sensors, fdir_safe, modes_step), with the quiet-gyro count, its fault bit, the exit's rate source and the B-dot rate estimate added"
+source = "docs/S11_INVENTORY.md F2/G3 and F5; DR-fdir-002 (design/decisions/DR-fdir-002.toml): a sample unchanged for 3 ticks is quiet, the 60 s fault above it; DR-gdn-003 (design/decisions/DR-gdn-003.toml) and the owner's answer 5 of section 5 (6 Nov 2026): the gyro's rate while the gyro is healthy, the B-dot rate estimate from the magnetometer when there is none or it has failed; Stickler and Alfriend (1976), Elementary magnetic attitude control system, J. Spacecraft and Rockets 13(5): the field's unit direction turns at the body's rate across the field"
+generate = ["flight"]
+uses = ["01_math.pc", "02_time_frames_models.pc", "02_igrf13.pc"]
+why = "the quiet gyro's count and fault bit, the detumble exit's rate source and the B-dot rate estimate as the design's (DR-fdir-002, DR-gdn-003); the tick hands the facts and keeps the order"
+
+[[revision.method]]
+node = "fsw_estimation"
+pseudocode = "design/revisions/S11.5/estimation.pc"
+path = "fsw/pseudocode/03_estimation.pc"
+transcribes = "fsw/pseudocode/03_estimation.pc as S11.4b left it, with mekf_predict's stale argument (the angle random walk raised to a rate bound of 2e-3 rad/s over the step), st_coasting (the tracker coast ends with a quiet gyro) and att_rate (the change of the filter's attitude, the controllers' rate while the gyro is quiet) added"
+source = "DR-fdir-002 (design/decisions/DR-fdir-002.toml): the MEKF propagates with inflated process noise and the tracker coast ends when the gyro is stale; Markley and Crassidis (2014), Fundamentals of Spacecraft Attitude Determination and Control, section 6.2 (the process noise of the gyro-driven filter); 2e-3 rad/s is the developer's bound, about twice the orbital rate of a low orbit, for fdir to sign"
+generate = ["flight"]
+uses = ["01_math.pc", "02_time_frames_models.pc", "02_igrf13.pc"]
+why = "the estimator's behaviour with a quiet gyro as the design's (DR-fdir-002)"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_gyro_stale_ticks"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "3"], ["value", "source", "DR-fdir-002 (design/decisions/DR-fdir-002.toml): a gyro sample unchanged for 3 ticks (0.3 s at 10 Hz) is quiet, shorter than the detumble hold and far shorter than the 60 s fault above it; the developer's value, for the owner to sign or override"]]
+why = "the quiet gyro's limit of DR-fdir-002 (docs/S11_INVENTORY.md F2/G3, S11.5): a stated flight parameter, three ticks"

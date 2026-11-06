@@ -83,6 +83,7 @@
   "fsw_param_gd_t0": 0.0,
   "fsw_param_gd_yaw_flip": 1.0,
   "fsw_param_gnss_ecef": 1.0,
+  "fsw_param_gyro_stale_ticks": 3.0,
   "fsw_param_h_bias": 0.002,
   "fsw_param_ho_hold_s": 60.0,
   "fsw_param_ho_in_dps": 1.0,

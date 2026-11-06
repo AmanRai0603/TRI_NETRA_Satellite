@@ -31,8 +31,9 @@ function [F, bus] = step(F, bus)
     F.t = F.clk_ns*1e-9;
     F.jd = p.jd0 + F.t/86400.0;
     % sensor health (modes::fdir_sensors)
-    [z.mag_ok, z.b, z.w, F.b_good, F.mag_age, F.mag_seen, F.gyro_age] = asils.alg.modes.fdir_sensors(z.mag_ok, z.b, ...
-        ~isempty(F.bref), bref_(F), F.b_good, F.mag_age, F.mag_seen, p.has_gyro ~= 0, z.gyro_ok, z.w, F.gyro_age, dt);
+    [z.mag_ok, z.b, z.w, F.b_good, F.mag_age, F.mag_seen, F.gyro_age, F.w_prev, F.gyro_same, F.gyro_quiet] = asils.alg.modes.fdir_sensors(z.mag_ok, z.b, ...
+        ~isempty(F.bref), bref_(F), F.b_good, F.mag_age, F.mag_seen, p.has_gyro ~= 0, z.gyro_ok, z.w, F.gyro_age, dt, ...
+        F.w_prev, F.gyro_same, p.gyro_stale_ticks);
     F.z = z;
 
     % 1 onboard orbit (02): nav's (asils.alg.navorbit.onboard_orbit), as adcs_fsw.c and fsw.rs: a usable GNSS fix (taken
@@ -76,7 +77,7 @@ function [F, bus] = step(F, bus)
                 end
             end
         else
-            [F.K.q, F.K.P] = asils.alg.estimation.mekf_predict(F.K.q, F.K.b, F.K.P, F.K.arw, F.K.rrw, z.w, dt);
+            [F.K.q, F.K.P] = asils.alg.estimation.mekf_predict(F.K.q, F.K.b, F.K.P, F.K.arw, F.K.rrw, z.w, dt, F.gyro_quiet);
             if p.has_st ~= 0 && z.st_ok
                 for h = 1:p.n_heads
                     qs = z.q_st(h, :);
@@ -89,8 +90,8 @@ function [F, bus] = step(F, bus)
                     end
                 end
                 F.t_st = F.t;
-            elseif p.has_st ~= 0 && F.t - F.t_st < p.st_coast_s
-                % short star-tracker outage: coast on the gyro
+            elseif p.has_st ~= 0 && asils.alg.estimation.st_coasting(F.t, F.t_st, p.st_coast_s, F.gyro_quiet)
+                % short star-tracker outage: coast on the gyro (a quiet gyro ends it: estimation::st_coasting)
             else
                 % vector updates once per coil cycle; the field on the first clean tick of the cycle
                 tried = 0; took = 0;
@@ -121,7 +122,14 @@ function [F, bus] = step(F, bus)
         end
     end
     a = dt/(p.rate_lpf_s + dt);
-    if F.ad_ok, wr = z.w - F.K.b; else, wr = z.w; end
+    if F.ad_ok
+        wr = z.w - F.K.b;
+        % a quiet gyro gives no rate: the attitude's change does (estimation::att_rate), the loops need a damping term
+        if F.gyro_quiet && ~isempty(F.q_prev), wr = asils.alg.estimation.att_rate(F.q_prev, F.K.q, dt); end
+        F.q_prev = F.K.q;
+    else
+        wr = z.w; F.q_prev = [];
+    end
     if p.rate_lpf_s <= 0
         F.w_est = wr;
     else
@@ -427,14 +435,14 @@ function s = modes_state_(F)
     s = struct('mode', F.mode, 't', F.t, 't_mode', F.t_mode, 'hold', F.hold, 'ho', F.ho, 'ho_t', F.ho_t, 'ad_ok', F.ad_ok, ...
         'n_rej', F.n_rej, 'i_q', F.i_q, 'sz_sum', F.sz_sum, 'sz_n', F.sz_n, 'sz_t0', F.sz_t0, 'sigma', F.sigma, ...
         's_prop', sp, 's_prop_ok', spo, 'acq_hold', F.acq_hold, 'sched_i', F.sched_i, 'faults', F.faults, ...
-        'w_est', F.w_est, 'mag_seen', F.mag_seen, 'mag_age', F.mag_age, 'gyro_age', F.gyro_age);
+        'w_est', F.w_est, 'mag_seen', F.mag_seen, 'mag_age', F.mag_age, 'gyro_age', F.gyro_age, 'gyro_quiet', F.gyro_quiet);
 end
 function F = set_modes_(F, s)
     F.mode = s.mode; F.t = s.t; F.t_mode = s.t_mode; F.hold = s.hold; F.ho = s.ho; F.ho_t = s.ho_t;
     F.ad_ok = s.ad_ok; F.n_rej = s.n_rej; F.i_q = s.i_q; F.sz_sum = s.sz_sum; F.sz_n = s.sz_n;
     F.sz_t0 = s.sz_t0; F.sigma = s.sigma; if s.s_prop_ok, F.s_prop = s.s_prop; else, F.s_prop = []; end
     F.acq_hold = s.acq_hold; F.sched_i = s.sched_i; F.faults = s.faults; F.w_est = s.w_est; F.mag_seen = s.mag_seen;
-    F.mag_age = s.mag_age; F.gyro_age = s.gyro_age;
+    F.mag_age = s.mag_age; F.gyro_age = s.gyro_age; F.gyro_quiet = s.gyro_quiet;
 end
 function s = ctl_state_(F)
     if isempty(F.s_prop), sp = zeros(3, 1); spo = false; else, sp = F.s_prop; spo = true; end

@@ -99,6 +99,7 @@ typedef struct {
     bool mag_seen;
     double mag_age;
     double gyro_age;
+    bool gyro_quiet;
 } Modes;
 typedef struct {
     int64_t auto_next;
@@ -339,6 +340,9 @@ typedef struct { pc_a4f q; pc_a6a6f p; } estimation_mekf_predict_out;
 
 /* The prediction over dt on the measured rate wm, with gyro angle and rate random walks arw, rrw: */
 /* q <- q fromrotvec((wm - b) dt), P <- Phi P Phi' + Q. */
+/* With the gyro quiet (stale, DR-fdir-002, F2) the rate wm is the controllers' zero, not a measurement: the angle random */
+/* walk is raised to the rate the body may have, 2e-3 rad/s (about twice the orbital rate of a low orbit; the developer's */
+/* value, for fdir to sign) over the step, so that P grows by that uncertainty and the vector updates take the attitude back. */
 /* - q0 */
 /* - b */
 /* - p0 */
@@ -346,9 +350,29 @@ typedef struct { pc_a4f q; pc_a6a6f p; } estimation_mekf_predict_out;
 /* - rrw */
 /* - wm */
 /* - dt */
+/* - stale */
 /* - returns q */
 /* - returns p */
-estimation_mekf_predict_out estimation_mekf_predict(pc_a4f q0, pc_a3f b, pc_a6a6f p0, double arw, double rrw, pc_a3f wm, double dt);
+estimation_mekf_predict_out estimation_mekf_predict(pc_a4f q0, pc_a3f b, pc_a6a6f p0, double arw, double rrw, pc_a3f wm, double dt, bool stale);
+
+/* The body rate between two estimated attitudes dt apart, w = 2 vec(conj(q0) q1)/dt (a small rotation, its sign fixed */
+/* so that the scalar part is not negative). With a quiet gyro (DR-fdir-002, F2) it is the controllers' rate: their loops */
+/* have no damping without a rate, and the filter's attitude, held by the star tracker or the vector updates, has one. */
+/* - q0 */
+/* - q1 */
+/* - dt */
+/* - returns w */
+pc_a3f estimation_att_rate(pc_a4f q0, pc_a4f q1, double dt);
+
+/* Whether the star tracker's outage is still a coast on the gyro: within the coast time of the last tracker update, and */
+/* the gyro answering with fresh samples (a quiet gyro ends the coast, DR-fdir-002, F2: the attitude it carries is not */
+/* held by a rate nobody measures, and the vector updates take over). */
+/* - t */
+/* - t_st */
+/* - coast_s */
+/* - stale */
+/* - returns on */
+bool estimation_st_coasting(double t, double t_st, double coast_s, bool stale);
 
 typedef struct { pc_a4f q; pc_a3f b; pc_a6a6f p; bool took; } estimation_update3_out;
 
@@ -874,16 +898,22 @@ Modes modes_modes_schedule(Modes st_, ModeParams mp);
 Modes modes_modes_step(Modes st_, ModeParams mp, pc_a3f zw, bool sun_ok, pc_a3f sun, double dt);
 
 /* Safe mode: a magnetometer (once seen) or a gyro silent more than 60 s sets its fault bit (8 and 9) */
-/* and holds the spacecraft in magnetorquer detumble. */
+/* and holds the spacecraft in magnetorquer detumble. The level below it (DR-fdir-002, F2): a gyro quiet for */
+/* fsw_param_gyro_stale_ticks ticks sets bit 10, for as long as it is quiet; it holds nothing, the estimator and the */
+/* controllers have already dropped its rate (fdir_sensors). */
 /* vectors: 48 */
 /* - st */
 /* - returns s */
 Modes modes_fdir_safe(Modes st_);
 
-typedef struct { bool mag_ok; pc_a3f b; pc_a3f w; pc_a3f b_good; double mag_age; bool mag_seen; double gyro_age; } modes_fdir_sensors_out;
+typedef struct { bool mag_ok; pc_a3f b; pc_a3f w; pc_a3f b_good; double mag_age; bool mag_seen; double gyro_age; pc_a3f w_prev; int64_t same; bool quiet; } modes_fdir_sensors_out;
 
 /* Sensor health after the drivers read: a field outside [0.25, 4] x the model is no reading; the */
 /* last good field is held; the age of each sensor's last good sample. */
+/* A gyro whose sample has not changed for stale_n ticks (it stopped answering, or answers with its last sample flagged ok) */
+/* is quiet (DR-fdir-002, F2): its rate is zeroed for the controllers, the estimator propagates with an inflated process */
+/* noise and the star-tracker coast ends (the tick). A sample is the same as the last when all three counts are equal. */
+/* Its age counts from the first tick it does not answer, or is quiet; the 60 s fault above it stays. */
 /* - mag_ok0 */
 /* - b0 */
 /* - bref_ok */
@@ -896,6 +926,9 @@ typedef struct { bool mag_ok; pc_a3f b; pc_a3f w; pc_a3f b_good; double mag_age;
 /* - w0 */
 /* - gyro_age0 */
 /* - dt */
+/* - w_prev0 */
+/* - same0 */
+/* - stale_n */
 /* - returns mag_ok */
 /* - returns b */
 /* - returns w */
@@ -903,7 +936,10 @@ typedef struct { bool mag_ok; pc_a3f b; pc_a3f w; pc_a3f b_good; double mag_age;
 /* - returns mag_age */
 /* - returns mag_seen */
 /* - returns gyro_age */
-modes_fdir_sensors_out modes_fdir_sensors(bool mag_ok0, pc_a3f b0, bool bref_ok, pc_a3f bref, pc_a3f b_good0, double mag_age0, bool mag_seen0, bool has_gyro, bool gyro_ok, pc_a3f w0, double gyro_age0, double dt);
+/* - returns w_prev */
+/* - returns same */
+/* - returns quiet */
+modes_fdir_sensors_out modes_fdir_sensors(bool mag_ok0, pc_a3f b0, bool bref_ok, pc_a3f bref, pc_a3f b_good0, double mag_age0, bool mag_seen0, bool has_gyro, bool gyro_ok, pc_a3f w0, double gyro_age0, double dt, pc_a3f w_prev0, int64_t same0, int64_t stale_n);
 
 /* The rotor FDIR in the momentum-device states: a fixed rotor that does not follow its command is */
 /* isolated. Instantaneous: the momentum rate against the command clipped to what the rotor can do; */

@@ -29,6 +29,7 @@ pub struct Modes {
     pub mag_seen: bool,
     pub mag_age: f64,
     pub gyro_age: f64,
+    pub gyro_quiet: bool,
 }
 
 /// The parameters the mode manager reads (adcs_params_t; auto_next 255 is none).
@@ -231,7 +232,9 @@ pub fn modes_step(st: Modes, mp: ModeParams, zw: [f64; 3], sun_ok: bool, sun: [f
 }
 
 /// Safe mode: a magnetometer (once seen) or a gyro silent more than 60 s sets its fault bit (8 and 9)
-/// and holds the spacecraft in magnetorquer detumble.
+/// and holds the spacecraft in magnetorquer detumble. The level below it (DR-fdir-002, F2): a gyro quiet for
+/// fsw_param_gyro_stale_ticks ticks sets bit 10, for as long as it is quiet; it holds nothing, the estimator and the
+/// controllers have already dropped its rate (fdir_sensors).
 /// vectors: 48
 /// - st: Modes (passed rec)
 /// - returns s: Modes (passed rec)
@@ -247,6 +250,11 @@ pub fn fdir_safe(st: Modes) -> Modes {
         f = (f | 512);
     }
     s.faults = ((s.faults & (65535 ^ (256 | 512))) | f);
+    let mut q: i64 = 0;
+    if s.gyro_quiet {
+        q = 1024;
+    }
+    s.faults = ((s.faults & (65535 ^ 1024)) | q);
     if ((f != 0) && (s.mode != 0)) {
         s = crate::alg::modes::modes_enter(s, 0);
     }
@@ -255,6 +263,10 @@ pub fn fdir_safe(st: Modes) -> Modes {
 
 /// Sensor health after the drivers read: a field outside [0.25, 4] x the model is no reading; the
 /// last good field is held; the age of each sensor's last good sample.
+/// A gyro whose sample has not changed for stale_n ticks (it stopped answering, or answers with its last sample flagged ok)
+/// is quiet (DR-fdir-002, F2): its rate is zeroed for the controllers, the estimator propagates with an inflated process
+/// noise and the star-tracker coast ends (the tick). A sample is the same as the last when all three counts are equal.
+/// Its age counts from the first tick it does not answer, or is quiet; the 60 s fault above it stays.
 /// - mag_ok0: bool (passed true or false)
 /// - b0: real[1][3] (passed a plain number)
 /// - bref_ok: bool (passed true or false)
@@ -267,6 +279,9 @@ pub fn fdir_safe(st: Modes) -> Modes {
 /// - w0: real[1][3] (passed a plain number)
 /// - gyro_age0: real[1] (passed a plain number)
 /// - dt: real[1] (passed a plain number)
+/// - w_prev0: real[1][3] (passed a plain number)
+/// - same0: int (passed a whole number)
+/// - stale_n: int (passed a whole number)
 /// - returns mag_ok: bool (passed true or false)
 /// - returns b: real[1][3] (passed a plain number)
 /// - returns w: real[1][3] (passed a plain number)
@@ -274,8 +289,11 @@ pub fn fdir_safe(st: Modes) -> Modes {
 /// - returns mag_age: real[1] (passed a plain number)
 /// - returns mag_seen: bool (passed true or false)
 /// - returns gyro_age: real[1] (passed a plain number)
+/// - returns w_prev: real[1][3] (passed a plain number)
+/// - returns same: int (passed a whole number)
+/// - returns quiet: bool (passed true or false)
 #[allow(clippy::too_many_arguments)]
-pub fn fdir_sensors(mag_ok0: bool, b0: [f64; 3], bref_ok: bool, bref: [f64; 3], b_good0: [f64; 3], mag_age0: f64, mag_seen0: bool, has_gyro: bool, gyro_ok: bool, w0: [f64; 3], gyro_age0: f64, dt: f64) -> (bool, [f64; 3], [f64; 3], [f64; 3], f64, bool, f64) {
+pub fn fdir_sensors(mag_ok0: bool, b0: [f64; 3], bref_ok: bool, bref: [f64; 3], b_good0: [f64; 3], mag_age0: f64, mag_seen0: bool, has_gyro: bool, gyro_ok: bool, w0: [f64; 3], gyro_age0: f64, dt: f64, w_prev0: [f64; 3], same0: i64, stale_n: i64) -> (bool, [f64; 3], [f64; 3], [f64; 3], f64, bool, f64, [f64; 3], i64, bool) {
     let mut mag_ok: bool = false;
     let mut b: [f64; 3] = [0.0; 3];
     let mut w: [f64; 3] = [0.0; 3];
@@ -283,6 +301,9 @@ pub fn fdir_sensors(mag_ok0: bool, b0: [f64; 3], bref_ok: bool, bref: [f64; 3], 
     let mut mag_age: f64 = 0.0;
     let mut mag_seen: bool = false;
     let mut gyro_age: f64 = 0.0;
+    let mut w_prev: [f64; 3] = [0.0; 3];
+    let mut same: i64 = 0;
+    let mut quiet: bool = false;
     mag_ok = mag_ok0;
     b = b0;
     w = w0;
@@ -305,15 +326,29 @@ pub fn fdir_sensors(mag_ok0: bool, b0: [f64; 3], bref_ok: bool, bref: [f64; 3], 
         b = b_good;
         mag_age = (mag_age + dt);
     }
-    if ((!has_gyro) || gyro_ok) {
+    let mut fresh: bool = false;
+    if gyro_ok {
+        if (((w0[0] != w_prev0[0]) || (w0[1] != w_prev0[1])) || (w0[2] != w_prev0[2])) {
+            fresh = true;
+        }
+    }
+    same = same0;
+    if ((!has_gyro) || fresh) {
+        same = 0;
+    } else if (same0 < 1000) {
+        same = (same0 + 1);
+    }
+    w_prev = w0;
+    quiet = (has_gyro && (same >= stale_n));
+    if ((!has_gyro) || (gyro_ok && (!quiet))) {
         gyro_age = 0.0;
     } else {
         gyro_age = (gyro_age + dt);
     }
-    if ((!gyro_ok) && (!has_gyro)) {
+    if (quiet || ((!gyro_ok) && (!has_gyro))) {
         w = [0.0; 3];
     }
-    (mag_ok, b, w, b_good, mag_age, mag_seen, gyro_age)
+    (mag_ok, b, w, b_good, mag_age, mag_seen, gyro_age, w_prev, same, quiet)
 }
 
 /// The rotor FDIR's own state (part of fsw_t).

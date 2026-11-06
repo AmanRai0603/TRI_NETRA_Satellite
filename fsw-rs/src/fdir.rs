@@ -11,9 +11,12 @@ impl Fsw {
     /// reading; the last good field is held; the age of each sensor's last good sample.
     /// Written from the design: modes::fdir_sensors (src/alg).
     pub(super) fn fdir_sensors(&mut self, z: &mut Meas, dt: f64) {
-        (z.mag_ok, z.b, z.w, self.b_good, self.mag_age, self.mag_seen, self.gyro_age) =
+        let same;
+        (z.mag_ok, z.b, z.w, self.b_good, self.mag_age, self.mag_seen, self.gyro_age, self.w_prev, same, self.gyro_quiet) =
             alg::fdir_sensors(z.mag_ok, z.b, self.bref.is_some(), self.bref.unwrap_or([0.0; 3]), self.b_good, self.mag_age,
-                              self.mag_seen, self.p.has_gyro != 0, z.gyro_ok, z.w, self.gyro_age, dt);
+                              self.mag_seen, self.p.has_gyro != 0, z.gyro_ok, z.w, self.gyro_age, dt, self.w_prev, self.gyro_same,
+                              self.p.gyro_stale_ticks as i64);
+        self.gyro_same = same;
     }
 
     /// Safe mode: a sensor silent too long holds the spacecraft in magnetorquer detumble.

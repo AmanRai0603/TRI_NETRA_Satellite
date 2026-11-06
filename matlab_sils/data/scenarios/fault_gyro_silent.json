@@ -35,23 +35,23 @@
   {
    "id": "ake_3ax_max",
    "kind": "ake",
-   "limit": 5.0,
+   "limit": 1.0,
    "statistic": "max",
-   "window": "last_half_orbit"
+   "window": "pointing"
   },
   {
    "diagnostic": "the knowledge error across the line of sight, beside the judged three-axis bound (a clean run holds 0.004 deg)",
    "id": "ake_los_max",
    "kind": "ake_los",
    "statistic": "max",
-   "window": "last_half_orbit"
+   "window": "pointing"
   },
   {
    "diagnostic": "the performance error across the line of sight (a clean run holds 0.008 deg)",
    "id": "ape_los_max",
    "kind": "ape_los",
    "statistic": "max",
-   "window": "last_half_orbit"
+   "window": "pointing"
   }
  ],
  "product": "TRN-P-3U-IMG",
