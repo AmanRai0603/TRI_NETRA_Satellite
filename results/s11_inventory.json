@@ -413,12 +413,12 @@
    "lives": "both",
    "design": "fsw_modes (gdn); the B-dot rate (adcs_fsw.c:310) already computes a field derivative",
    "code": "tick :360-372",
-   "test": "fsw test: has_gyro=0, tumbling body, hold elapsed: no exit while the B-dot rate is above ho_out; before: exits.",
+   "test": "fsw test: has_gyro=0, tumbling body, hold elapsed: no exit while the B-dot rate is above ho_out; before: exits. Also: has_gyro=1 and healthy: the exit uses the gyro's rate; the gyro failing during detumble: the exit moves to the B-dot rate and does not exit early. Scenario cases: gyro, no gyro, gyro failing in detumble.",
    "kind": "code",
    "tier": "standard",
    "size": "S",
    "deps": "F2/G3",
-   "owner_decision": "YES (small): B-dot rate estimate for the exit (recommended; exists in the tick) or refuse auto-next without a gyro.",
+   "owner_decision": "ANSWERED 6 Nov 2026 (docs/S11_INVENTORY.md section 5): both rate sources. A healthy gyro: exit on the gyro's rate. No gyro, or a failed or unhealthy gyro: exit on the B-dot rate estimate from the magnetometer. The gyro's health switches, not a setting.",
    "step": "S11.5"
   },
   {

@@ -195,7 +195,12 @@ Each entry: what the item says (its id in its source), whether it is open and ho
 - Status: **open**. Known from: 08_mode_manager.pc:240 'if not gyro_ok and not has_gyro: w = 0'; exit test at adcs_fsw.c:369 (ho_t) on z->w.
 - Lives in: both. Design: fsw_modes (gdn); the B-dot rate (adcs_fsw.c:310) already computes a field derivative. Code: tick :360-372.
 - Fails before the fix: fsw test: has_gyro=0, tumbling body, hold elapsed: no exit while the B-dot rate is above ho_out; before: exits.
-- Work: code (standard tier), size S, step S11.5. Depends on: F2/G3. Owner decision: YES (small): B-dot rate estimate for the exit (recommended; exists in the tick) or refuse auto-next without a gyro.
+- Also fails before the fix: a healthy gyro, where the exit must use the gyro's rate; and a gyro failing during
+  detumble, where the exit must move to the B-dot rate and not exit early. Scenario cases: gyro, no gyro, and a
+  gyro failing in detumble.
+- Work: code (standard tier), size S, step S11.5. Depends on: F2/G3. **Owner's answer (6 Nov 2026, section 5):
+  both rate sources.** The gyro's rate when the gyro is healthy; the B-dot rate estimate from the magnetometer
+  when there is no gyro or it has failed. The gyro's health does the switching.
 
 ### flight software
 
@@ -395,6 +400,12 @@ All have a default; the developer takes the default and marks it unsigned if the
 | 7 | Golden table tolerance | TS11 | bit-exact for the same toolchain fingerprint, relative tolerance otherwise; one tolerance everywhere | bit-exact per fingerprint, per-metric relative otherwise |
 | 8 | Margin floor for h_req | Y4 (DD9) | the stated k_h = 2; a derived margin | k_h = 2 floor, achieved margin reported |
 | 9 | CMG bearing friction and spin-down | M5 | a datasheet field with a source (catalogue change); the wheel's friction ratio as a stated developer value | the wheel's ratio, source named |
+
+**The owner's answers (6 Nov 2026):** the defaults for 1-4 and 6-9. For 5, both sources of rate: a product with a
+healthy gyro leaves detumble on the gyro's rate. A product with no gyro, or whose gyro has failed or been declared
+unhealthy, leaves on the B-dot rate estimate from the magnetometer. The switch between them is the gyro's health,
+not a setting, and the scenario cases hold all three: gyro, no gyro, and a gyro failing during detumble. It is
+still the developer's revision, marked unsigned like the rest.
 
 Smaller choices the developer makes and marks unsigned, with the source on the revision: G1's sin threshold (0.15-0.25, Shuster and Oh), F4's plausibility placement (a design method both the init and the update call), P5 (cap at 30 s; RK78 is S12), E6 (high bundle for "worst").
 
