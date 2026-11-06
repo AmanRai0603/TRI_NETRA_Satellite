@@ -2248,7 +2248,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (by the flight software or the engine, at each step): its inputs mag_ok0, b0, bref_ok, bref, b_good0, mag_age0, mag_seen0, has_gyro, gyro_ok, w0, gyro_age0, dt are the run's state and the product it flies, not rows of the design"
+    "why": "computed during a run (by the flight software or the engine, at each step): its inputs mag_ok0, b0, bref_ok, bref, b_good0, mag_age0, mag_seen0, has_gyro, gyro_ok, w0, gyro_age0, dt, w_prev0, same0, stale_n are the run's state and the product it flies, not rows of the design"
    },
    {
     "id": "fsw_allocation",
@@ -2293,7 +2293,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (by the flight software or the engine, at each step): its module's 8 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+    "why": "computed during a run (generated into flight): its module's 10 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "fsw_guidance",
@@ -2311,7 +2311,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (by the flight software or the engine, at each step): its module's 8 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+    "why": "computed during a run (generated into flight): its module's 9 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "fsw_param_J",
@@ -2648,6 +2648,15 @@
     "si": null,
     "value": "",
     "why": "computed during a run (generated into adcs-sim): its inputs arw, rrw, es_noise are the run's state and the product it flies, not rows of the design"
+   },
+   {
+    "id": "fsw_param_gyro_stale_ticks",
+    "group": "fsw",
+    "label": "ticks a gyro sample may stay unchanged (or unanswered) before the gyro is quiet: its rate is zeroed for the controllers, the estimator's process noise is raised and the star-tracker coast ends (DR-fdir-002)",
+    "state": "stated",
+    "si": 3.0,
+    "value": "3",
+    "why": "the design, DR-fdir-002 (design/decisions/DR-fdir-002.toml): a gyro sample unchanged for 3 ticks (0.3 s at 10 Hz) is quiet, shorter than the detumble hold and far shorter than the 60 s fault above it; the developer's value, for the owner to sign or override"
    },
    {
     "id": "fsw_param_h_bias",
@@ -3758,7 +3767,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (by the flight software or the engine, at each step): its module's 6 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+    "why": "computed during a run (generated into flight): its module's 9 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "fsw_tune_avanzini_k_over_n",
@@ -13823,7 +13832,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (by the flight software or the engine, at each step): its inputs mag_ok0, b0, bref_ok, bref, b_good0, mag_age0, mag_seen0, has_gyro, gyro_ok, w0, gyro_age0, dt are the run's state and the product it flies, not rows of the design"
+    "why": "computed during a run (by the flight software or the engine, at each step): its inputs mag_ok0, b0, bref_ok, bref, b_good0, mag_age0, mag_seen0, has_gyro, gyro_ok, w0, gyro_age0, dt, w_prev0, same0, stale_n are the run's state and the product it flies, not rows of the design"
    },
    {
     "id": "fsw_allocation",
@@ -13868,7 +13877,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (by the flight software or the engine, at each step): its module's 8 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+    "why": "computed during a run (generated into flight): its module's 10 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "fsw_guidance",
@@ -13886,7 +13895,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (by the flight software or the engine, at each step): its module's 8 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+    "why": "computed during a run (generated into flight): its module's 9 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "fsw_param_J",
@@ -14223,6 +14232,15 @@
     "si": null,
     "value": "",
     "why": "computed during a run (generated into adcs-sim): its inputs arw, rrw, es_noise are the run's state and the product it flies, not rows of the design"
+   },
+   {
+    "id": "fsw_param_gyro_stale_ticks",
+    "group": "fsw",
+    "label": "ticks a gyro sample may stay unchanged (or unanswered) before the gyro is quiet: its rate is zeroed for the controllers, the estimator's process noise is raised and the star-tracker coast ends (DR-fdir-002)",
+    "state": "stated",
+    "si": 3.0,
+    "value": "3",
+    "why": "the design, DR-fdir-002 (design/decisions/DR-fdir-002.toml): a gyro sample unchanged for 3 ticks (0.3 s at 10 Hz) is quiet, shorter than the detumble hold and far shorter than the 60 s fault above it; the developer's value, for the owner to sign or override"
    },
    {
     "id": "fsw_param_h_bias",
@@ -15333,7 +15351,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (by the flight software or the engine, at each step): its module's 6 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+    "why": "computed during a run (generated into flight): its module's 9 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "fsw_tune_avanzini_k_over_n",

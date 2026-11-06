@@ -4,7 +4,7 @@
 
 ## ais_3u
 
-From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1014 not computed, 172 stated. Closures: 34 blocked, 4 pass.
+From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1014 not computed, 173 stated. Closures: 34 blocked, 4 pass.
 
 | Closure | KPI | Answer | Why |
 |---|---|---|---|
@@ -119,6 +119,7 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1014 not 
 | `fsw_param_gd_t0` | fsw | stated | 0 | the design, the scenario's fsw.guidance.t0; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs guidance_params (json::f(guidance, t0, 0.0)) |
 | `fsw_param_gd_yaw_flip` | fsw | stated | 1 | the design, the scenario's fsw.yaw_flip; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs sensor_params (json::b(fsw, yaw_flip, true)) |
 | `fsw_param_gnss_ecef` | fsw | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs sensor_params (p.gnss_ecef = 1: the receiver's standard frame, converted onboard) |
+| `fsw_param_gyro_stale_ticks` | fsw | stated | 3 | the design, DR-fdir-002 (design/decisions/DR-fdir-002.toml): a gyro sample unchanged for 3 ticks (0.3 s at 10 Hz) is quiet, shorter than the detumble hold and far shorter than the 60 s fault above it; the developer's value, for the owner to sign or override |
 | `fsw_param_h_bias` | fsw | stated | 0.002 | the design, the scenario's fsw.wheel_bias_Nms; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs rotor_params (json::f(fsw, wheel_bias_Nms, 2e-3)) |
 | `fsw_param_ho_hold_s` | fsw | stated | 60 | the design, the scenario's fsw.handover_hold_s; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs mtq_gains (json::f(fsw, handover_hold_s, 60.0)) |
 | `fsw_param_ho_in_dps` | fsw | stated | 1 | the design, the scenario's fsw.handover_in_dps; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs mtq_gains (json::f(fsw, handover_in_dps, 1.0)) |
@@ -287,18 +288,18 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1014 not 
 - computed during a run (generated into adcs-sim-core): 72 (act_cmg_model, act_rotor_set, act_rotor_telemetry, act_vscmg_gimbal_limits, act_vscmg_model, dyn_flexible_mode, dyn_initial_state, dyn_rigid_body, dyn_rotor_coupling, dyn_total_momentum, env_calendar_time, env_moon_fast, …)
 - computed during a run (generated into adcs-sim): 47 (env_orbit_start, fsw_param_alloc, fsw_param_bdot_law, fsw_param_es_noise, fsw_param_gim_axis, fsw_param_gim_rate_max, fsw_param_gps_latency, fsw_param_gyro_arw, fsw_param_gyro_rrw, fsw_param_has_es, fsw_param_has_gps, fsw_param_has_gyro, …)
 - computed during a run (generated into adcs-pop): 23 (env_de440, env_density_model, env_drag_force, env_dtm2020_operational, env_dtm2020_research, env_earth_frames, env_eop, env_erp_force, env_exponential_atmosphere, env_force_model, env_gas_surface, env_geodetic, …)
-- computed during a run (by the flight software or the engine, at each step): 22 (act_cmg_axes, act_cmg_steering, dyn_kinematics, fdir_rotor_health, fdir_safe_mode, fdir_sensor_health, fsw_allocation, fsw_control, fsw_drivers, fsw_estimation, fsw_guidance, fsw_modes, …)
+- computed during a run (by the flight software or the engine, at each step): 19 (act_cmg_axes, act_cmg_steering, dyn_kinematics, fdir_rotor_health, fdir_safe_mode, fdir_sensor_health, fsw_allocation, fsw_control, fsw_drivers, fsw_guidance, gdn_boresight_offset, gdn_guidance, …)
 - a relation, but no pseudocode yet: its author writes it: 18 (rk1_0, rk1_1, rk1_2, rk1_3, rk1_4, rk2_0, rk2_1, rk2_2, rk2_3, rk2_4, rk2_5, rk3_0, …)
 - needs an input that has no value: 16 (fsw_param_mtq_k1, fsw_param_mtq_k16, fsw_param_mtq_k2, fsw_param_mtq_lam16, fsw_param_sb_kd, fsw_param_sb_kp, gf_9, gp_5, gr_3, gr_4, gw_3, gw_4, …)
 - its module has 2 functions and names none for this node (by its id or its output's symbol): 9 (gb_0, gb_1, gb_2, gb_3, l3_budget_row_06, l3_budget_row_07, l3_budget_row_08, l3_fmr_row_14, l3_fmr_row_15)
 - its module has 7 functions and names none for this node (by its id or its output's symbol): 7 (design_sizing_cmg, design_sizing_rw, design_sizing_sensors, design_sizing_vscmg, gw_5, gw_6, l3_budget_row_03)
 - its module has 5 functions and names none for this node (by its id or its output's symbol): 5 (design_sizing_mtq, gm_4, gm_5, gp_4, l3_budget_row_02)
+- computed during a run (generated into flight): 5 (env_time_frames, fsw_estimation, fsw_modes, fsw_steplaws, nav_onboard_orbit)
 - its module has 8 functions and names none for this node (by its id or its output's symbol): 3 (ctl_floquet_certificate, design_sizing_fmr, l3_budget_row_04)
 - its module has 9 functions and names none for this node (by its id or its output's symbol): 3 (design_loop_converge, design_loop_redundancy, design_loop_robustness)
 - its module has 4 functions and names none for this node (by its id or its output's symbol): 3 (fsw_clock, fsw_param_rw_Klqr, l3_fmr_row_07)
 - its module has 6 functions and names none for this node (by its id or its output's symbol): 2 (catalogue_datasheet_derive, design_power_system)
 - its module has 3 functions and names none for this node (by its id or its output's symbol): 2 (design_sizing_rcs, l3_budget_row_05)
-- computed during a run (generated into flight): 2 (env_time_frames, nav_onboard_orbit)
 - its module has 13 functions and names none for this node (by its id or its output's symbol): 2 (gw_2, l3_budget_row_01)
 - its module has 10 functions and names none for this node (by its id or its output's symbol): 1 (fsw_param_mtq_Klqr)
 - the case does not state pointing.et: 1 (gp_3)
@@ -350,7 +351,7 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1014 not 
 
 ## ais_img_3u
 
-From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1006 not computed, 175 stated. Closures: 33 blocked, 1 fail, 4 pass.
+From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1006 not computed, 176 stated. Closures: 33 blocked, 1 fail, 4 pass.
 
 | Closure | KPI | Answer | Why |
 |---|---|---|---|
@@ -465,6 +466,7 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1006 not 
 | `fsw_param_gd_t0` | fsw | stated | 0 | the design, the scenario's fsw.guidance.t0; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs guidance_params (json::f(guidance, t0, 0.0)) |
 | `fsw_param_gd_yaw_flip` | fsw | stated | 1 | the design, the scenario's fsw.yaw_flip; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs sensor_params (json::b(fsw, yaw_flip, true)) |
 | `fsw_param_gnss_ecef` | fsw | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs sensor_params (p.gnss_ecef = 1: the receiver's standard frame, converted onboard) |
+| `fsw_param_gyro_stale_ticks` | fsw | stated | 3 | the design, DR-fdir-002 (design/decisions/DR-fdir-002.toml): a gyro sample unchanged for 3 ticks (0.3 s at 10 Hz) is quiet, shorter than the detumble hold and far shorter than the 60 s fault above it; the developer's value, for the owner to sign or override |
 | `fsw_param_h_bias` | fsw | stated | 0.002 | the design, the scenario's fsw.wheel_bias_Nms; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs rotor_params (json::f(fsw, wheel_bias_Nms, 2e-3)) |
 | `fsw_param_ho_hold_s` | fsw | stated | 60 | the design, the scenario's fsw.handover_hold_s; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs mtq_gains (json::f(fsw, handover_hold_s, 60.0)) |
 | `fsw_param_ho_in_dps` | fsw | stated | 1 | the design, the scenario's fsw.handover_in_dps; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs mtq_gains (json::f(fsw, handover_in_dps, 1.0)) |
@@ -641,18 +643,18 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1006 not 
 - computed during a run (generated into adcs-sim-core): 72 (act_cmg_model, act_rotor_set, act_rotor_telemetry, act_vscmg_gimbal_limits, act_vscmg_model, dyn_flexible_mode, dyn_initial_state, dyn_rigid_body, dyn_rotor_coupling, dyn_total_momentum, env_calendar_time, env_moon_fast, …)
 - computed during a run (generated into adcs-sim): 47 (env_orbit_start, fsw_param_alloc, fsw_param_bdot_law, fsw_param_es_noise, fsw_param_gim_axis, fsw_param_gim_rate_max, fsw_param_gps_latency, fsw_param_gyro_arw, fsw_param_gyro_rrw, fsw_param_has_es, fsw_param_has_gps, fsw_param_has_gyro, …)
 - computed during a run (generated into adcs-pop): 23 (env_de440, env_density_model, env_drag_force, env_dtm2020_operational, env_dtm2020_research, env_earth_frames, env_eop, env_erp_force, env_exponential_atmosphere, env_force_model, env_gas_surface, env_geodetic, …)
-- computed during a run (by the flight software or the engine, at each step): 22 (act_cmg_axes, act_cmg_steering, dyn_kinematics, fdir_rotor_health, fdir_safe_mode, fdir_sensor_health, fsw_allocation, fsw_control, fsw_drivers, fsw_estimation, fsw_guidance, fsw_modes, …)
+- computed during a run (by the flight software or the engine, at each step): 19 (act_cmg_axes, act_cmg_steering, dyn_kinematics, fdir_rotor_health, fdir_safe_mode, fdir_sensor_health, fsw_allocation, fsw_control, fsw_drivers, fsw_guidance, gdn_boresight_offset, gdn_guidance, …)
 - a relation, but no pseudocode yet: its author writes it: 18 (rk1_0, rk1_1, rk1_2, rk1_3, rk1_4, rk2_0, rk2_1, rk2_2, rk2_3, rk2_4, rk2_5, rk3_0, …)
 - needs an input that has no value: 11 (fsw_param_mtq_k1, fsw_param_mtq_k16, fsw_param_mtq_k2, fsw_param_mtq_lam16, fsw_param_sb_kd, fsw_param_sb_kp, gp_5, l3_pnt_row_09, rk4_0, rk4_1, rk4_2)
 - its module has 2 functions and names none for this node (by its id or its output's symbol): 9 (gb_0, gb_1, gb_2, gb_3, l3_budget_row_06, l3_budget_row_07, l3_budget_row_08, l3_fmr_row_14, l3_fmr_row_15)
 - its module has 7 functions and names none for this node (by its id or its output's symbol): 7 (design_sizing_cmg, design_sizing_rw, design_sizing_sensors, design_sizing_vscmg, gw_5, gw_6, l3_budget_row_03)
 - its module has 5 functions and names none for this node (by its id or its output's symbol): 5 (design_sizing_mtq, gm_4, gm_5, gp_4, l3_budget_row_02)
+- computed during a run (generated into flight): 5 (env_time_frames, fsw_estimation, fsw_modes, fsw_steplaws, nav_onboard_orbit)
 - its module has 8 functions and names none for this node (by its id or its output's symbol): 3 (ctl_floquet_certificate, design_sizing_fmr, l3_budget_row_04)
 - its module has 9 functions and names none for this node (by its id or its output's symbol): 3 (design_loop_converge, design_loop_redundancy, design_loop_robustness)
 - its module has 4 functions and names none for this node (by its id or its output's symbol): 3 (fsw_clock, fsw_param_rw_Klqr, l3_fmr_row_07)
 - its module has 6 functions and names none for this node (by its id or its output's symbol): 2 (catalogue_datasheet_derive, design_power_system)
 - its module has 3 functions and names none for this node (by its id or its output's symbol): 2 (design_sizing_rcs, l3_budget_row_05)
-- computed during a run (generated into flight): 2 (env_time_frames, nav_onboard_orbit)
 - its module has 13 functions and names none for this node (by its id or its output's symbol): 2 (gw_2, l3_budget_row_01)
 - its module has 10 functions and names none for this node (by its id or its output's symbol): 1 (fsw_param_mtq_Klqr)
 - the case does not state pointing.et: 1 (gp_3)
