@@ -67,8 +67,15 @@ wiring the design gives, where before it guessed. Each moved row is named with i
 
 ## 4 · The twin's full re-fly (running)
 
-Every stored twin run is being flown again by the final twin: 48 scenarios and 8 campaigns (184 runs). It resumes
-from its checkpoints and its results are committed as they come. When it ends:
+Every stored twin scenario is being flown again by the final S7 twin (48 scenarios; 46 in at 11:20 UTC on 6 Nov).
+It resumes from its checkpoints and its results are committed as they come.
+
+The 8 twin campaigns (184 runs) are not flown again on the S7 twin. S11 already changes the engine code the twin's
+parameter blob comes from (`adcs-sim/src/config.rs`), so campaigns flown now would be stale when they land. They
+are flown once, with the S11 twin, in S11.16. The engine's campaigns are already held by the parity gate (4,516 of
+4,516), and the comparison below is per scenario.
+
+When the scenarios end:
 - `python3 tools/engine.py twin-parity` compares the engine with the twin on every scenario;
 - `results/ENGINE_PARITY.md` is rewritten from it;
 - the result is entered here.
