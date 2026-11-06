@@ -78,6 +78,38 @@ Severity: C critical, H high, M medium, L low. Effort: S days, M 1–2 weeks, L 
 | TS16 | Independence | M | One author writes code, tests and oracles | Independent reviewer writes TS3/TS4/TS9 tests from the SRS without reading the code; test review board per phase (ECSS-Q-ST-80C Rev.2 ISVV by criticality; ADCS safe mode typically category B) | M |
 | TS17 | Oracle quality | L–M | "Passes if not broken" oracles | Replace `t_igrf` range → point vectors; `t_shadow` 3 points → boundary sweep; `detumble_reduces_rate` → analytic rate; `t_mekf` → NEES; audit every test for such oracles | S |
 
+### TS17 · The oracles replaced, and the audit (S11.15)
+
+Each new oracle was tried against a model broken on purpose (done locally, then reverted; none is committed). The old
+oracle passed every one; the new one failed it.
+
+| Test | New oracle | Broken model | Old | New |
+|---|---|---|---|---|
+| `t_igrf` | the table at ten dates and the synthesis at nine points, read from the design's published vectors (`fsw/tests/pcode_vectors.txt`) | every date's g10 up 5 % (both copies of the table) | pass | fail (1.5e3 nT) |
+| `t_shadow` | a 0.002 deg sweep across the edge: umbra end, half-lit point and penumbra end each within 0.01 deg of the cone geometry, monotone | the cone angle shifted by 0.1 deg | pass | fail |
+| `t_mekf` | mean NEES of 6 runs of 300 steps, held to 3.5 .. 10 (6 expected) | the measurement variance 0.04 of the true (a covariance too small) | pass | fail (NEES 92) |
+| `detumble_decays_at_the_analytic_rate` | log-rate fitted 1000 s on, held to 0.55 .. 1.05 of (2/3) duty k/I | the B-dot gain halved in the flight law | pass | fail (ratio 0.37) |
+
+The `t_mekf` check does not see the process noise too small by 25 times (NEES 8.0, inside the band): the band is wide
+on that side, and a test that held the process noise would need a longer run.
+
+The audit looked for an inequality that any not-broken model passes. Found and left (none was a quick, clear change):
+
+| File | Test | Why weak | Status |
+|---|---|---|---|
+| `matlab_sils/tests/run_all_tests.m` | `t_torques` (offset CM) | `norm(aero torque) > 0`: any nonzero torque passes | left: needs the facet force by hand |
+| `matlab_sils/tests/run_all_tests.m` | `t_gen_bdot` | only the sign of the energy rate is checked | left: take the analytic rate as the engine's test now does |
+| `matlab_sils/tests/run_all_tests.m` | `t_orbit_vs_pop` | in-loop against POP within 1 m, no scale argument | left |
+| `matlab_sils/tests/run_all_tests.m` | `t_campaign_draw` (F10.7 in 70 .. 220) | a range, not a value | left |
+| `fsw-rs/tests/fsw.rs` | MEKF (`qangle < 0.01 deg`) | converges: passes a filter with a wrong covariance | left: NEES in the twin covers it; a Rust NEES test is open |
+| `fsw-rs/tests/fsw.rs` | L1 and B-dot (`dot(...) < 0`) | the sign only | left |
+| `fsw-rs/tests/laws.rs` | de Ruiter at the threshold (`norm > 0`) | any nonzero command passes | left |
+| `engine/crates/adcs-sim-core/tests/chains.rs` | star-tracker and sun chains (`< 5 arcsec`, `< 60 arcsec`, `< 2 deg`) | bounds with no budget behind them | left |
+| `engine/crates/adcs-sim/tests/chains.rs` | image chain knowledge `< 0.005 deg` | bound, not a budget | left |
+| `tests/` (Python) | `assertGreater(len(x), 0)` in test_groupcode, test_release, test_convert | non-empty only | left: they guard a loop that would otherwise test nothing |
+
+Ten entries beyond the four replaced were found; none was changed here.
+
 ## 4 · Test architecture
 
 ### Pyramid (counts are targets)

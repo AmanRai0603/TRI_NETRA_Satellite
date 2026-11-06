@@ -40,11 +40,23 @@ fn run_twice_identical_and_c_equals_rust() {
 }
 
 #[test]
-fn detumble_reduces_rate() {
-    let c = cfg("detumble_ais", 3600.0);
+fn detumble_decays_at_the_analytic_rate() {
+    // B-dot (gyro form) commands m = (k/|B|) w x B^, so the coil torque is m x B = -k (|B|/bn) (w - B^ (B^.w)): only the
+    // part of the rate across the field is damped, at k/I on the axis it spins about (the major inertia once the
+    // tumble has settled), for the share of each second the coil is on (1 - mtq_meas/mtq_period). Over a tumble the
+    // rate lies across the field 2/3 of the time, so |w| falls as exp(-(2/3) duty k/I t). The first 1000 s are
+    // left out (the dipole saturates), and the fit is held to 55 .. 105 % of the analytic rate: the field turns
+    // with the orbit, which slows the decay to about 0.75 of it (seeds 3, 5, 7: 0.69 .. 0.87); halving the gain gives 0.37.
+    let c = cfg("detumble_ais", 5000.0);
     let r = run::run(&c, &run::Opts { fsw: Impl::Rust, quiet: true, realtime: false, oils: None }).unwrap();
-    let (w0, w1) = (norm(&r.rows[0].w), norm(&r.rows.last().unwrap().w));
-    assert!(w1 < 0.2*w0, "B-dot: {} -> {} deg/s", w0.to_degrees(), w1.to_degrees());
+    let p: Vec<(f64, f64)> = r.rows.iter().filter(|x| x.t >= 1000.0).map(|x| (x.t, norm(&x.w).ln())).collect();
+    let n = p.len() as f64;
+    let (mt, my) = (p.iter().map(|a| a.0).sum::<f64>()/n, p.iter().map(|a| a.1).sum::<f64>()/n);
+    let rate = -p.iter().map(|a| (a.0 - mt)*(a.1 - my)).sum::<f64>()/p.iter().map(|a| (a.0 - mt).powi(2)).sum::<f64>();
+    let i_major = c.inertia[0][0].max(c.inertia[1][1]).max(c.inertia[2][2]);
+    let duty = 1.0 - c.params.mtq_meas/c.params.mtq_period;
+    let analytic = 2.0/3.0*duty*c.params.bdot_k/i_major;
+    assert!(rate > 0.55*analytic && rate < 1.05*analytic, "B-dot decay {rate:.3e} 1/s, analytic {analytic:.3e} 1/s (ratio {:.2}, held 0.55 .. 1.05)", rate/analytic);
 }
 
 #[test]

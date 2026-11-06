@@ -82,22 +82,62 @@ function m = t_case()
 end
 
 function m = t_igrf()
-    gh = asils.models.frames.igrf_gh(2025.0);
-    B0 = norm(asils.models.frames.igrf_ned(gh, 0, 0, 0, 13));
-    Bp = norm(asils.models.frames.igrf_ned(gh, 80*pi/180, 0, 0, 13));
-    B5 = norm(asils.models.frames.igrf_ned(gh, 0, 0, 550, 13));
-    assert(B0 > 25000 && B0 < 40000 && Bp > 50000 && Bp < 62000 && B5 < B0, ...
-        '|B| equator %.0f, 80N %.0f, 550 km %.0f nT', B0, Bp, B5);
+    % the field against the design's published vectors (fsw/tests/pcode_vectors.txt, the interpreter's draws of
+    % frames::igrf_gh and frames::igrf_ned): the table at each date, then the synthesis from each vector's coefficients
+    here = fileparts(mfilename('fullpath'));
+    L = vector_lines_(fullfile(here, '..', '..', 'fsw', 'tests', 'pcode_vectors.txt'), {'frames::igrf_gh', 'frames::igrf_ned'});
+    ng = 0; nb = 0; dg = 0; db = 0;
+    for i = 1:numel(L)
+        x = L{i}.x; y = L{i}.y;
+        if strcmp(L{i}.name, 'frames::igrf_gh')
+            gh = asils.models.frames.igrf_gh(x(1));
+            dg = max(dg, max(abs(gh - y))); ng = ng + 1;
+            assert(isequal(gh, y), 'IGRF table at %.4f differs from the design''s vector by %.3g nT', x(1), max(abs(gh - y)));
+        else
+            b = asils.models.frames.igrf_ned(x(1:195), x(196), x(197), x(198), x(199));
+            db = max(db, max(abs(b(:) - y))); nb = nb + 1;
+            assert(max(abs(b(:) - y)) < 1e-6, 'field %.3g nT off the design''s vector', max(abs(b(:) - y)));
+        end
+    end
+    assert(ng >= 5 && nb >= 5, 'the design''s IGRF vectors were not found (%d table, %d field)', ng, nb);
     g2 = asils.alg.frames.igrf_gh(2025.0);
-    assert(isequal(gh, g2), 'the truth''s and the flight software''s IGRF coefficients are one table');
-    m = sprintf('|B| equator %.0f nT, 80N %.0f nT, 550 km %.0f nT', B0, Bp, B5);
+    assert(isequal(asils.models.frames.igrf_gh(2025.0), g2), 'the truth''s and the flight software''s IGRF coefficients are one table');
+    m = sprintf('%d table and %d synthesis vectors of the design (worst %.1e nT, %.1e nT)', ng, nb, dg, db);
+end
+
+function L = vector_lines_(file, names)
+    % the lines of the design's vector file for these names: inputs x and outputs y (IEEE-754 bits, hex)
+    L = {}; fid = fopen(file); assert(fid > 0, 'cannot open %s', file); c = onCleanup(@() fclose(fid));
+    while true
+        ln = fgetl(fid); if ~ischar(ln), break; end
+        t = strsplit(strtrim(ln), ' ');
+        if numel(t) < 6 || ~any(strcmp(t{1}, names)), continue; end
+        nx = str2double(t{4}); ny = str2double(t{5});
+        v = zeros(nx + ny, 1);
+        for k = 1:nx + ny, v(k) = hex2num(t{5 + k}); end
+        L{end + 1} = struct('name', t{1}, 'x', v(1:nx), 'y', v(nx + 1:end)); %#ok<AGROW>
+    end
 end
 
 function m = t_shadow()
-    s = [1.496e11; 0; 0]; f = @asils.models.shadow.shadow_fraction;
-    a = f([7e6; 0; 0], s); b = f([-7e6; 0; 0], s); c = f([0; 7e6; 0], s);
-    assert(a == 1 && b == 0 && c == 1, 'nu = %g %g %g', a, b, c);
-    m = 'sunlit 1, umbra 0, terminator side 1';
+    % a sweep across the shadow's edge: the Sun on +x, a 7000 km circular orbit, phi from the anti-Sun axis. The edges
+    % are the cone's geometry (Sun and Earth discs of apparent radii a and b, their centres phi apart, the Sun at
+    % infinity to 0.003 deg): the umbra ends at phi = b - a, the penumbra at b + a, half lit where the limb crosses
+    % the Sun's centre, phi = b. A shifted edge or a changed radius moves them.
+    f = @asils.models.shadow.shadow_fraction; s = [1.496e11; 0; 0]; r = 7e6;
+    a = asin(6.957e8/norm(s - [-r; 0; 0])); b = asin(6378137/r);
+    phi = (62:0.002:70)*pi/180;
+    nu = zeros(size(phi));
+    for k = 1:numel(phi), nu(k) = f(r*[-cos(phi(k)); sin(phi(k)); 0], s); end
+    tol = 0.01*pi/180;
+    assert(all(diff(nu) >= -1e-12), 'the sunlit fraction is not monotone across the edge');
+    first_lit = phi(find(nu > 0, 1)); full = phi(find(nu >= 1, 1));
+    k = find(nu > 0 & nu < 1); half = interp1(nu(k), phi(k), 0.5);
+    assert(abs(first_lit - (b - a)) < tol, 'umbra ends at %.4f deg, geometry %.4f', first_lit*180/pi, (b - a)*180/pi);
+    assert(abs(full - (b + a)) < tol, 'penumbra ends at %.4f deg, geometry %.4f', full*180/pi, (b + a)*180/pi);
+    assert(abs(half - b) < tol, 'half lit at %.4f deg, geometry %.4f', half*180/pi, b*180/pi);
+    assert(f([-r; 0; 0], s) == 0 && f([0; r; 0], s) == 1, 'deep umbra 0 / quadrature 1');
+    m = sprintf('edge at %.4f deg (umbra %.4f, penumbra %.4f), geometry %.4f', half*180/pi, first_lit*180/pi, full*180/pi, b*180/pi);
 end
 
 function G = facets_(box, cm)
@@ -146,17 +186,31 @@ function m = t_cmg_plant()
 end
 
 function m = t_mekf()
-    % the flight software's MEKF (fsw_estimation: mekf_init, mekf_predict, mekf_vector) on two noisy vectors
-    q = asils.quat.norm(randn(4,1)); [qk, b, P] = asils.alg.estimation.mekf_init(asils.quat.norm(q + [0.05;0;0;0]), 0.1, 1e-3);
-    r1 = [1;0;0]; r2 = [0;0.6;0.8];
-    for k = 1:200
-        [qk, P] = asils.alg.estimation.mekf_predict(qk, b, P, 1e-5, 1e-8, [0;0;0], 0.1);
-        [qk, b, P] = asils.alg.estimation.mekf_vector(qk, b, P, asils.la.dcm(q)*r1 + 1e-3*randn(3,1), r1, 1e-3, 0);
-        [qk, b, P] = asils.alg.estimation.mekf_vector(qk, b, P, asils.la.dcm(q)*r2 + 1e-3*randn(3,1), r2, 1e-3, 0);
+    % consistency of the flight software's MEKF (mekf_init, mekf_predict, mekf_vector) over runs: with the truth drawn
+    % from the filter's own noise model (gyro angle walk arw, rate walk rrw, vector noise sg), the normalised
+    % estimation error squared e'P^-1 e of the 6 states (attitude error 2 vec(q_true^-1 q_est), bias error
+    % b_est - b_true) averages its dimension, 6. Six independent runs of 300 steps, 20 samples each after 100 steps
+    % of settling: the mean is held to 3.5 .. 10 (a covariance too small by 5 gives ~30, too large by 5 ~1.5).
+    arw = 1e-5; rrw = 1e-7; dt = 0.1; sg = 1e-3; r1 = [1;0;0]; r2 = [0;0.6;0.8]; w = [0.01; -0.02; 0.015];
+    nees = [];
+    for run = 1:6
+        qt = asils.quat.norm(randn(4,1)); bt = 2e-4*randn(3,1);
+        [qk, b, P] = asils.alg.estimation.mekf_init(asils.quat.norm(qt + [0.05;0;0;0]), 0.1, 1e-3);
+        for k = 1:300
+            qt = asils.quat.norm(asils.quat.mult(qt, asils.quat.fromrotvec(w*dt)));
+            bt = bt + rrw*sqrt(dt)*randn(3,1);
+            [qk, P] = asils.alg.estimation.mekf_predict(qk, b, P, arw, rrw, w + bt + (arw/sqrt(dt))*randn(3,1), dt);
+            [qk, b, P] = asils.alg.estimation.mekf_vector(qk, b, P, asils.la.dcm(qt)*r1 + sg*randn(3,1), r1, sg, 0);
+            [qk, b, P] = asils.alg.estimation.mekf_vector(qk, b, P, asils.la.dcm(qt)*r2 + sg*randn(3,1), r2, sg, 0);
+            if k > 100 && mod(k, 10) == 0
+                dq = asils.quat.mult(asils.quat.conj(qt), qk); e = [2*sign(dq(4))*dq(1:3); b - bt];
+                nees(end + 1) = e.'*(P\e); %#ok<AGROW>
+            end
+        end
     end
-    e = asils.quat.angle(qk, q)*180/pi;
-    assert(e < 0.05, 'MEKF error %.3f deg', e);
-    m = sprintf('two-vector MEKF converged to %.4f deg', e);
+    mu = mean(nees);
+    assert(mu > 3.5 && mu < 10, 'mean NEES %.2f over %d samples; consistent is 6', mu, numel(nees));
+    m = sprintf('mean NEES %.2f over %d samples (6 states, held 3.5 .. 10)', mu, numel(nees));
 end
 
 function m = t_quest()
