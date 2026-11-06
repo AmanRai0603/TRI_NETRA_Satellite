@@ -4,3 +4,4 @@
 # engine (adcs-plot: `adcs figures`, `adcs plot`), not by a Python package.
 pyflakes==4.0.0
 numpy==2.4.6
+python3 
