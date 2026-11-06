@@ -548,6 +548,18 @@ checks = "tests/test_boundary.py: the repository holds the boundary; a published
 undo = "It writes nothing."
 
 [[command]]
+tool = "fsw_firmware.py"
+name = "fsw-firmware"
+usage = "python3 tools/fsw_firmware.py [NAME ...]"
+what = "Hold the virtual OBC's firmware under fsw/build (default obc_qemu.elf and insn_count.so) to its sources and to the parameter-blob layout (fsw/include/adcs_params.h): rebuild what is older, or refuse by name. A firmware older than the blob the engine writes would refuse it as a bad size or CRC. The parity gate calls it before it flies the firmware (--oils), and the tests that fly it refuse by name."
+steps = ["ask make -C fsw -q whether each named firmware file is current", "rebuild the ones that are not (make -C fsw build/NAME)", "name the file and the cause when it cannot be rebuilt"]
+reads = ["fsw/"]
+writes = ["fsw/build/"]
+runs = ["make -C fsw"]
+checks = "tests/test_fsw_firmware.py: a current firmware is accepted, one older than a header or missing is refused by name, ensure rebuilds it, the gate refuses before flying, and the real Makefile rebuilds on a change of the parameter table"
+undo = "It writes the untracked build folder only: `make -C fsw clean`."
+
+[[command]]
 tool = "device_map.py"
 name = "device-map"
 usage = "python3 tools/device_map.py [map.toml ...]"

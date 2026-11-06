@@ -15,6 +15,7 @@ from pathlib import Path
 
 import _path  # puts tools/ on the import path
 import common
+import fsw_firmware
 
 _ = _path
 
@@ -39,6 +40,7 @@ def records(b):
 class RecordReplay(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        fsw_firmware.require_fresh()   # a firmware older than the blob layout is refused by name, not as a bad CRC
         cls.tmp = tempfile.TemporaryDirectory()
         cls.rec = Path(cls.tmp.name) / "run.rec"
         cls.run_ = subprocess.run([str(ADCS), "run", "nadir_hold_ais", "--fsw", "qemu", "--oils", "--quiet", "--set", "engine.duration_s=3",

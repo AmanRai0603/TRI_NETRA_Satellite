@@ -40,6 +40,7 @@ import tomllib
 import design_build
 import design_inputs
 import evaluate
+import fsw_firmware
 import gen_fsw_params
 from common import ROOT, write_text
 
@@ -263,6 +264,11 @@ def main(argv=None):
     a = ap.parse_args(argv)
     if not ADCS.is_file():
         sys.exit("parity: the engine is not built (cargo build --release in engine/)")
+    if a.oils:
+        try:
+            fsw_firmware.ensure()   # the firmware is rebuilt when older than its sources or the blob layout, else refused by name
+        except fsw_firmware.FirmwareStale as e:
+            sys.exit(f"parity: {e}")
     with tempfile.TemporaryDirectory() as t:
         g = Gate(a.design, t, a.jobs)
         g.inputs()

@@ -52,7 +52,9 @@ clean:
 
 # ---------------- virtual OBC targets (docs/VIRTUAL_OBC.md) ----------------
 LINK_SRC = targets/link/adcs_link.c
-build/obc_posix: $(LINK_SRC) targets/posix/main.c build/libadcs_fsw.a
+# the headers are sources too: the parameter table (include/adcs_params.h, written from the design) is the blob's layout
+HDR = include/*.h src/*.h alg/include/*.h targets/link/*.h
+build/obc_posix: $(LINK_SRC) $(HDR) targets/posix/main.c build/libadcs_fsw.a
 	$(CC) $(CFLAGS) -D_POSIX_C_SOURCE=200809L -Wno-pedantic -Itargets/link $(LINK_SRC) targets/posix/main.c build/libadcs_fsw.a -lm -o $@
 
 RS_HOST = ../fsw-rs/target/release/libadcs_fsw.a
@@ -64,7 +66,7 @@ build/obc_posix_rs: $(LINK_SRC) targets/posix/main.c $(RS_HOST)
 ARMCC = arm-none-eabi-gcc
 ARMFLAGS = -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -std=c99 -O2 -ffp-contract=off -fno-fast-math -ffunction-sections -fdata-sections -Wall -Wextra -Iinclude -Ialg/include -Itargets/link $(ALGFLAGS)
 ARMLD = -T targets/qemu-mps2/link.ld -nostartfiles --specs=nano.specs --specs=nosys.specs -Wl,--gc-sections -lm
-build/obc_qemu.elf: $(SRC) $(ALG) $(LINK_SRC) targets/qemu-mps2/main.c targets/qemu-mps2/link.ld | build
+build/obc_qemu.elf: $(SRC) $(ALG) $(LINK_SRC) $(HDR) targets/qemu-mps2/main.c targets/qemu-mps2/link.ld | build
 	$(ARMCC) $(ARMFLAGS) $(SRC) $(ALG) $(LINK_SRC) targets/qemu-mps2/main.c $(ARMLD) -o $@
 
 RS_ARM = ../fsw-rs/target/thumbv7em-none-eabihf/release/libadcs_fsw.a
