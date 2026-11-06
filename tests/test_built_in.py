@@ -481,7 +481,7 @@ end
             self.assertEqual(x["body"]["node"]["group_id"], "fsw", nid)
             if self.beh(nid) == "method":
                 methods.append(nid)
-                self.assertIn("the developer's revision S7.13", rows[("code", "pseudocode")][1], nid)
+                self.assertTrue(any(f"the developer's revision {r}" in rows[("code", "pseudocode")][1] for r in ("S7.13", "S11.6")), nid)   # S11.6 revised the gains' two modules (G6)
                 self.assertTrue(rows[("code", "transcribes")][0], nid)
                 self.assertEqual(rows[("code", "generate")][0], "adcs-sim", nid)
                 self.assertEqual(x["sealed_as"], "unconfirmed", nid)
