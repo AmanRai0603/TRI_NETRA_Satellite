@@ -4,7 +4,7 @@
 
 ## ais_3u
 
-From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 993 not computed, 171 stated. Closures: 34 blocked, 4 pass.
+From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1014 not computed, 172 stated. Closures: 34 blocked, 4 pass.
 
 | Closure | KPI | Answer | Why |
 |---|---|---|---|
@@ -98,6 +98,7 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 993 not c
 | `fsw_param_bdot_k` | fsw | computed | 8.76379e-05 (SI) | fsw_bdot_gain(scale, n, inc_deg, ii) |
 | `fsw_param_capture_deg` | fsw | stated | 3 | the design, the scenario's fsw.capture_deg; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs rw_gains (json::f(fsw, capture_deg, 3.0)) |
 | `fsw_param_capture_rate_deg_s` | fsw | stated | 1 | the design, the scenario's fsw.capture_rate_deg_s; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs rw_gains (json::f(fsw, capture_rate_deg_s, 1.0)) |
+| `fsw_param_clock_step_max_s` | fsw | stated | 60 | the design, DR-fsw-001 (design/decisions/DR-fsw-001.toml), option (a): the forward bound of the monotonic clock, a minute: a tick that reads further on than this after the previous one (a stalled processor sees seconds, not minutes) is a step of the time source, refused and counted; the developer's value, for the owner to sign or override |
 | `fsw_param_cmg_k_null` | fsw | stated | 0.002 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs rotor_params (p.cmg_k_null = 0.002) |
 | `fsw_param_cmg_lam0` | fsw | stated | 1e-09 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs rotor_params (p.cmg_lam0 = 1e-9) |
 | `fsw_param_cmg_mu` | fsw | stated | 10 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs rotor_params (p.cmg_mu = 10.0) |
@@ -280,9 +281,9 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 993 not c
 | `vv_record_step_default` | vv | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(time, record_dt_s, 1.0)) |
 | `vv_run_duration_default` | vv | stated | 600 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(time, duration_s, 600.0)) |
 
-**Not computed (993), by why:**
+**Not computed (1014), by why:**
 
-- no value, relation or pseudocode yet: 711 (act__cmg, act__vscmg, cas, cat, cf, cf_1, cf_4, cf_5, ci1, ci1_0, ci1_1, ci1_2, …)
+- no value, relation or pseudocode yet: 731 (act__cmg, act__vscmg, cas, cat, cf, cf_1, cf_4, cf_5, ci1, ci1_0, ci1_1, ci1_2, …)
 - computed during a run (generated into adcs-sim-core): 72 (act_cmg_model, act_rotor_set, act_rotor_telemetry, act_vscmg_gimbal_limits, act_vscmg_model, dyn_flexible_mode, dyn_initial_state, dyn_rigid_body, dyn_rotor_coupling, dyn_total_momentum, env_calendar_time, env_moon_fast, …)
 - computed during a run (generated into adcs-sim): 47 (env_orbit_start, fsw_param_alloc, fsw_param_bdot_law, fsw_param_es_noise, fsw_param_gim_axis, fsw_param_gim_rate_max, fsw_param_gps_latency, fsw_param_gyro_arw, fsw_param_gyro_rrw, fsw_param_has_es, fsw_param_has_gps, fsw_param_has_gyro, …)
 - computed during a run (generated into adcs-pop): 23 (env_de440, env_density_model, env_drag_force, env_dtm2020_operational, env_dtm2020_research, env_earth_frames, env_eop, env_erp_force, env_exponential_atmosphere, env_force_model, env_gas_surface, env_geodetic, …)
@@ -294,10 +295,10 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 993 not c
 - its module has 5 functions and names none for this node (by its id or its output's symbol): 5 (design_sizing_mtq, gm_4, gm_5, gp_4, l3_budget_row_02)
 - its module has 8 functions and names none for this node (by its id or its output's symbol): 3 (ctl_floquet_certificate, design_sizing_fmr, l3_budget_row_04)
 - its module has 9 functions and names none for this node (by its id or its output's symbol): 3 (design_loop_converge, design_loop_redundancy, design_loop_robustness)
+- its module has 4 functions and names none for this node (by its id or its output's symbol): 3 (fsw_clock, fsw_param_rw_Klqr, l3_fmr_row_07)
 - its module has 6 functions and names none for this node (by its id or its output's symbol): 2 (catalogue_datasheet_derive, design_power_system)
 - its module has 3 functions and names none for this node (by its id or its output's symbol): 2 (design_sizing_rcs, l3_budget_row_05)
 - computed during a run (generated into flight): 2 (env_time_frames, nav_onboard_orbit)
-- its module has 4 functions and names none for this node (by its id or its output's symbol): 2 (fsw_param_rw_Klqr, l3_fmr_row_07)
 - its module has 13 functions and names none for this node (by its id or its output's symbol): 2 (gw_2, l3_budget_row_01)
 - its module has 10 functions and names none for this node (by its id or its output's symbol): 1 (fsw_param_mtq_Klqr)
 - the case does not state pointing.et: 1 (gp_3)
@@ -349,7 +350,7 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 993 not c
 
 ## ais_img_3u
 
-From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 985 not computed, 174 stated. Closures: 33 blocked, 1 fail, 4 pass.
+From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1006 not computed, 175 stated. Closures: 33 blocked, 1 fail, 4 pass.
 
 | Closure | KPI | Answer | Why |
 |---|---|---|---|
@@ -443,6 +444,7 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 985 not c
 | `fsw_param_bdot_k` | fsw | computed | 8.76379e-05 (SI) | fsw_bdot_gain(scale, n, inc_deg, ii) |
 | `fsw_param_capture_deg` | fsw | stated | 3 | the design, the scenario's fsw.capture_deg; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs rw_gains (json::f(fsw, capture_deg, 3.0)) |
 | `fsw_param_capture_rate_deg_s` | fsw | stated | 1 | the design, the scenario's fsw.capture_rate_deg_s; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs rw_gains (json::f(fsw, capture_rate_deg_s, 1.0)) |
+| `fsw_param_clock_step_max_s` | fsw | stated | 60 | the design, DR-fsw-001 (design/decisions/DR-fsw-001.toml), option (a): the forward bound of the monotonic clock, a minute: a tick that reads further on than this after the previous one (a stalled processor sees seconds, not minutes) is a step of the time source, refused and counted; the developer's value, for the owner to sign or override |
 | `fsw_param_cmg_k_null` | fsw | stated | 0.002 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs rotor_params (p.cmg_k_null = 0.002) |
 | `fsw_param_cmg_lam0` | fsw | stated | 1e-09 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs rotor_params (p.cmg_lam0 = 1e-9) |
 | `fsw_param_cmg_mu` | fsw | stated | 10 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs rotor_params (p.cmg_mu = 10.0) |
@@ -633,9 +635,9 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 985 not c
 | `vv_record_step_default` | vv | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(time, record_dt_s, 1.0)) |
 | `vv_run_duration_default` | vv | stated | 600 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(time, duration_s, 600.0)) |
 
-**Not computed (985), by why:**
+**Not computed (1006), by why:**
 
-- no value, relation or pseudocode yet: 711 (act__cmg, act__vscmg, cas, cat, cf, cf_1, cf_4, cf_5, ci1, ci1_0, ci1_1, ci1_2, …)
+- no value, relation or pseudocode yet: 731 (act__cmg, act__vscmg, cas, cat, cf, cf_1, cf_4, cf_5, ci1, ci1_0, ci1_1, ci1_2, …)
 - computed during a run (generated into adcs-sim-core): 72 (act_cmg_model, act_rotor_set, act_rotor_telemetry, act_vscmg_gimbal_limits, act_vscmg_model, dyn_flexible_mode, dyn_initial_state, dyn_rigid_body, dyn_rotor_coupling, dyn_total_momentum, env_calendar_time, env_moon_fast, …)
 - computed during a run (generated into adcs-sim): 47 (env_orbit_start, fsw_param_alloc, fsw_param_bdot_law, fsw_param_es_noise, fsw_param_gim_axis, fsw_param_gim_rate_max, fsw_param_gps_latency, fsw_param_gyro_arw, fsw_param_gyro_rrw, fsw_param_has_es, fsw_param_has_gps, fsw_param_has_gyro, …)
 - computed during a run (generated into adcs-pop): 23 (env_de440, env_density_model, env_drag_force, env_dtm2020_operational, env_dtm2020_research, env_earth_frames, env_eop, env_erp_force, env_exponential_atmosphere, env_force_model, env_gas_surface, env_geodetic, …)
@@ -647,10 +649,10 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 985 not c
 - its module has 5 functions and names none for this node (by its id or its output's symbol): 5 (design_sizing_mtq, gm_4, gm_5, gp_4, l3_budget_row_02)
 - its module has 8 functions and names none for this node (by its id or its output's symbol): 3 (ctl_floquet_certificate, design_sizing_fmr, l3_budget_row_04)
 - its module has 9 functions and names none for this node (by its id or its output's symbol): 3 (design_loop_converge, design_loop_redundancy, design_loop_robustness)
+- its module has 4 functions and names none for this node (by its id or its output's symbol): 3 (fsw_clock, fsw_param_rw_Klqr, l3_fmr_row_07)
 - its module has 6 functions and names none for this node (by its id or its output's symbol): 2 (catalogue_datasheet_derive, design_power_system)
 - its module has 3 functions and names none for this node (by its id or its output's symbol): 2 (design_sizing_rcs, l3_budget_row_05)
 - computed during a run (generated into flight): 2 (env_time_frames, nav_onboard_orbit)
-- its module has 4 functions and names none for this node (by its id or its output's symbol): 2 (fsw_param_rw_Klqr, l3_fmr_row_07)
 - its module has 13 functions and names none for this node (by its id or its output's symbol): 2 (gw_2, l3_budget_row_01)
 - its module has 10 functions and names none for this node (by its id or its output's symbol): 1 (fsw_param_mtq_Klqr)
 - the case does not state pointing.et: 1 (gp_3)

@@ -769,6 +769,186 @@
     "why": "its module has 7 functions and names none for this node (by its id or its output's symbol)"
    },
    {
+    "id": "dr_act_001",
+    "group": "act",
+    "label": "Momentum envelope, saturation margin, dump strategy and interval",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_act_002",
+    "group": "act",
+    "label": "CMG bearing friction and spin-down after a rotor failure",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_ctl_001",
+    "group": "ctl",
+    "label": "Gain design method with margins; integer-tick rate groups",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_design_001",
+    "group": "design",
+    "label": "Solution versus benchmark family policy",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_design_002",
+    "group": "design",
+    "label": "Ranking rule; may the robustness step break the budget",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_design_003",
+    "group": "design",
+    "label": "Margins policy and budget scope",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_fdir_001",
+    "group": "fdir",
+    "label": "Safe-mode concept, independence and magnetometer redundancy",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_fdir_002",
+    "group": "fdir",
+    "label": "FDIR hierarchy: gyro staleness, the star-tracker coast, the watchdog",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_fsw_001",
+    "group": "fsw",
+    "label": "Onboard time after a reset; synchronisation; TM/TC standard",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_fsw_002",
+    "group": "fsw",
+    "label": "OBC, FPU and numeric precision",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_gdn_001",
+    "group": "gdn",
+    "label": "Nadir definition and yaw steering",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_gdn_002",
+    "group": "gdn",
+    "label": "The complete mode set with its transition matrix; LEOP and tip-off range",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_gdn_003",
+    "group": "gdn",
+    "label": "Detumble exit without a gyro",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_kpi_001",
+    "group": "kpi",
+    "label": "Statistical interpretation and confidence of a verdict",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_oils_001",
+    "group": "oils",
+    "label": "Which is the truth: the device map or the HAL header",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_risk_001",
+    "group": "risk",
+    "label": "N2O pressure vessel factors; galinstan limits; material compatibility",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_sens_001",
+    "group": "sens",
+    "label": "Star-tracker heads, placement and keep-out",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_vv_001",
+    "group": "vv",
+    "label": "Monte Carlo sizing and dispersion pedigree",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_vv_002",
+    "group": "vv",
+    "label": "How to disperse the inertia",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_vv_003",
+    "group": "vv",
+    "label": "The golden table's tolerance",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
     "id": "dyn__carried",
     "group": "dyn",
     "label": "Rows carried from the code",
@@ -2080,6 +2260,15 @@
     "why": "computed during a run (by the flight software or the engine, at each step): its module's 4 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
+    "id": "fsw_clock",
+    "group": "fsw",
+    "label": "Onboard clock: the monotonic bounded time and the GNSS date",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "its module has 4 functions and names none for this node (by its id or its output's symbol)"
+   },
+   {
     "id": "fsw_control",
     "group": "ctl",
     "label": "Flight algorithms: control",
@@ -2202,6 +2391,15 @@
     "si": 1.0,
     "value": "1",
     "why": "the design, the scenario's fsw.capture_rate_deg_s; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs rw_gains (json::f(fsw, capture_rate_deg_s, 1.0))"
+   },
+   {
+    "id": "fsw_param_clock_step_max_s",
+    "group": "fsw",
+    "label": "the forward bound of the onboard clock [s]: a clock reading further on than this after the previous one is refused and counted (the time moves by one tick); a step back holds (DR-fsw-001)",
+    "state": "stated",
+    "si": 60.0,
+    "value": "60",
+    "why": "the design, DR-fsw-001 (design/decisions/DR-fsw-001.toml), option (a): the forward bound of the monotonic clock, a minute: a tick that reads further on than this after the previous one (a stalled processor sees seconds, not minutes) is a step of the time source, refused and counted; the developer's value, for the owner to sign or override"
    },
    {
     "id": "fsw_param_cmg_k_null",
@@ -4649,7 +4847,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (generated into adcs-sim): its module's 16 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+    "why": "computed during a run (generated into adcs-sim): its module's 18 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "kpi_metric_statistics",
@@ -12146,6 +12344,186 @@
     "why": "its module has 7 functions and names none for this node (by its id or its output's symbol)"
    },
    {
+    "id": "dr_act_001",
+    "group": "act",
+    "label": "Momentum envelope, saturation margin, dump strategy and interval",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_act_002",
+    "group": "act",
+    "label": "CMG bearing friction and spin-down after a rotor failure",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_ctl_001",
+    "group": "ctl",
+    "label": "Gain design method with margins; integer-tick rate groups",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_design_001",
+    "group": "design",
+    "label": "Solution versus benchmark family policy",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_design_002",
+    "group": "design",
+    "label": "Ranking rule; may the robustness step break the budget",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_design_003",
+    "group": "design",
+    "label": "Margins policy and budget scope",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_fdir_001",
+    "group": "fdir",
+    "label": "Safe-mode concept, independence and magnetometer redundancy",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_fdir_002",
+    "group": "fdir",
+    "label": "FDIR hierarchy: gyro staleness, the star-tracker coast, the watchdog",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_fsw_001",
+    "group": "fsw",
+    "label": "Onboard time after a reset; synchronisation; TM/TC standard",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_fsw_002",
+    "group": "fsw",
+    "label": "OBC, FPU and numeric precision",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_gdn_001",
+    "group": "gdn",
+    "label": "Nadir definition and yaw steering",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_gdn_002",
+    "group": "gdn",
+    "label": "The complete mode set with its transition matrix; LEOP and tip-off range",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_gdn_003",
+    "group": "gdn",
+    "label": "Detumble exit without a gyro",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_kpi_001",
+    "group": "kpi",
+    "label": "Statistical interpretation and confidence of a verdict",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_oils_001",
+    "group": "oils",
+    "label": "Which is the truth: the device map or the HAL header",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_risk_001",
+    "group": "risk",
+    "label": "N2O pressure vessel factors; galinstan limits; material compatibility",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_sens_001",
+    "group": "sens",
+    "label": "Star-tracker heads, placement and keep-out",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_vv_001",
+    "group": "vv",
+    "label": "Monte Carlo sizing and dispersion pedigree",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_vv_002",
+    "group": "vv",
+    "label": "How to disperse the inertia",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_vv_003",
+    "group": "vv",
+    "label": "The golden table's tolerance",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
     "id": "dyn__carried",
     "group": "dyn",
     "label": "Rows carried from the code",
@@ -13457,6 +13835,15 @@
     "why": "computed during a run (by the flight software or the engine, at each step): its module's 4 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
+    "id": "fsw_clock",
+    "group": "fsw",
+    "label": "Onboard clock: the monotonic bounded time and the GNSS date",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "its module has 4 functions and names none for this node (by its id or its output's symbol)"
+   },
+   {
     "id": "fsw_control",
     "group": "ctl",
     "label": "Flight algorithms: control",
@@ -13579,6 +13966,15 @@
     "si": 1.0,
     "value": "1",
     "why": "the design, the scenario's fsw.capture_rate_deg_s; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs rw_gains (json::f(fsw, capture_rate_deg_s, 1.0))"
+   },
+   {
+    "id": "fsw_param_clock_step_max_s",
+    "group": "fsw",
+    "label": "the forward bound of the onboard clock [s]: a clock reading further on than this after the previous one is refused and counted (the time moves by one tick); a step back holds (DR-fsw-001)",
+    "state": "stated",
+    "si": 60.0,
+    "value": "60",
+    "why": "the design, DR-fsw-001 (design/decisions/DR-fsw-001.toml), option (a): the forward bound of the monotonic clock, a minute: a tick that reads further on than this after the previous one (a stalled processor sees seconds, not minutes) is a step of the time source, refused and counted; the developer's value, for the owner to sign or override"
    },
    {
     "id": "fsw_param_cmg_k_null",
@@ -16026,7 +16422,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (generated into adcs-sim): its module's 16 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+    "why": "computed during a run (generated into adcs-sim): its module's 18 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "kpi_metric_statistics",
