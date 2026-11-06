@@ -7,6 +7,7 @@
 | command | what it does |
 |---|---|
 | [`adcs run`](#adcs-run) | Fly one scenario on one case: the plant, the environment and the POP orbit in Rust, the flight software (C or Rust, or a virtual OBC) behind the byte HAL, then the metrics and their verdicts. |
+| [`adcs replay`](#adcs-replay) | Replay a link recording (adcs run --record) on an OBC, soft OILS by default, and check that every answer equals the recorded one; the same answers to the same inputs reproduce the recorded verdict. Exit status 1 when an answer differs. |
 | [`adcs params`](#adcs-params) | The flight software's parameter blob (adcs-fswcfg/1) for a scenario, as an OBC boots from it. |
 | [`adcs size`](#adcs-size) | The demand survey on the case's orbit, then every actuator option sized to it (magnetorquers, fluid loop, RCS, wheels, CMG, VSCMG). |
 | [`adcs parity`](#adcs-parity) | Fly the same scenario with two flight-software targets and report the largest difference in attitude and rate; bit-identical is the expected answer for C and Rust, and any difference exits with status 1. |
@@ -104,7 +105,7 @@
 
 Fly one scenario on one case: the plant, the environment and the POP orbit in Rust, the flight software (C or Rust, or a virtual OBC) behind the byte HAL, then the metrics and their verdicts.
 
-    adcs run <scenario> [--case F] [--fsw c|rust|obc-posix|qemu|...] [--seed N] [--out DIR] [--set k=v]... [--oils] [--quiet]
+    adcs run <scenario> [--case F] [--fsw c|rust|obc-posix|qemu|...] [--seed N] [--out DIR] [--set k=v]... [--oils] [--record FILE] [--quiet]
 
 **Steps**
 
@@ -121,6 +122,26 @@ Fly one scenario on one case: the plant, the environment and the POP orbit in Ru
 - **Starts:** nothing
 - **Checks:** the scenario id, the case keys and every --set exist and are in range (refused by name, never guessed); the metrics against the case's requirements
 - **Undo:** Delete the run folder it wrote (the store's index forgets it at the next `adcs results list`); the inputs it kept by fingerprint are shared and harmless to leave.
+- **Code:** `engine/crates/adcs-cli/`
+
+## adcs replay
+
+Replay a link recording (adcs run --record) on an OBC, soft OILS by default, and check that every answer equals the recorded one; the same answers to the same inputs reproduce the recorded verdict. Exit status 1 when an answer differs.
+
+    adcs replay <recording> [--fsw qemu|qemu-rs|obc-posix|...]
+
+**Steps**
+
+1. read the recording (adcs-rec/1: every frame of the link, both ways, with its wall time, and the recorded run's verdict)
+2. start the OBC and send it each recorded engine frame
+3. compare each answer with the recorded one (an OUT without its timing trailer, a CONFIG ACK by its code)
+4. print the frames, the differences and the recorded verdict
+
+- **Reads:** the recording
+- **Writes:** nothing
+- **Starts:** qemu-system-arm (or the OBC process the --fsw names)
+- **Checks:** tests/test_record_replay.py: a recording of a short soft-OILS scenario replays with no difference and its verdict; one with an altered answer is not reproduced
+- **Undo:** It writes nothing.
 - **Code:** `engine/crates/adcs-cli/`
 
 ## adcs params

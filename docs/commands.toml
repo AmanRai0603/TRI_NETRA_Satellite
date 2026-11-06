@@ -12,7 +12,7 @@
 [[command]]
 tool = "adcs"
 name = "run"
-usage = "adcs run <scenario> [--case F] [--fsw c|rust|obc-posix|qemu|...] [--seed N] [--out DIR] [--set k=v]... [--oils] [--quiet]"
+usage = "adcs run <scenario> [--case F] [--fsw c|rust|obc-posix|qemu|...] [--seed N] [--out DIR] [--set k=v]... [--oils] [--record FILE] [--quiet]"
 what = "Fly one scenario on one case: the plant, the environment and the POP orbit in Rust, the flight software (C or Rust, or a virtual OBC) behind the byte HAL, then the metrics and their verdicts."
 steps = ["check the scenario id, the case and every --set (refused by name, never guessed)", "build the configuration: case + scenario + product, the flight-software parameters", "fly the closed loop for the scenario's duration", "derive the metrics and judge them against the case's requirements", "keep the case and scenario files it flew, once each by fingerprint, in the store's inputs/", "write channels.csv, then manifest.json with the run's provenance (engine source, case, scenario and product fingerprints)", "apply the store's retention when the run went into the store (a kit: time series older than 30 days, pinned runs aside; TRINETRA_RETENTION_DAYS)"]
 reads = ["matlab_sils/data/scenarios/<scenario>.json", "matlab_sils/cases/<case>.csv", "matlab_sils/data/products, parts, algorithms", "matlab_sils/pop/.../de440s.bsp"]
@@ -20,6 +20,18 @@ writes = ["matlab_sils/store/results_engine/<scenario>/ (or --out): channels.csv
 runs = []
 checks = "the scenario id, the case keys and every --set exist and are in range (refused by name, never guessed); the metrics against the case's requirements"
 undo = "Delete the run folder it wrote (the store's index forgets it at the next `adcs results list`); the inputs it kept by fingerprint are shared and harmless to leave."
+
+[[command]]
+tool = "adcs"
+name = "replay"
+usage = "adcs replay <recording> [--fsw qemu|qemu-rs|obc-posix|...]"
+what = "Replay a link recording (adcs run --record) on an OBC, soft OILS by default, and check that every answer equals the recorded one; the same answers to the same inputs reproduce the recorded verdict. Exit status 1 when an answer differs."
+steps = ["read the recording (adcs-rec/1: every frame of the link, both ways, with its wall time, and the recorded run's verdict)", "start the OBC and send it each recorded engine frame", "compare each answer with the recorded one (an OUT without its timing trailer, a CONFIG ACK by its code)", "print the frames, the differences and the recorded verdict"]
+reads = ["the recording"]
+writes = []
+runs = ["qemu-system-arm (or the OBC process the --fsw names)"]
+checks = "tests/test_record_replay.py: a recording of a short soft-OILS scenario replays with no difference and its verdict; one with an altered answer is not reproduced"
+undo = "It writes nothing."
 
 [[command]]
 tool = "adcs"
