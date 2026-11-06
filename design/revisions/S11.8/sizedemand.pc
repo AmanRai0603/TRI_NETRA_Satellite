@@ -11,7 +11,10 @@
 ## S11.8 (Y4, decision DR-design-003): the momentum to store is the margin on the sum of the held and the slew's momentum
 ## (a slew is flown from a state that already holds the disturbance's momentum), not on the larger of them; the margin k_h
 ## = 2 is a floor, below which neither the loop's lever nor a case's stated share of saturation may take it, and the margin
-## a fitted part achieves is reported.
+## a fitted part achieves is reported. (Y5) The survey's momentum is the integral of the torque in the inertial frame, where
+## it is conserved: the body torque is turned into the inertial frame by the attitude's quaternion before it is summed, so
+## the body's rotation (omega x h, the transport of the momentum in a frame that turns with the body) is in the sum and
+## a torque fixed in space on a body turning at the orbit rate integrates to the momentum it gives, not to a swing.
 ## The developer's transcription (S7.15) with S11.8's revision, unsigned.
 module sizedemand
 
@@ -88,13 +91,27 @@ fn survey_attitude(a: SurveyAttitude) -> (boresight: vec3[1], sun: bool, mode: i
     end
 end
 
+## The torque tau_b [N m] of a body whose attitude is the quaternion (x, y, z, w) (scalar last, the passive matrix A of the
+## inertial frame to the body, the flight software's), in the inertial frame: A^T tau_b.
+fn survey_inertial(x: real[1] in -1 .. 1, y: real[1] in -1 .. 1, z: real[1] in -1 .. 1, w: real[1] in -1 .. 1, tau_b: vec3[1] in -1e-5 .. 1e-5) \
+        -> tau_i: vec3[1]
+    let a: real[1][3][3] = [[1.0 - 2.0*(y*y + z*z), 2.0*(x*y + z*w), 2.0*(x*z - y*w)], \
+                            [2.0*(y*x - z*w), 1.0 - 2.0*(x*x + z*z), 2.0*(y*z + x*w)], \
+                            [2.0*(z*x + y*w), 2.0*(z*y - x*w), 1.0 - 2.0*(x*x + y*y)]]
+    tau_i = [a[0][0]*tau_b[0] + a[1][0]*tau_b[1] + a[2][0]*tau_b[2], \
+             a[0][1]*tau_b[0] + a[1][1]*tau_b[1] + a[2][1]*tau_b[2], \
+             a[0][2]*tau_b[0] + a[1][2]*tau_b[1] + a[2][2]*tau_b[2]]
+end
+
 ## One orbit of the disturbance torque: tau holds n samples taken every dt [s] over an orbit of t_orb [s], each the four
-## attitudes' torque vectors [N m] (sample k, attitude a, axis i at 12 k + 3 a + i). Per attitude: the largest torque,
-## the largest torque on each axis (row i), the momentum the orbit leaves (its secular part, the integral at the end)
-## and the largest swing of the momentum about the straight line to it (the cyclic part), the integral the running sum
-## of torque x dt.
-## length: 48
-fn survey_orbit(tau: inout real[1][*] in -1e-5 .. 1e-5, n: int in 1 .. 4, dt: real[1] in 1 .. 20, t_orb: real[1] in 10 .. 80) \
+## attitudes' body torque vectors [N m] (sample k, attitude a, axis i at 12 k + 3 a + i), and q the attitudes' quaternions
+## (x, y, z, w; at 16 k + 4 a + i). Per attitude: the largest torque, the largest torque on each axis (row i, in the body),
+## the momentum the orbit leaves (its secular part, the integral at the end) and the largest swing of the momentum about
+## the straight line to it (the cyclic part), the integral the running sum of the inertial torque x dt: the momentum is
+## summed in the inertial frame and its size is what the actuators store, whatever frame they hold it in.
+## length: 64
+fn survey_orbit(tau: inout real[1][*] in -1e-5 .. 1e-5, q: inout real[1][*] in -1 .. 1, n: int in 1 .. 4, dt: real[1] in 1 .. 20, \
+                t_orb: real[1] in 10 .. 80) \
         -> (tau_peak: real[1][4], tau_axis_peak: real[1][4][3], h_cyclic: real[1][4], h_secular_orbit: real[1][4])
     tau_peak = 0
     tau_axis_peak = 0
@@ -103,13 +120,16 @@ fn survey_orbit(tau: inout real[1][*] in -1e-5 .. 1e-5, n: int in 1 .. 4, dt: re
     let h: real[1][3] = 0
     let hend: real[1][3] = 0
     let x: real[1][3] = 0
+    let ti: real[1][3] = 0
     let f: real[1] = 0.0
     let pk: real[1] = 0.0
     for a in 0 .. 4
         h = 0
         for k in 0 .. n
+            ti = survey_inertial(q[16*k + 4*a], q[16*k + 4*a + 1], q[16*k + 4*a + 2], q[16*k + 4*a + 3], \
+                                 [tau[12*k + 3*a], tau[12*k + 3*a + 1], tau[12*k + 3*a + 2]])
             for i in 0 .. 3
-                h[i] = h[i] + tau[12*k + 3*a + i]*dt
+                h[i] = h[i] + ti[i]*dt
             end
         end
         hend = h
@@ -129,8 +149,10 @@ fn survey_orbit(tau: inout real[1][*] in -1e-5 .. 1e-5, n: int in 1 .. 4, dt: re
         h = 0
         pk = 0.0
         for k in 0 .. n
+            ti = survey_inertial(q[16*k + 4*a], q[16*k + 4*a + 1], q[16*k + 4*a + 2], q[16*k + 4*a + 3], \
+                                 [tau[12*k + 3*a], tau[12*k + 3*a + 1], tau[12*k + 3*a + 2]])
             for i in 0 .. 3
-                h[i] = h[i] + tau[12*k + 3*a + i]*dt
+                h[i] = h[i] + ti[i]*dt
             end
             f = real(k)*dt/t_orb
             x = [h[0] - hend[0]*f, h[1] - hend[1]*f, h[2] - hend[2]*f]

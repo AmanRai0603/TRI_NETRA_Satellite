@@ -156,7 +156,7 @@ fn survey(root: &Path, case_file: &Path, sets: &[(String, String)]) -> Result<(C
     let n = gd::survey_samples(t_orb, dt) as usize;
     let att: Vec<_> = (0..4).map(gd::survey_attitude).collect();
     let offs: Vec<_> = att.iter().map(|x| if x.1 { None } else { Some(boresight_offset(&x.0)) }).collect();
-    let mut tau = vec![0.0; 12*n];
+    let (mut tau, mut qs) = (vec![0.0; 12*n], vec![0.0; 16*n]);
     let (mut bm, mut nu) = (vec![0.0; n], vec![0.0; n]);
     for kk in 0..n {
         let t = kk as f64*dt;
@@ -168,11 +168,12 @@ fn survey(root: &Path, case_file: &Path, sets: &[(String, String)]) -> Result<(C
             let g = match offs[a] { Some(q_off) => Guid { q_off, ..Default::default() },
                                     None => Guid { sun_eci: unit(&e.sun_rel), sun_axis, roll_axis, ..Default::default() } };
             let q = guidance(mode as i32, &r, &vv, t, &g).q;
+            qs[16*kk + 4*a..16*kk + 4*a + 4].copy_from_slice(&q);
             let p = torques::torques(&q, &r, &e.v_rel, &e.b_eci, &e.sun_rel, e.nu, e.p_srp, e.rho, &c.inertia, &facets, &c.m_res, c.mu, c.env_on);
             tau[12*kk + 3*a..12*kk + 3*a + 3].copy_from_slice(&add(&add(&p[0], &p[1]), &add(&p[2], &p[3])));
         }
     }
-    let (tau_peak, tau_axis_peak, h_cyclic, h_secular_orbit) = gd::survey_orbit(&mut tau, n as i64, dt, t_orb);
+    let (tau_peak, tau_axis_peak, h_cyclic, h_secular_orbit) = gd::survey_orbit(&mut tau, &mut qs, n as i64, dt, t_orb);
     let (b_min, b_mean) = gd::survey_field(&mut bm, n as i64);
     Ok((c, Survey { tau_peak, tau_axis_peak, h_cyclic, h_secular_orbit, b_min, b_mean, eclipse_frac: eclipse_fraction(&nu)? }))
 }
@@ -684,5 +685,33 @@ mod tests {
         let d = Demand { case: "t".into(), h_req: 5.0, tau_req: 1.0, k_h: 2.0, ..Default::default() };
         let e = fmr(&d, &Knobs::default(), [0.34, 0.10, 0.10]).unwrap_err().to_string();
         assert!(e.contains("fluid ring X") && e.contains("no feasible pump design"), "{e}");
+    }
+
+    #[test]
+    fn a_torque_fixed_in_space_on_a_body_turning_at_the_orbit_rate_integrates_to_the_inertial_momentum() {
+        // the survey's momentum is summed in the inertial frame: a constant inertial torque tau_i on a body that turns about
+        // Z at the orbit rate is, in the body, a torque that turns; summed there it would swing and leave almost nothing,
+        // but the momentum it gives is |tau_i| t, so the secular part is |tau_i| n dt and the cyclic part, the swing
+        // about the straight line to it, is the first step's, |tau_i| dt (h_k = tau (k + 1) dt against tau k n dt^2/t_orb)
+        let (dt, t_orb) = (10.0, 5740.0);
+        let n = gd::survey_samples(t_orb, dt) as usize;
+        let ti: [f64; 3] = [1.0e-7, 2.0e-7, 5.0e-8];
+        let mag = (ti[0]*ti[0] + ti[1]*ti[1] + ti[2]*ti[2]).sqrt();
+        let (mut tau, mut q) = (vec![0.0; 12*n], vec![0.0; 16*n]);
+        for k in 0..n {
+            let th = 2.0*std::f64::consts::PI*(k as f64)*dt/t_orb;
+            let (c, s) = (th.cos(), th.sin());
+            let tb = [c*ti[0] + s*ti[1], -s*ti[0] + c*ti[1], ti[2]];       // A tau_i, A the passive turn about Z
+            for a in 0..4 {
+                tau[12*k + 3*a..12*k + 3*a + 3].copy_from_slice(&tb);
+                q[16*k + 4*a..16*k + 4*a + 4].copy_from_slice(&[0.0, 0.0, (th/2.0).sin(), (th/2.0).cos()]);
+            }
+        }
+        let (peak, _axis, cyc, sec) = gd::survey_orbit(&mut tau, &mut q, n as i64, dt, t_orb);
+        for a in 0..4 {
+            assert!((peak[a] - mag).abs() < 1e-18, "the peak is the body torque's size");
+            assert!((sec[a] - mag*(n as f64)*dt).abs() < 1e-9*sec[a], "secular {} against {}", sec[a], mag*(n as f64)*dt);
+            assert!((cyc[a] - mag*dt).abs() < 1e-9*cyc[a], "cyclic {} against {}", cyc[a], mag*dt);
+        }
     }
 }

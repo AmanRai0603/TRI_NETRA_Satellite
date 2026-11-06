@@ -1039,6 +1039,11 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             for v in r.3.iter() { let v = *v; out.push(v); }
             for v in r.4.iter() { let v = *v; out.push(v); }
         }
+        "sizedemand::survey_inertial" => {
+            if x.len() != 7 { return None; }
+            let r = crate::sizedemand::survey_inertial(x[0], x[1], x[2], x[3], [x[4], x[5], x[6]]);
+            for v in r.iter() { let v = *v; out.push(v); }
+        }
         "sizedemand::survey_orbit" => {
             let mut at: usize = 0;
             if x.len() < at + 1 { return None; }
@@ -1047,21 +1052,27 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             let mut io0 = x[at + 1..at + 1 + n0].to_vec();
             at += 1 + n0;
             if x.len() < at + 1 { return None; }
-            let a1 = { let x = &x[at..]; x[0] as i64 };
-            at += 1;
+            let n1 = x[at] as usize;
+            if x.len() < at + 1 + n1 { return None; }
+            let mut io1 = x[at + 1..at + 1 + n1].to_vec();
+            at += 1 + n1;
             if x.len() < at + 1 { return None; }
-            let a2 = { let x = &x[at..]; x[0] };
+            let a2 = { let x = &x[at..]; x[0] as i64 };
             at += 1;
             if x.len() < at + 1 { return None; }
             let a3 = { let x = &x[at..]; x[0] };
             at += 1;
+            if x.len() < at + 1 { return None; }
+            let a4 = { let x = &x[at..]; x[0] };
+            at += 1;
             if x.len() != at { return None; }
-            let r = crate::sizedemand::survey_orbit(&mut io0, a1, a2, a3);
+            let r = crate::sizedemand::survey_orbit(&mut io0, &mut io1, a2, a3, a4);
             for v in r.0.iter() { let v = *v; out.push(v); }
             for v in r.1.iter() { let v = *v; for v in v.iter() { let v = *v; out.push(v); } }
             for v in r.2.iter() { let v = *v; out.push(v); }
             for v in r.3.iter() { let v = *v; out.push(v); }
             out.push(io0.len() as f64); for v in io0.iter() { let v = *v; out.push(v); }
+            out.push(io1.len() as f64); for v in io1.iter() { let v = *v; out.push(v); }
         }
         "sizedemand::survey_field" => {
             let mut at: usize = 0;

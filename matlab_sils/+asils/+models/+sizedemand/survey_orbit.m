@@ -1,11 +1,13 @@
-function [tau_peak, tau_axis_peak, h_cyclic, h_secular_orbit, tau] = survey_orbit(tau, n, dt, t_orb)
+function [tau_peak, tau_axis_peak, h_cyclic, h_secular_orbit, tau, q] = survey_orbit(tau, q, n, dt, t_orb)
 %SURVEY_ORBIT  One orbit of the disturbance torque: tau holds n samples taken every dt [s] over an orbit of t_orb [s], each the four
-%   attitudes' torque vectors [N m] (sample k, attitude a, axis i at 12 k + 3 a + i). Per attitude: the largest torque,
-%   the largest torque on each axis (row i), the momentum the orbit leaves (its secular part, the integral at the end)
-%   and the largest swing of the momentum about the straight line to it (the cyclic part), the integral the running sum
-%   of torque x dt.
-%   length: 48
+%   attitudes' body torque vectors [N m] (sample k, attitude a, axis i at 12 k + 3 a + i), and q the attitudes' quaternions
+%   (x, y, z, w; at 16 k + 4 a + i). Per attitude: the largest torque, the largest torque on each axis (row i, in the body),
+%   the momentum the orbit leaves (its secular part, the integral at the end) and the largest swing of the momentum about
+%   the straight line to it (the cyclic part), the integral the running sum of the inertial torque x dt: the momentum is
+%   summed in the inertial frame and its size is what the actuators store, whatever frame they hold it in.
+%   length: 64
 %   tau: inout real[1][*] (passed a plain number)
+%   q: inout real[1][*] (passed a plain number)
 %   n: int (passed a whole number)
 %   dt: real[1] (passed a plain number)
 %   t_orb: real[1] (passed a plain number)
@@ -25,13 +27,15 @@ function [tau_peak, tau_axis_peak, h_cyclic, h_secular_orbit, tau] = survey_orbi
     h = zeros(3, 1);
     hend = zeros(3, 1);
     x = zeros(3, 1);
+    ti = zeros(3, 1);
     f = 0;
     pk = 0;
     for a = (0):((4) - 1)
         h = zeros(3, 1);
         for k = (0):((n) - 1)
+            ti = asils.models.sizedemand.survey_inertial(q((((16 * k) + (4 * a))) + 1), q(((((16 * k) + (4 * a)) + 1)) + 1), q(((((16 * k) + (4 * a)) + 2)) + 1), q(((((16 * k) + (4 * a)) + 3)) + 1), [tau((((12 * k) + (3 * a))) + 1); tau(((((12 * k) + (3 * a)) + 1)) + 1); tau(((((12 * k) + (3 * a)) + 2)) + 1)]);
             i = ((0):((3) - 1)).';
-            h((i) + 1) = (reshape(h((i) + 1), [], 1) + (reshape(tau(((((12 * k) + (3 * a)) + i)) + 1), [], 1) .* dt));
+            h((i) + 1) = (reshape(h((i) + 1), [], 1) + (reshape(ti((i) + 1), [], 1) .* dt));
         end
         hend = h;
         pk = 0;
@@ -58,8 +62,9 @@ function [tau_peak, tau_axis_peak, h_cyclic, h_secular_orbit, tau] = survey_orbi
         h = zeros(3, 1);
         pk = 0;
         for k = (0):((n) - 1)
+            ti = asils.models.sizedemand.survey_inertial(q((((16 * k) + (4 * a))) + 1), q(((((16 * k) + (4 * a)) + 1)) + 1), q(((((16 * k) + (4 * a)) + 2)) + 1), q(((((16 * k) + (4 * a)) + 3)) + 1), [tau((((12 * k) + (3 * a))) + 1); tau(((((12 * k) + (3 * a)) + 1)) + 1); tau(((((12 * k) + (3 * a)) + 2)) + 1)]);
             i = ((0):((3) - 1)).';
-            h((i) + 1) = (reshape(h((i) + 1), [], 1) + (reshape(tau(((((12 * k) + (3 * a)) + i)) + 1), [], 1) .* dt));
+            h((i) + 1) = (reshape(h((i) + 1), [], 1) + (reshape(ti((i) + 1), [], 1) .* dt));
             f = ((k * dt) / t_orb);
             x = [(h(1) - (hend(1) * f)); (h(2) - (hend(2) * f)); (h(3) - (hend(3) * f))];
             h__121 = pk;

@@ -823,22 +823,28 @@ function y = call(name, x)
         case 'sizedemand::survey_attitude'
             [o1, o2, o3, o4, o5] = asils.models.sizedemand.survey_attitude(x(1));
             y = [reshape(o1, [], 1); double(o2); double(o3); reshape(o4, [], 1); reshape(o5, [], 1)];
+        case 'sizedemand::survey_inertial'
+            [o1] = asils.models.sizedemand.survey_inertial(x(1), x(2), x(3), x(4), reshape(x(5:7), 3, 1));
+            y = [reshape(o1, [], 1)];
         case 'sizedemand::survey_orbit'
             at = 0;
             n1 = x(at + 1);
             a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
             at = at + 1 + n1;
-            xa = x(at + 1:end);
-            a2 = xa(1);
-            at = at + 1;
+            n2 = x(at + 1);
+            a2 = reshape(x(at + 2:at + 1 + n2), [], 1);
+            at = at + 1 + n2;
             xa = x(at + 1:end);
             a3 = xa(1);
             at = at + 1;
             xa = x(at + 1:end);
             a4 = xa(1);
             at = at + 1;
-            [o1, o2, o3, o4, io1] = asils.models.sizedemand.survey_orbit(a1, a2, a3, a4);
-            y = [reshape(o1, [], 1); reshape((o2).', [], 1); reshape(o3, [], 1); reshape(o4, [], 1); numel(io1); reshape(io1, [], 1)];
+            xa = x(at + 1:end);
+            a5 = xa(1);
+            at = at + 1;
+            [o1, o2, o3, o4, io1, io2] = asils.models.sizedemand.survey_orbit(a1, a2, a3, a4, a5);
+            y = [reshape(o1, [], 1); reshape((o2).', [], 1); reshape(o3, [], 1); reshape(o4, [], 1); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1)];
         case 'sizedemand::survey_field'
             at = 0;
             n1 = x(at + 1);

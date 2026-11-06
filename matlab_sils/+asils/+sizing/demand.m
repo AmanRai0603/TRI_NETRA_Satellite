@@ -80,7 +80,7 @@ function [P, sv] = survey_(caseFile, set)
         if ~sun, qoff{a} = asils.alg.guidance.boresight_offset(bs); end
     end
     z3 = zeros(3, 1); z4 = zeros(4, 1);
-    tau = zeros(12*n, 1); bm = zeros(n, 1); nu = zeros(n, 1);
+    tau = zeros(12*n, 1); qs = zeros(16*n, 1); bm = zeros(n, 1); nu = zeros(n, 1);
     for kk = 0:(n - 1)
         t = kk*dt;
         [r, vv, O] = asils.orbit.state(O, t);
@@ -93,12 +93,13 @@ function [P, sv] = survey_(caseFile, set)
             else        % the Sun on the power face
                 q = asils.alg.guidance.guidance(g.mode, r, vv, t, z4, 0, 0, 0, z3, z4, g.sun_axis, g.roll_axis, unit_(E.sun_rel), false);
             end
+            qs(16*kk + 4*(a - 1) + (1:4)) = q;
             p = asils.env.torques(q, r, E.v_rel, E.b_eci, E.sun_rel, E.nu, E.p_srp, E.rho, P.sc.I, facets, P.sc.m_res, P.mu, P.env.on);
             tau(12*kk + 3*(a - 1) + (1:3)) = (p(:, 1) + p(:, 2)) + (p(:, 3) + p(:, 4));
         end
     end
     sv = struct();
-    [sv.tau_peak, sv.tau_axis_peak, sv.h_cyclic, sv.h_secular_orbit] = asils.models.sizedemand.survey_orbit(tau, n, dt, t_orb);
+    [sv.tau_peak, sv.tau_axis_peak, sv.h_cyclic, sv.h_secular_orbit] = asils.models.sizedemand.survey_orbit(tau, qs, n, dt, t_orb);
     [sv.b_min, sv.b_mean] = asils.models.sizedemand.survey_field(bm, n);
     % env's eclipse fraction (m2_7) holds at most ECLIPSE_NMAX (2048) samples
     assert(n >= 1 && n <= 2048, 'asils:sizing:refused', ...

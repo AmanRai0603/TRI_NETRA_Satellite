@@ -4045,7 +4045,7 @@ why = "the star tracker's latency span is stated once, in the design, for the en
 id = "S11.8"
 at = "2026-11-07T12:00:00Z"
 by = "the developer"
-about = "power and sizing (docs/S11_INVENTORY.md Y2, Y4, Y5, Y1; decision DR-design-003): the momentum to store is k_h x (h_dist + h_slew), k_h = 2 the floor and the achieved margin reported (a lever result below it refused by name; a pump with no feasible point refused, not a panic); a catalogue CMG cluster is one unit carrying the whole need, judged on the cluster's own momentum and torque, with its mass and power the cluster's, not one of four each carrying half (select_rotor), and a datasheet number stated as zero is not stated (the catalogue's derive no longer divides by it)"
+about = "power and sizing (docs/S11_INVENTORY.md Y2, Y4, Y5, Y1; decision DR-design-003): the demand survey integrates the disturbance torque in the inertial frame (the body's rotation, omega x h, is in the sum; the cyclic and the secular momentum are those of the inertial integral); the momentum to store is k_h x (h_dist + h_slew), k_h = 2 the floor and the achieved margin reported (a lever result below it refused by name; a pump with no feasible point refused, not a panic); a catalogue CMG cluster is one unit carrying the whole need, judged on the cluster's own momentum and torque, with its mass and power the cluster's, not one of four each carrying half (select_rotor), and a datasheet number stated as zero is not stated (the catalogue's derive no longer divides by it)"
 
 [[revision.method]]
 nodes = ["design_sizing_rw", "design_sizing_cmg", "design_sizing_vscmg", "l3_budget_row_03", "gw_5", "gw_6"]
@@ -4070,7 +4070,7 @@ why = "a datasheet's zero is a missing number, not a divisor; a cluster's figure
 nodes = ["l3_budget_row_01", "gw_2"]
 pseudocode = "design/revisions/S11.8/sizedemand.pc"
 path = "design/sizedemand.pc"
-transcribes = "design/revisions/S7.15/sizedemand.pc as S7.15 left it, with the momentum to store k_h x (h_dist + h_slew) in place of k_h x the larger of them, k_h = 2 a stated floor (momentum_margin_floor, margin_keeps_floor), a stated share of saturation not taking it below the floor, and the margin a fitted part achieves (margin_achieved)"
+transcribes = "design/revisions/S7.15/sizedemand.pc as S7.15 left it, with the survey's momentum summed in the inertial frame (survey_orbit takes the attitudes' quaternions, survey_inertial turns the body torque into the inertial frame), the momentum to store k_h x (h_dist + h_slew) in place of k_h x the larger of them, k_h = 2 a stated floor (momentum_margin_floor, margin_keeps_floor), a stated share of saturation not taking it below the floor, and the margin a fitted part achieves (margin_achieved)"
 source = "docs/S11_INVENTORY.md Y4 and section 5 question 8; DR-design-003 (design/decisions/DR-design-003.toml), the developer's unsigned choice: k_h = 2 is the floor, applied to the sum, and the achieved margin is reported"
 generate = ["adcs-design"]
-why = "the stated margin x2 is true (Y4): the momentum to store carries it on the sum of the held and the slew's momentum; a lever result below the floor is refused by name"
+why = "the stated margin x2 is true (Y4): the momentum to store carries it on the sum of the held and the slew's momentum; a lever result below the floor is refused by name; the survey integrates the torque where momentum is conserved, the inertial frame, so the body's rotation (omega x h) is in the sum (Y5)"
