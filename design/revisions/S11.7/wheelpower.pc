@@ -1,0 +1,17 @@
+## A reaction wheel's power, transcribed from adcs-sim-core actuators.rs (Mex::apply, also a VSCMG's rotor): the
+## steady power holding speed (the part's power_steady_W), the mechanical power of the motor's torque at the rotor's
+## speed over the drive's efficiency (the product's eta, 0.8 as the engine flies it), and (S11.7, M2) the copper loss
+## I^2 R of the current that makes the torque: I = tau/k_t, so I^2 R = tau^2 R/k_t^2 = tau^2 w_nl/tau_stall (the motor's
+## no-load speed V/k_t and stall torque k_t V/R). A rotor whose part states no motor has no stall torque (zero) and no
+## stated copper loss.
+## The developer's transcription (S7.7), unsigned; revised in S11.7.
+module wheelpower
+
+## The power [W]: p_steady + |tm om|/eta + tm^2 w_nl/t_stall (the last only for a motor that states its stall torque).
+fn wheel_power(p_steady: real[1] in 0 .. 5, tm: real[1] in -0.01 .. 0.01, om: real[1] in -1000 .. 1000, eta: real[1] in 0.5 .. 1, \
+               t_stall: real[1] in 0 .. 0.1, w_nl: real[1] in 0 .. 10000) -> p: real[1]
+    p = p_steady + abs(tm*om)/eta
+    if t_stall > 0
+        p = p + tm*tm*w_nl/t_stall
+    end
+end

@@ -186,7 +186,7 @@ function y = call(name, x)
             [o1, io3] = asils.models.wheelnoise.torque_noise(x(1), x(2), reshape(x(3:8), 6, 1));
             y = [double(o1); reshape(io3, [], 1)];
         case 'wheelpower::wheel_power'
-            [o1] = asils.models.wheelpower.wheel_power(x(1), x(2), x(3), x(4));
+            [o1] = asils.models.wheelpower.wheel_power(x(1), x(2), x(3), x(4), x(5), x(6));
             y = [double(o1)];
         case 'wheelspeed::speed_limited'
             [o1] = asils.models.wheelspeed.speed_limited(x(1), x(2), x(3));

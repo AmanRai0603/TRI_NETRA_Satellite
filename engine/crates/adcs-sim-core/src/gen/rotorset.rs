@@ -220,7 +220,7 @@ pub fn rotorset_apply(s: &mut RotorSet, d: RotorDesc, cmd_r: [f64; 8], cmd_g: [f
                     hd[(i) as usize] = crate::gen::wheelcomp::wheel_rate(tm, fr, st, nz, d.friction_comp);
                 }
                 hd[(i) as usize] = crate::gen::wheelspeed::momentum_limited(hd[(i) as usize], h[(i) as usize], d.h_max[(i) as usize], (-(crate::gen::wheelcomp::uncompensated(fr, d.friction_comp))));
-                p = (p + crate::gen::wheelpower::wheel_power(d.p_steady[(i) as usize], tm, om, d.eta));
+                p = (p + crate::gen::wheelpower::wheel_power(d.p_steady[(i) as usize], tm, om, d.eta, d.t_stall[(i) as usize], d.w_nl[(i) as usize]));
             } else if (d.kind[(i) as usize] == crate::gen::rotorset::ROTORKIND_VSCMG) {
                 let mut tcv: f64 = (crate::gen::coilsat::act_clamp(cmd_r[(i) as usize], (-(d.torque_max[(i) as usize])), d.torque_max[(i) as usize]) * (*s).tscale[(i) as usize]);
                 let mut omv: f64 = (h[(i) as usize] / d.jrot[(i) as usize]);
@@ -229,7 +229,7 @@ pub fn rotorset_apply(s: &mut RotorSet, d: RotorDesc, cmd_r: [f64; 8], cmd_g: [f
                 let mut nzv: f64 = crate::gen::wheelnoise::torque_noise(d.torque_noise, d.torque_max[(i) as usize], &mut g2);
                 (*s).g = g2;
                 hd[(i) as usize] = crate::gen::wheelspeed::momentum_limited(crate::gen::vscmgmodel::vscmg_rate(tcv, frv, nzv, d.friction_comp), h[(i) as usize], d.h_max[(i) as usize], (-(crate::gen::wheelcomp::uncompensated(frv, d.friction_comp))));
-                p = (p + crate::gen::wheelpower::wheel_power(d.p_steady[(i) as usize], tcv, omv, d.eta));
+                p = (p + crate::gen::wheelpower::wheel_power(d.p_steady[(i) as usize], tcv, omv, d.eta, d.t_stall[(i) as usize], d.w_nl[(i) as usize]));
             } else if (d.kind[(i) as usize] == crate::gen::rotorset::ROTORKIND_FMR) {
                 let mut tsd: f64 = d.t_sd[(i) as usize];
                 (*s).htgt[(i) as usize] = crate::gen::ringlimits::ring_target((*s).htgt[(i) as usize], cmd_r[(i) as usize], dt, d.h_max[(i) as usize]);

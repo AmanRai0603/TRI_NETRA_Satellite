@@ -42,7 +42,7 @@ function [hd, gd, p, s] = rotorset_apply(s, d, cmd_r, cmd_g, h, dt)
                 hd((i) + 1) = asils.models.wheelcomp.wheel_rate(tm, fr, st, nz, d.friction_comp);
             end
             hd((i) + 1) = asils.models.wheelspeed.momentum_limited(hd((i) + 1), h((i) + 1), d.h_max((i) + 1), (-(asils.models.wheelcomp.uncompensated(fr, d.friction_comp))));
-            p = (p + asils.models.wheelpower.wheel_power(d.p_steady((i) + 1), tm, om, d.eta));
+            p = (p + asils.models.wheelpower.wheel_power(d.p_steady((i) + 1), tm, om, d.eta, d.t_stall((i) + 1), d.w_nl((i) + 1)));
         elseif (d.kind((i) + 1) == 3)
             tcv = (asils.models.coilsat.act_clamp(cmd_r((i) + 1), (-(d.torque_max((i) + 1))), d.torque_max((i) + 1)) * s.tscale((i) + 1));
             omv = (h((i) + 1) / d.jrot((i) + 1));
@@ -53,7 +53,7 @@ function [hd, gd, p, s] = rotorset_apply(s, d, cmd_r, cmd_g, h, dt)
             g2 = t__32;
             s.g = g2;
             hd((i) + 1) = asils.models.wheelspeed.momentum_limited(asils.models.vscmgmodel.vscmg_rate(tcv, frv, nzv, d.friction_comp), h((i) + 1), d.h_max((i) + 1), (-(asils.models.wheelcomp.uncompensated(frv, d.friction_comp))));
-            p = (p + asils.models.wheelpower.wheel_power(d.p_steady((i) + 1), tcv, omv, d.eta));
+            p = (p + asils.models.wheelpower.wheel_power(d.p_steady((i) + 1), tcv, omv, d.eta, d.t_stall((i) + 1), d.w_nl((i) + 1)));
         elseif (d.kind((i) + 1) == 1)
             tsd = d.t_sd((i) + 1);
             s.htgt((i) + 1) = asils.models.ringlimits.ring_target(s.htgt((i) + 1), cmd_r((i) + 1), dt, d.h_max((i) + 1));

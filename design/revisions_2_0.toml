@@ -3990,7 +3990,7 @@ why = "the rotor allocation keeps the direction of the torque and does not ask a
 id = "S11.7"
 at = "2026-11-07T09:00:00Z"
 by = "the developer"
-about = "the device models (docs/S11_INVENTORY.md M1, M5, M2; decision DR-act-002): a failed fluid ring spins down with its stated spin-down time T_sd (act_rotor_set coasts it through ring_rate with no pump) and so hands its momentum to the body, where it kept it for ever with zero friction terms; a failed CMG rotor spins down under the wheel's friction ratios (act_cmg_bearing_friction, DR-act-002: a stated value of the developer, unsigned) and its gimbal command is ignored (cmg_coast, gimbal_stopped)"
+about = "the device models (docs/S11_INVENTORY.md M1, M5, M2; decision DR-act-002): a failed fluid ring spins down with its stated spin-down time T_sd (act_rotor_set coasts it through ring_rate with no pump) and so hands its momentum to the body, where it kept it for ever with zero friction terms; a failed CMG rotor spins down under the wheel's friction ratios (act_cmg_bearing_friction, DR-act-002: a stated value of the developer, unsigned) and its gimbal command is ignored (cmg_coast, gimbal_stopped); a wheel's power (and a VSCMG rotor's, where the part states its motor) adds the copper loss tau^2 w_nl/tau_stall of the current that makes its torque (wheel_power), left out until now (up to 0.75 W per wheel)"
 
 [[revision.method]]
 node = "act_rotor_set"
@@ -4021,3 +4021,12 @@ behaviour = "stated"
 question = "How large is a CMG rotor's bearing friction per unit of its momentum, Coulomb (of the rated momentum) and viscous (of the momentum), in 1/s each?"
 content = [["value", "list", "[0.0023769, 0.0035498]"], ["value", "source", "DR-act-002 (design/decisions/DR-act-002.toml), docs/S11_INVENTORY.md M5: the catalogue states no CMG bearing friction, so the friction ratios of the catalogue's wheel CAT-CUBESPACE-CUBEWHEEL-CW0017 stand in: Coulomb 4.2071e-6 N m over its 1.77e-3 N m s capacity = 2.3769e-3 1/s, viscous 1e-8 N m s over its 2.8170e-6 kg m^2 inertia = 3.5498e-3 1/s; the developer's value, unsigned, for the owner to sign or replace by a datasheet field"]]
 why = "the bearing friction of a failed CMG rotor (M5, DR-act-002), a stated value of the developer with its source named"
+
+[[revision.method]]
+node = "l3_rw_row_07"
+pseudocode = "design/revisions/S11.7/wheelpower.pc"
+path = "act/wheelpower.pc"
+transcribes = "design/revisions/S7.7/wheelpower.pc as S7.7 left it, with the copper loss of the motor current added"
+source = "docs/S11_INVENTORY.md M2: the motor's winding dissipates I^2 R with I = tau/k_t, and R/k_t^2 = w_nl/tau_stall from the motor line the engine already holds (stall torque k_t V/R, no-load speed V/k_t); Wertz (ed., 1978), Spacecraft Attitude Determination and Control, section on reaction wheels (power = friction + copper + mechanical)"
+generate = ["adcs-sim-core"]
+why = "a wheel's power includes the copper loss, so the peak power of a slew is not understated (M2)"

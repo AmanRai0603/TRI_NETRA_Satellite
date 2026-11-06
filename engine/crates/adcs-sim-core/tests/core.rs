@@ -339,6 +339,29 @@ fn a_failed_cmg_spins_down_under_its_bearing_friction_and_its_gimbal_stops() {
     assert!(gd[0] == 0.0 && gd[1] == 0.5, "gimbal rates {gd:?}: the failed CMG's is ignored, the other follows");
 }
 
+#[test]
+fn a_wheels_power_adds_the_copper_loss_of_its_current() {
+    // M2: p = p_steady + |tau om|/eta + tau^2 w_nl/tau_stall; a motor of 3 V and 12 ohm (k_t 4 mN m/A) has stall 1 mN m, no-load 750 rad/s
+    use adcs_sim_core::actuators::Mex;
+    use adcs_sim_core::gen::wheelpower::wheel_power;
+    let (ts, wn) = (4e-3*3.0/12.0, 3.0/4e-3);
+    // the vector: at rest the loss alone, tau^2 w_nl/tau_stall = I^2 R
+    for tau in [2e-4, 5e-4, 1e-3] {
+        let i = tau/4e-3;
+        assert!((wheel_power(0.0, tau, 0.0, 0.8, ts, wn) - i*i*12.0).abs() < 1e-12, "tau {tau}");
+    }
+    // under way, with the mechanical power and the steady power
+    let p = wheel_power(0.3, 5e-4, 100.0, 0.8, ts, wn);
+    assert!((p - (0.3 + 5e-4*100.0/0.8 + 5e-4*5e-4*wn/ts)).abs() < 1e-12);
+    // a stall-torque slew from rest: the 0.75 W class (V^2/R) on top of the steady power
+    let mut m = one_wheel();
+    m.p_steady[0] = 0.3; m.t_stall[0] = ts; m.w_nl[0] = wn; m.torque_max[0] = ts; m.f_static[0] = 0.0; m.coulomb[0] = 0.0; m.viscous[0] = 0.0;
+    let mut x = Mex::new(m, &mut Rng::new(1, 1), Rng::new(1, 2));
+    let mut c = [0.0; NR]; c[0] = ts;
+    let power = x.apply(&c, &[0.0; NG], &[0.0; NR], 0.1).2;
+    assert!((power - 0.3 - 0.75).abs() < 1e-3, "stall-torque slew from rest: {power} W");
+}
+
 fn tracker(blind: f64) -> adcs_sim_core::sensors::St {
     use adcs_sim_core::sensors::{St, StDesc};
     let mut d = StDesc { fitted: true, nh: 1, noise_cross: 1e-4, noise_roll: 1e-3, rate_hz: 5.0, latency: 0.0, max_rate: 1.0,

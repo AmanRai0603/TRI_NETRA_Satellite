@@ -189,6 +189,14 @@ fn fit_actuator_(d: &mut Dev, x: &mut MexDesc, slot: &str, pt: &Part) -> bool {
                     add_rotor(x, Kind::Vscmg, *v, g0 + k + 1, n("h_max_Nms"), n("rotor_torque_max_Nm"), n("rotor_inertia_kgm2"), n("friction_coulomb_Nm"), n("friction_viscous_Nms"), n("power_steady_W"), pt.sig("torque_scale"), flo, fhi, pt.sig("axis_misalignment_rad"));
                 }
                 x.h0[x.n - 1] = n("rotor_momentum_Nms");
+                // a VSCMG rotor whose part states its motor has the stall torque and no-load speed of a wheel's (act's l3_rw_row_01), for the copper loss of its power
+                if slot == "vscmg" {
+                    let m = |k: &str| json::get(&pt.nm, k).and_then(|v| v.as_f64()).filter(|v| *v > 0.0);
+                    if let (Some(kt), Some(rw), Some(vb)) = (m("motor_kt_Nm_per_A"), m("motor_resistance_ohm"), m("bus_voltage_V")) {
+                        let i = x.n - 1;
+                        (x.t_stall[i], x.w_nl[i]) = adcs_sim_core::gen::wheelmotor::motor_constants(kt, rw, vb);
+                    }
+                }
             }
             x.gimbal_rate_max = n("gimbal_rate_max_rad_s");
             x.gimbal_power = n("gimbal_power_W");

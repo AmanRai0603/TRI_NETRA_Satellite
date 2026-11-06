@@ -152,6 +152,13 @@ function [dev, x, P, done] = fit_actuator_(dev, x, slot, P)
                     x = add_rotor_(x, 3, a(k, :), g0 + k, hm, tm, jr, cc, vi, pst, sig_(P, 'torque_scale'), flo, fhi, sig_(P, 'axis_misalignment_rad'));
                 end
                 [x.h0(x.n), P] = n_(P, 'rotor_momentum_Nms');
+                % a VSCMG rotor whose part states its motor has a wheel's stall torque and no-load speed (act's l3_rw_row_01), for the copper loss of its power
+                if strcmp(slot, 'vscmg')
+                    kt = getnum_(P.nm, 'motor_kt_Nm_per_A', 0); rw = getnum_(P.nm, 'motor_resistance_ohm', 0); vb = getnum_(P.nm, 'bus_voltage_V', 0);
+                    if kt > 0 && rw > 0 && vb > 0
+                        [x.t_stall(x.n), x.w_nl(x.n)] = asils.models.wheelmotor.motor_constants(kt, rw, vb);
+                    end
+                end
             end
             [x.gimbal_rate_max, P] = n_(P, 'gimbal_rate_max_rad_s');
             [x.gimbal_power, P] = n_(P, 'gimbal_power_W');
