@@ -122,7 +122,11 @@ class TwinOpensTheDesign(unittest.TestCase):
                             "startup_asils; addpath tests; try, disp(['RESULT ' test_trinetra_open()]); "
                             "catch e, disp(['FAILED ' e.message]); exit(1); end"],
                            cwd=MS, env=env, capture_output=True, text=True, timeout=1800)
-        self.assertEqual(r.returncode, 0, (r.stdout + r.stderr)[-3000:])
+        # Octave warns once per package function that shares a built-in's name (quat.norm, la.inv, ...): not a failure, and
+        # last in the output, where it pushed the test's own "FAILED <message>" out of the tail this prints
+        noise = "shadows a built-in function"
+        err = "\n".join(l for l in r.stderr.splitlines() if noise not in l)
+        self.assertEqual(r.returncode, 0, (err + "\n" + r.stdout)[-3000:])
         self.assertIn("RESULT ", r.stdout)
         self.assertIn("bit for bit", r.stdout)
 
