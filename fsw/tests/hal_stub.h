@@ -12,6 +12,7 @@ typedef struct {
     adcs_can_frame_t can_rx[32]; int n_can_rx;
     adcs_can_frame_t can_tx[32]; int n_can_tx;
     int16_t pwm[8];
+    int gyro_silent;            /* the gyro's transfer fails (a gyro that has stopped answering) */
 } hal_stub_t;
 
 extern hal_stub_t HS;

@@ -46,6 +46,7 @@ adcs_status_t adcs_hal_spi_xfer(uint8_t bus, uint8_t cs, const uint8_t *tx, uint
 {
     (void)tx;
     if (bus != ADCS_GYRO_BUS || cs != ADCS_GYRO_CS) return ADCS_E_NODEV;
+    if (HS.gyro_silent) return ADCS_E_TIMEOUT;
     memcpy(rx, HS.gyro, len > 13 ? 13 : len);
     return ADCS_OK;
 }

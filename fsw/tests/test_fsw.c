@@ -5,6 +5,7 @@
  * Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
  */
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "adcs_fsw.h"
 #include "adcs_params.h"
@@ -272,9 +273,246 @@ static void t_nonfinite(void)
     CHECK(HS.can_tx[1].data[0] == 0 && HS.can_tx[1].data[1] == 0, "non-finite valve duty -> closed");
 }
 
+
+/* ---- the tick tests (docs/S11_INVENTORY.md TS4, S11.4; fsw-rs/tests/tick.rs holds the same) ----
+ * What the tick does with a warm reset, a step or a jitter in the time it is handed, and a gyro that has gone quiet. Each
+ * states the BEHAVIOUR THE FIXES OWE (docs/TECHNICAL_ROADMAP.md F1 persistent, monotonic time; F2 a silent gyro is flagged and
+ * its rate dropped; F3 the rate groups on an integer tick counter), so each fails today: they are in the skipped list below, not
+ * in main's run. The step that fixes one moves it from the list to the run; ADCS_RUN_SKIPPED=1 runs the list and says what
+ * each shows today. The sensors are exact and the attitude held: the test is of the tick, not of the estimate. */
+int32_t adcs_fsw_debug(double *out, int n);
+#define TK_JD0 2461407.25
+#define TK_DAY 86400.0
+#define TK_STALE_LIMIT_S 10.0       /* F2: shorter than the detumble hold, far shorter than the 60 s of today */
+
+static void tk_params(adcs_params_t *p, int start, int sun_gps)
+{
+    memset(p, 0, sizeof *p);
+    p->jd0 = TK_JD0; p->dt = 0.1; p->mu = 3.986004418e14; p->start_mode = (uint8_t)start; p->auto_next = ADCS_MODE_NONE;
+    p->bdot_law = 0; p->mtq_period = 1.0; p->mtq_meas = 0.2; p->m_max = 0.2; p->bdot_k = 1e-3; p->has_gyro = 1;
+    p->J[0][0] = 0.0067; p->J[1][1] = 0.042; p->J[2][2] = 0.042; p->igrf_nmax = 10; p->rate_lpf_s = 0.3;
+    p->ss_eclipse = 1; p->gd_T = 1.0; p->mtq_phi = 0.01; p->rw_phi = 0.01; p->rw_dt = 0.1; p->fdir_s = 3.0; p->fdir_win_s = 120.0; p->fdir_h_frac = 0.005;
+    p->rcsd_T_damp_s = 20.0; p->rcsd_period_s = 1.0; p->st_coast_s = 900.0; p->mekf_sig_mag = 0.01; p->mekf_sig_sun = 0.005; p->mekf_meas_scale = 1.0;
+    if (sun_gps) {
+        int i;
+        p->has_sun = 1; p->has_gps = 1; p->gnss_ecef = 0; p->gyro_arw = 1e-6; p->gyro_rrw = 1e-8;
+        for (i = 0; i < 3; i++) { p->mtq_Kp[i] = 1e-3; p->mtq_Kd[i] = 1e-2; }
+    }
+}
+
+static int tk_init(int start, int sun_gps, uint64_t start_ns)
+{
+    static adcs_params_t p; static uint8_t blob[ADCS_PARAMS_BLOB_SIZE];
+    adcs_fsw_init_t in;
+    tk_params(&p, start, sun_gps);
+    adcs_params_encode(&p, blob, sizeof blob);
+    in.abi_version = ADCS_FSW_ABI_VERSION; in.config_blob = blob; in.config_len = sizeof blob; in.start_ns = start_ns;
+    return adcs_fsw_init(&in);
+}
+
+static double tk_jit(uint64_t *seed)       /* a splitmix64 uniform in (-1, 1), the test's own */
+{
+    uint64_t z = (*seed += 0x9E3779B97F4A7C15ull);
+    z = (z ^ (z >> 30))*0xBF58476D1CE4E5B9ull; z = (z ^ (z >> 27))*0x94D049BB133111EBull; z ^= z >> 31;
+    return 2.0*((double)(z >> 11) + 0.5)/9007199254740992.0 - 1.0;
+}
+
+/* F3: 30 s of detumble with timestamps off by +/- amp (uniform, seeded) against the exact ones: the same command words */
+static void tk_detumble_pwm(double amp, int16_t out[300][3])
+{
+    uint64_t seed = 7; int k, i;
+    hal_stub_reset();
+    tk_init(ADCS_MODE_DETUMBLE, 0, 0);
+    for (k = 0; k < 300; k++) {
+        double B[3] = {2e-5, -1e-5, 3e-5}, w[3] = {0.05, -0.02, 0.1}, off = k == 0 ? 0.0 : amp*tk_jit(&seed);
+        HS.now_ns = (uint64_t)((k*0.1 + off)*1e9 + 0.5);
+        HS.mag[0] = 1; for (i = 0; i < 3; i++) put16(HS.mag + 1 + 2*i, B[i]/ADCS_MAG_LSB_T);
+        HS.gyro[0] = 1; for (i = 0; i < 3; i++) put32(HS.gyro + 1 + 4*i, w[i]/ADCS_GYRO_LSB);
+        adcs_fsw_step(HS.now_ns);
+        for (i = 0; i < 3; i++) out[k][i] = HS.pwm[i];
+    }
+}
+
+static void tk_jitter_changes_no_command(double amp)
+{
+    static int16_t a[300][3], b[300][3];
+    int k, differ = 0;
+    tk_detumble_pwm(0.0, a); tk_detumble_pwm(amp, b);
+    for (k = 0; k < 300; k++) if (memcmp(a[k], b[k], sizeof a[k])) differ++;
+    CHECK(differ == 0, "timestamps off by +/- %g s moved the commands of %d of 300 ticks", amp, differ);
+}
+static void tk_jitter_1us(void) { tk_jitter_changes_no_command(1e-6); }
+static void tk_jitter_5ms(void) { tk_jitter_changes_no_command(5e-3); }
+
+/* F1: the scene a sun sensor, a magnetometer, a gyro at rest and a GNSS receiver give, at truth date jd and time t, for the held
+ * attitude TK_Q (ECI to body): a circular orbit, the field and the Sun from the models */
+static adcs_real TK_Q[4];
+static adcs_real TK_GH[195];
+
+static void tk_scene_init(void)
+{
+    adcs_real q[4] = {0.2, -0.1, 0.4, 0.8};
+    adcs_qnorm(q); memcpy(TK_Q, q, sizeof q);
+    adcs_igrf_gh(adcs_decyear(TK_JD0), TK_GH);
+}
+
+static void tk_feed(double t, double jd)
+{
+    double n = 0.0011, rr = 6.9e6, inc = 97.0*ADCS_PI/180.0, u = n*t;
+    adcs_real r[3] = {rr*cos(u), rr*sin(u)*cos(inc), rr*sin(u)*sin(inc)};
+    adcs_real v[3] = {-rr*n*sin(u), rr*n*cos(u)*cos(inc), rr*n*cos(u)*sin(inc)};
+    adcs_real A[3][3], B[3], Bb[3], S[3], Sb[3];
+    uint8_t pl[25], fr[40], i; uint16_t c;
+    adcs_dcm(TK_Q, A);
+    adcs_field_eci(r, jd, TK_GH, 10, B); adcs_mat3_vec(A, B, Bb);
+    adcs_sun_model(jd, S); adcs_mat3_vec(A, S, Sb);
+    HS.mag[0] = 1; for (i = 0; i < 3; i++) put16(HS.mag + 1 + 2*i, Bb[i]/ADCS_MAG_LSB_T);
+    HS.sun[0] = 1; for (i = 0; i < 3; i++) put16(HS.sun + 1 + 2*i, Sb[i]*ADCS_Q15);
+    HS.gyro[0] = 1;
+    memset(pl, 0, sizeof pl); pl[0] = 1;
+    for (i = 0; i < 3; i++) { put32(pl + 1 + 4*i, r[i]*100.0); put32(pl + 13 + 4*i, v[i]*1000.0); }
+    fr[0] = ADCS_ST_SYNC1; fr[1] = ADCS_GPS_SYNC2; fr[2] = 25; memcpy(fr + 3, pl, 25);
+    c = adcs_crc16(pl, 25); fr[28] = (uint8_t)(c & 0xFF); fr[29] = (uint8_t)(c >> 8);
+    hal_stub_uart_push(ADCS_GPS_UART, fr, 30);
+}
+
+/* the angle [deg] between the flight software's attitude estimate and the held attitude (180: none) */
+static double tk_err_deg(void)
+{
+    double d[8]; adcs_real q[4];
+    adcs_fsw_debug(d, 8);
+    if (d[2] == 0.0) return 180.0;
+    q[0] = d[3]; q[1] = d[4]; q[2] = d[5]; q[3] = d[6];
+    return adcs_qangle(TK_Q, q)*180.0/ADCS_PI;
+}
+
+/* run the scene for secs of truth time from t0, the clock being clock(t); the worst attitude error over the last 20 s */
+static double tk_fly(double age, double t0, double secs, double (*clock)(double, double), double param)
+{
+    double worst = 0; int k, n = (int)(secs/0.1 + 0.5);
+    for (k = 0; k < n; k++) {
+        double t = t0 + k*0.1;
+        tk_feed(t, TK_JD0 + (age + t)/TK_DAY);
+        HS.now_ns = (uint64_t)(clock(t, param)*1e9 + 0.5);
+        adcs_fsw_step(HS.now_ns);
+        if (k >= n - 200) { double e = tk_err_deg(); if (e > worst) worst = e; }
+    }
+    return worst;
+}
+static double tk_clock_age(double t, double age) { return age + t; }
+static double tk_clock_step(double t, double step) { return t + step; }
+
+static void tk_reset_day30(void)
+{
+    double age = 30.0*TK_DAY, before, after;
+    tk_scene_init(); hal_stub_reset();
+    tk_init(ADCS_MODE_NADIR_MTQ, 1, 0);
+    before = tk_fly(age, 0.0, 120.0, tk_clock_age, age);
+    CHECK(before < 1.0, "before the reset the attitude is known to %g deg (the rig itself)", before);
+    tk_init(ADCS_MODE_NADIR_MTQ, 1, (uint64_t)((age + 120.0)*1e9));       /* the warm reset: the clock goes on */
+    after = tk_fly(age, 120.0, 120.0, tk_clock_age, age);
+    CHECK(after < 1.0, "120 s after the reset the attitude is known to %g deg: the date went back by 30 days", after);
+}
+
+static void tk_step_plus_1h(void)
+{
+    double before, after;
+    tk_scene_init(); hal_stub_reset();
+    tk_init(ADCS_MODE_NADIR_MTQ, 1, 0);
+    before = tk_fly(0.0, 0.0, 120.0, tk_clock_step, 0.0);
+    CHECK(before < 1.0, "before the step the attitude is known to %g deg (the rig itself)", before);
+    after = tk_fly(0.0, 120.0, 240.0, tk_clock_step, 3600.0);
+    CHECK(after < 1.0, "240 s after a +1 h step the attitude is known to %g deg: the date moved by an hour", after);
+}
+
+static void tk_step_minus_1s(void)
+{
+    int k; double last = 0, d[1];
+    hal_stub_reset();
+    tk_init(ADCS_MODE_DETUMBLE, 0, 0);
+    for (k = 0; k < 300; k++) {
+        HS.now_ns = (uint64_t)((k*0.1 - (k >= 150 ? 1.0 : 0.0))*1e9 + 0.5);
+        HS.mag[0] = 1; HS.gyro[0] = 1;
+        adcs_fsw_step(HS.now_ns);
+        adcs_fsw_debug(d, 1);
+        CHECK(d[0] >= last, "the time ran back from %g s to %g s at tick %d", last, d[0], k);
+        if (d[0] < last) break;
+        last = d[0];
+    }
+}
+
+static void tk_step_back_past_start(void)
+{
+    int k; double d[1];
+    hal_stub_reset();
+    tk_init(ADCS_MODE_DETUMBLE, 0, 100000000000ull);
+    for (k = 0; k < 50; k++) {
+        HS.now_ns = (uint64_t)((100.0 + k*0.1 - (k >= 5 ? 1.0 : 0.0))*1e9 + 0.5);
+        HS.mag[0] = 1; HS.gyro[0] = 1;
+        adcs_fsw_step(HS.now_ns);
+        adcs_fsw_debug(d, 1);
+        CHECK(d[0] < 3600.0, "the time reads %g s at tick %d (a wrap of the unsigned difference)", d[0], k);
+        if (d[0] >= 3600.0) break;
+    }
+}
+
+/* F2: 60 s of detumble at a steady rate; the gyro goes quiet at 10 s (silent: it stops answering; else it answers with its last
+ * sample, flagged ok): the stale fault must be raised within the limit and the rate no longer fed */
+static void tk_quiet_gyro(int silent)
+{
+    int k, i, flagged = -1; double w10 = -1;
+    adcs_fsw_state_t st; double d[13];
+    hal_stub_reset();
+    tk_init(ADCS_MODE_DETUMBLE, 0, 0);
+    for (k = 0; k < 600; k++) {
+        double B[3] = {2e-5, -1e-5, 3e-5}, w[3] = {0.05, -0.02, 0.1};
+        HS.now_ns = (uint64_t)k*100000000ull;
+        HS.mag[0] = 1; for (i = 0; i < 3; i++) put16(HS.mag + 1 + 2*i, B[i]/ADCS_MAG_LSB_T);
+        if (k < 100) { HS.gyro[0] = 1; for (i = 0; i < 3; i++) put32(HS.gyro + 1 + 4*i, w[i]/ADCS_GYRO_LSB + (double)((k*7 + i*3) % 5)); }
+        else HS.gyro_silent = silent;
+        adcs_fsw_step(HS.now_ns);
+        if (k >= 100 && k % 10 == 9) {
+            int s = (k - 99)/10;
+            adcs_fsw_peek(&st); adcs_fsw_debug(d, 13);
+            if (flagged < 0 && (st.faults & 0x200)) flagged = s;
+            if (s == (int)TK_STALE_LIMIT_S) w10 = sqrt(d[10]*d[10] + d[11]*d[11] + d[12]*d[12]);
+        }
+    }
+    CHECK(flagged > 0 && flagged <= (int)TK_STALE_LIMIT_S, "the gyro stale fault is raised %d s after the gyro went quiet (-1: never within 50; the limit is %g s)", flagged, TK_STALE_LIMIT_S);
+    CHECK(w10 >= 0 && w10 < 0.1*0.114, "%g s after, the controllers are still fed a rate of %g rad/s from the quiet gyro", TK_STALE_LIMIT_S, w10);
+}
+static void tk_gyro_stops_answering(void) { tk_quiet_gyro(1); }
+static void tk_gyro_frozen(void) { tk_quiet_gyro(0); }
+
+/* The skipped list: the tick tests no fix has made pass yet. The step that fixes one (named with it) moves it into main's run. */
+static const struct { const char *name; void (*fn)(void); const char *fixed_by; } skipped[] = {
+    { "timestamps off by 1 us change no command (F3)",                 tk_jitter_1us,          "S11.4b/S11.5" },
+    { "timestamps off by 5 ms change no command (F3)",                 tk_jitter_5ms,          "S11.4b/S11.5" },
+    { "a warm reset 30 days in keeps the date (F1)",                   tk_reset_day30,         "S11.4b/S11.5" },
+    { "a clock step of +1 h keeps the date (F1)",                      tk_step_plus_1h,        "S11.4b/S11.5" },
+    { "a clock step of -1 s never runs the time back (F1)",            tk_step_minus_1s,       "S11.4b/S11.5" },
+    { "a clock step back past the start does not wrap (F1)",           tk_step_back_past_start, "S11.4b/S11.5" },
+    { "a gyro that stops answering is flagged, its rate dropped (F2)", tk_gyro_stops_answering, "S11.4b/S11.5" },
+    { "a gyro frozen on its last sample is flagged, rate dropped (F2)", tk_gyro_frozen,        "S11.4b/S11.5" },
+};
+
+/* without ADCS_RUN_SKIPPED the list is named and not run; with it every test runs and says what it shows today, outside the count */
+static void t_skipped(void)
+{
+    size_t i;
+    int run = getenv("ADCS_RUN_SKIPPED") != NULL;
+    for (i = 0; i < sizeof skipped/sizeof skipped[0]; i++) {
+        int p0 = n_pass, f0 = n_fail;
+        if (!run) { printf("SKIP %s: %s fixes it\n", skipped[i].name, skipped[i].fixed_by); continue; }
+        skipped[i].fn();
+        printf("%s %s (%d checks failed)\n", n_fail > f0 ? "FAILS TODAY" : "PASSES", skipped[i].name, n_fail - f0);
+        n_pass = p0; n_fail = f0;
+    }
+}
+
 int main(void)
 {
-    t_math(); t_env(); t_estimation(); t_laws(); t_rcs(); t_abi(); t_st_frame(); t_nonfinite(); t_safe();
+    t_math(); t_env(); t_estimation(); t_laws(); t_rcs(); t_abi(); t_st_frame(); t_nonfinite(); t_safe(); t_skipped();
     printf("%d checks passed, %d failed (%s)\n", n_pass, n_fail, adcs_fsw_build_id());
     return n_fail ? 1 : 0;
 }
