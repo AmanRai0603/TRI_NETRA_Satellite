@@ -1,0 +1,99 @@
+# The rig's wiring for one unit under test: which flight port each device is on, and what answers on that
+# port at each rung. Written from fsw/include/adcs_devices.h, which is the truth (design/decisions/DR-oils-001.toml,
+# O12); tools/device_map.py (tests/test_device_map.py) holds every port below equal to that header.
+#
+# It lives here, not under archive/, because it is a rig input and the rig must read it: archive/design-1.0 is
+# the 1.0 release kept for the record, and nothing reads it.
+#
+# The same file serves OILS and HILS. At OILS every device is `emulated`: the interface emulation unit (IEU)
+# answers on the flight connector with bytes the plant produced. At HILS a device is `real` and the environment
+# simulator stimulates it. Moving one device from emulated to real is a one-line change here.
+#
+# Port numbers are the flight software's (adcs_devices.h). The IEU channel is the emulator's own.
+
+schema = "adcs-rig-devices/1"
+unit_under_test = "IDM-CTRL-1 serial TBD"
+fsw_build = "reference"
+
+[rig]
+plant_host = "rig-rt-01"
+plant_step_s = 0.001
+ieu = "ieu-01"
+ieu_link = { kind = "udp", host = "10.0.10.2", port = 47001, cycle_s = 0.001 }
+time_sync = { kind = "pps", source = "rig" }
+
+[[device]]
+name = "magnetometer"
+part = "SYN-MAG-1"
+hal = { kind = "i2c", bus = 0, addr7 = 0x1E }
+oils = { mode = "emulated", ieu_channel = "i2c-target-0" }
+hils = { mode = "real", stimulus = "helmholtz_cage" }
+
+[[device]]
+name = "sun_sensor_plus_x"
+part = "SYN-SUN-1"
+hal = { kind = "i2c", bus = 1, addr7 = 0x60 }
+oils = { mode = "emulated", ieu_channel = "i2c-target-1" }
+hils = { mode = "real", stimulus = "sun_simulator" }
+
+[[device]]
+name = "earth_sensor"
+part = "SYN-ES-1"
+hal = { kind = "i2c", bus = 1, addr7 = 0x30 }
+oils = { mode = "emulated", ieu_channel = "i2c-target-2" }
+hils = { mode = "real", stimulus = "earth_simulator" }
+
+[[device]]
+name = "star_tracker"
+part = "SYN-ST-1"
+hal = { kind = "uart", port = 1, baud = 115200, framing = "rs422" }
+oils = { mode = "emulated", ieu_channel = "uart-1" }
+hils = { mode = "real", stimulus = "star_stimulator" }
+
+[[device]]
+name = "gyro"
+part = "SYN-GYRO-1"
+hal = { kind = "spi", bus = 0, chip_select = 0 }
+oils = { mode = "emulated", ieu_channel = "spi-target-0" }
+hils = { mode = "real", stimulus = "air_bearing_motion" }
+
+[[device]]
+name = "gnss"
+part = "none in this scenario"
+hal = { kind = "uart", port = 2, baud = 115200, framing = "ttl" }
+oils = { mode = "emulated", ieu_channel = "uart-2", protocol = "receiver output from the plant's truth orbit" }
+hils = { mode = "real", stimulus = "gnss_rf_simulator" }
+
+# The coils are PWM: channel = coil (body axis), duty Q15 of m_max. The header gives them no port number.
+[[device]]
+name = "coils"
+part = "SYN-CT-1"
+hal = { kind = "pwm", channels = [0, 1, 2] }
+oils = { mode = "emulated", ieu_channel = "pwm-capture-0", load = "coil-equivalent RL" }
+hils = { mode = "real", stimulus = "none", measured_by = "helmholtz_cage reference magnetometer" }
+
+# The momentum devices share CAN port 0; the header gives the base identifier of each message class
+# (rotor command + i, gimbal command + j, rotor telemetry + i, valves).
+[[device]]
+name = "momentum_devices"
+part = "IDM-MFP-3U"
+hal = { kind = "can", port = 0, rotor_cmd = 0x100, gimbal_cmd = 0x140, rotor_tm = 0x200, valves = 0x300 }
+oils = { mode = "emulated", ieu_channel = "can-0" }
+hils = { mode = "real", stimulus = "air_bearing_motion" }
+
+# Faults the rig may inject at this unit, and where. The same names as the scenario's fault kinds (campaigns/*.toml).
+[[fault_point]]
+kind = "sensor_dropout"
+at = "ieu channel stops answering"
+[[fault_point]]
+kind = "bus_error"
+at = "ieu corrupts CRC or NACKs"
+[[fault_point]]
+kind = "coil_open_circuit"
+at = "relay in series with the coil load (OILS) or coil (HILS)"
+[[fault_point]]
+kind = "ring_freeze"
+at = "IEU reports the ring module frozen and stops its flow (OILS); the module's own freeze test command (HILS)"
+[[fault_point]]
+kind = "power_brownout"
+at = "programmable supply to the OBC"
