@@ -6,6 +6,8 @@
 ## (kpiecss); and the verdict of a value against its requirement. The defaults a metric takes where the scenario states
 ## none are the 1.0.0 code's. Times in seconds (a time to a rate or a mode in minutes), angles in degrees, plain numbers;
 ## the channels buffers whose length is the run's (G16).
+## S11.4 added the tick faults' three kinds (the fine law's share of the ticks, the date error of the flight software's
+## clock, the replays of its schedule): what a run counts tick by tick that a recorded row cannot give.
 ## The developer's transcription (S7.14b), unsigned.
 module kpimetrics
 
@@ -14,11 +16,11 @@ module kpimetrics
 choice MetricKind = time_to_rate, ape, ape_los, ake, ake_los, rate_stability, time_to_threshold, wheel_momentum_peak, \
                     time_to_mode, sun_angle, spin_rate_error, mode_fraction, propellant, power_mean, power_peak, jitter, rpe, \
                     rpe_los, mpe, mpe_los, pde, pde_los, rke, rke_los, mke, mke_los, kde, kde_los, power_margin, battery_dod, \
-                    soc_min, none
+                    soc_min, fine_law_fraction, date_error, schedule_replays, none
 
 ## The units a metric's value is stated in: degrees, minutes, seconds, degrees per second, newton metre seconds,
-## percent, grams, watts, arcseconds.
-choice MetricUnit = deg, min, s, deg_per_s, n_m_s, percent, g, w, arcsec
+## percent, grams, watts, arcseconds, a count.
+choice MetricUnit = deg, min, s, deg_per_s, n_m_s, percent, g, w, arcsec, count
 
 ## The channels a metric may take (the schema's CHANNELS, in its order).
 choice MetricChannel = ape_3ax, ape_los, ake_3ax, ake_los, rate, rks, sun_angle, sun_angle_geo, spin_z, rate_err
@@ -56,8 +58,13 @@ fn kpi_metric_unit(kind: MetricKind, unit_min: bool) -> u: MetricUnit
         end
     elif kind == MetricKind.wheel_momentum_peak
         u = MetricUnit.n_m_s
-    elif kind == MetricKind.mode_fraction or kind == MetricKind.battery_dod or kind == MetricKind.soc_min
+    elif kind == MetricKind.mode_fraction or kind == MetricKind.battery_dod or kind == MetricKind.soc_min \
+         or kind == MetricKind.fine_law_fraction
         u = MetricUnit.percent
+    elif kind == MetricKind.date_error
+        u = MetricUnit.s
+    elif kind == MetricKind.schedule_replays
+        u = MetricUnit.count
     elif kind == MetricKind.propellant
         u = MetricUnit.g
     elif kind == MetricKind.jitter
@@ -219,6 +226,29 @@ fn kpi_mode_fraction(mode: inout int[*] in 0 .. 3, idx: inout int[*] in 0 .. 63,
         d = 1
     end
     v = 100.0*real(k)/real(d)
+end
+
+## The share [%] of a rate group's ticks on which it ran: ran of ticks (nan with no tick). The loop counts the ticks of the
+## fine-pointing states with an attitude and those on which the control law ran, seen as its torque request changing
+## (held between its runs).
+fn kpi_ticks_ran_percent(ran: int in 0 .. 100000, ticks: int in 0 .. 100000) -> v: real[1]
+    v = nan
+    if ticks > 0
+        v = 100.0*real(ran)/real(ticks)
+    end
+end
+
+## The replays of the flight software's schedule: the loop counts, for each scheduled instant (ns of them), how many times
+## the time the flight software keeps passed it (from before it to at or after it); an instant passed more than once is
+## replayed (a restart sets the time back to its start, and the schedule plays again).
+## length: 64
+fn kpi_schedule_replays(crossings: inout int[*] in 0 .. 8, ns: int in 0 .. 8) -> v: real[1]
+    v = 0.0
+    for e in 0 .. ns
+        if crossings[e] > 1
+            v = v + real(crossings[e] - 1)
+        end
+    end
 end
 
 ## The propellant used [g]: the most of the run's n samples prop [kg] (from none).

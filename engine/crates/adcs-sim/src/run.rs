@@ -85,7 +85,13 @@ pub struct Row {
     pub sun_ok: bool, pub st_ok: bool, pub ad_ok: bool, pub sun_eci: V3, pub sun_body: V3,
 }
 
-pub struct Record { pub rows: Vec<Row>, pub nr: usize, pub ng: usize, pub raan_rad: f64, pub mode_log: Vec<(f64, String)>, pub wall_s: f64, pub fsw_build: String, pub fsw_impl: Impl,
+/// What the loop counted tick by tick that a recorded row cannot give (the tick faults' evidence): the ticks in a fine-pointing
+/// mode with an attitude, and those on which the control law ran (its torque request changed); the largest error of the date
+/// the flight software's clock gives [s]; how often its time passed each instant of its schedule.
+#[derive(Clone, Debug, Default)]
+pub struct Ledger { pub fine_ticks: u64, pub fine_ran: u64, pub date_err_max_s: f64, /** for each instant of the flight software's schedule, how often its time passed it */ pub sched_cross: Vec<u64> }
+
+pub struct Record { pub ledger: Ledger, pub rows: Vec<Row>, pub nr: usize, pub ng: usize, pub raan_rad: f64, pub mode_log: Vec<(f64, String)>, pub wall_s: f64, pub fsw_build: String, pub fsw_impl: Impl,
     pub oils: Option<OilsStats> }
 
 pub struct Opts { pub fsw: Impl, pub quiet: bool, /// pace ticks to wall-clock time (OILS / HILS with a real OBC)
@@ -179,6 +185,9 @@ fn mode_changes(log: &mut Vec<(f64, String)>, t: f64, m: u8) {
 struct Units {
     gyro: Option<Gyro>, mag: Mag, sun: Option<Sun>, st: Option<St>, mtq: Mtq, es: Option<Es>, css: Option<Css>,
     mex: Mex, rcs: Option<Rcs>, gps: Gps, tlm: Rng,
+    /// the tick faults: the gyro answering with its last sample, a warm reset due, the flight software's time source (its
+    /// accumulated step [s], the amplitude [s] of the jitter on each timestamp and the stream it is drawn from)
+    gyro_frozen: bool, reset: bool, clock_off_s: f64, jitter_s: f64, jit: Rng,
     /// the device emulators' scaling (l3_oils_row_07's, from the drivers' conversions), made once
     scale: emu::Scale,
     /// the frame buffers of the image star-tracker model (model 2), built once per run
@@ -215,7 +224,8 @@ impl Units {
         let mex = Mex::new(d.mex, &mut disp, rs("mex"));
         let rcs = if d.rcs.fitted { Some(Rcs::new(d.rcs, &mut disp)) } else { None };
         let st_frame = st.as_mut().filter(|s| s.d.model == 2).map(StFrame::new);
-        Units { gyro, mag, sun, st, mtq, es, css, mex, rcs, gps: Gps::new(d.gps, rs("gps")), tlm: rs("telemetry"), scale: emu::scale(), st_frame }
+        Units { gyro, mag, sun, st, mtq, es, css, mex, rcs, gps: Gps::new(d.gps, rs("gps")), tlm: rs("telemetry"),
+                gyro_frozen: false, reset: false, clock_off_s: 0.0, jitter_s: 0.0, jit: rs("clock_jitter"), scale: emu::scale(), st_frame }
     }
 
     /// Inject every fault whose time has come (once each), clear the ones that end, and log both.
@@ -241,6 +251,10 @@ impl Units {
                 "gps_outage" => self.gps.dead = true,
                 "rcs_valve_fail" => if let Some(r) = self.rcs.as_mut() { r.failed[ix] = true },
                 "mag_fail" => self.mag.dead = true,
+                "gyro_fail" => self.gyro_frozen = true,
+                "fsw_reset" => self.reset = true,
+                "clock_step" => self.clock_off_s += f.value[0],
+                "clock_jitter" => self.jitter_s = f.value[0],
                 other => return Err(Error::run(format!("unknown fault {other}"))),
             }
             log.push((t, format!("FAULT injected: {} {}", f.kind, f.index)));
@@ -317,7 +331,8 @@ fn sense(u: &mut Units, c: &Config, bus: &mut Bus, x: &State, sky: &Sky, m_b: &V
     let (d, dt) = (&c.dev, c.dt);
     bus.now_ns = (t*1e9).round() as u64;
     let w_meas = match u.gyro.as_mut() { Some(g) => g.sample(&x.w, dt), None => x.w };
-    bus.gyro = u.gyro.as_ref().map(|_| emu::gyro_resp(true, &w_meas, &u.scale));
+    // a frozen gyro keeps answering with its last sample, flagged ok (it was drawn above: the stream goes on)
+    if !u.gyro_frozen { bus.gyro = u.gyro.as_ref().map(|_| emu::gyro_resp(true, &w_meas, &u.scale)); }
     let b_meas = u.mag.sample(&sky.b_b, m_b);
     bus.mag = if d.mag.fitted { Some(emu::mag_regs(true, &b_meas, &u.scale)) } else { None };
     let sun_meas = if let Some(s) = u.sun.as_mut() { s.sample(&sky.sb, nu) } else if let Some(s) = u.css.as_mut() { s.sample(&sky.sb, nu, &sky.nb, sky.earth_ang) } else { None };
@@ -496,6 +511,8 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
     let mut oils = o.oils.as_ref().map(|m| OilsStats { model: Some(m.clone()), ..Default::default() });
     if oils.is_some() && o.oils.as_ref().map(|m| m.fixed_s.is_none()).unwrap_or(false) && !matches!(o.fsw, Impl::Obc(_)) { return Err(Error::run("soft OILS needs the flight software on a virtual OBC (--fsw qemu | qemu-rs | obc-posix ...)")); }
     let mut held = Held::default();
+    let (mut ledger, mut tau_prev, mut t_prev) = (Ledger::default(), [0.0f64; 3], f64::NEG_INFINITY);
+    ledger.sched_cross = vec![0; p.n_sched as usize];
     for k in 0..=rt.n {
         let t = k as f64*dt;
         let (r, v) = orb.state(t)?;
@@ -514,7 +531,18 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
         let z = sense(&mut u, c, &mut bus, &x, &sky, &a.m_coil, nu, t, k, &rt, &r, &v);
 
         // ---- flight software ----
+        // the time source it reads: the clock since it booted (the run's time and its age at the start), the faults' steps
+        // and each timestamp's jitter (the amplitude, signed, from the fault's time on)
+        let jit = if u.jitter_s > 0.0 { u.jitter_s*(2.0*u.jit.uniform() - 1.0) } else { 0.0 };
+        let clock = c.fsw_boot_age_s + t + u.clock_off_s + jit;
+        if !(clock >= 0.0) { return Err(Error::run(format!("clock fault: the flight software's clock would read {clock} s at t = {t} s, before its start"))); }
+        bus.now_ns = (clock*1e9).round() as u64;
         let now = bus.now_ns;
+        if u.reset {
+            // a warm reset: its state is initialised again at this tick of its clock; the clock goes on
+            u.reset = false;
+            fsw.reinit(&c.blob(), now, &mut bus)?;
+        }
         let rc = fsw.step(&mut bus, now);
         if rc != 0 {
             let why = fsw.link_error().map(|e| format!(": {e}")).unwrap_or_default();
@@ -529,6 +557,17 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
         let dbg = fsw.debug();
         let mode = dbg[1] as u8;
         let ad_ok = dbg[2] != 0.0;
+        // the ledger: the date its clock gives against the run's (its time less its age and the run's), and, in a fine-pointing
+        // mode with an attitude, whether the control law ran this tick (its torque request is held between runs)
+        let derr = (dbg[0] - (c.fsw_boot_age_s + t)).abs();
+        if derr.is_nan() || derr > ledger.date_err_max_s { ledger.date_err_max_s = derr; }
+        if matches!(mode, 2 | 3 | 4 | 10) && ad_ok {
+            ledger.fine_ticks += 1;
+            if dbg[17..20] != tau_prev { ledger.fine_ran += 1; }
+        }
+        tau_prev.copy_from_slice(&dbg[17..20]);
+        for (e, n) in ledger.sched_cross.iter_mut().enumerate() { if t_prev < p.sched_t[e] && dbg[0] >= p.sched_t[e] { *n += 1; } }
+        t_prev = dbg[0];
         mode_changes(&mut log, t, mode);
 
         // ---- actuators ----
@@ -559,5 +598,5 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
                 crate::config::MODES.get(mode as usize).unwrap_or(&"?"), norm(&x.w).to_degrees(), wall.elapsed().as_secs_f64());
         }
     }
-    Ok(Record { rows, nr, ng, raan_rad: raan, mode_log: log, wall_s: wall.elapsed().as_secs_f64(), fsw_build, fsw_impl: o.fsw.clone(), oils })
+    Ok(Record { ledger, rows, nr, ng, raan_rad: raan, mode_log: log, wall_s: wall.elapsed().as_secs_f64(), fsw_build, fsw_impl: o.fsw.clone(), oils })
 }

@@ -33,6 +33,9 @@ pub struct Fault { pub t_s: f64, pub kind: String, pub index: usize, pub value: 
 pub struct Config {
     pub id: String, pub scenario: Value, pub case: Case, pub dev: Dev, pub seed: u64,
     pub epoch_utc: [f64; 6], pub jd0: f64,
+    /// how long the flight software has been running when the run starts [s]: its clock reads this plus the run's time, and the
+    /// date in its blob is the epoch that long before (scenario time.fsw_boot_age_s; 0: it boots with the run)
+    pub fsw_boot_age_s: f64,
     pub alt_km: f64, pub inc_deg: f64, pub ecc: f64, pub ltan_h: f64, pub u0_deg: f64, pub orbit_step_s: f64, pub period_s: f64, pub mu: f64,
     pub zonal_max: usize, pub third_body: bool, pub drag: bool, pub srp: bool, pub density_scale: f64,
     /// truth orbit/environment: "pop" (the POP port, as the MATLAB twin) or "fast" (analytic)
@@ -424,7 +427,7 @@ fn sensor_params(p: &mut Params, k: &Knowns) -> Result<(), Error> {
 fn faults(s: &Value, dev: &Dev) -> Result<Vec<Fault>, Error> {
 
     let faults: Vec<Fault> = match s.get("faults") {
-        Some(Value::Array(a)) => a.iter().map(|f| Fault { t_s: json::f(f, "t_s", 0.0), kind: json::s(f, "kind", "").into(), index: json::f(f, "index", 0.0) as usize, value: get(f, "value").and_then(json::v3).unwrap_or([0.0; 3]),
+        Some(Value::Array(a)) => a.iter().map(|f| Fault { t_s: json::f(f, "t_s", 0.0), kind: json::s(f, "kind", "").into(), index: json::f(f, "index", 0.0) as usize, value: get(f, "value").and_then(json::v3).unwrap_or([get(f, "value").and_then(|v| v.as_f64()).unwrap_or(0.0), 0.0, 0.0]),
             end_s: get(f, "end_s").and_then(|v| v.as_f64()) }).collect(),
         _ => vec![],
     };
@@ -438,6 +441,9 @@ fn faults(s: &Value, dev: &Dev) -> Result<Vec<Fault>, Error> {
             "rcs_valve_fail" => (if dev.rcs.fitted { dev.rcs.nc } else { 0 }, "thruster couples"),
             "gyro_bias_step" => (dev.gyro.fitted as usize, "gyros"), "gps_outage" => (dev.gps.fitted as usize, "GNSS receivers"),
             "mag_fail" => (dev.mag.fitted as usize, "magnetometers"),
+            "gyro_fail" => (dev.gyro.fitted as usize, "gyros"),
+            // the flight software's own faults: its reset, and its time source (a step, a jitter)
+            "fsw_reset" | "clock_step" | "clock_jitter" => (1, "flight software"),
             k => return Err(Error::refused(format!("faults[{i}].kind = {k:?}: no such fault"))),
         };
         if units == 0 { return Err(Error::refused(format!("faults[{i}] {}: product {} has no {what}", f.kind, dev.id))); }
@@ -449,6 +455,21 @@ fn faults(s: &Value, dev: &Dev) -> Result<Vec<Fault>, Error> {
                 return Err(Error::refused(format!("faults[{i}] {}: end_s is for a device that can answer again (mag_fail, gps_outage)", f.kind)));
             }
             if !(e > f.t_s) { return Err(Error::refused(format!("faults[{i}] {}: end_s {e} s is not after t_s {} s", f.kind, f.t_s))); }
+        }
+        // the tick faults take what they name and nothing else: no unit number, no end, a scalar in seconds where they need one
+        if matches!(f.kind.as_str(), "gyro_fail" | "fsw_reset" | "clock_step" | "clock_jitter") {
+            if f.index != 0 { return Err(Error::refused(format!("faults[{i}] {}: takes no index (it is not a numbered unit)", f.kind))); }
+            if f.end_s.is_some() { return Err(Error::refused(format!("faults[{i}] {}: takes no end_s (it does not end)", f.kind))); }
+            let x = raw.get("value").and_then(|v| v.as_f64());
+            match f.kind.as_str() {
+                "clock_step" if !x.map(f64::is_finite).unwrap_or(false) =>
+                    return Err(Error::refused(format!("faults[{i}] clock_step: value must be the step of the time source, a number of seconds (signed)"))),
+                "clock_jitter" if !x.map(|a| a.is_finite() && a > 0.0).unwrap_or(false) =>
+                    return Err(Error::refused(format!("faults[{i}] clock_jitter: value must be the amplitude of the timestamp jitter, a positive number of seconds"))),
+                "gyro_fail" | "fsw_reset" if raw.get("value").is_some() =>
+                    return Err(Error::refused(format!("faults[{i}] {}: takes no value", f.kind))),
+                _ => {}
+            }
         }
         if f.kind == "gyro_bias_step" && raw.get("value").and_then(json::v3).is_none() {
             return Err(Error::refused(format!("faults[{i}] gyro_bias_step: value must be the bias step [x, y, z] in rad/s")));
@@ -666,7 +687,7 @@ impl Config {
         let loop_bw = k.tune("rw_bandwidth")?;
         // the run's defaults where the case and the scenario state none: env's, vv's and dyn's stated values
         let mut cfg = Config {
-            id: json::s(&s, "id", scenario).into(), case: c.clone(), dev, seed, epoch_utc: epoch, jd0,
+            id: json::s(&s, "id", scenario).into(), case: c.clone(), dev, seed, epoch_utc: epoch, jd0, fsw_boot_age_s: get(&tm, "fsw_boot_age_s").and_then(|v| v.as_f64()).unwrap_or(0.0),
             alt_km: v("orbit.alt"), inc_deg: v("orbit.inc"), ecc: v("orbit.ecc"), ltan_h: v("orbit.ltan"),
             u0_deg: json::f(&init, "arg_lat_deg", st.get("env_start_arg_lat_default")?),
             orbit_step_s: st.get("env_orbit_step")?, period_s, mu, zonal_max: st.whole("env_fast_zonal_degree", 1, 6)?,
@@ -684,6 +705,10 @@ impl Config {
             scenario_file: sp.display().to_string(), overrides: overrides.to_vec(),
         };
         apply_engine(&mut cfg, &eng)?;
+        if !(cfg.fsw_boot_age_s >= 0.0 && cfg.fsw_boot_age_s.is_finite()) {
+            return Err(Error::refused(format!("time.fsw_boot_age_s = {}: a number of seconds, not negative", cfg.fsw_boot_age_s)));
+        }
+        cfg.params.jd0 -= cfg.fsw_boot_age_s/86400.0;       // its blob holds the date it booted at
         cfg.check()?;
         // the flexible mode on the truth body (dyn_truth_plant): |delta|^2 is mpart of the coupled axis's inertia
         if cfg.case.get("flex.fmode").is_finite() {

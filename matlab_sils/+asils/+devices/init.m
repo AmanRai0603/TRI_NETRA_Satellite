@@ -38,4 +38,7 @@ function U = init(dev, seed)
     U.gps = struct('dead', false, 'g', rs('gps'), 'ht', zeros(GPS_HIST, 1), ...
                    'hr', zeros(GPS_HIST, 3), 'hv', zeros(GPS_HIST, 3), 'hn', 0);
     U.tlm = rs('telemetry');
+    % the tick faults (asils.faults.apply): the gyro answering with its last sample, a warm reset due, the flight software's time
+    % source (its accumulated step [s], the amplitude [s] of the jitter on each timestamp and the stream it is drawn from)
+    U.gyro_frozen = false; U.reset = false; U.clock_off = 0; U.jitter = 0; U.jit = rs('clock_jitter');
 end

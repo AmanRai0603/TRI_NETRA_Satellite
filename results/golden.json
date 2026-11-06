@@ -302,6 +302,142 @@
     }
    }
   },
+  "fault_clock_jitter_1us": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fine_law_fraction": {
+     "kind": "fine_law_fraction",
+     "value": 63.45182740862957,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ape_los_p9973": {
+     "kind": "ape_los",
+     "value": 0.006389494122653212,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ake_los_p9973": {
+     "kind": "ake_los",
+     "value": 0.0022936447463273,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_clock_jitter_5ms": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fine_law_fraction": {
+     "kind": "fine_law_fraction",
+     "value": 63.406829658517076,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ape_los_p9973": {
+     "kind": "ape_los",
+     "value": 0.0064266486347114155,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ake_los_p9973": {
+     "kind": "ake_los",
+     "value": 0.0022904683206446674,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_clock_step_back": {
+   "algorithms": {
+    "allocation": "",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "ape_los_last_orbit": {
+     "kind": "ape_los",
+     "value": 12.555379853959781,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ake_los_last_orbit": {
+     "kind": "ake_los",
+     "value": 1.166942734155853,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "date_error_s": {
+     "kind": "date_error",
+     "value": 1.000000000001819,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "schedule_replays": {
+     "kind": "schedule_replays",
+     "value": 0.0,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_clock_step_fwd": {
+   "algorithms": {
+    "allocation": "",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "ape_los_last_orbit": {
+     "kind": "ape_los",
+     "value": 7.336977137560721,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ake_los_last_orbit": {
+     "kind": "ake_los",
+     "value": 16.165474253670226,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "date_error_s": {
+     "kind": "date_error",
+     "value": 3600.0000000000036,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "schedule_replays": {
+     "kind": "schedule_replays",
+     "value": 0.0,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
   "fault_coil_ais": {
    "algorithms": {
     "allocation": "",
@@ -329,6 +465,43 @@
      "kind": "power_peak",
      "value": 0.5476232337412641,
      "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_fsw_reset_day30": {
+   "algorithms": {
+    "allocation": "",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "ape_los_last_orbit": {
+     "kind": "ape_los",
+     "value": 89.42855492158091,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ake_los_last_orbit": {
+     "kind": "ake_los",
+     "value": 36.93578514829804,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "date_error_s": {
+     "kind": "date_error",
+     "value": 2598000.0,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "schedule_replays": {
+     "kind": "schedule_replays",
+     "value": 2.0,
+     "pass": 0,
      "rel_tol": 1e-06
     }
    }
@@ -458,6 +631,37 @@
      "kind": "power_mean",
      "value": 0.01084420430901046,
      "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_gyro_silent": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "ake_3ax_max": {
+     "kind": "ake",
+     "value": 179.98257773995522,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ake_los_max": {
+     "kind": "ake_los",
+     "value": 179.33127599808893,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 179.4214879003264,
+     "pass": null,
      "rel_tol": 1e-06
     }
    }

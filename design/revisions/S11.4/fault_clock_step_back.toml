@@ -1,0 +1,47 @@
+# AIS 3U: magnetic-only nadir hold from a 30 deg error, three orbits, with the flight software's own schedule (the Sun
+# reference from 1500 s to 4500 s, then nadir again); the time source steps back by 1 s at 6000 s
+# A scenario of the tick faults' rig (S11.4, docs/S11_INVENTORY.md TS4): it shows today's defect of the flight software's time
+# (F1), judged against the behaviour its fix owes: the date error bounded, the schedule played once, the attitude kept.
+schema = "adcs-scenario/1"
+id = "fault_clock_step_back"
+label = "3U AIS - the flight software's time source steps back 1 s"
+case = "ais_3u"
+product = "TRN-P-3U-AIS"
+[time]
+duration_s = 17220.0
+dt_s = 0.2
+record_dt_s = 1.0
+[initial]
+attitude = { kind = "error_from_target", angle_deg = 30.0, axis_body = [0.577, 0.577, 0.577] }
+rate = { kind = "lvlh" }
+[fsw]
+start_mode = "nadir_mtq"
+guidance = { kind = "nadir" }
+mtq_wn = 0.005
+mtq_zeta = 2.0
+schedule = [ { t_s = 1500.0, mode = "sun_mtq" }, { t_s = 4500.0, mode = "nadir_mtq" } ]
+[[metrics]]
+id = "ape_los_last_orbit"
+kind = "ape_los"
+window = "last_orbit"
+statistic = "max"
+diagnostic = "the performance error beside the judged knowledge error: this product's line of sight does not meet req.ape on its case in a clean run either"
+[[metrics]]
+id = "ake_los_last_orbit"
+kind = "ake_los"
+window = "last_orbit"
+statistic = "max"
+requirement = "req.ake"
+[[metrics]]
+id = "date_error_s"
+kind = "date_error"
+limit = 0.001
+[[metrics]]
+id = "schedule_replays"
+kind = "schedule_replays"
+limit = 0.0
+
+[[faults]]
+kind = "clock_step"
+t_s = 6000.0
+value = -1.0

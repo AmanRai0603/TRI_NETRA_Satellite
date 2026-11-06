@@ -86,7 +86,7 @@ pub const ECSS_KINDS: [&str; 12] = ["rpe", "rpe_los", "mpe", "mpe_los", "pde", "
 /// kpistats, kpiecss, kpimetrics). Their choices' options are the scenario's words, in the schema's order: a kind
 /// (schema::METRIC_KINDS, then none), a window (schema::WINDOWS, then after_s), a statistic (schema::STATISTICS, then
 /// none), a channel (schema::CHANNELS); a unit's option is shown as its label (UNITS).
-const UNITS: [&str; 9] = ["deg", "min", "s", "deg/s", "N m s", "%", "g", "W", "arcsec"];
+const UNITS: [&str; 10] = ["deg", "min", "s", "deg/s", "N m s", "%", "g", "W", "arcsec", "count"];
 
 /// The option of a choice the word names: its place in `words`, else `other`.
 fn option(words: &[&str], word: &str, other: i64) -> i64 { words.iter().position(|w| *w == word).map(|i| i as i64).unwrap_or(other) }
@@ -242,6 +242,13 @@ pub fn evaluate(c: &Config, rec: &Record, d: &Derived) -> Vec<Value> {
             }
             km::METRICKIND_SPIN_RATE_ERROR => km::kpi_spin_error_stat(&mut spin, &mut ix, ni, c.spin_dps, st, &mut w, &mut tmp),
             km::METRICKIND_MODE_FRACTION => km::kpi_mode_fraction(&mut mode, &mut ix, ni, mode_named()),
+            km::METRICKIND_FINE_LAW_FRACTION => km::kpi_ticks_ran_percent(rec.ledger.fine_ran as i64, rec.ledger.fine_ticks as i64),
+            km::METRICKIND_DATE_ERROR => rec.ledger.date_err_max_s,
+            km::METRICKIND_SCHEDULE_REPLAYS => {
+                let mut cross: Vec<i64> = rec.ledger.sched_cross.iter().map(|&x| x as i64).collect();
+                let ns = cross.len() as i64;
+                km::kpi_schedule_replays(&mut cross, ns)
+            }
             km::METRICKIND_PROPELLANT => km::kpi_propellant(&mut prop, n as i64),
             km::METRICKIND_JITTER => stat(jitter(c, rec, &idx), st),
             km::METRICKIND_POWER_MARGIN => km::kpi_power_margin(ps.is_some(), &mut p_gen, &mut p_mtq, &mut p_rw, &mut p_rcs, &mut ix, ni,

@@ -1,0 +1,77 @@
+{
+ "case": "ais_3u",
+ "faults": [
+  {
+   "kind": "clock_step",
+   "t_s": 6000.0,
+   "value": -1.0
+  }
+ ],
+ "fsw": {
+  "guidance": {
+   "kind": "nadir"
+  },
+  "mtq_wn": 0.005,
+  "mtq_zeta": 2.0,
+  "schedule": [
+   {
+    "mode": "sun_mtq",
+    "t_s": 1500.0
+   },
+   {
+    "mode": "nadir_mtq",
+    "t_s": 4500.0
+   }
+  ],
+  "start_mode": "nadir_mtq"
+ },
+ "id": "fault_clock_step_back",
+ "initial": {
+  "attitude": {
+   "angle_deg": 30.0,
+   "axis_body": [
+    0.577,
+    0.577,
+    0.577
+   ],
+   "kind": "error_from_target"
+  },
+  "rate": {
+   "kind": "lvlh"
+  }
+ },
+ "label": "3U AIS - the flight software's time source steps back 1 s",
+ "metrics": [
+  {
+   "diagnostic": "the performance error beside the judged knowledge error: this product's line of sight does not meet req.ape on its case in a clean run either",
+   "id": "ape_los_last_orbit",
+   "kind": "ape_los",
+   "statistic": "max",
+   "window": "last_orbit"
+  },
+  {
+   "id": "ake_los_last_orbit",
+   "kind": "ake_los",
+   "requirement": "req.ake",
+   "statistic": "max",
+   "window": "last_orbit"
+  },
+  {
+   "id": "date_error_s",
+   "kind": "date_error",
+   "limit": 0.001
+  },
+  {
+   "id": "schedule_replays",
+   "kind": "schedule_replays",
+   "limit": 0.0
+  }
+ ],
+ "product": "TRN-P-3U-AIS",
+ "schema": "adcs-scenario/1",
+ "time": {
+  "dt_s": 0.2,
+  "duration_s": 17220.0,
+  "record_dt_s": 1.0
+ }
+}

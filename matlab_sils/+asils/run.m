@@ -47,6 +47,7 @@ function rec = run(scenarioId, caseFile, varargin)
     bus = asils.hal.bus();
     F = asils.fsw.init(P.blob, 0);
     faults = P.faults; fdone = false(1, numel(faults));
+    ledger = struct('fine_ticks', 0, 'fine_ran', 0, 'date_err_max_s', 0, 'sched_cross', zeros(P.fsw.n_sched, 1)); tau_prev = zeros(3, 1); t_prev = -Inf;
 
     [r, v, O] = asils.orbit.state(O, 0);
     x = initial_state_(P, p, r, v, nr);
@@ -83,7 +84,7 @@ function rec = run(scenarioId, caseFile, varargin)
         k0 = C_.k + 1; wall0 = C_.wall;
         O = C_.O; U = C_.U; F = C_.F; bus = C_.bus; x = C_.x; R_ = C_.R_; a = C_.a; prop = C_.prop; eacc = C_.eacc;
         b_eci = C_.b_eci; sun_rel = C_.sun_rel; moon_rel = C_.moon_rel; nu = C_.nu; v_rel = C_.v_rel; rho = C_.rho; psrp = C_.psrp;
-        log = C_.log; last_mode = C_.last_mode; j = C_.j; fdone = C_.fdone;
+        log = C_.log; last_mode = C_.last_mode; j = C_.j; fdone = C_.fdone; ledger = C_.ledger; tau_prev = C_.tau_prev; t_prev = C_.t_prev;
         clear C_
         if ~o.quiet, fprintf('  resumed from %s at t = %.1f s\n', ckpt, k0*dt); end
     end
@@ -103,11 +104,38 @@ function rec = run(scenarioId, caseFile, varargin)
 
         %% sensors -> bytes; the flight software; bytes -> commands
         [U, bus, z] = asils.devices.sense(U, dev, bus, x, sky, a.m_coil, nu, t, k, rt, r, v, P.jd0, dt, H.scale);
+        % the time source the flight software reads: the clock since it booted (the run's time and its age at the start), the
+        % faults' steps and each timestamp's jitter (the amplitude, signed, from the fault's time on)
+        jit = 0;
+        if U.jitter > 0, [u_, U.jit] = asils.pc.stream_uniform(U.jit); jit = U.jitter*(2.0*u_ - 1.0); end
+        clock = P.sim.fsw_boot_age_s + t + U.clock_off + jit;
+        if ~(clock >= 0)
+            error('asils:run:clock', 'clock fault: the flight software''s clock would read %g s at t = %g s, before its start', clock, t);
+        end
+        bus.now_ns = round(clock*1e9);
+        if U.reset
+            % a warm reset: its state is initialised again at this tick of its clock; the clock goes on
+            U.reset = false;
+            F = asils.fsw.init(P.blob, bus.now_ns);
+        end
         [F, bus, H] = asils.hal.exchange(H, F, bus);
         cmd = asils.hal.commands(bus, p.m_max, tmax, gmax, dt, H.scale, nr, ng, p.nc);
         bus.can_tx = zeros(0, 10); bus.can_rx = zeros(0, 10);
         mode = F.mode; ad_ok = F.ad_ok;
         last_mode = modes{mode + 1};
+        % the ledger: the date its clock gives against the run's, and, in a fine-pointing state with an attitude, whether the
+        % control law ran this tick (its torque request is held between runs)
+        derr = abs(F.t - (P.sim.fsw_boot_age_s + t));
+        if isnan(derr) || derr > ledger.date_err_max_s, ledger.date_err_max_s = derr; end
+        if any(mode == [2 3 4 10]) && ad_ok
+            ledger.fine_ticks = ledger.fine_ticks + 1;
+            if any(F.tau_req ~= tau_prev), ledger.fine_ran = ledger.fine_ran + 1; end
+        end
+        tau_prev = F.tau_req(:);
+        for e = 1:P.fsw.n_sched
+            if t_prev < P.fsw.sched_t(e) && F.t >= P.fsw.sched_t(e), ledger.sched_cross(e) = ledger.sched_cross(e) + 1; end
+        end
+        t_prev = F.t;
         if isempty(log) || ~strcmp(log(end).mode, last_mode), log(end+1) = struct('t', t, 'mode', last_mode); end %#ok<AGROW>
 
         %% actuators, torques, the plant
@@ -145,7 +173,7 @@ function rec = run(scenarioId, caseFile, varargin)
         if ~isempty(ckpt) && toc(tcp) > ckpt_every
             wall = wall0 + toc(tic_all); %#ok<NASGU>
             save('-binary', [ckpt '.tmp'], 'k', 'wall', 'O', 'U', 'F', 'bus', 'x', 'R_', 'a', 'prop', 'eacc', 'b_eci', 'sun_rel', ...
-                 'moon_rel', 'nu', 'v_rel', 'rho', 'psrp', 'log', 'last_mode', 'j', 'fdone');
+                 'moon_rel', 'nu', 'v_rel', 'rho', 'psrp', 'log', 'last_mode', 'j', 'fdone', 'ledger', 'tau_prev', 't_prev');
             movefile([ckpt '.tmp'], ckpt, 'f');
             tcp = tic;
         end
@@ -161,6 +189,7 @@ function rec = run(scenarioId, caseFile, varargin)
     fn = fieldnames(R_);
     for i = 1:numel(fn), R_.(fn{i}) = R_.(fn{i})(:, 1:j); end
     rec = R_;
+    rec.ledger = ledger;
     rec.P = P; rec.modes = modes; rec.mission_modes = MT.mission; rec.mode_log = log;
     rec.orbit = struct('raan_rad', O.raan_rad, 'inc_rad', O.inc_rad, 'a_m', O.a_m);
     rec.wall_s = wall0 + toc(tic_all);

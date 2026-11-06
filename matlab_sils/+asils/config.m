@@ -63,6 +63,7 @@ function P = config(scenarioId, caseFile, opts)
     P.sim.duration_s = asils.util.getf(tm, 'duration_s', st.get('vv_run_duration_default'));
     P.sim.dt = asils.util.getf(tm, 'dt_s', st.get('fsw_param_dt'));
     P.sim.record_dt = asils.util.getf(tm, 'record_dt_s', st.get('vv_record_step_default'));
+    P.sim.fsw_boot_age_s = asils.util.getf(tm, 'fsw_boot_age_s', 0);       % how long the flight software has run at the start (its blob holds the date it booted at)
     % how a run starts where its scenario's initial section states nothing (dyn's stated values)
     P.start = struct('att_kind', st.whole('dyn_initial_attitude_kind_default', 0, 3), 'axis', st.list('dyn_initial_error_axis', 3), ...
         'angle_deg', st.get('dyn_initial_error_angle'), 'rate_kind', st.whole('dyn_initial_rate_kind_default', 0, 3), ...

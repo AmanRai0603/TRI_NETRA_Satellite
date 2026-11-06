@@ -3799,3 +3799,33 @@ file = "design/decisions/DR-vv-002.toml"
 
 [[revision.decision]]
 file = "design/decisions/DR-vv-003.toml"
+
+[[revision]]
+id = "S11.4"
+at = "2026-11-06T12:00:00Z"
+by = "the developer"
+about = "the tick faults' rig (docs/S11_INVENTORY.md TS4; the plan's done-when: the gyro, reset and timing faults have scenario cases): six scenarios of the engine and the twin that fly the flight software's tick under a frozen gyro (gyro_fail), a warm reset 30 days after its blob's date (fsw_reset with time.fsw_boot_age_s), a step of its time source (clock_step, -1 s and +1 h) and a jitter on its timestamps (clock_jitter, +/- 1 us and +/- 5 ms), and three kinds of metric that expose them, kpi's: the share of the fine-pointing ticks on which the control law ran (fine_law_fraction), the error of the date its clock gives (date_error) and the replays of its schedule (schedule_replays), in design/revisions/S7.14b/kpimetrics.pc; they fly today and show the defects F1, F2 and F3 (docs/TECHNICAL_ROADMAP.md), which the next steps fix"
+
+[[revision.case]]
+file = "design/revisions/S11.4/fault_gyro_silent.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.4/fault_fsw_reset_day30.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.4/fault_clock_step_back.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.4/fault_clock_step_fwd.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.4/fault_clock_jitter_1us.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.4/fault_clock_jitter_5ms.toml"
+kind = "scenario"

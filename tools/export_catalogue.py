@@ -24,6 +24,13 @@ def outputs():
             d = tomllib.loads(f.read_text())
             key = d.get("part_number") or d.get("id") or f.stem
             yield f, out / f"{key}.json", json.dumps(d, indent=1, sort_keys=True) + "\n"
+    # the cases a developer's revision adds (`[[revision.case]]`, design/revisions_2_0.toml): their files are their source
+    folder = {"scenario": "scenarios", "campaign": "campaigns", "trade": "trades"}
+    for r in tomllib.loads((ROOT / "design" / "revisions_2_0.toml").read_text(encoding="utf-8"))["revision"]:
+        for x in r.get("case", []):
+            f = ROOT / x["file"]
+            d = tomllib.loads(f.read_text())
+            yield f, ROOT / "matlab_sils" / "data" / folder[x["kind"]] / f"{d.get('id') or f.stem}.json", json.dumps(d, indent=1, sort_keys=True) + "\n"
     for name in ("families", "classes"):
         f = V1 / "catalogue" / f"{name}.toml"
         yield f, ROOT / "matlab_sils" / "data" / f"{name}.json", json.dumps(tomllib.loads(f.read_text()), indent=1, sort_keys=True) + "\n"
@@ -35,7 +42,7 @@ def check():
     for src, dst, text in outputs():
         made.add(dst)
         if not dst.exists() or dst.read_text() != text:
-            bad.append(f"{dst.relative_to(ROOT)} differs from {src.relative_to(V1)}")
+            bad.append(f"{dst.relative_to(ROOT)} differs from {src.relative_to(V1) if src.is_relative_to(V1) else src.relative_to(ROOT)}")
     for kind, _ in KINDS:
         for j in sorted((ROOT / "matlab_sils" / "data" / kind).glob("*.json")):
             if j not in made:

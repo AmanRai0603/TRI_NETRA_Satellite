@@ -38,6 +38,10 @@
       "type": "num"
     },
     {
+      "path": "time.fsw_boot_age_s",
+      "type": "num"
+    },
+    {
       "path": "initial.arg_lat_deg",
       "type": "num"
     },
@@ -345,7 +349,11 @@
         "gyro_bias_step",
         "gps_outage",
         "rcs_valve_fail",
-        "mag_fail"
+        "mag_fail",
+        "gyro_fail",
+        "fsw_reset",
+        "clock_step",
+        "clock_jitter"
       ]
     },
     {
@@ -402,7 +410,10 @@
         "kde_los",
         "power_margin",
         "battery_dod",
-        "soc_min"
+        "soc_min",
+        "fine_law_fraction",
+        "date_error",
+        "schedule_replays"
       ]
     },
     {

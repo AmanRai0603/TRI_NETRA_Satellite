@@ -112,9 +112,9 @@ pub fn rotor_jitter(n: i64, h: [f64; 8], jrot: [f64; 8], us: [f64; 8], ud: [f64;
     let mut j: f64 = 0.0;
     let mut th2: f64 = 0.0;
     {
-        let __end66: i64 = n;
+        let __end67: i64 = n;
         let mut i: i64 = 0;
-        while i < __end66 {
+        while i < __end67 {
             let mut t: f64 = 0.0;
             if ((!((us[(i) as usize] == 0.0) && (ud[(i) as usize] == 0.0))) && (jrot[(i) as usize] > 0.0)) {
                 let mut w: f64 = (rt::fabs(h[(i) as usize]) / jrot[(i) as usize]);

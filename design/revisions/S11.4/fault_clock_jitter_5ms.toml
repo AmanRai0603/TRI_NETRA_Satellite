@@ -1,0 +1,43 @@
+# Imaging 3U: fine nadir hold with wheels + star tracker + MEKF from a 2 deg error; every timestamp the tick is handed carries +/- 5 ms
+# A scenario of the tick faults' rig (S11.4, docs/S11_INVENTORY.md TS4): it shows today's defect of the flight software's tick,
+# judged against the behaviour its fix owes (F3: an integer tick counter for the rate groups; F2: no rate from a silent gyro).
+schema = "adcs-scenario/1"
+id = "fault_clock_jitter_5ms"
+label = "3U imaging - timestamps jittered by +/- 5 ms"
+case = "ais_img_3u"
+product = "TRN-P-3U-IMG"
+[time]
+duration_s = 2000.0
+dt_s = 0.1
+record_dt_s = 0.1
+[initial]
+attitude = { kind = "error_from_target", angle_deg = 2.0, axis_body = [0.577, 0.577, 0.577] }
+rate = { kind = "lvlh" }
+[fsw]
+start_mode = "nadir_fine"
+guidance = { kind = "nadir" }
+rw_bandwidth = 0.9
+rw_damping = 2.0
+rw_rate_hz = 10.0
+[[metrics]]
+id = "fine_law_fraction"
+kind = "fine_law_fraction"
+limit = 99.9
+sense = "min"
+[[metrics]]
+id = "ape_los_p9973"
+kind = "ape_los"
+window = "after_s:1500"
+statistic = "p99.73"
+requirement = "req.ape"
+[[metrics]]
+id = "ake_los_p9973"
+kind = "ake_los"
+window = "after_s:1500"
+statistic = "p99.73"
+requirement = "req.ake"
+
+[[faults]]
+kind = "clock_jitter"
+t_s = 1.0
+value = 0.005

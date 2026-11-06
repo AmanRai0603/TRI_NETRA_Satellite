@@ -944,6 +944,26 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             out.push(io0.len() as f64); for v in io0.iter() { let v = *v; out.push(v as f64); }
             out.push(io1.len() as f64); for v in io1.iter() { let v = *v; out.push(v as f64); }
         }
+        "kpimetrics::kpi_ticks_ran_percent" => {
+            if x.len() != 2 { return None; }
+            let r = crate::kpimetrics::kpi_ticks_ran_percent(x[0] as i64, x[1] as i64);
+            out.push(r);
+        }
+        "kpimetrics::kpi_schedule_replays" => {
+            let mut at: usize = 0;
+            if x.len() < at + 1 { return None; }
+            let n0 = x[at] as usize;
+            if x.len() < at + 1 + n0 { return None; }
+            let mut io0 = x[at + 1..at + 1 + n0].iter().map(|v| *v as i64).collect::<Vec<i64>>();
+            at += 1 + n0;
+            if x.len() < at + 1 { return None; }
+            let a1 = { let x = &x[at..]; x[0] as i64 };
+            at += 1;
+            if x.len() != at { return None; }
+            let r = crate::kpimetrics::kpi_schedule_replays(&mut io0, a1);
+            out.push(r);
+            out.push(io0.len() as f64); for v in io0.iter() { let v = *v; out.push(v as f64); }
+        }
         "kpimetrics::kpi_propellant" => {
             let mut at: usize = 0;
             if x.len() < at + 1 { return None; }

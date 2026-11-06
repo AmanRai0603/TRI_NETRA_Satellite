@@ -655,9 +655,15 @@ def convert(out, src=None):
     report.append(["group", "case", "structure/case.group.tndb", "dissolved", "its nodes to programme and systems; each customer a case file"])
 
     # ------------------------------------------------------------ the cases
-    for folder, pat, kind in CASES:
-        for f in sorted((v1_root(folder) / folder).glob(pat)):
-            rel = f.relative_to(v1_root(folder)).as_posix()
+    # a developer's revision may add a case of its own (`[[revision.case]]`: a file under design/revisions/, a scenario, campaign or
+    # trade of the 1.0.0 formats), after the converted ones, flown like them
+    found = [(folder, kind, sorted((v1_root(folder) / folder).glob(pat)), v1_root(folder)) for folder, pat, kind in CASES]
+    for r in revisions():
+        for x in r.get("case", []):
+            found.append((f"design/revisions/{r['id']}", x["kind"], [ROOT / x["file"]], ROOT))
+    for folder, kind, files, base in found:
+        for f in files:
+            rel = f.relative_to(base).as_posix()
             cid = f.stem if kind == "case" else f"{kind}_{f.stem}"
             path = out / "cases" / f"{cid}.tncase"
             if path.exists():                 # a reference case held twice (spec and matlab_sils): the same name, kept once

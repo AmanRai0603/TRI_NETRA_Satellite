@@ -234,6 +234,23 @@ impl Fsw {
             }
         }
     }
+    /// A warm reset: the flight software's state is initialised again from the same blob, its start at `start_ns` of the clock it
+    /// reads (which goes on). The same instance, so the C build keeps its one lock.
+    pub fn reinit(&mut self, blob: &[u8], start_ns: u64, bus: &mut Bus) -> Result<(), FswError> {
+        match self {
+            Fsw::C(_) => {
+                let a = CInit { abi_version: adcs_fsw::ABI_VERSION, config_blob: blob.as_ptr(), config_len: blob.len(), start_ns };
+                let rc = Self::with(bus, || unsafe { adcs_fsw_init(&a) });
+                if rc != 0 { return Err(FswError::Refused(format!("adcs_fsw_init (C) refused the configuration at the reset: {rc} ({})", init_refusal(rc)))); }
+            }
+            Fsw::Rust(f) => f.init(adcs_fsw::ABI_VERSION, blob, start_ns).map_err(|e| FswError::Refused(format!("adcs-fsw (Rust) refused the configuration at the reset: {e:?}")))?,
+            Fsw::Obc(l) => {
+                let rc = l.config(blob, start_ns)?;
+                if rc != 0 { return Err(FswError::Refused(format!("the OBC refused the configuration at the reset: {rc} ({})", init_refusal(rc)))); }
+            }
+        }
+        Ok(())
+    }
     fn with<R>(bus: &mut Bus, f: impl FnOnce() -> R) -> R {
         CUR.with(|c| c.set(bus as *mut Bus));
         let r = f();

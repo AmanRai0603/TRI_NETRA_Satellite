@@ -35,20 +35,21 @@ pub enum T {
 
 pub const ALGORITHM_SLOTS: [&str; 8] = ["detumble", "attitude", "pointing", "mtq_pointing", "sun_acquisition", "allocation", "thrusters",
     "sun_spin" /* the old name of sun_acquisition */];
-pub const METRIC_KINDS: [&str; 31] = ["time_to_rate", "ape", "ape_los", "ake", "ake_los", "rate_stability", "time_to_threshold",
+pub const METRIC_KINDS: [&str; 34] = ["time_to_rate", "ape", "ape_los", "ake", "ake_los", "rate_stability", "time_to_threshold",
     "wheel_momentum_peak", "time_to_mode", "sun_angle", "spin_rate_error", "mode_fraction", "propellant", "power_mean", "power_peak",
     "jitter", "rpe", "rpe_los", "mpe", "mpe_los", "pde", "pde_los", "rke", "rke_los", "mke", "mke_los", "kde", "kde_los",
-    "power_margin", "battery_dod", "soc_min"];
+    "power_margin", "battery_dod", "soc_min", "fine_law_fraction", "date_error", "schedule_replays"];
 pub const WINDOWS: [&str; 4] = ["all", "last_orbit", "last_half_orbit", "pointing"];
 pub const STATISTICS: [&str; 5] = ["max", "rms", "mean", "p95", "p99.73"];
 pub const CHANNELS: [&str; 10] = ["ape_3ax", "ape_los", "ake_3ax", "ake_los", "rate", "rks", "sun_angle", "sun_angle_geo", "spin_z", "rate_err"];
-pub const FAULTS: [&str; 8] = ["rotor_fail", "gimbal_stuck", "st_head_fail", "coil_fail", "gyro_bias_step", "gps_outage", "rcs_valve_fail", "mag_fail"];
+pub const FAULTS: [&str; 12] = ["rotor_fail", "gimbal_stuck", "st_head_fail", "coil_fail", "gyro_bias_step", "gps_outage", "rcs_valve_fail", "mag_fail",
+    "gyro_fail", "fsw_reset", "clock_step", "clock_jitter"];
 /// Metric kinds the engine accepts in a file but does not compute yet: refused with the reason.
 pub const NOT_COMPUTED: [(&str, &str); 0] = [];
 
 pub const SCENARIO: &[(&str, T)] = &[
     ("schema", T::OneOf(&["adcs-scenario/1"])), ("id", T::Str), ("label", T::Str), ("case", T::Str), ("product", T::Str),
-    ("time.dt_s", T::Num), ("time.duration_s", T::Num), ("time.record_dt_s", T::Num),
+    ("time.dt_s", T::Num), ("time.duration_s", T::Num), ("time.record_dt_s", T::Num), ("time.fsw_boot_age_s", T::Num),
     ("initial.arg_lat_deg", T::Num), ("initial.wheel_momentum_Nms", T::Num),
     ("initial.attitude.kind", T::OneOf(&["nadir", "random", "error_from_target", "error_from_guidance"])),
     ("initial.attitude.angle_deg", T::Num), ("initial.attitude.axis_body", T::Vec3),

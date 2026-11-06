@@ -8,7 +8,8 @@ function [U, bus, z] = sense(U, dev, bus, x, sky, m_coil, nu, t, k, rt, r, v, jd
     bus.now_ns = round(t*1e9);
     if ~isempty(U.gyro)
         [w_meas, U.gyro] = asils.models.gyro.gyro_sample(U.gyro, dev.gyro.rec, x.w, dt);
-        bus.gyro = asils.hal.gyro_resp(true, w_meas, scale);
+        % a frozen gyro keeps answering with its last sample, flagged ok (it was drawn above: the stream goes on)
+        if ~U.gyro_frozen, bus.gyro = asils.hal.gyro_resp(true, w_meas, scale); end
     else
         w_meas = x.w; bus.gyro = [];
     end

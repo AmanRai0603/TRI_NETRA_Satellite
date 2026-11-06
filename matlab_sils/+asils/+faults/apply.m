@@ -31,6 +31,10 @@ function [U, done, log] = apply(faults, t, U, done, log)
             case 'gps_outage',     U.gps.dead = true;
             case 'rcs_valve_fail', if ~isempty(U.rcs), U.rcs.failed(ix) = true; end
             case 'mag_fail',       U.mag.dead = true;
+            case 'gyro_fail',      U.gyro_frozen = true;       % the driver keeps returning the last sample, flagged ok
+            case 'fsw_reset',      U.reset = true;             % a warm reset: the run initialises the flight software again
+            case 'clock_step',     U.clock_off = U.clock_off + f.value(1);
+            case 'clock_jitter',   U.jitter = f.value(1);
             otherwise, error('asils:faults:kind', 'unknown fault %s', f.kind);
         end
         log(end+1) = struct('t', t, 'mode', sprintf('FAULT injected: %s %d', f.kind, idx)); %#ok<AGROW>
