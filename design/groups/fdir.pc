@@ -8,7 +8,7 @@ record RotorFdir
     cmd_r_prev: real[N m][8] in -0.01 .. 0.01
     fd_count: real[s][8] in 0 .. 2
     rot_failed: bool[8]
-    faults: int in 0 .. 1023
+    faults: int in 0 .. 2047
     fw_e: real[N m s][8] in -0.01 .. 0.01
     fw_h0: real[N m s][8] in -0.05 .. 0.05
     fw_t0: real[s] in 860 .. 885
@@ -87,7 +87,9 @@ fn fdir_rotors(st: RotorFdir, rp: RotorParams, t: real[s] in 1000 .. 1000.2, dt:
 end
 
 ## Safe mode: a magnetometer (once seen) or a gyro silent more than 60 s sets its fault bit (8 and 9)
-## and holds the spacecraft in magnetorquer detumble.
+## and holds the spacecraft in magnetorquer detumble. The level below it (DR-fdir-002, F2): a gyro quiet for
+## fsw_param_gyro_stale_ticks ticks sets bit 10, for as long as it is quiet; it holds nothing, the estimator and the
+## controllers have already dropped its rate (fdir_sensors).
 ## vectors: 48
 fn fdir_safe(st: Modes) -> s: Modes
     s = st
@@ -99,6 +101,11 @@ fn fdir_safe(st: Modes) -> s: Modes
         f = bor(f, 512)
     end
     s.faults = bor(band(s.faults, bxor(65535, bor(256, 512))), f)
+    let q = 0
+    if s.gyro_quiet
+        q = 1024
+    end
+    s.faults = bor(band(s.faults, bxor(65535, 1024)), q)
     if f != 0 and s.mode != 0
         s = modes_enter(s, 0)
     end
@@ -106,10 +113,16 @@ end
 
 ## Sensor health after the drivers read: a field outside [0.25, 4] x the model is no reading; the
 ## last good field is held; the age of each sensor's last good sample.
+## A gyro whose sample has not changed for stale_n ticks (it stopped answering, or answers with its last sample flagged ok)
+## is quiet (DR-fdir-002, F2): its rate is zeroed for the controllers, the estimator propagates with an inflated process
+## noise and the star-tracker coast ends (the tick). A sample is the same as the last when all three counts are equal.
+## Its age counts from the first tick it does not answer, or is quiet; the 60 s fault above it stays.
 fn fdir_sensors(mag_ok0: bool, b0: vec3[1] in -6e-5 .. 6e-5, bref_ok: bool, bref: vec3[1] in -6e-5 .. 6e-5, b_good0: vec3[1] in -6e-5 .. 6e-5, \
                 mag_age0: real[1] in 0 .. 100, mag_seen0: bool, has_gyro: bool, gyro_ok: bool, w0: vec3[1] in -0.1 .. 0.1, \
-                gyro_age0: real[1] in 0 .. 100, dt: real[1] in 0.05 .. 1) \
-                -> (mag_ok: bool, b: vec3[1], w: vec3[1], b_good: vec3[1], mag_age: real[1], mag_seen: bool, gyro_age: real[1])
+                gyro_age0: real[1] in 0 .. 100, dt: real[1] in 0.05 .. 1, w_prev0: vec3[1] in -0.1 .. 0.1, same0: int in 0 .. 1000, \
+                stale_n: int in 1 .. 100) \
+                -> (mag_ok: bool, b: vec3[1], w: vec3[1], b_good: vec3[1], mag_age: real[1], mag_seen: bool, gyro_age: real[1], \
+                    w_prev: vec3[1], same: int, quiet: bool)
     mag_ok = mag_ok0
     b = b0
     w = w0
@@ -132,12 +145,26 @@ fn fdir_sensors(mag_ok0: bool, b0: vec3[1] in -6e-5 .. 6e-5, bref_ok: bool, bref
         b = b_good
         mag_age = mag_age + dt
     end
-    if not has_gyro or gyro_ok
+    let fresh = false
+    if gyro_ok
+        if w0[0] != w_prev0[0] or w0[1] != w_prev0[1] or w0[2] != w_prev0[2]
+            fresh = true
+        end
+    end
+    same = same0
+    if not has_gyro or fresh
+        same = 0
+    elif same0 < 1000
+        same = same0 + 1
+    end
+    w_prev = w0
+    quiet = has_gyro and same >= stale_n
+    if not has_gyro or (gyro_ok and not quiet)
         gyro_age = 0
     else
         gyro_age = gyro_age + dt
     end
-    if not gyro_ok and not has_gyro
+    if quiet or (not gyro_ok and not has_gyro)
         w = 0
     end
 end

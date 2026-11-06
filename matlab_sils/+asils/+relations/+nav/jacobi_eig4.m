@@ -16,21 +16,21 @@ function [lam, v] = jacobi_eig4(k)
             p = pp((pi_) + 1);
             q = qq((pi_) + 1);
             apq = a((p) + 1, (q) + 1);
-            h__70 = apq;
-            if h__70 < 0, h__70 = -h__70; elseif h__70 == 0, h__70 = 0; end
-            if (h__70 >= 1e-300)
+            h__71 = apq;
+            if h__71 < 0, h__71 = -h__71; elseif h__71 == 0, h__71 = 0; end
+            if (h__71 >= 1e-300)
                 th = ((a((q) + 1, (q) + 1) - a((p) + 1, (p) + 1)) / (2 * apq));
-                h__71 = th;
-                if h__71 < 0, h__71 = -h__71; elseif h__71 == 0, h__71 = 0; end
-                h__72 = ((th * th) + 1);
-                if h__72 < 0, h__72 = NaN; else, h__72 = sqrt(h__72); end
-                t = (sign(th) / (h__71 + h__72));
+                h__72 = th;
+                if h__72 < 0, h__72 = -h__72; elseif h__72 == 0, h__72 = 0; end
+                h__73 = ((th * th) + 1);
+                if h__73 < 0, h__73 = NaN; else, h__73 = sqrt(h__73); end
+                t = (sign(th) / (h__72 + h__73));
                 if (th == 0)
                     t = 1;
                 end
-                h__73 = ((t * t) + 1);
-                if h__73 < 0, h__73 = NaN; else, h__73 = sqrt(h__73); end
-                c = (1 / h__73);
+                h__74 = ((t * t) + 1);
+                if h__74 < 0, h__74 = NaN; else, h__74 = sqrt(h__74); end
+                c = (1 / h__74);
                 sn = (t * c);
                 i = ((0):((4) - 1)).';
                 aip = a((i) + 1, (p) + 1);

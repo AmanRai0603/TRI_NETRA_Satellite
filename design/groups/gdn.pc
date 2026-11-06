@@ -209,11 +209,21 @@ end
 
 ## The transitions of one tick (after safe mode): the detumble exit, the spin guards, the
 ## gyro-propagated Sun vector of the acquisition laws, the end of the rotor Sun acquisition.
+## The detumble exit is judged on the gyro's rate while the gyro answers with fresh samples, and on the B-dot rate
+## estimate (bdot_rate: the field derivative of the coil cycle) when there is no gyro or it is stale (DR-gdn-003, F5):
+## no estimate yet is no exit, so a body that tumbles is not released on a rate nobody measured.
 ## vectors: 96
-fn modes_step(st: Modes, mp: ModeParams, zw: vec3[1] in -0.1 .. 0.1, sun_ok: bool, sun: vec3[1] in -1 .. 1, dt: real[1] in 0.05 .. 1) -> s: Modes
+fn modes_step(st: Modes, mp: ModeParams, zw: vec3[1] in -0.1 .. 0.1, sun_ok: bool, sun: vec3[1] in -1 .. 1, dt: real[1] in 0.05 .. 1, \
+              has_gyro: bool, wbd: real[1] in 0 .. 0.5, wbd_ok: bool) -> s: Modes
     s = st
     if (s.mode == 0 or s.mode == 7) and mp.auto_next != 255 and band(s.faults, bor(256, 512)) == 0
-        if norm(zw) < mp.detumble_exit
+        let low = false
+        if has_gyro and not s.gyro_quiet and s.gyro_age == 0.0
+            low = norm(zw) < mp.detumble_exit
+        else
+            low = wbd_ok and wbd < mp.detumble_exit
+        end
+        if low
             s.hold = s.hold + dt
         else
             s.hold = 0

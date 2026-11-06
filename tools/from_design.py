@@ -61,7 +61,7 @@ def _held(db=None):
             src = origin.split(" ")[0]
             if (sec == "table" and "/" in src) or sec == "data" or (sec, field) in (("code", "pseudocode"), ("explain", "theory")):
                 if src.startswith(("spec/", "catalogue/", "fsw/", "matlab_sils/", "env/", "dyn/", "act/", "sens/", "oils/", "pnt/", "design/", "kpi/", "ctl/")) and value:
-                    out.setdefault(src, value)
+                    out[src] = value      # the last row of a path is the design's: a developer's revision of a method the node already had (S11.5) follows the 1.0.0 row, which stays as provenance
     return out
 
 

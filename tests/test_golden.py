@@ -27,7 +27,7 @@ class Table(unittest.TestCase):
     def test_every_scenario_is_in_the_table(self):
         t = json.loads(golden.TABLE.read_text())
         want = sorted(p.stem for p in DATA.glob("*.json"))
-        self.assertEqual(len(want), 54)
+        self.assertEqual(len(want), 55)
         self.assertEqual(sorted(t["scenarios"]), want)
         for name, r in t["scenarios"].items():
             self.assertTrue(r["metrics"], name)

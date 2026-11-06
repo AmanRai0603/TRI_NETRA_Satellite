@@ -20,6 +20,9 @@ pub fn latency(q_st: [f64; 4], w: [f64; 3], lat: f64) -> [f64; 4] {
 
 /// The prediction over dt on the measured rate wm, with gyro angle and rate random walks arw, rrw:
 /// q <- q fromrotvec((wm - b) dt), P <- Phi P Phi' + Q.
+/// With the gyro quiet (stale, DR-fdir-002, F2) the rate wm is the controllers' zero, not a measurement: the angle random
+/// walk is raised to the rate the body may have, 2e-3 rad/s (about twice the orbital rate of a low orbit; the developer's
+/// value, for fdir to sign) over the step, so that P grows by that uncertainty and the vector updates take the attitude back.
 /// - q0: real[1][4] (passed a plain number)
 /// - b: real[1][3] (passed a plain number)
 /// - p0: real[1][6][6] (passed a plain number)
@@ -27,13 +30,18 @@ pub fn latency(q_st: [f64; 4], w: [f64; 3], lat: f64) -> [f64; 4] {
 /// - rrw: real[1] (passed a plain number)
 /// - wm: real[1][3] (passed a plain number)
 /// - dt: real[1] (passed a plain number)
+/// - stale: bool (passed true or false)
 /// - returns q: real[1][4] (passed a plain number)
 /// - returns p: real[1][6][6] (passed a plain number)
 #[allow(clippy::too_many_arguments)]
-pub fn mekf_predict(q0: [f64; 4], b: [f64; 3], p0: [[f64; 6]; 6], arw: f64, rrw: f64, wm: [f64; 3], dt: f64) -> ([f64; 4], [[f64; 6]; 6]) {
+pub fn mekf_predict(q0: [f64; 4], b: [f64; 3], p0: [[f64; 6]; 6], arw: f64, rrw: f64, wm: [f64; 3], dt: f64, stale: bool) -> ([f64; 4], [[f64; 6]; 6]) {
     let mut q: [f64; 4] = [0.0; 4];
     let mut p: [[f64; 6]; 6] = [[0.0; 6]; 6];
-    let mut sv2: f64 = (arw * arw);
+    let mut arw_eff: f64 = arw;
+    if (stale && ((0.002 * f64::sqrt(dt)) > arw)) {
+        arw_eff = (0.002 * f64::sqrt(dt));
+    }
+    let mut sv2: f64 = (arw_eff * arw_eff);
     let mut su2: f64 = (rrw * rrw);
     let mut w: [f64; 3] = rt::vsub(wm, b);
     q = crate::gen::shared::qnorm(crate::gen::shared::qmult(q0, crate::gen::shared::fromrotvec(rt::vscale(w, dt))));

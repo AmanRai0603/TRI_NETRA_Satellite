@@ -287,6 +287,9 @@ pub fn spin_guards(st: Modes, mp: ModeParams, sun_ok: bool, sun: [f64; 3], dt: f
 
 /// The transitions of one tick (after safe mode): the detumble exit, the spin guards, the
 /// gyro-propagated Sun vector of the acquisition laws, the end of the rotor Sun acquisition.
+/// The detumble exit is judged on the gyro's rate while the gyro answers with fresh samples, and on the B-dot rate
+/// estimate (bdot_rate: the field derivative of the coil cycle) when there is no gyro or it is stale (DR-gdn-003, F5):
+/// no estimate yet is no exit, so a body that tumbles is not released on a rate nobody measured.
 /// vectors: 96
 /// - st: Modes (passed rec)
 /// - mp: ModeParams (passed rec)
@@ -294,13 +297,22 @@ pub fn spin_guards(st: Modes, mp: ModeParams, sun_ok: bool, sun: [f64; 3], dt: f
 /// - sun_ok: bool (passed true or false)
 /// - sun: real[1][3] (passed a plain number)
 /// - dt: real[1] (passed a plain number)
+/// - has_gyro: bool (passed true or false)
+/// - wbd: real[1] (passed a plain number)
+/// - wbd_ok: bool (passed true or false)
 /// - returns s: Modes (passed rec)
 #[allow(clippy::too_many_arguments)]
-pub fn modes_step(st: Modes, mp: ModeParams, zw: [f64; 3], sun_ok: bool, sun: [f64; 3], dt: f64) -> Modes {
+pub fn modes_step(st: Modes, mp: ModeParams, zw: [f64; 3], sun_ok: bool, sun: [f64; 3], dt: f64, has_gyro: bool, wbd: f64, wbd_ok: bool) -> Modes {
     let mut s: Modes = Modes::default();
     s = st;
     if ((((s.mode == 0) || (s.mode == 7)) && (mp.auto_next != 255)) && ((s.faults & (256 | 512)) == 0)) {
-        if (rt::norm(zw) < mp.detumble_exit) {
+        let mut low: bool = false;
+        if ((has_gyro && (!s.gyro_quiet)) && (s.gyro_age == 0.0)) {
+            low = (rt::norm(zw) < mp.detumble_exit);
+        } else {
+            low = (wbd_ok && (wbd < mp.detumble_exit));
+        }
+        if low {
             s.hold = (s.hold + dt);
         } else {
             s.hold = 0.0;

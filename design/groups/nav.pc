@@ -8,9 +8,16 @@ end
 
 ## The prediction over dt on the measured rate wm, with gyro angle and rate random walks arw, rrw:
 ## q <- q fromrotvec((wm - b) dt), P <- Phi P Phi' + Q.
+## With the gyro quiet (stale, DR-fdir-002, F2) the rate wm is the controllers' zero, not a measurement: the angle random
+## walk is raised to the rate the body may have, 2e-3 rad/s (about twice the orbital rate of a low orbit; the developer's
+## value, for fdir to sign) over the step, so that P grows by that uncertainty and the vector updates take the attitude back.
 fn mekf_predict(q0: quat in -1 .. 1, b: vec3[1] in -1e-3 .. 1e-3, p0: real[1][6][6] in -1e-4 .. 1e-4, arw: real[1] in 1e-6 .. 1e-3, \
-                rrw: real[1] in 1e-8 .. 1e-5, wm: vec3[1] in -0.1 .. 0.1, dt: real[1] in 0.01 .. 1) -> (q: quat, p: real[1][6][6])
-    let sv2 = arw*arw
+                rrw: real[1] in 1e-8 .. 1e-5, wm: vec3[1] in -0.1 .. 0.1, dt: real[1] in 0.01 .. 1, stale: bool) -> (q: quat, p: real[1][6][6])
+    let arw_eff = arw
+    if stale and 2e-3*sqrt(dt) > arw
+        arw_eff = 2e-3*sqrt(dt)
+    end
+    let sv2 = arw_eff*arw_eff
     let su2 = rrw*rrw
     let w = wm - b
     q = qnorm(qmult(q0, fromrotvec(w*dt)))

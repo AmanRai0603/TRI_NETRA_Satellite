@@ -1,6 +1,8 @@
 function [s] = fdir_safe(st)
 %FDIR_SAFE  Safe mode: a magnetometer (once seen) or a gyro silent more than 60 s sets its fault bit (8 and 9)
-%   and holds the spacecraft in magnetorquer detumble.
+%   and holds the spacecraft in magnetorquer detumble. The level below it (DR-fdir-002, F2): a gyro quiet for
+%   fsw_param_gyro_stale_ticks ticks sets bit 10, for as long as it is quiet; it holds nothing, the estimator and the
+%   controllers have already dropped its rate (fdir_sensors).
 %   vectors: 48
 %   st: Modes (passed rec)
 %   returns s: Modes (passed rec)
@@ -15,6 +17,11 @@ function [s] = fdir_safe(st)
         f = bitor(f, 512);
     end
     s.faults = bitor(bitand(s.faults, bitxor(65535, bitor(256, 512))), f);
+    q = 0;
+    if s.gyro_quiet
+        q = 1024;
+    end
+    s.faults = bitor(bitand(s.faults, bitxor(65535, 1024)), q);
     if ((f ~= 0) && (s.mode ~= 0))
         s = asils.relations.shared.modes_enter(s, 0);
     end

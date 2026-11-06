@@ -30,6 +30,7 @@ pub struct Modes {
     pub mag_seen: bool,
     pub mag_age: f64,
     pub gyro_age: f64,
+    pub gyro_quiet: bool,
 }
 
 /// The quaternion of a rotation matrix: the largest of (trace, R11, R22, R33) picks the form, then

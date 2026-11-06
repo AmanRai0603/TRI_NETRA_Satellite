@@ -95,6 +95,18 @@
     [
      "gyro_age",
      "real[1]"
+    ],
+    [
+     "w_prev",
+     "vec3[1]"
+    ],
+    [
+     "same",
+     "int"
+    ],
+    [
+     "quiet",
+     "bool"
     ]
    ],
    "params": [
@@ -145,6 +157,18 @@
     [
      "dt",
      "real[1] in 0.05 .. 1"
+    ],
+    [
+     "w_prev0",
+     "vec3[1] in -0.1 .. 0.1"
+    ],
+    [
+     "same0",
+     "int in 0 .. 1000"
+    ],
+    [
+     "stale_n",
+     "int in 1 .. 100"
     ]
    ],
    "release": "carried",

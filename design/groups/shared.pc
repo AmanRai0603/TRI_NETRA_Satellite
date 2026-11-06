@@ -20,11 +20,12 @@ record Modes
     s_prop_ok: bool
     acq_hold: real[1] in 0 .. 120
     sched_i: int in 0 .. 8
-    faults: int in 0 .. 1023
+    faults: int in 0 .. 2047
     w_est: vec3[1] in -0.3 .. 0.3
     mag_seen: bool
     mag_age: real[1] in 0 .. 120
     gyro_age: real[1] in 0 .. 120
+    gyro_quiet: bool
 end
 
 ## The quaternion of a rotation matrix: the largest of (trace, R11, R22, R33) picks the form, then
