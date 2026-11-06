@@ -252,7 +252,7 @@ function [dev, P, done] = fit_sensor_(dev, slot, P)
             e.bias_sigma = sig_(P, 'bias_rad');
             dev.es = struct('fitted', true, 'rec', e, 'rate_hz', rate);
         case 'gnss'
-            [ps, P] = n_(P, 'pos_sigma_m'); [vs, P] = n_(P, 'vel_sigma_m_s'); [rate, P] = n_(P, 'rate_Hz'); [lat, P] = nonneg_(P, 'latency_s');
+            [ps, P] = n_(P, 'pos_sigma_m'); [vs, P] = n_(P, 'vel_sigma_m_s'); [rate, P] = pos_(P, 'rate_Hz'); [lat, P] = nonneg_(P, 'latency_s');
             dev.gps = struct('fitted', true, 'pos_sigma', ps, 'vel_sigma', vs, 'rate_hz', rate, 'latency', lat);
         otherwise
             done = false;

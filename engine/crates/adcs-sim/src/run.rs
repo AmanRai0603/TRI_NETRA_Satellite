@@ -266,6 +266,9 @@ impl Units {
     }
 }
 
+/// The period of the GNSS receiver's fixes in the run's schedule [s]: the whole control steps nearest 1/rate_Hz (M10), one fix per period.
+pub fn gnss_fix_period_s(c: &Config) -> f64 { Rates::new(c).gps as f64*c.dt }
+
 /// How often each part of the loop runs, in ticks.
 struct Rates { n: u64, every: u64, off: u64, env: u64, st: u64, gps: u64, es: u64 }
 
@@ -277,7 +280,7 @@ impl Rates {
             n: (c.duration_s/dt).round() as u64, every, off: every/2,
             env: ((c.env_dt_s/dt).round() as u64).max(1),
             st: if d.st.fitted { ((1.0/(d.st.rate_hz*dt)).round() as u64).max(1) } else { 1 },
-            gps: ((1.0/dt).round() as u64).max(1),
+            gps: if d.gps.fitted { ((1.0/(d.gps.rate_hz*dt)).round() as u64).max(1) } else { 1 },
             es: if d.es.fitted { ((1.0/(d.es.rate_hz*dt)).round() as u64).max(1) } else { 1 },
         }
     }

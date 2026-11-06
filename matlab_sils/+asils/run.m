@@ -58,6 +58,7 @@ function rec = run(scenarioId, caseFile, varargin)
     rt = struct('env', max(1, round(P.env.dt_s/dt)), 'st', 1, 'gps', max(1, round(1/dt)), 'es', 1);
     if dev.st.fitted, rt.st = max(1, round(1/(dev.st.rate_hz*dt))); end
     if dev.es.fitted, rt.es = max(1, round(1/(dev.es.rate_hz*dt))); end
+    if dev.gps.fitted, rt.gps = max(1, round(1/(dev.gps.rate_hz*dt))); end        % one fix per 1/rate_Hz (M10)
     if dev.gps.fitted && dev.gps.latency/dt + 2 > 256
         error('asils:run:refused', 'GNSS latency %g s is %.0f control steps; the twin keeps %d steps of history', dev.gps.latency, dev.gps.latency/dt, 254);
     end

@@ -277,7 +277,7 @@ fn fit_sensor(d: &mut Dev, slot: &str, pt: &Part) -> bool {
             let bs = adcs_sim_core::gen::earthsensor::es_boresight(stated.is_some(), stated.unwrap_or([0.0; 3]), d.boresight);
             d.es = EsDesc { fitted: true, bs, noise: n("accuracy_rad"), fov: n("fov_half_angle_rad"), rate_hz: n("rate_Hz"), bias_sigma: pt.sig("bias_rad") };
         }
-        "gnss" => d.gps = GpsDesc { fitted: true, pos_sigma: n("pos_sigma_m"), vel_sigma: n("vel_sigma_m_s"), rate_hz: n("rate_Hz"), latency: pt.nonneg("latency_s") },
+        "gnss" => d.gps = GpsDesc { fitted: true, pos_sigma: n("pos_sigma_m"), vel_sigma: n("vel_sigma_m_s"), rate_hz: pt.pos("rate_Hz"), latency: pt.nonneg("latency_s") },
         _ => return false,
     }
     true
