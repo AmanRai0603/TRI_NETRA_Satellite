@@ -22,6 +22,9 @@ pub struct Cli {
 pub enum Cmd {
     /// fly one scenario on one case and judge it against the case's requirements
     Run(RunArgs),
+    /// replay a recorded link stream on an OBC and check that it answers as recorded
+    #[command(after_help = "Exit status 0 when every answer matches the recording (the recorded verdict is reproduced), 1 when not.")]
+    Replay(ReplayArgs),
     /// write the flight software's parameter blob (adcs-fswcfg/1) for a scenario
     Params(ParamsArgs),
     /// fly one scenario with two flight-software targets and compare them step by step
@@ -154,9 +157,22 @@ pub struct RunArgs {
     /// soft OILS: the share of the control period the command must land within (default 0.5)
     #[arg(long, value_name = "FRAC", value_parser = fraction)]
     pub deadline_frac: Option<f64>,
+    /// write the link's frames (TICK, OUT and the rest, with wall time) to FILE; `adcs replay FILE` flies them again
+    #[arg(long, value_name = "FILE")]
+    pub record: Option<PathBuf>,
     /// print only the verdicts
     #[arg(long, short)]
     pub quiet: bool,
+}
+
+/// Fly a recorded link stream (adcs run --record) through another flight-software target.
+#[derive(clap::Args, Debug)]
+pub struct ReplayArgs {
+    /// the recording written by `adcs run --record`
+    pub file: PathBuf,
+    /// the OBC to replay it on: qemu | qemu-rs | obc-posix | obc-posix-rs | spawn:<cmd> | tcp:<host:port>
+    #[arg(long, value_name = "T", default_value = "qemu", value_parser = fsw)]
+    pub fsw: Impl,
 }
 
 #[derive(clap::Args, Debug)]
@@ -346,7 +362,7 @@ pub fn args(cmd: &Cmd) -> Option<Args> {
             cmd: "size".into(), scenario: z.case.clone(), case: None, fsw: Impl::C, fsw_b: None, seed: 1, out: z.out.clone(),
             set: z.knobs.iter().map(|f| ("knobs".to_string(), f.clone())).collect(), quiet: false, realtime: false, oils: None,
         },
-        Cmd::Results(_) | Cmd::Design(_) | Cmd::Figures(_) | Cmd::Report(_) | Cmd::Plot(_) => return None,
+        Cmd::Results(_) | Cmd::Replay(_) | Cmd::Design(_) | Cmd::Figures(_) | Cmd::Report(_) | Cmd::Plot(_) => return None,
     })
 }
 

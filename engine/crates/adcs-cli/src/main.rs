@@ -34,12 +34,18 @@ fn main() -> ExitCode {
     adcs_sim::fsio::install_crash_report("adcs");
     // help and malformed command lines: clap prints them (exit 0 for help, 2 for an error)
     let cli = cli::Cli::parse();
+    if let cli::Cmd::Run(r) = &cli.cmd {
+        if let Some(f) = &r.record {
+            if let Err(e) = adcs_fsw_abi::link::record_to(f) { eprintln!("error: {e}"); return ExitCode::from(2); }
+        }
+    }
     let r = match &cli.cmd {
         cli::Cmd::Results(c) => results::main(c),
         cli::Cmd::Design(c) => design::main(c),
         cli::Cmd::Figures(a) => plots::figures(a),
         cli::Cmd::Report(a) => plots::report(a),
         cli::Cmd::Plot(a) => plots::plot(a),
+        cli::Cmd::Replay(a) => fly::replay(a),
         other => fly::main(&cli::args(other).expect("a flying command")),
     };
     // a refused input exits 2 (as a malformed command line does), a failure 1

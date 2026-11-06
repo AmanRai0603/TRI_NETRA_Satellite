@@ -24,6 +24,18 @@ fn print_metrics(ms: &[serde_json::Value]) {
     }
 }
 
+/// `adcs replay`: the recorded frames to an OBC; exit 1 when it answers differently.
+pub fn replay(a: &crate::cli::ReplayArgs) -> Result<(), Error> {
+    let adcs_fsw_abi::Impl::Obc(t) = &a.fsw else { return Err(Error::refused("replay needs an OBC target (--fsw qemu | obc-posix | ...)")); };
+    let r = adcs_fsw_abi::link::replay(&a.file, t)?;
+    let verdict = r.recorded_verdict.as_deref().and_then(|v| serde_json::from_str::<serde_json::Value>(v).ok()).and_then(|v| v["verdict"].as_str().map(String::from));
+    println!("[replay] {}: {} frames ({} ticks), {} differ from the recording; recorded verdict {}",
+        a.file.display(), r.frames, r.ticks, r.mismatches, verdict.as_deref().unwrap_or("not in the recording"));
+    if r.mismatches > 0 { return Err(Error::run(format!("the OBC answered differently from frame {}; the recorded verdict is not reproduced", r.first_mismatch.unwrap_or(0)))); }
+    println!("[replay] verdict reproduced: {}", verdict.as_deref().unwrap_or("-"));
+    Ok(())
+}
+
 pub fn main(a: &Args) -> Result<(), Error> {
         // a design named by $TRINETRA_DESIGN that cannot be read is refused here, by name, before
         // any input is looked for (never passed over as if no design were named)
@@ -68,6 +80,10 @@ pub fn main(a: &Args) -> Result<(), Error> {
                 }
                 println!("[adcs] {} done in {:.1} s wall ({:.0}x real time), fsw {} -> {}", c.id, r.wall_s, c.duration_s/r.wall_s.max(1e-9), r.fsw_build, out.display());
                 print_metrics(&ms);
+                let judged: Vec<i64> = ms.iter().filter_map(|m| m["pass"].as_i64()).collect();
+                adcs_fsw_abi::link::record_note(&serde_json::json!({"scenario": c.id, "verdict": if judged.iter().all(|p| *p == 1) { "PASS" } else { "FAIL" },
+                    "metrics": ms.iter().map(|m| serde_json::json!({"id": m["id"], "pass": m["pass"]})).collect::<Vec<_>>()}).to_string());
+                adcs_fsw_abi::link::record_stop();
                 if let Some(s) = &r.oils {
                     let j = s.json(c.dt);
                     let ms_ = |k: &str, q: &str| j[k][q].as_f64().unwrap_or(f64::NAN)*1e3;

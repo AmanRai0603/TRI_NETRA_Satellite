@@ -104,6 +104,99 @@ pub fn crc(p: &[u8], mut c: u16) -> u16 {
     c
 }
 
+// ---------------- the recording (adcs-rec/1) ----------------
+// `adcs run --record FILE` writes every frame of the link, both ways, as it crosses: the TICK the engine sent
+// and the OUT the OBC answered (and CONFIG, CMD, BYE with their ACKs). A hardware-in-the-loop anomaly that
+// was recorded can be replayed in soft OILS with `adcs replay FILE --fsw qemu`.
+//   file    = "ADCSREC1\n" record*
+//   record  = wall_ns u64 | dir u8 | len u32 | bytes[len]          (all little-endian)
+//   dir 0   = engine to OBC, bytes = the whole frame (A5 5A type len payload crc)
+//   dir 1   = OBC to engine, the same
+//   dir 2   = a note (JSON text): the verdict of the recorded run
+// wall_ns is wall time since the recording began.
+pub const REC_MAGIC: &[u8] = b"ADCSREC1\n";
+
+static REC: std::sync::Mutex<Option<(std::fs::File, std::time::Instant)>> = std::sync::Mutex::new(None);
+
+/// Start recording the link to `path` (the file is created, or replaced).
+pub fn record_to(path: &std::path::Path) -> Result<(), crate::FswError> {
+    let mut f = std::fs::File::create(path).map_err(|e| format!("--record {}: {e}", path.display()))?;
+    f.write_all(REC_MAGIC).map_err(|e| format!("--record {}: {e}", path.display()))?;
+    *REC.lock().unwrap() = Some((f, std::time::Instant::now()));
+    Ok(())
+}
+
+fn rec(dir: u8, bytes: &[u8]) {
+    if let Some((f, t0)) = REC.lock().unwrap().as_mut() {
+        let mut r = Vec::with_capacity(bytes.len() + 13);
+        r.extend_from_slice(&(t0.elapsed().as_nanos() as u64).to_le_bytes());
+        r.push(dir);
+        r.extend_from_slice(&(bytes.len() as u32).to_le_bytes());
+        r.extend_from_slice(bytes);
+        let _ = f.write_all(&r);
+    }
+}
+
+/// Add a note (the run's verdict) to the recording; nothing when no recording is on.
+pub fn record_note(text: &str) { rec(2, text.as_bytes()); }
+
+/// Stop recording (flush and close).
+pub fn record_stop() { *REC.lock().unwrap() = None; }
+
+/// One record of a recording.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Rec { pub wall_ns: u64, pub dir: u8, pub bytes: Vec<u8> }
+
+pub fn read_recording(path: &std::path::Path) -> Result<Vec<Rec>, crate::FswError> {
+    let b = std::fs::read(path).map_err(|e| format!("{}: {e}", path.display()))?;
+    if !b.starts_with(REC_MAGIC) { return Err(crate::FswError::Refused(format!("{}: not an adcs-rec/1 recording", path.display()))); }
+    let (mut k, mut out) = (REC_MAGIC.len(), vec![]);
+    while k < b.len() {
+        let h = b.get(k..k + 13).ok_or_else(|| format!("{}: cut short at byte {k}", path.display()))?;
+        let n = u32::from_le_bytes(h[9..13].try_into().unwrap()) as usize;
+        let body = b.get(k + 13..k + 13 + n).ok_or_else(|| format!("{}: a record is cut short at byte {k}", path.display()))?;
+        out.push(Rec { wall_ns: u64::from_le_bytes(h[..8].try_into().unwrap()), dir: h[8], bytes: body.to_vec() });
+        k += 13 + n;
+    }
+    Ok(out)
+}
+
+/// What a replay found.
+#[derive(Debug)]
+pub struct Replay { pub ticks: usize, pub frames: usize, pub mismatches: usize, pub first_mismatch: Option<usize>, pub recorded_verdict: Option<String> }
+
+/// Feed a recording's engine frames to an OBC and compare what it answers with what was recorded. The
+/// OBC's answers (the commands) decide the plant's response and so the run's verdict: the same answers
+/// to the same inputs reproduce the recorded verdict. The timing trailer of an OUT (the OBC's own counter
+/// ticks) and the build id of a CONFIG's ACK are not compared: a different target counts differently.
+pub fn replay(path: &std::path::Path, t: &Target) -> Result<Replay, crate::FswError> {
+    let recs = read_recording(path)?;
+    let mut l = Link::open(t)?;
+    let mut rep = Replay { ticks: 0, frames: 0, mismatches: 0, first_mismatch: None, recorded_verdict: None };
+    let mut answers = recs.iter().filter(|x| x.dir == 1);
+    for r in &recs {
+        if r.dir == 2 { rep.recorded_verdict = Some(String::from_utf8_lossy(&r.bytes).into_owned()); continue; }
+        if r.dir != 0 { continue; }
+        let ty = *r.bytes.get(2).ok_or("recording: a frame shorter than its header")?;
+        l.wr.write_all(&r.bytes).and_then(|_| l.wr.flush()).map_err(|e| format!("link write: {e}"))?;
+        let (got_ty, got) = l.recv()?;
+        rep.frames += 1;
+        if ty == TICK { rep.ticks += 1; }
+        let Some(want) = answers.next() else { continue };
+        let (wty, wp) = (want.bytes[2], &want.bytes[5..want.bytes.len() - 2]);
+        let same = got_ty == wty && match wty {
+            OUT if got.len() >= 8 && wp.len() >= 8 => got[..got.len() - 8] == wp[..wp.len() - 8],
+            ACK if ty == CONFIG => got.get(..4) == wp.get(..4),
+            _ => got == wp,
+        };
+        if !same {
+            rep.mismatches += 1;
+            rep.first_mismatch.get_or_insert(rep.frames - 1);
+        }
+    }
+    Ok(rep)
+}
+
 /// Where the OBC is.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Target {
@@ -185,6 +278,7 @@ impl Link {
         let c = crc(&f[2..], 0xFFFF);
         f.extend_from_slice(&c.to_le_bytes());
         self.wr.write_all(&f).and_then(|_| self.wr.flush()).map_err(|e| format!("link write: {e}"))?;
+        rec(0, &f);
         self.bytes_tx += f.len() as u64;
         Ok(())
     }
@@ -206,6 +300,10 @@ impl Link {
         let c = crc(&p[..n], crc(&h, 0xFFFF));
         if c != u16::from_le_bytes([p[n], p[n + 1]]) { return Err("link: CRC error from the OBC".into()); }
         self.bytes_rx += (n + 7) as u64;
+        let mut whole = vec![0xA5, 0x5A];
+        whole.extend_from_slice(&h);
+        whole.extend_from_slice(&p);
+        rec(1, &whole);
         p.truncate(n);
         Ok((h[0], p))
     }
