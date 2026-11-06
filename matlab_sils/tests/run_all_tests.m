@@ -199,7 +199,7 @@ function m = t_mekf()
         for k = 1:300
             qt = asils.quat.norm(asils.quat.mult(qt, asils.quat.fromrotvec(w*dt)));
             bt = bt + rrw*sqrt(dt)*randn(3,1);
-            [qk, P] = asils.alg.estimation.mekf_predict(qk, b, P, arw, rrw, w + bt + (arw/sqrt(dt))*randn(3,1), dt);
+            [qk, P] = asils.alg.estimation.mekf_predict(qk, b, P, arw, rrw, w + bt + (arw/sqrt(dt))*randn(3,1), dt, false);
             [qk, b, P] = asils.alg.estimation.mekf_vector(qk, b, P, asils.la.dcm(qt)*r1 + sg*randn(3,1), r1, sg, 0);
             [qk, b, P] = asils.alg.estimation.mekf_vector(qk, b, P, asils.la.dcm(qt)*r2 + sg*randn(3,1), r2, sg, 0);
             if k > 100 && mod(k, 10) == 0
