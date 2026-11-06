@@ -3321,6 +3321,9 @@ function y = call(name, x)
         case 'sttracker::st_new'
             [o1, io2] = asils.models.sttracker.st_new(struct('nh', {x(1)}, 'bs', {reshape(x(2:7), 3, 2).'}, 'noise_cross', {x(8)}, 'noise_roll', {x(9)}, 'latency', {x(10)}, 'max_rate', {x(11)}, 'sun_excl', {x(12)}, 'earth_excl', {x(13)}, 'fov', {x(14)}, 'model', {x(15)}, 'bias_sigma', {x(16)}, 'misalign_sigma', {x(17)}, 'moon_excl', {x(18)}, 'blind_s', {x(19)}, 'noise_rate_ref', {x(20)}), reshape(x(21:26), 6, 1), reshape(x(27:32), 6, 1));
             y = [[reshape((o1.q_bias).', [], 1); reshape((o1.q_mis).', [], 1); reshape(o1.dead, [], 1); reshape(o1.blind_until, [], 1); reshape(o1.g, [], 1)]; reshape(io2, [], 1)];
+        case 'sttracker::st_latency_held'
+            [o1] = asils.models.sttracker.st_latency_held(x(1));
+            y = [double(o1)];
         case 'sttracker::st_history'
             [o1, io1, io2] = asils.models.sttracker.st_history(reshape(x(1:64), 64, 1), reshape(x(65:320), 4, 64).', x(321), x(322), reshape(x(323:326), 4, 1));
             y = [double(o1); reshape(io1, [], 1); reshape((io2).', [], 1)];

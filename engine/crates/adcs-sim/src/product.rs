@@ -83,7 +83,15 @@ fn capacity(id: &str, part: &str, slot: &str, f: &Value, pt: &Part, x: &MexDesc)
         "coils" => over("magnetorquer coils", count("axes_body"), NS),
         "wheels" | "rings" => over("rotors", x.n + count("axes_body"), NR),
         "cmg" | "vscmg" => { over("rotors", x.n + count("spin_axes_body"), NR)?; over("gimbals", x.ng + count("gimbal_axes_body"), NG) }
-        "star_tracker" => over("star-tracker heads", count("boresights_body").max(count("boresight_body")), NH),
+        "star_tracker" => {
+            over("star-tracker heads", count("boresights_body").max(count("boresight_body")), NH)?;
+            // sens_star_tracker's attitude history reaches back a stated span; a longer latency is refused, never flown as none (M9)
+            let lat = json::f(&pt.nm, "latency_s", 0.0);
+            if lat.is_finite() && !adcs_sim_core::gen::sttracker::st_latency_held(lat) {
+                return Err(Error::refused(format!("part {part}: latency_s = {lat} s; the star tracker's attitude history reaches back only {} s (sens_star_tracker, ST_HIST_SPAN)", adcs_sim_core::gen::sttracker::ST_HIST_SPAN)));
+            }
+            Ok(())
+        }
         "sun_sensors" | "coarse_sun_sensors" => over("Sun sensor heads", count("normals_body"), NS),
         "rcs" => {
             let t = json::f(&pt.nm, "thrusters", f64::NAN);

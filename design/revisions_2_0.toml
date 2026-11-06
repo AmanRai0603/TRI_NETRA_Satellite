@@ -3990,7 +3990,7 @@ why = "the rotor allocation keeps the direction of the torque and does not ask a
 id = "S11.7"
 at = "2026-11-07T09:00:00Z"
 by = "the developer"
-about = "the device models (docs/S11_INVENTORY.md M1, M5, M2; decision DR-act-002): a failed fluid ring spins down with its stated spin-down time T_sd (act_rotor_set coasts it through ring_rate with no pump) and so hands its momentum to the body, where it kept it for ever with zero friction terms; a failed CMG rotor spins down under the wheel's friction ratios (act_cmg_bearing_friction, DR-act-002: a stated value of the developer, unsigned) and its gimbal command is ignored (cmg_coast, gimbal_stopped); a wheel's power (and a VSCMG rotor's, where the part states its motor) adds the copper loss tau^2 w_nl/tau_stall of the current that makes its torque (wheel_power), left out until now (up to 0.75 W per wheel)"
+about = "the device models (docs/S11_INVENTORY.md M1, M5, M2; decision DR-act-002): a failed fluid ring spins down with its stated spin-down time T_sd (act_rotor_set coasts it through ring_rate with no pump) and so hands its momentum to the body, where it kept it for ever with zero friction terms; a failed CMG rotor spins down under the wheel's friction ratios (act_cmg_bearing_friction, DR-act-002: a stated value of the developer, unsigned) and its gimbal command is ignored (cmg_coast, gimbal_stopped); a star tracker stating a latency beyond the attitude history's span (ST_HIST_SPAN, 0.5 s) is refused by name (M9), where it silently flew at zero latency; a wheel's power (and a VSCMG rotor's, where the part states its motor) adds the copper loss tau^2 w_nl/tau_stall of the current that makes its torque (wheel_power), left out until now (up to 0.75 W per wheel)"
 
 [[revision.method]]
 node = "act_rotor_set"
@@ -4030,3 +4030,13 @@ transcribes = "design/revisions/S7.7/wheelpower.pc as S7.7 left it, with the cop
 source = "docs/S11_INVENTORY.md M2: the motor's winding dissipates I^2 R with I = tau/k_t, and R/k_t^2 = w_nl/tau_stall from the motor line the engine already holds (stall torque k_t V/R, no-load speed V/k_t); Wertz (ed., 1978), Spacecraft Attitude Determination and Control, section on reaction wheels (power = friction + copper + mechanical)"
 generate = ["adcs-sim-core"]
 why = "a wheel's power includes the copper loss, so the peak power of a slew is not understated (M2)"
+
+[[revision.method]]
+node = "sens_star_tracker"
+pseudocode = "design/revisions/S11.7/sttracker.pc"
+path = "sens/sttracker.pc"
+transcribes = "design/revisions/S7.9/sttracker.pc as S7.9 left it, with the history's span a named constant (ST_HIST_SPAN, 0.5 s) in place of the literal"
+source = "docs/S11_INVENTORY.md M9: a latency beyond the history's span fell back to the newest attitude, i.e. to zero latency; the span is the design's, and the product check refuses a latency past it by name"
+generate = ["adcs-sim-core"]
+uses = ["sens/stattitude.pc", "sens/starcat.pc", "act/coilsat.pc", "env/facets.pc", "fsw/pseudocode/01_math.pc"]
+why = "the star tracker's latency span is stated once, in the design, for the engine's product check (M9)"

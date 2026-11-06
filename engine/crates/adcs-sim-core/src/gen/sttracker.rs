@@ -25,6 +25,11 @@ pub const ST_NH: i64 = 2;
 /// The attitudes the history holds (sensors.rs HIST).
 pub const ST_HIST: i64 = 64;
 
+/// The span of the attitude history [s]: the longest latency the tracker can reach back over (S11.7, M9: a product stating more is
+/// refused by name, never read as zero).
+/// (A range bound must be a literal, so st_delayed's latency range repeats it.)
+pub const ST_HIST_SPAN: f64 = 0.5;
+
 /// The stars the QUEST model takes from the field, the brightest.
 pub const ST_BRIGHT: i64 = 12;
 
@@ -102,6 +107,17 @@ pub fn st_new(d: StDesc, disp: &mut rt::Stream, noise: rt::Stream) -> StUnit {
     u
 }
 
+/// Whether a latency [s] is one the history reaches back over (at most its span): a product stating more is refused by
+/// name by the engine and the twin (M9).
+/// - latency: real[1] (passed a plain number)
+/// - returns ok: bool (passed true or false)
+#[allow(clippy::too_many_arguments)]
+pub fn st_latency_held(latency: f64) -> bool {
+    let mut ok: bool = false;
+    ok = (latency <= crate::gen::sttracker::ST_HIST_SPAN);
+    ok
+}
+
 /// Record the true attitude q at t into the history (its epochs ht and attitudes hq, the first hn held), keeping the
 /// last 0.5 s. The history's length after.
 /// - ht: inout real[1][ST_HIST] (passed a plain number)
@@ -135,7 +151,7 @@ pub fn st_history(ht: &mut [f64; 64], hq: &mut [[f64; 4]; 64], hn: i64, t: f64, 
         let __end185: i64 = n;
         let mut j: i64 = 0;
         while j < __end185 {
-            if (going && ((*ht)[(j) as usize] < (t - 0.5))) {
+            if (going && ((*ht)[(j) as usize] < (t - crate::gen::sttracker::ST_HIST_SPAN))) {
                 k = (j + 1);
             } else {
                 going = false;

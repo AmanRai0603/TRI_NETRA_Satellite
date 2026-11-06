@@ -275,7 +275,12 @@ function capacity_(id, part, slot, f, P, x)
         case 'coils', over('magnetorquer coils', cnt('axes_body'), 8);
         case {'wheels', 'rings'}, over('rotors', x.n + cnt('axes_body'), 8);
         case {'cmg', 'vscmg'}, over('rotors', x.n + cnt('spin_axes_body'), 8); over('gimbals', x.ng + cnt('gimbal_axes_body'), 4);
-        case 'star_tracker', over('star-tracker heads', max(cnt('boresights_body'), cnt('boresight_body')), 2);
+        case 'star_tracker'
+            over('star-tracker heads', max(cnt('boresights_body'), cnt('boresight_body')), 2);
+            % sens_star_tracker's attitude history reaches back a stated span; a longer latency is refused, never flown as none (M9)
+            lat = getnum_(P.nm, 'latency_s', 0);
+            assert(isnan(lat) || asils.models.sttracker.st_latency_held(lat), 'asils:product:refused', ...
+                   'part %s: latency_s = %g s; the star tracker''s attitude history does not reach back that far (sens_star_tracker, ST_HIST_SPAN)', part, lat);
         case {'sun_sensors', 'coarse_sun_sensors'}, over('Sun sensor heads', cnt('normals_body'), 8);
         case 'rcs'
             t = getnum_(P.nm, 'thrusters', NaN);

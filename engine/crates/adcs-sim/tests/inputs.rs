@@ -238,6 +238,9 @@ fn a_product_beyond_the_engines_capacity_or_missing_a_value_is_refused() {
         edit(slot, key, None, &format!("does not state {key}"));
     }
     edit("wheels", "motor_resistance_ohm", Some(0.0), "motor_resistance_ohm above 0");
+    // M9: a star tracker's latency past the attitude history's span (0.5 s) is refused by name, never flown as none
+    edit("star_tracker", "latency_s", Some(0.6), "latency_s = 0.6 s; the star tracker's attitude history reaches back only 0.5 s");
+    edit("star_tracker", "latency_s", Some(0.5000001), "latency_s = 0.5000001 s");
     edit("coils", "time_constant_s", Some(-1.0), "time_constant_s 0 or more");
     edit("wheels", "friction_static_Nm", Some(1e-9), "friction_static_Nm of at least friction_coulomb_Nm");
     std::env::remove_var("ADCS_SIZED_DIR");
