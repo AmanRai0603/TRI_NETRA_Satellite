@@ -156,6 +156,31 @@ pub fn repo_root() -> std::path::PathBuf {
     }
 }
 
+impl Impl {
+    /// Where soft OILS takes a step's execution time from: the QEMU plugin's exact instruction
+    /// count, the host's clock (a process OBC), or nowhere (in-process builds).
+    pub fn time_base(&self) -> &'static str {
+        match self {
+            Impl::Obc(link::Target::Spawn(c)) if c.first().map(|a| a.contains("qemu")).unwrap_or(false) =>
+                if c.iter().any(|a| a == "-plugin") { "qemu insn_count plugin (exact guest instructions)" } else { "qemu without the instruction-count plugin" },
+            Impl::Obc(link::Target::Spawn(_)) => "host clock of a process OBC",
+            Impl::Obc(link::Target::Tcp(_)) => "the OBC's own counter (link timing trailer)",
+            _ => "none (in-process)",
+        }
+    }
+
+    /// Soft OILS on QEMU is judged on the plugin's instruction count. Without the plugin the
+    /// time base would silently change (exec max 0.69 ms instead of 5.13 ms, still passing), so
+    /// the run is refused, naming the missing file.
+    pub fn require_insn_counter(&self) -> Result<(), FswError> {
+        if self.time_base().starts_with("qemu without") {
+            return Err(FswError::Refused(format!("soft OILS on QEMU needs the instruction-count plugin {}; it is missing: run `make -C fsw obc`",
+                repo_root().join("fsw/build/insn_count.so").display())));
+        }
+        Ok(())
+    }
+}
+
 impl std::str::FromStr for Impl {
     type Err = FswError;
     fn from_str(s: &str) -> Result<Impl, FswError> {
@@ -303,5 +328,21 @@ impl Fsw {
             Fsw::Rust(_) => adcs_fsw::BUILD_ID.to_string(),
             Fsw::Obc(l) => format!("{} via adcs-link/1", l.build_id),
         }
+    }
+}
+
+#[cfg(test)]
+mod time_base_tests {
+    use super::*;
+
+    #[test]
+    fn oils_on_qemu_without_the_plugin_is_refused_by_name() {
+        let bare = Impl::Obc(link::Target::Spawn(vec!["qemu-system-arm".into(), "-kernel".into(), "x.elf".into()]));
+        let e = bare.require_insn_counter().unwrap_err().to_string();
+        assert!(e.contains("insn_count.so"), "{e}");
+        let with = Impl::Obc(link::Target::Spawn(vec!["qemu-system-arm".into(), "-plugin".into(), "p.so,out=f".into()]));
+        assert!(with.require_insn_counter().is_ok());
+        assert!(with.time_base().contains("insn_count"));
+        assert!(Impl::Obc(link::Target::Spawn(vec!["fsw/build/obc_posix".into()])).require_insn_counter().is_ok());
     }
 }

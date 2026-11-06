@@ -135,6 +135,8 @@ pub struct OilsStats {
     pub exec_s: Vec<f64>, pub io_s: Vec<f64>, pub lat_s: Vec<f64>, pub insn: Vec<f64>,
     /// the worst-case latency of each tick (execution at cpi_max, interrupts, buses)
     pub worst_s: Vec<f64>,
+    /// where the execution time came from (Impl::time_base), recorded in the run manifest
+    pub time_base: String,
 }
 impl OilsStats {
     fn pct(v: &[f64], p: f64) -> f64 {
@@ -151,6 +153,7 @@ impl OilsStats {
         serde_json::json!({
             "model": {"cpu_hz": m.cpu_hz, "cpi": m.cpi, "i2c_hz": m.i2c_hz, "spi_hz": m.spi_hz, "can_bps": m.can_bps,
                       "cpi_max": m.cpi_max, "isr_s": m.isr_s, "deadline_frac": m.deadline_frac, "fixed_s": m.fixed_s},
+            "time_base": self.time_base,
             "ticks": self.ticks, "overruns": self.overruns, "control_period_s": dt,
             "exec_s": s(&self.exec_s), "bus_s": s(&self.io_s), "latency_s": s(&self.lat_s), "worst_latency_s": s(&self.worst_s),
             "instructions": if self.insn.is_empty() { serde_json::Value::Null } else { s(&self.insn) },
@@ -510,6 +513,10 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
     let mut last_print = std::time::Instant::now();
     let mut oils = o.oils.as_ref().map(|m| OilsStats { model: Some(m.clone()), ..Default::default() });
     if oils.is_some() && o.oils.as_ref().map(|m| m.fixed_s.is_none()).unwrap_or(false) && !matches!(o.fsw, Impl::Obc(_)) { return Err(Error::run("soft OILS needs the flight software on a virtual OBC (--fsw qemu | qemu-rs | obc-posix ...)")); }
+    if let (Some(st), Some(m)) = (oils.as_mut(), o.oils.as_ref()) {
+        if m.fixed_s.is_none() { o.fsw.require_insn_counter().map_err(|e| Error::run(&e.to_string()))?; }
+        st.time_base = if m.fixed_s.is_some() { "fixed latency (no OBC time)".into() } else { o.fsw.time_base().into() };
+    }
     let mut held = Held::default();
     let (mut ledger, mut tau_prev, mut t_prev) = (Ledger::default(), [0.0f64; 3], f64::NEG_INFINITY);
     ledger.sched_cross = vec![0; p.n_sched as usize];

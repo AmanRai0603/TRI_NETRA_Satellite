@@ -102,7 +102,7 @@ def oils_ledger(scen=None, fsw="qemu", announce=False):
         sweep = {c: {"overruns": (M.get("oils") or {}).get("overruns"), "margin_s": (M.get("oils") or {}).get("worst_case_margin_s"),
                      "pass": all(x.get("pass") == 1 for x in M["metrics"] if x.get("pass") is not None)} for c, M in cpi_runs(base / s).items()}
         tim.append({"scenario": s, "dt_s": B.get("dt_s"), "wall_s": B.get("wall_s"), "duration_s": B.get("duration_s"), **{k: o.get(k) for k in
-                    ("ticks", "overruns", "cpu_load_mean", "cpu_load_max", "deadline_margin_min_s", "deadline_s", "worst_case_margin_s")},
+                    ("ticks", "overruns", "cpu_load_mean", "cpu_load_max", "deadline_margin_min_s", "deadline_s", "worst_case_margin_s", "time_base")},
                     "sweep": sweep,
                     "insn_mean": (o.get("instructions") or {}).get("mean"), "insn_max": (o.get("instructions") or {}).get("max"),
                     "lat_mean_ms": 1e3 * o["latency_s"]["mean"] if o.get("latency_s") else None, "lat_max_ms": 1e3 * o["latency_s"]["max"] if o.get("latency_s") else None,
@@ -122,6 +122,7 @@ def oils_ledger(scen=None, fsw="qemu", announce=False):
          "(docs/SOFT_OILS.md). The step's execution is its **exact** instruction count (QEMU plugin",
          f"fsw/targets/qemu-mps2/insn_count.c) x CPI {model.get('cpi', 1.25)} / {model.get('cpu_hz', 168e6) / 1e6:.0f} MHz;",
          f"buses: I2C {model.get('i2c_hz', 4e5) / 1e3:.0f} kHz, SPI {model.get('spi_hz', 1e6) / 1e6:.0f} MHz, CAN {model.get('can_bps', 1e6) / 1e6:.0f} Mbit/s.",
+         f"Time base of the runs: {', '.join(sorted({t['time_base'] or 'not recorded' for t in tim}))}.",
          "Runs are deterministic: the same scenario gives the same instruction counts and trajectory every time.", "",
          f"**Verdict agreement SILS vs soft OILS: {agree} of {len(judged)} judged metrics** over {len(tim)} scenarios.",
          f"**Accepted at the TEST_BENCH_PLAN section 5 tolerance** (difference <= {DIFF_TOL:.0%}; a flipped verdict only within {KNIFE_EDGE:.0%} of the requirement): {accepted} of {len(judged)}.", "",
@@ -166,4 +167,7 @@ def oils_ledger(scen=None, fsw="qemu", announce=False):
     write_text(OUT / "soft_oils.json", json.dumps({"metrics": rows, "timing": tim}, indent=1))
     write_text(OUT / "SOFT_OILS.md", "\n".join(L) + "\n")
     print(f"soft OILS verdict agreement {agree}/{len(judged)}, accepted {accepted}/{len(judged)}; wrote results/SOFT_OILS.md")
-    return len(judged) - accepted
+    bad = [t['scenario'] for t in tim if (t.get('time_base') or '').startswith('qemu without')]
+    for b in bad:
+        print(f"[FAIL] {b}: flown without the instruction-count plugin (fsw/build/insn_count.so); its timing is not the exact count")
+    return len(judged) - accepted + len(bad)
