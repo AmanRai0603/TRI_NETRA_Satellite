@@ -80,6 +80,13 @@ fn engine_settings_are_finite_and_in_range() {
 }
 
 #[test]
+fn the_orbit_step_is_capped_at_thirty_seconds() {
+    // RK4 error grows steeply with the step (0.43 m at 10 s, 1.87 km at 60 s: ORBIT_PROPAGATOR_AUDIT P5)
+    refused("nadir_hold_ais", &[("engine.orbit_step_s", "60")], "engine.orbit_step_s = 60");
+    assert!(build("nadir_hold_ais", &[("engine.orbit_step_s", "30")]).is_ok(), "30 s is the largest step accepted");
+}
+
+#[test]
 fn run_limits_are_named() {
     refused("nadir_hold_ais", &[("engine.duration_s", "0")], "a run lasts more than 0 s");
     refused("nadir_hold_ais", &[("engine.duration_s", "1e9")], "at most 2592000 s");

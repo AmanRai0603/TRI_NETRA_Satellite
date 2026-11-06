@@ -617,7 +617,7 @@ impl Config {
         if !(self.record_dt >= self.dt && self.record_dt <= self.duration_s.max(self.dt)) {
             return Err(Error::refused(format!("time.record_dt_s = {} s: the record step is at least the control step ({} s) and at most the duration", self.record_dt, self.dt)));
         }
-        within("engine.orbit_step_s", self.orbit_step_s, 1e-3, 600.0)?;
+        within("engine.orbit_step_s", self.orbit_step_s, 1e-3, 30.0)?;
         within("engine.density_scale", self.density_scale, 0.0, 100.0)?;
         within("engine.f107", self.f107, 0.0, 400.0)?;
         within("engine.f107a", self.f107a, 0.0, 400.0)?;
