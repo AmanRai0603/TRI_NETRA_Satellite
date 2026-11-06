@@ -548,6 +548,30 @@ checks = "tests/test_boundary.py: the repository holds the boundary; a published
 undo = "It writes nothing."
 
 [[command]]
+tool = "device_map.py"
+name = "device-map"
+usage = "python3 tools/device_map.py [map.toml ...]"
+what = "Hold the rig's device map (default fsw/devices/example_3u.toml) equal to the HAL header fsw/include/adcs_devices.h, which is the truth (design/decisions/DR-oils-001.toml): every bus, address, chip select, UART and CAN identifier in the map is the header's number."
+steps = ["read the integer definitions of the header", "read the map's devices", "compare each device's port with its header definition", "name every difference and every part missing on either side"]
+reads = ["fsw/include/adcs_devices.h", "fsw/devices/example_3u.toml"]
+writes = []
+runs = []
+checks = "tests/test_device_map.py: the rig's map has no difference, the archived 1.0 map is found different on the magnetometer bus and more, a changed port is found"
+undo = "It writes nothing."
+
+[[command]]
+tool = "oils_gate.py"
+name = "oils-gate"
+usage = "python3 tools/oils_gate.py [--set]"
+what = "The soft-OILS deadline gate: fly the scenarios named in results/oils_deadline_min.json for its duration on the firmware in QEMU with --oils, and fail when a worst-case deadline margin is below its stored minimum, a run overran, or a run was not timed by the instruction-count plugin. With --set, measure and store the minima, recording how."
+steps = ["fly each stored scenario with adcs run --fsw qemu --oils", "read the worst-case margin, overruns and time base from each run's manifest", "compare with the stored minimum", "with --set, store 90 % of the measured margins and how they were set"]
+reads = ["results/oils_deadline_min.json", "matlab_sils/data/scenarios/"]
+writes = ["results/oils_deadline_min.json (with --set only)"]
+runs = ["engine/target/release/adcs run --fsw qemu --oils"]
+checks = "tests/test_oils_gate.py: a margin below its minimum, an overrun, a scenario not flown and a wrong time base each fail by name; the CI job oils-deadline runs it"
+undo = "Without --set it writes nothing; with it, `git checkout -- results/oils_deadline_min.json` puts back the committed minima."
+
+[[command]]
 tool = "parity_2_0.py"
 name = "parity-2-0"
 usage = "python3 tools/parity_2_0.py DESIGN.tndb [--quick] [--oils SCENARIO ...] [--twin SCENARIO ...] [--jobs N]"

@@ -50,6 +50,8 @@
 | [`design_build.py design-build`](#design_buildpy-design-build) | Today's design (docs/PLAN_2_0.md S4): the one database every program reads, built from every group's newest sealed release that passes its checks on the shared drive (or a converted folder). Holds the releases used, every node as released, the wires, the catalogue of outputs, the cases the engine flies line by line and every engine input file, each generated from the design's own blocks and case files; names its toolbox and the application it needs. With --export, writes the same inputs as a data folder for the MATLAB twin and the Python tools. |
 | [`health.py health`](#healthpy-health) | The health map of a design for a case (docs/OPERATING_2_0.md §6): every node's health with why (fails, refused, blocked, open, unproven, tight, closes; worst first), rolled up group by group to the ADCS; each closure's answer, its range verdict (closes for the whole range, for part of it, or fails for all of it) and its tornado from the case's edge campaigns; and trace to cause for every closure that does not close; and the built-in count, the nodes whose relation is still compiled code, by group (docs/PLAN_2_0.md S7 lowers it to zero; --built-in prints only that). Every value comes from tools/evaluate.py on the design; nothing here computes one of its own. |
 | [`boundary.py boundary`](#boundarypy-boundary) | The database/code boundary (docs/PLAN_2_0.md S7 done-when, docs/CODE_ARCHITECTURE.md §1): every source file of the code is either generated from the design (and says so) or classified in tools/boundary.toml as toolbox, reader, core, runtime, rig, translator, library, application, cli, tools, test or vendored, with no class for a relation or a published model; every classified file but a test is searched for the marks of a relation or a published model (published constants, the shapes of a gravity or drag law, a coefficient table), and a find passes only by an allowance with its reason. A relation still in code is a declared exception with what removes it, printed on every run. |
+| [`device_map.py device-map`](#device_mappy-device-map) | Hold the rig's device map (default fsw/devices/example_3u.toml) equal to the HAL header fsw/include/adcs_devices.h, which is the truth (design/decisions/DR-oils-001.toml): every bus, address, chip select, UART and CAN identifier in the map is the header's number. |
+| [`oils_gate.py oils-gate`](#oils_gatepy-oils-gate) | The soft-OILS deadline gate: fly the scenarios named in results/oils_deadline_min.json for its duration on the firmware in QEMU with --oils, and fail when a worst-case deadline margin is below its stored minimum, a run overran, or a run was not timed by the instruction-count plugin. With --set, measure and store the minima, recording how. |
 | [`parity_2_0.py parity-2-0`](#parity_2_0py-parity-2-0) | The parity gate (docs/PLAN_2_0.md S4): today's design, read alone by the engine (an empty data folder), gives the repository's own inputs, flight parameter table, parameter blobs, stored scenario runs, stored campaign runs and evaluation; optionally soft OILS on QEMU and the MATLAB twin flown from the design's export. |
 | [`from_design.py from-design`](#from_designpy-from-design) | The design in the repository (docs/PLAN_2_0.md S4): the repository holds no design data of its own, only the regression copy (tests/regression/design.tndb). Every file the code still reads that is design is generated from it and never edited: the engine's input files and cases (matlab_sils/data, matlab_sils/cases), the flight parameter table (fsw/params/params.toml) and the flight algorithms (fsw/pseudocode/03-09). Tools read the rest of 1.0.0's plan from the design by its 1.0.0 path (from_design.text). |
 | [`drive.py drive`](#drivepy-drive) | The shared drive, Trinetra Database (docs/OPERATING_2_0.md §15, docs/PLAN_2_0.md S4): pack zip 1 (the design converted into the 2.0.0 layout: groups with their baseline releases, cases, readable copies, the empty folders with a note each, the guides, START HERE, and MANIFEST.json with every file's size, SHA-256 and MD5), and check a drive's folder, or a listing of it, against that manifest. |
@@ -978,6 +980,46 @@ The database/code boundary (docs/PLAN_2_0.md S7 done-when, docs/CODE_ARCHITECTUR
 - **Checks:** tests/test_boundary.py: the repository holds the boundary; a published constant and a gravity law planted in the engine's core, a table in a tool, a hand-written file in a generated folder, an unclassified file, a class for design and a stale allowance are each found by name
 - **Undo:** It writes nothing.
 - **Code:** `tools/boundary.py`
+
+## device_map.py device-map
+
+Hold the rig's device map (default fsw/devices/example_3u.toml) equal to the HAL header fsw/include/adcs_devices.h, which is the truth (design/decisions/DR-oils-001.toml): every bus, address, chip select, UART and CAN identifier in the map is the header's number.
+
+    python3 tools/device_map.py [map.toml ...]
+
+**Steps**
+
+1. read the integer definitions of the header
+2. read the map's devices
+3. compare each device's port with its header definition
+4. name every difference and every part missing on either side
+
+- **Reads:** `fsw/include/adcs_devices.h`; `fsw/devices/example_3u.toml`
+- **Writes:** nothing
+- **Starts:** nothing
+- **Checks:** tests/test_device_map.py: the rig's map has no difference, the archived 1.0 map is found different on the magnetometer bus and more, a changed port is found
+- **Undo:** It writes nothing.
+- **Code:** `tools/device_map.py`
+
+## oils_gate.py oils-gate
+
+The soft-OILS deadline gate: fly the scenarios named in results/oils_deadline_min.json for its duration on the firmware in QEMU with --oils, and fail when a worst-case deadline margin is below its stored minimum, a run overran, or a run was not timed by the instruction-count plugin. With --set, measure and store the minima, recording how.
+
+    python3 tools/oils_gate.py [--set]
+
+**Steps**
+
+1. fly each stored scenario with adcs run --fsw qemu --oils
+2. read the worst-case margin, overruns and time base from each run's manifest
+3. compare with the stored minimum
+4. with --set, store 90 % of the measured margins and how they were set
+
+- **Reads:** `results/oils_deadline_min.json`; `matlab_sils/data/scenarios/`
+- **Writes:** `results/oils_deadline_min.json (with --set only)`
+- **Starts:** `engine/target/release/adcs run --fsw qemu --oils`
+- **Checks:** tests/test_oils_gate.py: a margin below its minimum, an overrun, a scenario not flown and a wrong time base each fail by name; the CI job oils-deadline runs it
+- **Undo:** Without --set it writes nothing; with it, `git checkout -- results/oils_deadline_min.json` puts back the committed minima.
+- **Code:** `tools/oils_gate.py`
 
 ## parity_2_0.py parity-2-0
 
