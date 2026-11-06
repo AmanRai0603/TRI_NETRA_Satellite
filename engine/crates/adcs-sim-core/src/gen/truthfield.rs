@@ -39,9 +39,9 @@ pub fn geodetic5(r: [f64; 3]) -> (f64, f64, f64) {
     let mut la: f64 = crate::pm::atan2(r[2], (p * (1.0 - e2)));
     let mut hh: f64 = 0.0;
     {
-        let __end47: i64 = 5;
+        let __end48: i64 = 5;
         let mut k: i64 = 0;
-        while k < __end47 {
+        while k < __end48 {
             let mut sl: f64 = crate::pm::sin(la);
             let mut n: f64 = (a / crate::pm::sqrt((1.0 - ((e2 * sl) * sl))));
             hh = ((p / crate::pm::cos(la)) - n);

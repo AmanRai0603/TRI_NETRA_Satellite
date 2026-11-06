@@ -74,6 +74,8 @@ pub struct MexDesc {
     pub speed_max: [f64; NR], pub t_stall: [f64; NR], pub w_nl: [f64; NR], pub f_static: [f64; NR], pub w_stribeck: [f64; NR],
     pub torque_noise: f64, pub friction_comp: f64, pub eta: f64, pub k_speed: f64, pub k_flow: f64, pub flow_tau: f64,
     pub gimbal_rate_max: f64, pub gimbal_power: f64,
+    /// a failed CMG rotor's bearing friction per unit of momentum, Coulomb and viscous [1/s] (the design's act_cmg_bearing_friction)
+    pub cmg_kc: f64, pub cmg_kv: f64,
 }
 impl MexDesc {
     /// The design's record of the momentum devices.
@@ -88,7 +90,7 @@ impl MexDesc {
             field_power: self.field_power, eta_lo: self.eta_lo, eta_hi: self.eta_hi, h0: self.h0, speed_max: self.speed_max,
             t_stall: self.t_stall, w_nl: self.w_nl, f_static: self.f_static, w_stribeck: self.w_stribeck, g: self.g,
             torque_noise: self.torque_noise, friction_comp: self.friction_comp, eta: self.eta, k_speed: self.k_speed, k_flow: self.k_flow,
-            flow_tau: self.flow_tau, gimbal_rate_max: self.gimbal_rate_max, gimbal_power: self.gimbal_power,
+            flow_tau: self.flow_tau, gimbal_rate_max: self.gimbal_rate_max, gimbal_power: self.gimbal_power, cmg_kc: self.cmg_kc, cmg_kv: self.cmg_kv,
         }
     }
 }

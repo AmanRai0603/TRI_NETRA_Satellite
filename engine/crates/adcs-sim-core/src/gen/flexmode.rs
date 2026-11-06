@@ -37,13 +37,13 @@ pub fn flex_reduced_inertia(inertia: [[f64; 3]; 3], delta: [f64; 3]) -> [[f64; 3
     let mut r: [[f64; 3]; 3] = [[0.0; 3]; 3];
     r = inertia;
     {
-        let __end19: i64 = 3;
+        let __end20: i64 = 3;
         let mut ia: i64 = 0;
-        while ia < __end19 {
+        while ia < __end20 {
             {
-                let __end20: i64 = 3;
+                let __end21: i64 = 3;
                 let mut ic: i64 = 0;
-                while ic < __end20 {
+                while ic < __end21 {
                     r[(ia) as usize][(ic) as usize] = (r[(ia) as usize][(ic) as usize] - (delta[(ia) as usize] * delta[(ic) as usize]));
                     ic += 1;
                 }

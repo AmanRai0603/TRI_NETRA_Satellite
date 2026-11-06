@@ -4,7 +4,7 @@
 ## engine's order: every rotor's torque factor, then friction factor, then efficiency, then axis); each step, each
 ## rotor's momentum rate and power from its command, its momentum and its rows' methods (the wheel's motor line, speed
 ## and momentum limits, bearing friction and its compensation, torque noise; the ring's target, flow noise and filter,
-## pump, spin-down and field; the CMG's speed loop; the VSCMG's rotor), a failed rotor coasting under its friction (a failed ring spinning down with its stated T_sd, S11.7), and
+## pump, spin-down and field; the CMG's speed loop; the VSCMG's rotor), a failed rotor coasting under its friction (a failed CMG's rotor under the wheel's friction ratios and its gimbal stopped, S11.7; a failed ring spinning down with its stated T_sd, S11.7), and
 ## each gimbal's rate and power. The noise is drawn from the run's momentum-device stream, a rotor at a time, in order.
 ## The developer's transcription (S7.7), unsigned; revised in S11.7 (docs/S11_INVENTORY.md M1, M5, M2).
 module rotorset
@@ -20,7 +20,8 @@ choice RotorKind = rw, fmr, cmg, vscmg
 ## range, a CMG's rotor momentum [N m s]; a wheel's speed limit [rad/s], stall torque [N m], no-load speed [rad/s],
 ## static friction [N m] and Stribeck speed [rad/s]; the gimbal axes; the product's torque noise share, friction
 ## compensation, drive efficiency, CMG speed gain [1/s], ring flow gain and flow filter time constant [s]; the gimbals'
-## largest rate [rad/s] and power [W].
+## largest rate [rad/s] and power [W]; a failed CMG rotor's bearing friction per unit of momentum, Coulomb and viscous [1/s]
+## (DR-act-002's stated act_cmg_bearing_friction).
 record RotorDesc
     n: int
     ng: int
@@ -61,6 +62,8 @@ record RotorDesc
     flow_tau: real[1]
     gimbal_rate_max: real[1]
     gimbal_power: real[1]
+    cmg_kc: real[1]
+    cmg_kv: real[1]
 end
 
 ## The momentum devices in flight: each rotor's dispersed axis, torque and friction factors and pump efficiency,
@@ -103,6 +106,17 @@ fn rotorset_new(d: RotorDesc, disp: inout stream, noise: stream) -> s: RotorSet
     end
 end
 
+## Whether gimbal j (from 0) is stopped: it has failed, or the CMG rotor it turns has (a failed CMG's gimbal command is
+## ignored, S11.7, M5).
+fn gimbal_stopped(failed: bool[DYN_NR], kind: RotorKind[DYN_NR], gi: int[DYN_NR], n: int, j: int, gfailed: bool) -> stop: bool
+    stop = gfailed
+    for i in 0 .. n
+        if failed[i] and kind[i] == RotorKind.cmg and gi[i] == j + 1
+            stop = true
+        end
+    end
+end
+
 ## The commands (each rotor's torque cmd_r [N m], each gimbal's rate cmd_g [rad/s]) at the rotors' momenta h [N m s]
 ## over a step dt: (the rotors' momentum rates [N m], the gimbals' rates [rad/s], the power [W]).
 fn rotorset_apply(s: inout RotorSet, d: RotorDesc, cmd_r: real[1][DYN_NR] in -0.01 .. 0.01, cmd_g: real[1][DYN_NG] in -1 .. 1, \
@@ -114,6 +128,8 @@ fn rotorset_apply(s: inout RotorSet, d: RotorDesc, cmd_r: real[1][DYN_NR] in -0.
     for i in 0 .. d.n
         if s.failed[i] and d.kind[i] == RotorKind.fmr
             hd[i] = ring_rate(0.0, h[i], d.t_sd[i], s.fscale[i], d.h_max[i])
+        elif s.failed[i] and d.kind[i] == RotorKind.cmg
+            hd[i] = cmg_coast(h[i], d.h0[i], d.cmg_kc, d.cmg_kv)
         elif s.failed[i]
             hd[i] = rotor_coast(h[i], d.jrot[i], d.viscous[i], d.coulomb[i])
         elif d.kind[i] == RotorKind.rw
@@ -162,7 +178,7 @@ fn rotorset_apply(s: inout RotorSet, d: RotorDesc, cmd_r: real[1][DYN_NR] in -0.
         end
     end
     for j in 0 .. d.ng
-        if not s.gfailed[j]
+        if not gimbal_stopped(s.failed, d.kind, d.gi, d.n, j, s.gfailed[j])
             gd[j] = gimbal_rate(cmd_g[j], d.gimbal_rate_max)
             p = p + gimbal_power(gd[j], d.gimbal_power, d.gimbal_rate_max)
         end

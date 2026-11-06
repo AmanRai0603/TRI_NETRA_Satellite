@@ -37,6 +37,7 @@ function dev = load(productId)
     x.torque_noise = st.get('act_rw_torque_noise'); x.friction_comp = st.get('act_rw_friction_comp');
     x.eta = st.get('act_rw_drive_efficiency'); x.k_speed = st.get('act_cmg_speed_gain');
     x.k_flow = st.get('act_fmr_flow_gain'); x.flow_tau = st.get('act_fmr_flow_tau');
+    cf = st.list('act_cmg_bearing_friction', 2); x.cmg_kc = cf(1); x.cmg_kv = cf(2);
     dev.imbalance = zeros(0, 3);          % each rotor's [static kg m, dynamic kg m^2, known] (pnt's rotor_imbalance)
     dev.rotor_part = {};
     dev.files = {pf};

@@ -126,9 +126,9 @@ pub fn initial_momenta(nr: i64, h0: f64, h_target: [f64; 8]) -> [f64; 8] {
     let mut h: [f64; 8] = [0.0; 8];
     h = [0.0; 8];
     {
-        let __end21: i64 = nr;
+        let __end22: i64 = nr;
         let mut i: i64 = 0;
-        while i < __end21 {
+        while i < __end22 {
             h[(i) as usize] = (if (h0).is_nan() { h_target[(i) as usize] } else { h0 });
             i += 1;
         }

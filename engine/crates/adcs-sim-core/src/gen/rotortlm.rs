@@ -39,9 +39,9 @@ pub fn rotor_telemetry(n: i64, h: [f64; 8], d: [f64; 4], gi: [i64; 8], h_noise: 
     hm = [0.0; 8];
     dm = [0.0; 8];
     {
-        let __end14: i64 = n;
+        let __end15: i64 = n;
         let mut i: i64 = 0;
-        while i < __end14 {
+        while i < __end15 {
             let mut z: f64 = rt::normal(&mut (*tlm));
             hm[(i) as usize] = (h[(i) as usize] + (h_noise * z));
             if (gi[(i) as usize] > 0) {

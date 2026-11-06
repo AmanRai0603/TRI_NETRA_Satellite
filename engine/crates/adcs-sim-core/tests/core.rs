@@ -317,6 +317,28 @@ fn a_failed_ring_spins_down_with_its_stated_spin_down_time() {
     assert!(taken > 0.8*h0 && (taken - (h0 - h[0])).abs() < 1e-12, "the momentum the body takes up: {taken}");
 }
 
+#[test]
+fn a_failed_cmg_spins_down_under_its_bearing_friction_and_its_gimbal_stops() {
+    // M5 (DR-act-002): rotor_fail on a CMG spins the rotor down (the wheel's friction ratios) and its gimbal command is ignored
+    use adcs_sim_core::actuators::{Kind, Mex, MexDesc};
+    let mut m = MexDesc { n: 2, ng: 2, cmg_kc: 2.3769e-3, cmg_kv: 3.5498e-3, k_speed: 1.0, gimbal_rate_max: 1.0, gimbal_power: 0.5, ..Default::default() };
+    for i in 0..2 {
+        m.kind[i] = Kind::Cmg; m.a0[i] = [1.0, 0.0, 0.0]; m.gi[i] = i + 1; m.h_max[i] = 0.01; m.h0[i] = 0.01; m.torque_max[i] = 1e-3; m.jrot[i] = 1.6e-5;
+        m.flo[i] = 1.0; m.fhi[i] = 1.0; m.eta_lo[i] = 1.0; m.eta_hi[i] = 1.0; m.t_sd[i] = f64::INFINITY;
+        m.g[i] = [0.0, 0.0, 1.0];
+    }
+    let mut x = Mex::new(m, &mut Rng::new(1, 1), Rng::new(1, 2));
+    x.failed[0] = true;
+    let mut h = [0.0; NR]; h[0] = 0.01; h[1] = 0.01;
+    let mut cg = [0.0; NG]; cg[0] = 0.5; cg[1] = 0.5;
+    let (hd, gd, _) = x.apply(&[0.0; NR], &cg, &h, 0.1);
+    // the failed one: -kv h - kc h0 (about -5.9e-5 N m), where the healthy one holds h0
+    let want = -3.5498e-3*0.01 - 2.3769e-3*0.01;
+    assert!((hd[0] - want).abs() < 1e-12 && hd[0] < 0.0, "failed rotor rate {} vs {want}", hd[0]);
+    assert!(hd[1] == 0.0, "the healthy CMG holds h0: {}", hd[1]);
+    assert!(gd[0] == 0.0 && gd[1] == 0.5, "gimbal rates {gd:?}: the failed CMG's is ignored, the other follows");
+}
+
 fn tracker(blind: f64) -> adcs_sim_core::sensors::St {
     use adcs_sim_core::sensors::{St, StDesc};
     let mut d = StDesc { fitted: true, nh: 1, noise_cross: 1e-4, noise_roll: 1e-3, rate_hz: 5.0, latency: 0.0, max_rate: 1.0,

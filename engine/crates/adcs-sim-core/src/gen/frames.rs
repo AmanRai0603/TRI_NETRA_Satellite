@@ -135,9 +135,9 @@ pub fn geodetic(r: [f64; 3]) -> (f64, f64, f64) {
     let mut nn: f64 = a;
     let mut hh: f64 = 0.0;
     {
-        let __end61: i64 = 3;
+        let __end62: i64 = 3;
         let mut k: i64 = 0;
-        while k < __end61 {
+        while k < __end62 {
             let mut sl: f64 = crate::pm::sin(la);
             nn = (a / crate::pm::sqrt((1.0 - ((e2 * sl) * sl))));
             hh = ((p / crate::pm::cos(la)) - nn);
@@ -159,9 +159,9 @@ pub fn igrf_gh(dy: f64) -> [f64; 195] {
     let mut gh: [f64; 195] = [0.0; 195];
     let mut i: i64 = 0;
     {
-        let __end62: i64 = 25;
+        let __end63: i64 = 25;
         let mut ii: i64 = 0;
-        while ii < __end62 {
+        while ii < __end63 {
             if (crate::gen::igrf13::DATA_IGRF_YEAR[((ii + 1)) as usize] <= dy) {
                 i = (ii + 1);
             }
@@ -173,9 +173,9 @@ pub fn igrf_gh(dy: f64) -> [f64; 195] {
     }
     let mut f: f64 = ((dy - crate::gen::igrf13::DATA_IGRF_YEAR[(i) as usize]) / (crate::gen::igrf13::DATA_IGRF_YEAR[((i + 1)) as usize] - crate::gen::igrf13::DATA_IGRF_YEAR[(i) as usize]));
     {
-        let __end63: i64 = 195;
+        let __end64: i64 = 195;
         let mut k: i64 = 0;
-        while k < __end63 {
+        while k < __end64 {
             gh[(k) as usize] = (crate::gen::igrf13::DATA_IGRF_GH[(i) as usize][(k) as usize] + ((crate::gen::igrf13::DATA_IGRF_GH[((i + 1)) as usize][(k) as usize] - crate::gen::igrf13::DATA_IGRF_GH[(i) as usize][(k) as usize]) * f));
             k += 1;
         }
@@ -214,9 +214,9 @@ pub fn igrf_ned(gh: [f64; 195], lat: f64, lon: f64, alt_km: f64, nmax0: i64) -> 
     let mut cphi: [f64; 14] = [0.0; 14];
     let mut sphi: [f64; 14] = [0.0; 14];
     {
-        let __end64: i64 = (nmax + 1);
+        let __end65: i64 = (nmax + 1);
         let mut k: i64 = 1;
-        while k < __end64 {
+        while k < __end65 {
             cphi[(k) as usize] = crate::pm::cos(((k as f64) * lon));
             sphi[(k) as usize] = crate::pm::sin(((k as f64) * lon));
             k += 1;
@@ -236,9 +236,9 @@ pub fn igrf_ned(gh: [f64; 195], lat: f64, lon: f64, alt_km: f64, nmax0: i64) -> 
     let mut bt: f64 = 0.0;
     let mut bp: f64 = 0.0;
     {
-        let __end65: i64 = (pmax + 1);
+        let __end66: i64 = (pmax + 1);
         let mut pi_: i64 = 2;
-        while pi_ < __end65 {
+        while pi_ < __end66 {
             let mut ix: i64 = (pi_ - 1);
             if (n < m) {
                 m = 0;

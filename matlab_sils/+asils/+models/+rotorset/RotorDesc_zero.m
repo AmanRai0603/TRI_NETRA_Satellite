@@ -41,4 +41,6 @@ function s = RotorDesc_zero()
     s.flow_tau = 0;
     s.gimbal_rate_max = 0;
     s.gimbal_power = 0;
+    s.cmg_kc = 0;
+    s.cmg_kv = 0;
 end

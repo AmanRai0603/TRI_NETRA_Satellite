@@ -282,7 +282,8 @@ impl Dev {
         if let Some(b) = get(&pr, "payload_boresight_body").and_then(json::v3) { d.boresight = json::unit(b); }
         if let Some(b) = get(&pr, "sun_axis_body").and_then(json::v3) { d.sun_axis = json::unit(b); }
         let fills: Vec<Value> = match pr.get("fill") { Some(Value::Array(a)) => a.clone(), Some(x) => vec![x.clone()], None => vec![] };
-        let mut x = MexDesc { torque_noise: st.get("act_rw_torque_noise")?, friction_comp: st.get("act_rw_friction_comp")?, eta: st.get("act_rw_drive_efficiency")?,
+        let cmg_fric = st.list::<2>("act_cmg_bearing_friction")?;
+        let mut x = MexDesc { cmg_kc: cmg_fric[0], cmg_kv: cmg_fric[1], torque_noise: st.get("act_rw_torque_noise")?, friction_comp: st.get("act_rw_friction_comp")?, eta: st.get("act_rw_drive_efficiency")?,
             k_speed: st.get("act_cmg_speed_gain")?, k_flow: st.get("act_fmr_flow_gain")?, flow_tau: st.get("act_fmr_flow_tau")?, ..Default::default() };
         let mut files = vec![pf];
         for f in &fills {

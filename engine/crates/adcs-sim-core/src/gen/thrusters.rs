@@ -58,17 +58,17 @@ pub fn thrusters_new(d: ThrusterDesc, disp: &mut rt::Stream) -> ThrusterSet {
     let mut s: ThrusterSet = ThrusterSet::default();
     s = ThrusterSet::default();
     {
-        let __end15: i64 = d.nc;
+        let __end16: i64 = d.nc;
         let mut j: i64 = 0;
-        while j < __end15 {
+        while j < __end16 {
             s.tscale[(j) as usize] = crate::gen::rcsthrust::thrust_factor(d.thrust_sigma, &mut (*disp));
             j += 1;
         }
     }
     {
-        let __end16: i64 = d.nc;
+        let __end17: i64 = d.nc;
         let mut k: i64 = 0;
-        while k < __end16 {
+        while k < __end17 {
             s.tau[(k) as usize] = crate::gen::rcsaxis::couple_axis(d.tau[(k) as usize], d.misalign, &mut (*disp));
             k += 1;
         }
@@ -94,9 +94,9 @@ pub fn thrusters_apply(s: ThrusterSet, d: ThrusterDesc, duty: [f64; 6], t: f64) 
     let mut fs: f64 = 0.0;
     p = 0.0;
     {
-        let __end17: i64 = d.nc;
+        let __end18: i64 = d.nc;
         let mut j: i64 = 0;
-        while j < __end17 {
+        while j < __end18 {
             let mut on: f64 = crate::gen::rcsmib::valve_on_time(duty[(j) as usize], t, d.mib, d.res);
             if s.failed[(j) as usize] {
                 on = 0.0;
@@ -122,9 +122,9 @@ pub fn thrusters_empty(s: ThrusterSet) -> ThrusterSet {
     let mut e: ThrusterSet = ThrusterSet::default();
     e = s;
     {
-        let __end18: i64 = crate::gen::rcstorque::ACT_NC;
+        let __end19: i64 = crate::gen::rcstorque::ACT_NC;
         let mut j: i64 = 0;
-        while j < __end18 {
+        while j < __end19 {
             e.failed[(j) as usize] = true;
             j += 1;
         }

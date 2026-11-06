@@ -11,11 +11,11 @@ items = ["M5"]
 context = "A failed CMG rotor coasts with zero friction (engine/crates/adcs-sim/src/product.rs:187; design/revisions/S7.7/rotorset.pc:115), so rotor_fail on a CMG does nothing: it keeps h0 and its gimbal still turns. The catalogue holds no CMG bearing friction."
 drivers = ["the rotor_fail fault campaigns of CMG and VSCMG products"]
 standard = ["the wheel friction model of wheelfriction.pc (viscous and Coulomb)"]
-current = "zero friction: no spin-down; the gimbal still turns"
+current = "S11.7 flies the default: a failed CMG rotor coasts under the wheel's friction ratios (Coulomb 2.3769e-3 1/s of the rated momentum, viscous 3.5498e-3 1/s of the momentum, from CAT-CUBESPACE-CUBEWHEEL-CW0017: 4.2071e-6 N m over 1.77e-3 N m s, 1e-8 N m s over 2.817e-6 kg m^2) and its gimbal command is ignored; unsigned. Before: zero friction, no spin-down, the gimbal still turned"
 choice = "the wheel's friction ratio (viscous and Coulomb friction per unit of rotor momentum, of the catalogue's wheel) as a stated developer value with its source named, and a failed CMG's gimbal command ignored"
 rationale = "A spin-down of the wheel's order is closer to a real bearing than none; a datasheet value replaces it when the catalogue has one."
 consequences = "rotor_fail on a CMG spins down and the gimbal stops; CMG fault verdicts may move."
-sets = ["a stated node act_cmg_bearing_friction, added with M5 in S11.7"]
+sets = ["the stated node act_cmg_bearing_friction (the two ratios), act_cmg_model cmg_coast and act_rotor_set (gimbal_stopped), S11.7"]
 revisit_when = "a CMG datasheet with bearing friction enters the catalogue"
 signature = {}
 

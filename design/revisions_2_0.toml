@@ -3990,14 +3990,34 @@ why = "the rotor allocation keeps the direction of the torque and does not ask a
 id = "S11.7"
 at = "2026-11-07T09:00:00Z"
 by = "the developer"
-about = "the device models (docs/S11_INVENTORY.md M1, M5, M2; decision DR-act-002): a failed fluid ring spins down with its stated spin-down time T_sd (act_rotor_set coasts it through ring_rate with no pump) and so hands its momentum to the body, where it kept it for ever with zero friction terms"
+about = "the device models (docs/S11_INVENTORY.md M1, M5, M2; decision DR-act-002): a failed fluid ring spins down with its stated spin-down time T_sd (act_rotor_set coasts it through ring_rate with no pump) and so hands its momentum to the body, where it kept it for ever with zero friction terms; a failed CMG rotor spins down under the wheel's friction ratios (act_cmg_bearing_friction, DR-act-002: a stated value of the developer, unsigned) and its gimbal command is ignored (cmg_coast, gimbal_stopped)"
 
 [[revision.method]]
 node = "act_rotor_set"
 pseudocode = "design/revisions/S11.7/rotorset.pc"
 path = "act/rotorset.pc"
-transcribes = "design/revisions/S7.7/rotorset.pc as S7.7 left it, with a failed ring coasting under its spin-down time"
+transcribes = "design/revisions/S7.7/rotorset.pc as S7.7 left it, with a failed ring coasting under its spin-down time, a failed CMG rotor under its bearing friction and the gimbal of a failed CMG stopped"
 source = "docs/S11_INVENTORY.md M1: ring_constants' T_sd (the part's fluid viscosity, bore and density) is the time constant of the ring's own friction, h' = -h/T_sd (ring_rate with no pump)"
 generate = ["adcs-sim-core"]
 uses = ["act/wheelmotor.pc", "act/wheelspeed.pc", "act/wheelfriction.pc", "act/wheelcomp.pc", "act/wheelnoise.pc", "act/wheelaxis.pc", "act/wheelpower.pc", "act/ringpump.pc", "act/ringflow.pc", "act/ringnoise.pc", "act/ringfield.pc", "act/ringlimits.pc", "act/ringaxis.pc", "act/cmgmodel.pc", "act/vscmgmodel.pc", "act/gimbals.pc", "dyn/rotors.pc"]
-why = "a failed ring's momentum decays as exp(-t/T_sd) (M1) and its field stops with it"
+why = "a failed ring's momentum decays as exp(-t/T_sd) (M1) and its field stops with it; a failed CMG rotor spins down and its gimbal stops (M5)"
+
+[[revision.method]]
+node = "act_cmg_model"
+pseudocode = "design/revisions/S11.7/cmgmodel.pc"
+path = "act/cmgmodel.pc"
+transcribes = "design/revisions/S7.7/cmgmodel.pc as S7.7 left it, with cmg_coast, a failed CMG rotor's bearing friction"
+source = "DR-act-002 (design/decisions/DR-act-002.toml): the catalogue holds no CMG bearing friction, so the wheel's ratios (the catalogue's CubeSpace CW0017 Coulomb 4.207e-6 N m at 1.77e-3 N m s, viscous 1e-8 N m s on 2.817e-6 kg m^2) stand in; Wie (2008), Space Vehicle Dynamics and Control, chapter 7 (bearing drag of momentum exchange devices)"
+generate = ["adcs-sim-core"]
+uses = ["act/coilsat.pc"]
+why = "a failed CMG's rotor coasts under its bearing friction (M5)"
+
+[[revision.node]]
+id = "act_cmg_bearing_friction"
+group = "act"
+parent = "act__cmg"
+label = "CMG bearing friction per unit of rotor momentum"
+behaviour = "stated"
+question = "How large is a CMG rotor's bearing friction per unit of its momentum, Coulomb (of the rated momentum) and viscous (of the momentum), in 1/s each?"
+content = [["value", "list", "[0.0023769, 0.0035498]"], ["value", "source", "DR-act-002 (design/decisions/DR-act-002.toml), docs/S11_INVENTORY.md M5: the catalogue states no CMG bearing friction, so the friction ratios of the catalogue's wheel CAT-CUBESPACE-CUBEWHEEL-CW0017 stand in: Coulomb 4.2071e-6 N m over its 1.77e-3 N m s capacity = 2.3769e-3 1/s, viscous 1e-8 N m s over its 2.8170e-6 kg m^2 inertia = 3.5498e-3 1/s; the developer's value, unsigned, for the owner to sign or replace by a datasheet field"]]
+why = "the bearing friction of a failed CMG rotor (M5, DR-act-002), a stated value of the developer with its source named"

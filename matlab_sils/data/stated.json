@@ -2,6 +2,10 @@
  "about": "every stated value of the design, by node, as the engine reads it (tools/design_build.py; docs/S7_INVENTORY.md S7.11, S7.13)",
  "schema": "adcs-stated/2",
  "value": {
+  "act_cmg_bearing_friction": [
+   0.0023769,
+   0.0035498
+  ],
   "act_cmg_speed_gain": 1.0,
   "act_fmr_flow_gain": 2.0,
   "act_fmr_flow_tau": 0.3,

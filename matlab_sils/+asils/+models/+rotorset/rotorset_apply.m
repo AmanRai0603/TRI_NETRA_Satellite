@@ -20,6 +20,8 @@ function [hd, gd, p, s] = rotorset_apply(s, d, cmd_r, cmd_g, h, dt)
     for i = (0):((d.n) - 1)
         if (s.failed((i) + 1) && (d.kind((i) + 1) == 1))
             hd((i) + 1) = asils.models.ringlimits.ring_rate(0, h((i) + 1), d.t_sd((i) + 1), s.fscale((i) + 1), d.h_max((i) + 1));
+        elseif (s.failed((i) + 1) && (d.kind((i) + 1) == 2))
+            hd((i) + 1) = asils.models.cmgmodel.cmg_coast(h((i) + 1), d.h0((i) + 1), d.cmg_kc, d.cmg_kv);
         elseif s.failed((i) + 1)
             hd((i) + 1) = asils.models.wheelfriction.rotor_coast(h((i) + 1), d.jrot((i) + 1), d.viscous((i) + 1), d.coulomb((i) + 1));
         elseif (d.kind((i) + 1) == 0)
@@ -78,7 +80,7 @@ function [hd, gd, p, s] = rotorset_apply(s, d, cmd_r, cmd_g, h, dt)
         end
     end
     for j = (0):((d.ng) - 1)
-        if (~s.gfailed((j) + 1))
+        if (~asils.models.rotorset.gimbal_stopped(s.failed, d.kind, d.gi, d.n, j, s.gfailed((j) + 1)))
             gd((j) + 1) = asils.models.gimbals.gimbal_rate(cmd_g((j) + 1), d.gimbal_rate_max);
             p = (p + asils.models.gimbals.gimbal_power(gd((j) + 1), d.gimbal_power, d.gimbal_rate_max));
         end
