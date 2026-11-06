@@ -329,6 +329,10 @@ pub fn damp_dipole(w: [f64; 3], b: [f64; 3], k: f64) -> [f64; 3] {
 /// The rotor commands for a torque: the fixed rotors still working by the minimum-norm inverse,
 /// the gimbals by singularity-robust steering (VSCMG rotors take their momentum rate and a null
 /// motion back to their nominal momentum). Commands of rotors not set keep their value.
+/// S11.6 (G2): a rotor whose momentum is at its capacity (|h| >= h_max) and whose command would add to it is saturated: it is
+/// dropped from the allocation (it holds, command zero) and the others are solved again without it; and a command beyond a
+/// rotor's torque limit (rot_tmax) scales the whole vector of the fixed rotors' commands together, so the torque on the body
+/// keeps its direction (a per-rotor clip bends it), as the gimbal rates are scaled as a vector in steer_sr.
 /// - tau_rot: real[1][3] (passed a plain number)
 /// - a: real[1][8][3] (passed a plain number)
 /// - cmd_r0: real[1][8] (passed a plain number)
@@ -345,60 +349,101 @@ pub fn damp_dipole(w: [f64; 3], b: [f64; 3], k: f64) -> [f64; 3] {
 /// - cmg_mu: real[1] (passed a plain number)
 /// - cmg_k_null: real[1] (passed a plain number)
 /// - rot_h0: real[1][8] (passed a plain number)
+/// - rot_tmax: real[1][8] (passed a plain number)
+/// - rot_hmax: real[1][8] (passed a plain number)
 /// - returns cmd_r: real[1][8] (passed a plain number)
 /// - returns cmd_g: real[1][4] (passed a plain number)
 #[allow(clippy::too_many_arguments)]
-pub fn alloc_rotors(tau_rot: [f64; 3], a: [[f64; 8]; 3], cmd_r0: [f64; 8], cmd_g0: [f64; 4], nr: i64, ng: i64, rot_gi: [i64; 8], rot_kind: [i64; 8], rot_failed: [bool; 8], zh: [f64; 8], gim_axis: [[f64; 3]; 4], gim_rate_max: f64, cmg_lam0: f64, cmg_mu: f64, cmg_k_null: f64, rot_h0: [f64; 8]) -> ([f64; 8], [f64; 4]) {
+pub fn alloc_rotors(tau_rot: [f64; 3], a: [[f64; 8]; 3], cmd_r0: [f64; 8], cmd_g0: [f64; 4], nr: i64, ng: i64, rot_gi: [i64; 8], rot_kind: [i64; 8], rot_failed: [bool; 8], zh: [f64; 8], gim_axis: [[f64; 3]; 4], gim_rate_max: f64, cmg_lam0: f64, cmg_mu: f64, cmg_k_null: f64, rot_h0: [f64; 8], rot_tmax: [f64; 8], rot_hmax: [f64; 8]) -> ([f64; 8], [f64; 4]) {
     let mut cmd_r: [f64; 8] = [0.0; 8];
     let mut cmd_g: [f64; 4] = [0.0; 4];
     cmd_r = cmd_r0;
     cmd_g = cmd_g0;
-    let mut fixed: [i64; 8] = [0; 8];
-    let mut nf: i64 = 0;
+    let mut drop: [i64; 8] = [0; 8];
     {
-        let __end119: i64 = nr;
-        let mut i: i64 = 0;
-        while i < __end119 {
-            if ((rot_gi[(i) as usize] == 0) && (!rot_failed[(i) as usize])) {
-                fixed[(nf) as usize] = i;
-                nf = (nf + 1);
+        let __end119: i64 = 9;
+        let mut pass: i64 = 0;
+        while pass < __end119 {
+            let mut fixed: [i64; 8] = [0; 8];
+            let mut nf: i64 = 0;
+            {
+                let __end120: i64 = nr;
+                let mut i: i64 = 0;
+                while i < __end120 {
+                    if (((rot_gi[(i) as usize] == 0) && (!rot_failed[(i) as usize])) && (drop[(i) as usize] == 0)) {
+                        fixed[(nf) as usize] = i;
+                        nf = (nf + 1);
+                    }
+                    i += 1;
+                }
             }
-            i += 1;
-        }
-    }
-    if (nf > 0) {
-        let mut af: [[f64; 8]; 3] = [[0.0; 8]; 3];
-        {
-            let __end120: i64 = nf;
-            let mut i: i64 = 0;
-            while i < __end120 {
+            if (nf > 0) {
+                let mut af: [[f64; 8]; 3] = [[0.0; 8]; 3];
                 {
-                    let __end121: i64 = 3;
-                    let mut k: i64 = 0;
-                    while k < __end121 {
-                        af[(k) as usize][(i) as usize] = a[(k) as usize][(fixed[(i) as usize]) as usize];
-                        k += 1;
+                    let __end121: i64 = nf;
+                    let mut i: i64 = 0;
+                    while i < __end121 {
+                        {
+                            let __end122: i64 = 3;
+                            let mut k: i64 = 0;
+                            while k < __end122 {
+                                af[(k) as usize][(i) as usize] = a[(k) as usize][(fixed[(i) as usize]) as usize];
+                                k += 1;
+                            }
+                        }
+                        i += 1;
                     }
                 }
-                i += 1;
+                let mut pi8: [[f64; 3]; 8] = crate::alg::math::pinv_rows(af, nf);
+                let mut sc: f64 = 1.0;
+                let mut more: i64 = 0;
+                {
+                    let __end123: i64 = nf;
+                    let mut i: i64 = 0;
+                    while i < __end123 {
+                        let mut c: f64 = (-((((pi8[(i) as usize][0] * tau_rot[0]) + (pi8[(i) as usize][1] * tau_rot[1])) + (pi8[(i) as usize][2] * tau_rot[2]))));
+                        let mut ki: i64 = fixed[(i) as usize];
+                        cmd_r[(ki) as usize] = c;
+                        if ((rot_tmax[(ki) as usize] > 0.0) && (rt::fabs(c) > (sc * rot_tmax[(ki) as usize]))) {
+                            sc = (rt::fabs(c) / rot_tmax[(ki) as usize]);
+                        }
+                        if (((rot_hmax[(ki) as usize] > 0.0) && (rt::fabs(zh[(ki) as usize]) >= rot_hmax[(ki) as usize])) && ((c * zh[(ki) as usize]) > 0.0)) {
+                            drop[(ki) as usize] = 1;
+                            more = (more + 1);
+                        }
+                        i += 1;
+                    }
+                }
+                if (more == 0) {
+                    {
+                        let __end124: i64 = nf;
+                        let mut i: i64 = 0;
+                        while i < __end124 {
+                            cmd_r[(fixed[(i) as usize]) as usize] = (cmd_r[(fixed[(i) as usize]) as usize] / sc);
+                            i += 1;
+                        }
+                    }
+                }
             }
+            pass += 1;
         }
-        let mut pi8: [[f64; 3]; 8] = crate::alg::math::pinv_rows(af, nf);
-        {
-            let __end122: i64 = nf;
-            let mut i: i64 = 0;
-            while i < __end122 {
-                cmd_r[(fixed[(i) as usize]) as usize] = (-((((pi8[(i) as usize][0] * tau_rot[0]) + (pi8[(i) as usize][1] * tau_rot[1])) + (pi8[(i) as usize][2] * tau_rot[2]))));
-                i += 1;
+    }
+    {
+        let __end125: i64 = nr;
+        let mut i: i64 = 0;
+        while i < __end125 {
+            if (drop[(i) as usize] == 1) {
+                cmd_r[(i) as usize] = 0.0;
             }
+            i += 1;
         }
     }
     if (ng > 0) {
         let mut wheels: bool = false;
         {
-            let __end123: i64 = nr;
+            let __end126: i64 = nr;
             let mut i: i64 = 0;
-            while i < __end123 {
+            while i < __end126 {
                 if (rot_kind[(i) as usize] == 3) {
                     wheels = true;
                 }
@@ -407,18 +452,18 @@ pub fn alloc_rotors(tau_rot: [f64; 3], a: [[f64; 8]; 3], cmd_r0: [f64; 8], cmd_g
         }
         let (mut gd, mut hd) = crate::alg::allocation::steer_sr(tau_rot, a, zh, nr, ng, rot_gi, gim_axis, gim_rate_max, cmg_lam0, cmg_mu, wheels);
         {
-            let __end124: i64 = ng;
+            let __end127: i64 = ng;
             let mut j: i64 = 0;
-            while j < __end124 {
+            while j < __end127 {
                 cmd_g[(j) as usize] = gd[(j) as usize];
                 j += 1;
             }
         }
         if wheels {
             {
-                let __end125: i64 = nr;
+                let __end128: i64 = nr;
                 let mut i: i64 = 0;
-                while i < __end125 {
+                while i < __end128 {
                     if (rot_gi[(i) as usize] > 0) {
                         cmd_r[(i) as usize] = (hd[(i) as usize] - (cmg_k_null * (zh[(i) as usize] - rot_h0[(i) as usize])));
                     }
@@ -445,9 +490,9 @@ pub fn alloc_idle(cmd_r0: [f64; 8], nr: i64, zh: [f64; 8], h_t_rot: [f64; 8], ro
     let mut cmd_r: [f64; 8] = [0.0; 8];
     cmd_r = cmd_r0;
     {
-        let __end126: i64 = nr;
+        let __end129: i64 = nr;
         let mut i: i64 = 0;
-        while i < __end126 {
+        while i < __end129 {
             cmd_r[(i) as usize] = ((-(0.2)) * (zh[(i) as usize] - h_t_rot[(i) as usize]));
             if ((zero_cmg && (rot_gi[(i) as usize] > 0)) && (rot_kind[(i) as usize] == 2)) {
                 cmd_r[(i) as usize] = 0.0;

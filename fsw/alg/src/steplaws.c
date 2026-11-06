@@ -237,79 +237,118 @@ pc_a3f steplaws_damp_dipole(pc_a3f w, pc_a3f b, double k) {
     return m;
 }
 
-steplaws_alloc_rotors_out steplaws_alloc_rotors(pc_a3f tau_rot, pc_a3a8f a, pc_a8f cmd_r0, pc_a4f cmd_g0, int64_t nr, int64_t ng, pc_a8i rot_gi, pc_a8i rot_kind, pc_a8b rot_failed, pc_a8f zh, pc_a4a3f gim_axis, double gim_rate_max, double cmg_lam0, double cmg_mu, double cmg_k_null, pc_a8f rot_h0) {
+steplaws_alloc_rotors_out steplaws_alloc_rotors(pc_a3f tau_rot, pc_a3a8f a, pc_a8f cmd_r0, pc_a4f cmd_g0, int64_t nr, int64_t ng, pc_a8i rot_gi, pc_a8i rot_kind, pc_a8b rot_failed, pc_a8f zh, pc_a4a3f gim_axis, double gim_rate_max, double cmg_lam0, double cmg_mu, double cmg_k_null, pc_a8f rot_h0, pc_a8f rot_tmax, pc_a8f rot_hmax) {
     pc_a8f cmd_r = ((pc_a8f){0});
     pc_a4f cmd_g = ((pc_a4f){0});
     cmd_r = cmd_r0;
     cmd_g = cmd_g0;
-    pc_a8i fixed = ((pc_a8i){0});
-    int64_t nf = INT64_C(0);
+    pc_a8i drop = ((pc_a8i){0});
     {
-        int64_t end__129 = nr;
-        int64_t i = INT64_C(0);
-        while (i < end__129) {
-            if (((rot_gi.v[(i)] == INT64_C(0)) && (!rot_failed.v[(i)]))) {
-                fixed.v[(nf)] = i;
-                nf = (nf + INT64_C(1));
+        int64_t end__129 = INT64_C(9);
+        int64_t pass = INT64_C(0);
+        while (pass < end__129) {
+            pc_a8i fixed = ((pc_a8i){0});
+            int64_t nf = INT64_C(0);
+            {
+                int64_t end__130 = nr;
+                int64_t i = INT64_C(0);
+                while (i < end__130) {
+                    if ((((rot_gi.v[(i)] == INT64_C(0)) && (!rot_failed.v[(i)])) && (drop.v[(i)] == INT64_C(0)))) {
+                        fixed.v[(nf)] = i;
+                        nf = (nf + INT64_C(1));
+                    }
+                    i += 1;
+                }
             }
-            i += 1;
-        }
-    }
-    if ((nf > INT64_C(0))) {
-        pc_a3a8f af = ((pc_a3a8f){0});
-        {
-            int64_t end__130 = nf;
-            int64_t i = INT64_C(0);
-            while (i < end__130) {
+            if ((nf > INT64_C(0))) {
+                pc_a3a8f af = ((pc_a3a8f){0});
                 {
-                    int64_t end__131 = INT64_C(3);
-                    int64_t k = INT64_C(0);
-                    while (k < end__131) {
-                        af.v[(k)].v[(i)] = a.v[(k)].v[(fixed.v[(i)])];
-                        k += 1;
+                    int64_t end__131 = nf;
+                    int64_t i = INT64_C(0);
+                    while (i < end__131) {
+                        {
+                            int64_t end__132 = INT64_C(3);
+                            int64_t k = INT64_C(0);
+                            while (k < end__132) {
+                                af.v[(k)].v[(i)] = a.v[(k)].v[(fixed.v[(i)])];
+                                k += 1;
+                            }
+                        }
+                        i += 1;
                     }
                 }
-                i += 1;
+                pc_a8a3f pi8 = math_pinv_rows(af, nf);
+                double sc = 1.0;
+                int64_t more = INT64_C(0);
+                {
+                    int64_t end__133 = nf;
+                    int64_t i = INT64_C(0);
+                    while (i < end__133) {
+                        double c = (-((((pi8.v[(i)].v[0] * tau_rot.v[0]) + (pi8.v[(i)].v[1] * tau_rot.v[1])) + (pi8.v[(i)].v[2] * tau_rot.v[2]))));
+                        int64_t ki = fixed.v[(i)];
+                        cmd_r.v[(ki)] = c;
+                        if (((rot_tmax.v[(ki)] > 0.0) && (pc_fabs(c) > (sc * rot_tmax.v[(ki)])))) {
+                            sc = (pc_fabs(c) / rot_tmax.v[(ki)]);
+                        }
+                        if ((((rot_hmax.v[(ki)] > 0.0) && (pc_fabs(zh.v[(ki)]) >= rot_hmax.v[(ki)])) && ((c * zh.v[(ki)]) > 0.0))) {
+                            drop.v[(ki)] = INT64_C(1);
+                            more = (more + INT64_C(1));
+                        }
+                        i += 1;
+                    }
+                }
+                if ((more == INT64_C(0))) {
+                    {
+                        int64_t end__134 = nf;
+                        int64_t i = INT64_C(0);
+                        while (i < end__134) {
+                            cmd_r.v[(fixed.v[(i)])] = (cmd_r.v[(fixed.v[(i)])] / sc);
+                            i += 1;
+                        }
+                    }
+                }
             }
+            pass += 1;
         }
-        pc_a8a3f pi8 = math_pinv_rows(af, nf);
-        {
-            int64_t end__132 = nf;
-            int64_t i = INT64_C(0);
-            while (i < end__132) {
-                cmd_r.v[(fixed.v[(i)])] = (-((((pi8.v[(i)].v[0] * tau_rot.v[0]) + (pi8.v[(i)].v[1] * tau_rot.v[1])) + (pi8.v[(i)].v[2] * tau_rot.v[2]))));
-                i += 1;
+    }
+    {
+        int64_t end__135 = nr;
+        int64_t i = INT64_C(0);
+        while (i < end__135) {
+            if ((drop.v[(i)] == INT64_C(1))) {
+                cmd_r.v[(i)] = 0.0;
             }
+            i += 1;
         }
     }
     if ((ng > INT64_C(0))) {
         bool wheels = false;
         {
-            int64_t end__133 = nr;
+            int64_t end__136 = nr;
             int64_t i = INT64_C(0);
-            while (i < end__133) {
+            while (i < end__136) {
                 if ((rot_kind.v[(i)] == INT64_C(3))) {
                     wheels = true;
                 }
                 i += 1;
             }
         }
-        allocation_steer_sr_out t__134 = allocation_steer_sr(tau_rot, a, zh, nr, ng, rot_gi, gim_axis, gim_rate_max, cmg_lam0, cmg_mu, wheels);
-        pc_a4f gd = t__134.gdot;
-        pc_a8f hd = t__134.hdot;
+        allocation_steer_sr_out t__137 = allocation_steer_sr(tau_rot, a, zh, nr, ng, rot_gi, gim_axis, gim_rate_max, cmg_lam0, cmg_mu, wheels);
+        pc_a4f gd = t__137.gdot;
+        pc_a8f hd = t__137.hdot;
         {
-            int64_t end__135 = ng;
+            int64_t end__138 = ng;
             int64_t j = INT64_C(0);
-            while (j < end__135) {
+            while (j < end__138) {
                 cmd_g.v[(j)] = gd.v[(j)];
                 j += 1;
             }
         }
         if (wheels) {
             {
-                int64_t end__136 = nr;
+                int64_t end__139 = nr;
                 int64_t i = INT64_C(0);
-                while (i < end__136) {
+                while (i < end__139) {
                     if ((rot_gi.v[(i)] > INT64_C(0))) {
                         cmd_r.v[(i)] = (hd.v[(i)] - (cmg_k_null * (zh.v[(i)] - rot_h0.v[(i)])));
                     }
@@ -330,9 +369,9 @@ pc_a8f steplaws_alloc_idle(pc_a8f cmd_r0, int64_t nr, pc_a8f zh, pc_a8f h_t_rot,
     pc_a8f cmd_r = ((pc_a8f){0});
     cmd_r = cmd_r0;
     {
-        int64_t end__137 = nr;
+        int64_t end__140 = nr;
         int64_t i = INT64_C(0);
-        while (i < end__137) {
+        while (i < end__140) {
             cmd_r.v[(i)] = ((-(0.2)) * (zh.v[(i)] - h_t_rot.v[(i)]));
             if (((zero_cmg && (rot_gi.v[(i)] > INT64_C(0))) && (rot_kind.v[(i)] == INT64_C(2)))) {
                 cmd_r.v[(i)] = 0.0;

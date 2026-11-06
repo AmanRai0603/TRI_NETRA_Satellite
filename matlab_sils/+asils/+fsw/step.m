@@ -361,7 +361,7 @@ function [F, bus] = step(F, bus)
                 tr = zeros(3, 1);
                 for i = 1:3, tr(i) = F.tau_req(i) - tau_coil(i) - tau_rcs(i); end
                 [cmd_r, cmd_g] = asils.alg.steplaws.alloc_rotors(tr, A, cmd_r, cmd_g, p.nr, p.ng, p.rot_gi, p.rot_kind, ...
-                    F.rot_failed, F.z.h, p.gim_axis, p.gim_rate_max, p.cmg_lam0, p.cmg_mu, p.cmg_k_null, p.rot_h0);
+                    F.rot_failed, F.z.h, p.gim_axis, p.gim_rate_max, p.cmg_lam0, p.cmg_mu, p.cmg_k_null, p.rot_h0, p.rot_tmax, p.rot_hmax);
             end
             hp = zeros(8, 1);
             hp(1:nr) = z.h(1:nr);

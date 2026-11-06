@@ -8,7 +8,7 @@
  "fingerprint": {
   "rustc": "rustc 1.94.1 (e408947bf 2026-03-25)",
   "engine": "adcs-engine-rs/1.0.0 (adcs-case/1, POP v51 port in-loop, adcs-design, soft OILS)",
-  "fsw": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg 7c54aa7c9471633d",
+  "fsw": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg de1905be024c8a82",
   "machine": "x86_64"
  },
  "scenarios": {
@@ -56,19 +56,19 @@
    "metrics": {
     "settle_time_after_slew": {
      "kind": "time_to_threshold",
-     "value": 23.30000000000001,
+     "value": 26.400000000000006,
      "pass": null,
      "rel_tol": 0.01
     },
     "ape_los_on_target_p9973": {
      "kind": "ape_los",
-     "value": 0.00664114118995208,
+     "value": 0.006668274438431209,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "wheel_momentum_peak": {
      "kind": "wheel_momentum_peak",
-     "value": 0.0010099515175812357,
+     "value": 0.0010165331274092251,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -87,19 +87,19 @@
    "metrics": {
     "settle_time_after_slew": {
      "kind": "time_to_threshold",
-     "value": 45.60000000000002,
+     "value": 37.20000000000002,
      "pass": null,
      "rel_tol": 0.01
     },
     "ape_los_on_target_p9973": {
      "kind": "ape_los",
-     "value": 0.006650000788153443,
+     "value": 0.006680638634424929,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "wheel_momentum_peak": {
      "kind": "wheel_momentum_peak",
-     "value": 0.00785915125290842,
+     "value": 0.007235810384612466,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -124,13 +124,13 @@
     },
     "ape_los_on_target_p9973": {
      "kind": "ape_los",
-     "value": 0.006535753870744363,
+     "value": 0.006558789456718461,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "wheel_momentum_peak": {
      "kind": "wheel_momentum_peak",
-     "value": 0.003564864159805786,
+     "value": 0.0035648871947207192,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -792,31 +792,31 @@
    "metrics": {
     "ape_los_p9973": {
      "kind": "ape_los",
-     "value": 0.4719359342633259,
+     "value": 0.4722638507379407,
      "pass": 0,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.4902259644201802,
+     "value": 0.4908862421195382,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_3ax_p9973": {
      "kind": "ape",
-     "value": 0.4719610881078507,
+     "value": 0.4722788631751435,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ake_los_p9973": {
      "kind": "ake_los",
-     "value": 0.002989574707078356,
+     "value": 0.0029841186818188653,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "rate_stability_p9973": {
      "kind": "rate_stability",
-     "value": 0.0402202999156779,
+     "value": 0.04016387474431995,
      "pass": 0,
      "rel_tol": 1e-06
     },
@@ -834,7 +834,7 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 1.139716600871357,
+     "value": 1.1397106223413251,
      "pass": 1,
      "rel_tol": 1e-06
     }
@@ -1127,49 +1127,49 @@
    "metrics": {
     "ape_los_p9973": {
      "kind": "ape_los",
-     "value": 0.0042366786181092814,
+     "value": 0.004241722248072693,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.004977393233629942,
+     "value": 0.004969926178645288,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_3ax_p9973": {
      "kind": "ape",
-     "value": 0.007347096618045559,
+     "value": 0.007347822228030424,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ake_los_p9973": {
      "kind": "ake_los",
-     "value": 0.0028572238890409423,
+     "value": 0.00285225701527726,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "rate_stability_p9973": {
      "kind": "rate_stability",
-     "value": 0.006898274943426381,
+     "value": 0.006889077819770734,
      "pass": 0,
      "rel_tol": 1e-06
     },
     "time_to_0p01_deg": {
      "kind": "time_to_threshold",
-     "value": 7.4,
+     "value": 9.1,
      "pass": null,
      "rel_tol": 0.01
     },
     "wheel_momentum_peak": {
      "kind": "wheel_momentum_peak",
-     "value": 0.002967702724226005,
+     "value": 0.0029951503837778253,
      "pass": null,
      "rel_tol": 1e-06
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 1.5596440948924053,
+     "value": 1.5596574710568882,
      "pass": 1,
      "rel_tol": 1e-06
     }
@@ -1978,19 +1978,19 @@
    "metrics": {
     "sun_angle_p95": {
      "kind": "sun_angle",
-     "value": 0.005973710891368318,
+     "value": 0.005969383246429632,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "power_margin_orbit": {
      "kind": "power_margin",
-     "value": 2.2977250386057673,
+     "value": 2.297724805319744,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 1.525765808076194,
+     "value": 1.5257657458394325,
      "pass": 1,
      "rel_tol": 1e-06
     }

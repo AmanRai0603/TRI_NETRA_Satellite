@@ -2,5 +2,5 @@
 /* sha256 (first 16 hex) over the generated algorithm sources, C and Rust (fsw/alg, fsw-rs/src/alg), this file and its twin excepted. adcs_fsw_build_id() ends with it. */
 #ifndef ADCS_ALG_ID_H
 #define ADCS_ALG_ID_H
-#define ADCS_ALG_ID "7c54aa7c9471633d"
+#define ADCS_ALG_ID "de1905be024c8a82"
 #endif

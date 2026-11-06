@@ -85,9 +85,9 @@ pub fn clock_sched_skip(t: f64, i: i64, n: i64, sched_t: [f64; 8]) -> i64 {
     let mut j: i64 = 0;
     j = i;
     {
-        let __end178: i64 = 8;
+        let __end181: i64 = 8;
         let mut k: i64 = 0;
-        while k < __end178 {
+        while k < __end181 {
             if ((j < n) && (t >= sched_t[(j) as usize])) {
                 j = (j + 1);
             }

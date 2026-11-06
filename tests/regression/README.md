@@ -43,9 +43,13 @@ kind decision, each in the group that owns it and unsigned, which hold text and 
 unchanged; and again on 6 Nov 2026 with S11.4b, the onboard clock (a new method of fsw, its blob field stated) and S11.5, the
 gyro chain of the flight software (the quiet-gyro count and the detumble exit's rate source of fsw_modes, the estimator's behaviour
 with a quiet gyro in fsw_estimation, the rate damping of an invalid attitude in fsw_steplaws, their pseudocode under
-`design/revisions/S11.4b/` and `S11.5/`, the stale-tick limit fsw_param_gyro_stale_ticks stated): a method a node already
+`design/revisions/S11.4b/` and `S11.5/`, the stale-tick limit fsw_param_gyro_stale_ticks stated); and again on 6 Nov 2026 with
+S11.6, the fine-pointing and magnetic gains on the angle (the factor 2 of the quaternion's vector part in fswrw.pc and fswmtq.pc,
+the sliding modes' one slope, the analysis row gc_0, gc_1 stated as flown), the estimator's start (fsw_estimation: the tracker's
+plausibility, TRIAD's refusal and covariance; fsw_param_st_norm_tol and fsw_param_triad_sin_min stated) and the rotor allocation's
+limits (fsw_steplaws), their pseudocode under `design/revisions/S11.6/`: a method a node already
 has is replaced by the revision's, and the flight algorithms' vectors are written again (`tools/pcode.py gen`) and then
-carried into the node's cases by a second conversion: 11.4 MB, 11,427,840 bytes):
+carried into the node's cases by a second conversion: 11.8 MB, 11,808,768 bytes):
 
     python3 tools/convert_2_0.py --out DRIVE
     python3 tools/design_build.py DRIVE --out tests/regression/design.tndb

@@ -14,6 +14,7 @@
 #include "adcs_devices.h"
 #include "adcs_drv.h"
 #include "hal_stub.h"
+#include "adcs_alg.h"
 
 static int n_pass, n_fail;
 #define CHECK(cond, ...) do { if (cond) n_pass++; else { n_fail++; printf("FAIL %s:%d ", __FILE__, __LINE__); printf(__VA_ARGS__); printf("\n"); } } while (0)
@@ -110,6 +111,56 @@ static void t_laws(void)
         if (adcs_dot(A, m) > 1e-20) worst_ok = 0;
     }
     CHECK(worst_ok, "Sun spin L2 A.m0 <= 0");
+}
+
+/* G2 (S11.6): the rotor commands keep the torque's direction, and a rotor at its momentum capacity is dropped. Three orthogonal rotors
+ * and, with four, one along (1, 1, 1)/sqrt(3); the design's alloc_rotors called as the translator wrote it */
+static void g2_alloc(const adcs_real tau[3], int four, const adcs_real zh_in[8], adcs_real cmd[8])
+{
+    pc_a3a8f a = {{{{0}}}};
+    pc_a8f cmd_r0 = {{0}}, zh = {{0}}, tmax, hmax, h0 = {{0}};
+    pc_a4f cmd_g0 = {{0}};
+    pc_a8i gi = {{0}}, kind = {{0}};
+    pc_a8b failed = {{0}};
+    pc_a4a3f gax = {{{{0}}}};
+    steplaws_alloc_rotors_out o;
+    int i, k;
+    for (i = 0; i < 3; i++) a.v[i].v[i] = 1.0;
+    if (four) for (k = 0; k < 3; k++) a.v[k].v[3] = 1.0/sqrt(3.0);
+    for (i = 0; i < 8; i++) { tmax.v[i] = 0.002; hmax.v[i] = 0.02; zh.v[i] = zh_in[i]; }
+    o = steplaws_alloc_rotors((pc_a3f){{tau[0], tau[1], tau[2]}}, a, cmd_r0, cmd_g0, four ? 4 : 3, 0, gi, kind, failed, zh, gax, 1.0, 1e-3, 10.0, 0.0, h0, tmax, hmax);
+    for (i = 0; i < 8; i++) cmd[i] = o.cmd_r.v[i];
+}
+
+static void t_alloc(void)
+{
+    adcs_real zh[8] = {0, 0, 0, 0, 0, 0, 0, 0}, cmd[8], tau[3] = {0.004, 0.0004, -0.0008};
+    int i, ok = 1;
+    g2_alloc(tau, 0, zh, cmd);
+    for (i = 0; i < 3; i++) if (fabs(cmd[i]) > 0.002 + 1e-13) ok = 0;
+    CHECK(ok, "a command passes the rotor's torque limit of 0.002: %g %g %g", cmd[0], cmd[1], cmd[2]);
+    CHECK(fabs(cmd[1]/cmd[0] - tau[1]/tau[0]) < 1e-12, "the direction bent: y/x is %g for a torque with %g", cmd[1]/cmd[0], tau[1]/tau[0]);
+    CHECK(fabs(cmd[2]/cmd[0] - tau[2]/tau[0]) < 1e-12, "the direction bent: z/x is %g for a torque with %g", cmd[2]/cmd[0], tau[2]/tau[0]);
+    {   adcs_real small[3] = {0.001, -0.0005, 0.0002};
+        g2_alloc(small, 0, zh, cmd);
+        CHECK(fabs(cmd[0] + 0.001) < 1e-13 && fabs(cmd[1] - 0.0005) < 1e-13 && fabs(cmd[2] + 0.0002) < 1e-13, "a torque inside the limits is not touched: %.17g %.17g %.17g", cmd[0], cmd[1], cmd[2]); }
+    {   adcs_real t2[3] = {-0.001, 0.0005, 0.0};
+        zh[0] = 0.02;                                   /* the x rotor full: the command that adds to it is dropped */
+        g2_alloc(t2, 0, zh, cmd);
+        CHECK(cmd[0] == 0.0, "a rotor at its capacity was commanded to take more: %g", cmd[0]);
+        CHECK(fabs(cmd[1] + 0.0005) < 1e-13, "the rotors still working were not solved for: %g", cmd[1]);
+        zh[0] = -0.02;                                  /* full the other way: the command unloads it */
+        g2_alloc(t2, 0, zh, cmd);
+        CHECK(fabs(cmd[0] - 0.001) < 1e-13, "a rotor at its capacity was refused a command that unloads it: %.17g", cmd[0]); }
+    {   adcs_real t3[3] = {-0.001, 0.0, 0.0}, s = 1.0/sqrt(3.0);
+        int k;
+        zh[0] = 0.02;
+        g2_alloc(t3, 1, zh, cmd);
+        CHECK(cmd[0] == 0.0, "the full rotor was commanded: %g", cmd[0]);
+        for (k = 0; k < 3; k++) {
+            adcs_real got = cmd[k] + s*cmd[3], want = k == 0 ? 0.001 : 0.0;
+            CHECK(fabs(got - want) < 1e-12, "the torque on axis %d is %g with the full rotor dropped", k, got);
+        } }
 }
 
 static void t_rcs(void)
@@ -706,7 +757,7 @@ static void t_skipped(void)
 
 int main(void)
 {
-    t_math(); t_env(); t_estimation(); t_laws(); t_rcs(); t_abi(); t_st_frame(); t_nonfinite(); t_safe(); t_ticks(); t_skipped();
+    t_math(); t_env(); t_estimation(); t_laws(); t_alloc(); t_rcs(); t_abi(); t_st_frame(); t_nonfinite(); t_safe(); t_ticks(); t_skipped();
     printf("%d checks passed, %d failed (%s)\n", n_pass, n_fail, adcs_fsw_build_id());
     return n_fail ? 1 : 0;
 }

@@ -204,7 +204,7 @@ function y = call(name, x)
             [o1] = asils.alg.steplaws.damp_dipole(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), x(7));
             y = [reshape(o1, [], 1)];
         case 'steplaws::alloc_rotors'
-            [o1, o2] = asils.alg.steplaws.alloc_rotors(reshape(x(1:3), 3, 1), reshape(x(4:27), 8, 3).', reshape(x(28:35), 8, 1), reshape(x(36:39), 4, 1), x(40), x(41), reshape(x(42:49), 8, 1), reshape(x(50:57), 8, 1), reshape(x(58:65), 8, 1), reshape(x(66:73), 8, 1), reshape(x(74:85), 3, 4).', x(86), x(87), x(88), x(89), reshape(x(90:97), 8, 1));
+            [o1, o2] = asils.alg.steplaws.alloc_rotors(reshape(x(1:3), 3, 1), reshape(x(4:27), 8, 3).', reshape(x(28:35), 8, 1), reshape(x(36:39), 4, 1), x(40), x(41), reshape(x(42:49), 8, 1), reshape(x(50:57), 8, 1), reshape(x(58:65), 8, 1), reshape(x(66:73), 8, 1), reshape(x(74:85), 3, 4).', x(86), x(87), x(88), x(89), reshape(x(90:97), 8, 1), reshape(x(98:105), 8, 1), reshape(x(106:113), 8, 1));
             y = [reshape(o1, [], 1); reshape(o2, [], 1)];
         case 'steplaws::alloc_idle'
             [o1] = asils.alg.steplaws.alloc_idle(reshape(x(1:8), 8, 1), x(9), reshape(x(10:17), 8, 1), reshape(x(18:25), 8, 1), reshape(x(26:33), 8, 1), reshape(x(34:41), 8, 1), (x(42) ~= 0));

@@ -3361,7 +3361,7 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
         return 0;
     }
     if (strcmp(name, "steplaws::alloc_rotors") == 0) {
-        if (nx != 97) { return -1; }
+        if (nx != 113) { return -1; }
     {
         pc_a3f a0;
         pc_a3a8f a1;
@@ -3379,6 +3379,8 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
         double a13;
         double a14;
         pc_a8f a15;
+        pc_a8f a16;
+        pc_a8f a17;
         a0.v[0] = x[0];
         a0.v[1] = x[1];
         a0.v[2] = x[2];
@@ -3476,8 +3478,24 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
         a15.v[5] = x[94];
         a15.v[6] = x[95];
         a15.v[7] = x[96];
+        a16.v[0] = x[97];
+        a16.v[1] = x[98];
+        a16.v[2] = x[99];
+        a16.v[3] = x[100];
+        a16.v[4] = x[101];
+        a16.v[5] = x[102];
+        a16.v[6] = x[103];
+        a16.v[7] = x[104];
+        a17.v[0] = x[105];
+        a17.v[1] = x[106];
+        a17.v[2] = x[107];
+        a17.v[3] = x[108];
+        a17.v[4] = x[109];
+        a17.v[5] = x[110];
+        a17.v[6] = x[111];
+        a17.v[7] = x[112];
         {
-            steplaws_alloc_rotors_out r = steplaws_alloc_rotors(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15);
+            steplaws_alloc_rotors_out r = steplaws_alloc_rotors(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17);
             out[(*ny)++] = r.cmd_r.v[0];
             out[(*ny)++] = r.cmd_r.v[1];
             out[(*ny)++] = r.cmd_r.v[2];

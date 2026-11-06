@@ -248,31 +248,60 @@ end
 ## The rotor commands for a torque: the fixed rotors still working by the minimum-norm inverse,
 ## the gimbals by singularity-robust steering (VSCMG rotors take their momentum rate and a null
 ## motion back to their nominal momentum). Commands of rotors not set keep their value.
+## S11.6 (G2): a rotor whose momentum is at its capacity (|h| >= h_max) and whose command would add to it is saturated: it is
+## dropped from the allocation (it holds, command zero) and the others are solved again without it; and a command beyond a
+## rotor's torque limit (rot_tmax) scales the whole vector of the fixed rotors' commands together, so the torque on the body
+## keeps its direction (a per-rotor clip bends it), as the gimbal rates are scaled as a vector in steer_sr.
 fn alloc_rotors(tau_rot: vec3[1] in -0.01 .. 0.01, a: real[1][8][3] in -1 .. 1, cmd_r0: real[1][8] in -0.01 .. 0.01, cmd_g0: vec4[1] in -1 .. 1, \
                 nr: int in 0 .. 8, ng: int in 0 .. 4, rot_gi: int[8] in 0 .. 2, rot_kind: int[8] in 0 .. 3, rot_failed: bool[8], \
                 zh: real[1][8] in -0.05 .. 0.05, gim_axis: real[1][3][4] in -1 .. 1, gim_rate_max: real[1] in 0.1 .. 2, \
-                cmg_lam0: real[1] in 1e-6 .. 1e-2, cmg_mu: real[1] in 1 .. 100, cmg_k_null: real[1] in 0 .. 1, rot_h0: real[1][8] in 0 .. 0.05) \
+                cmg_lam0: real[1] in 1e-6 .. 1e-2, cmg_mu: real[1] in 1 .. 100, cmg_k_null: real[1] in 0 .. 1, rot_h0: real[1][8] in 0 .. 0.05, \
+                rot_tmax: real[1][8] in 0 .. 0.1, rot_hmax: real[1][8] in 0 .. 0.1) \
                 -> (cmd_r: real[1][8], cmd_g: vec4[1])
     cmd_r = cmd_r0
     cmd_g = cmd_g0
-    let fixed: int[8] = 0
-    let nf = 0
-    for i in 0 .. nr
-        if rot_gi[i] == 0 and not rot_failed[i]
-            fixed[nf] = i
-            nf = nf + 1
-        end
-    end
-    if nf > 0
-        let af: real[1][8][3] = 0
-        for i in 0 .. nf
-            for k in 0 .. 3
-                af[k][i] = a[k][fixed[i]]
+    let drop: int[8] = 0
+    for pass in 0 .. 9
+        let fixed: int[8] = 0
+        let nf = 0
+        for i in 0 .. nr
+            if rot_gi[i] == 0 and not rot_failed[i] and drop[i] == 0
+                fixed[nf] = i
+                nf = nf + 1
             end
         end
-        let pi8 = pinv_rows(af, nf)
-        for i in 0 .. nf
-            cmd_r[fixed[i]] = -(pi8[i][0]*tau_rot[0] + pi8[i][1]*tau_rot[1] + pi8[i][2]*tau_rot[2])
+        if nf > 0
+            let af: real[1][8][3] = 0
+            for i in 0 .. nf
+                for k in 0 .. 3
+                    af[k][i] = a[k][fixed[i]]
+                end
+            end
+            let pi8 = pinv_rows(af, nf)
+            let sc = 1.0
+            let more = 0
+            for i in 0 .. nf
+                let c = -(pi8[i][0]*tau_rot[0] + pi8[i][1]*tau_rot[1] + pi8[i][2]*tau_rot[2])
+                let ki = fixed[i]
+                cmd_r[ki] = c
+                if rot_tmax[ki] > 0 and |c| > sc*rot_tmax[ki]
+                    sc = |c|/rot_tmax[ki]
+                end
+                if rot_hmax[ki] > 0 and |zh[ki]| >= rot_hmax[ki] and c*zh[ki] > 0
+                    drop[ki] = 1
+                    more = more + 1
+                end
+            end
+            if more == 0
+                for i in 0 .. nf
+                    cmd_r[fixed[i]] = cmd_r[fixed[i]]/sc
+                end
+            end
+        end
+    end
+    for i in 0 .. nr
+        if drop[i] == 1
+            cmd_r[i] = 0
         end
     end
     if ng > 0

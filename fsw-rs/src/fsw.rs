@@ -212,7 +212,7 @@ impl Fsw {
     fn allocate(&self, tau_rot: &V3, a: &A38, cmd_r: &mut [f64; NR], cmd_g: &mut [f64; NG]) {
         let p = &self.p;
         (*cmd_r, *cmd_g) = laws::alloc_rotors(*tau_rot, *a, *cmd_r, *cmd_g, p.nr as i64, p.ng as i64, ints(&p.rot_gi), ints(&p.rot_kind),
-                                              self.rot_failed, self.z.h, p.gim_axis, p.gim_rate_max, p.cmg_lam0, p.cmg_mu, p.cmg_k_null, p.rot_h0);
+                                              self.rot_failed, self.z.h, p.gim_axis, p.gim_rate_max, p.cmg_lam0, p.cmg_mu, p.cmg_k_null, p.rot_h0, p.rot_tmax, p.rot_hmax);
     }
 
     /// The rotor command outside the fine states.

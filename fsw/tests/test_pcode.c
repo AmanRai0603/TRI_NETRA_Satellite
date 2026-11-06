@@ -391,7 +391,7 @@ static int call(const char *name, const double *x, int nx, out_t *o)
         for (i = 0; i < 8; i++) S.p.rot_kind[i] = (uint8_t)F(&a);
         for (i = 0; i < 8; i++) S.rot_failed[i] = F(&a) != 0;
         V(&a, S.z.h, 8); for (i = 0; i < 4; i++) V(&a, S.p.gim_axis[i], 3);
-        S.p.gim_rate_max = F(&a); S.p.cmg_lam0 = F(&a); S.p.cmg_mu = F(&a); S.p.cmg_k_null = F(&a); V(&a, S.p.rot_h0, 8);
+        S.p.gim_rate_max = F(&a); S.p.cmg_lam0 = F(&a); S.p.cmg_mu = F(&a); S.p.cmg_k_null = F(&a); V(&a, S.p.rot_h0, 8); V(&a, S.p.rot_tmax, 8); V(&a, S.p.rot_hmax, 8);
         adcs_alloc_rotors(&S, tau, A, cr, cg);
         OV(o, cr, 8); OV(o, cg, 4);
     }

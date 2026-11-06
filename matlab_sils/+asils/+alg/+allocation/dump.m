@@ -13,7 +13,7 @@ function [m] = dump(hdev, ht, b, k, m_max)
     if (bs < 1e-18)
         m = zeros(3, 1);
     else
-        h__99 = (hdev - ht);
-        m = asils.alg.control.sat_dipole(([h__99(2)*b(3) - h__99(3)*b(2); h__99(3)*b(1) - h__99(1)*b(3); h__99(1)*b(2) - h__99(2)*b(1)] * (k / bs)), m_max);
+        h__100 = (hdev - ht);
+        m = asils.alg.control.sat_dipole(([h__100(2)*b(3) - h__100(3)*b(2); h__100(3)*b(1) - h__100(1)*b(3); h__100(1)*b(2) - h__100(2)*b(1)] * (k / bs)), m_max);
     end
 end

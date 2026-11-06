@@ -177,7 +177,7 @@ void adcs_alloc_rotors(fsw_t *st, const adcs_real tau_rot[3], adcs_real A[3][8],
     for (k = 0; k < 3; k++) for (i = 0; i < p->nr && i < NR; i++) a.v[k].v[i] = A[k][i];
     o = steplaws_alloc_rotors(gl_v3(tau_rot), a, gl_v8(cmd_r), gl_v4(cmd_g), p->nr, p->ng, gl_u8(p->rot_gi), gl_u8(p->rot_kind),
                               gl_b8(st->rot_failed), gl_v8(st->z.h), gl_m43(&p->gim_axis[0][0]), p->gim_rate_max, p->cmg_lam0,
-                              p->cmg_mu, p->cmg_k_null, gl_v8(p->rot_h0));
+                              p->cmg_mu, p->cmg_k_null, gl_v8(p->rot_h0), gl_v8(p->rot_tmax), gl_v8(p->rot_hmax));
     gl_o8(o.cmd_r, cmd_r); gl_o4(o.cmd_g, cmd_g);
 }
 

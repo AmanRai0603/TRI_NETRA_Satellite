@@ -3975,3 +3975,13 @@ from = "stated"
 to = "stated"
 content = [["value", "number", "0.2"], ["value", "source", "docs/S11_INVENTORY.md G1 (S11.6): the least sine of the angle between the Sun and the field (11.5 deg) at which TRIAD fixes an attitude, 0.2 within the 0.15 to 0.25 the inventory allows; Shuster and Oh (1981), J. Guidance and Control 4(1):70-77: the attitude error about the first vector is the second vector's noise over this sine, 5 times the field's noise at 0.2; the developer's, for the owner to sign or override"]]
 why = "TRIAD's threshold as a stated flight parameter (G1, S11.6), 1e-3 before"
+
+[[revision.method]]
+node = "fsw_steplaws"
+pseudocode = "design/revisions/S11.6/steplaws.pc"
+path = "fsw/pseudocode/06_step_laws.pc"
+transcribes = "fsw/pseudocode/06_step_laws.pc as S11.5 left it, with alloc_rotors scaling the fixed rotors' commands as a whole vector when one passes its torque limit (rot_tmax) and dropping a rotor at its momentum capacity (rot_hmax, whose command would add to it) from the allocation"
+source = "docs/S11_INVENTORY.md G2: a command beyond a rotor's torque limit was clipped by the plant and the driver rotor by rotor, which bends the torque off its direction, and nothing took a full rotor out of the solution; the design's own steer_sr already scales the gimbal rates as one vector (a common factor keeps the direction of the torque, which is linear in the commands); a rotor at its capacity is excluded as a failed one is, and the minimum-norm inverse is taken again over the rest"
+generate = ["flight"]
+uses = ["01_math.pc", "02_time_frames_models.pc", "02_igrf13.pc"]
+why = "the rotor allocation keeps the direction of the torque and does not ask a full rotor for more (G2); the tick hands it the rotors' limits and momentum and keeps the order"

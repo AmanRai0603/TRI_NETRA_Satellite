@@ -833,6 +833,10 @@ typedef struct { pc_a8f cmd_r; pc_a4f cmd_g; } steplaws_alloc_rotors_out;
 /* The rotor commands for a torque: the fixed rotors still working by the minimum-norm inverse, */
 /* the gimbals by singularity-robust steering (VSCMG rotors take their momentum rate and a null */
 /* motion back to their nominal momentum). Commands of rotors not set keep their value. */
+/* S11.6 (G2): a rotor whose momentum is at its capacity (|h| >= h_max) and whose command would add to it is saturated: it is */
+/* dropped from the allocation (it holds, command zero) and the others are solved again without it; and a command beyond a */
+/* rotor's torque limit (rot_tmax) scales the whole vector of the fixed rotors' commands together, so the torque on the body */
+/* keeps its direction (a per-rotor clip bends it), as the gimbal rates are scaled as a vector in steer_sr. */
 /* - tau_rot */
 /* - a */
 /* - cmd_r0 */
@@ -849,9 +853,11 @@ typedef struct { pc_a8f cmd_r; pc_a4f cmd_g; } steplaws_alloc_rotors_out;
 /* - cmg_mu */
 /* - cmg_k_null */
 /* - rot_h0 */
+/* - rot_tmax */
+/* - rot_hmax */
 /* - returns cmd_r */
 /* - returns cmd_g */
-steplaws_alloc_rotors_out steplaws_alloc_rotors(pc_a3f tau_rot, pc_a3a8f a, pc_a8f cmd_r0, pc_a4f cmd_g0, int64_t nr, int64_t ng, pc_a8i rot_gi, pc_a8i rot_kind, pc_a8b rot_failed, pc_a8f zh, pc_a4a3f gim_axis, double gim_rate_max, double cmg_lam0, double cmg_mu, double cmg_k_null, pc_a8f rot_h0);
+steplaws_alloc_rotors_out steplaws_alloc_rotors(pc_a3f tau_rot, pc_a3a8f a, pc_a8f cmd_r0, pc_a4f cmd_g0, int64_t nr, int64_t ng, pc_a8i rot_gi, pc_a8i rot_kind, pc_a8b rot_failed, pc_a8f zh, pc_a4a3f gim_axis, double gim_rate_max, double cmg_lam0, double cmg_mu, double cmg_k_null, pc_a8f rot_h0, pc_a8f rot_tmax, pc_a8f rot_hmax);
 
 /* The rotor command outside the fine states: each rotor held at its momentum target, a CMG rotor's */
 /* torque command zero when asked (its own speed loop holds it). */

@@ -509,3 +509,58 @@ fn the_yaw_flip_uses_the_configured_power_face() {
     guid::yaw_flip(&mut g, &r, &v, 0.1);
     assert!(!g.flip, "a +z face already looks at it");
 }
+
+// ---- G2 (S11.6): the rotor commands keep the torque's direction, and a rotor at its momentum capacity is dropped ----
+
+/// Three orthogonal rotors and a fourth along (1, 1, 1)/sqrt(3), the axes as the columns of a 3 x 8.
+fn rotor_axes(four: bool) -> [[f64; 8]; 3] {
+    let mut a = [[0.0; 8]; 3];
+    for i in 0..3 { a[i][i] = 1.0; }
+    if four { let s = 1.0/3.0f64.sqrt(); for k in 0..3 { a[k][3] = s; } }
+    a
+}
+
+fn alloc(tau: [f64; 3], four: bool, zh: [f64; 8]) -> [f64; 8] {
+    let (nr, tmax, hmax) = (if four { 4 } else { 3 }, [0.002; 8], [0.02; 8]);
+    let (cmd, _) = adcs_fsw::alg::steplaws::alloc_rotors(tau, rotor_axes(four), [0.0; 8], [0.0; 4], nr, 0, [0; 8], [0; 8], [false; 8], zh,
+                                                         [[0.0; 3]; 4], 1.0, 1e-3, 10.0, 0.0, [0.0; 8], tmax, hmax);
+    cmd
+}
+
+/// A torque with one axis beyond the rotors' torque limit is scaled as a whole vector, its direction kept (a clip per rotor bends it).
+#[test]
+fn a_torque_beyond_the_rotor_limit_is_scaled_whole_and_keeps_its_direction() {
+    let tau = [0.004, 0.0004, -0.0008];
+    let cmd = alloc(tau, false, [0.0; 8]);
+    assert!(cmd.iter().all(|c| c.abs() <= 0.002 + 1e-13), "a command passes the rotor's torque limit of 0.002: {cmd:?}");
+    // the command is -tau scaled by one factor: the ratios are the torque's
+    assert!((cmd[1]/cmd[0] - tau[1]/tau[0]).abs() < 1e-12, "the direction bent: y/x is {} for a torque with {}", cmd[1]/cmd[0], tau[1]/tau[0]);
+    assert!((cmd[2]/cmd[0] - tau[2]/tau[0]).abs() < 1e-12, "the direction bent: z/x is {} for a torque with {}", cmd[2]/cmd[0], tau[2]/tau[0]);
+    // a torque inside the limits is not touched
+    let small = alloc([0.001, -0.0005, 0.0002], false, [0.0; 8]);
+    assert!((small[0] + 0.001).abs() < 1e-13 && (small[1] - 0.0005).abs() < 1e-13 && (small[2] + 0.0002).abs() < 1e-13, "{small:?}");
+}
+
+/// A rotor at its momentum capacity whose command would add to it is dropped from the allocation: it gets no command, and with a
+/// fourth rotor the others make the torque it can no longer make.
+#[test]
+fn a_saturated_rotor_is_dropped_from_the_allocation() {
+    // three orthogonal rotors, the x rotor full: its command (+0.001, adding to +0.02) is dropped; the others go on
+    let mut zh = [0.0; 8]; zh[0] = 0.02;
+    let cmd = alloc([-0.001, 0.0005, 0.0], false, zh);
+    assert_eq!(cmd[0], 0.0, "a rotor at its capacity was commanded to take more: {}", cmd[0]);
+    assert!((cmd[1] + 0.0005).abs() < 1e-13, "the rotors still working were not solved for: {cmd:?}");
+    // the same rotor full the other way is commanded: the command takes it away from the capacity
+    zh[0] = -0.02;
+    let cmd = alloc([-0.001, 0.0005, 0.0], false, zh);
+    assert!((cmd[0] - 0.001).abs() < 1e-13, "a rotor at its capacity was refused a command that unloads it: {}", cmd[0]);
+    // four rotors, the x rotor full: the torque on x is made by the y, z and skew rotors together
+    zh[0] = 0.02;
+    let a = rotor_axes(true);
+    let cmd = alloc([-0.001, 0.0, 0.0], true, zh);
+    assert_eq!(cmd[0], 0.0, "{cmd:?}");
+    for k in 0..3 {
+        let got: f64 = (0..4).map(|i| a[k][i]*cmd[i]).sum();
+        assert!((got - [0.001, 0.0, 0.0][k]).abs() < 1e-12, "the torque on axis {k} is {got} with the saturated rotor dropped: {cmd:?}");
+    }
+}
