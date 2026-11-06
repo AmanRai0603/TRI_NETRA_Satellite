@@ -1,0 +1,42 @@
+# Imaging 3U: fine nadir hold with wheels + star tracker + MEKF; both star-tracker heads fail in sunlight and the flight software resets
+# 100 s later, inside the eclipse: no tracker and no Sun, so the attitude is invalid until the Sun is back (the eclipse of this orbit
+# runs from 1367 s to 3433 s). A scenario of the tick faults' rig (S11.4, docs/S11_INVENTORY.md TS4) for G4: with the attitude invalid the
+# pointing mode damps the body rate (DR-fdir-002); before S11.5 it commanded nothing and the rate went on as it was.
+schema = "adcs-scenario/1"
+id = "fault_st_blind"
+label = "3U imaging - both star-tracker heads fail and the flight software resets in the eclipse: the attitude is invalid"
+case = "ais_img_3u"
+product = "TRN-P-3U-IMG"
+[time]
+duration_s = 3300.0
+dt_s = 0.1
+record_dt_s = 1.0
+[initial]
+attitude = { kind = "error_from_target", angle_deg = 2.0, axis_body = [0.577, 0.577, 0.577] }
+rate = { kind = "lvlh" }
+[fsw]
+start_mode = "nadir_fine"
+guidance = { kind = "nadir" }
+rw_bandwidth = 0.9
+rw_damping = 2.0
+rw_rate_hz = 10.0
+# the body rate while the attitude is invalid (from 1500 s, the reset at 1400 s settled): bounded with the damping, which acts beyond 2e-3 rad/s
+# (0.115 deg/s); the limit is twice that. Before S11.5 the same run reached 229 deg/s.
+[[metrics]]
+id = "rate_max_blind"
+kind = "rate_stability"
+window = "after_s:1500"
+statistic = "max"
+limit = 0.2
+
+[[faults]]
+kind = "st_head_fail"
+t_s = 1300.0
+index = 1
+[[faults]]
+kind = "st_head_fail"
+t_s = 1300.0
+index = 2
+[[faults]]
+kind = "fsw_reset"
+t_s = 1400.0

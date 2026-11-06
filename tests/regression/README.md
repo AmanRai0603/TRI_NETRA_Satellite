@@ -40,7 +40,12 @@ and output where its module has several, and the inputs that are a run's, `[[rev
 their ports and changes no method, table or value; and again on 6 Nov 2026 with S11.2, the twenty decision records of
 `design/decisions/` (the 15 decision stubs of `docs/DESIGN_DECISIONS.md` and five owner questions of the inventory) as nodes of
 kind decision, each in the group that owns it and unsigned, which hold text and no value, so `data/stated.json` is
-unchanged: 11.3 MB, 11,304,960 bytes):
+unchanged; and again on 6 Nov 2026 with S11.4b, the onboard clock (a new method of fsw, its blob field stated) and S11.5, the
+gyro chain of the flight software (the quiet-gyro count and the detumble exit's rate source of fsw_modes, the estimator's behaviour
+with a quiet gyro in fsw_estimation, the rate damping of an invalid attitude in fsw_steplaws, their pseudocode under
+`design/revisions/S11.4b/` and `S11.5/`, the stale-tick limit fsw_param_gyro_stale_ticks stated): a method a node already
+has is replaced by the revision's, and the flight algorithms' vectors are written again (`tools/pcode.py gen`) and then
+carried into the node's cases by a second conversion: 11.4 MB, 11,427,840 bytes):
 
     python3 tools/convert_2_0.py --out DRIVE
     python3 tools/design_build.py DRIVE --out tests/regression/design.tndb

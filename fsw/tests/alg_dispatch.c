@@ -3150,6 +3150,64 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
     }
         return 0;
     }
+    if (strcmp(name, "steplaws::damp_excess") == 0) {
+        if (nx != 3) { return -1; }
+    {
+        pc_a3f a0;
+        a0.v[0] = x[0];
+        a0.v[1] = x[1];
+        a0.v[2] = x[2];
+        {
+            pc_a3f r = steplaws_damp_excess(a0);
+            out[(*ny)++] = r.v[0];
+            out[(*ny)++] = r.v[1];
+            out[(*ny)++] = r.v[2];
+        }
+    }
+        return 0;
+    }
+    if (strcmp(name, "steplaws::damp_torque") == 0) {
+        if (nx != 6) { return -1; }
+    {
+        pc_a3f a0;
+        pc_a3f a1;
+        a0.v[0] = x[0];
+        a0.v[1] = x[1];
+        a0.v[2] = x[2];
+        a1.v[0] = x[3];
+        a1.v[1] = x[4];
+        a1.v[2] = x[5];
+        {
+            pc_a3f r = steplaws_damp_torque(a0, a1);
+            out[(*ny)++] = r.v[0];
+            out[(*ny)++] = r.v[1];
+            out[(*ny)++] = r.v[2];
+        }
+    }
+        return 0;
+    }
+    if (strcmp(name, "steplaws::damp_dipole") == 0) {
+        if (nx != 7) { return -1; }
+    {
+        pc_a3f a0;
+        pc_a3f a1;
+        double a2;
+        a0.v[0] = x[0];
+        a0.v[1] = x[1];
+        a0.v[2] = x[2];
+        a1.v[0] = x[3];
+        a1.v[1] = x[4];
+        a1.v[2] = x[5];
+        a2 = x[6];
+        {
+            pc_a3f r = steplaws_damp_dipole(a0, a1, a2);
+            out[(*ny)++] = r.v[0];
+            out[(*ny)++] = r.v[1];
+            out[(*ny)++] = r.v[2];
+        }
+    }
+        return 0;
+    }
     if (strcmp(name, "steplaws::alloc_rotors") == 0) {
         if (nx != 97) { return -1; }
     {

@@ -754,6 +754,29 @@ steplaws_ctl_capture_out steplaws_ctl_capture(CtlState st_, CtlParams cp, pc_a3f
 /* - returns s */
 CtlState steplaws_ctl_sun_acq(CtlState st_, CtlParams cp, pc_a3f hdev);
 
+/* The rate damping of a pointing state whose attitude is invalid (DR-fdir-002, G4). Without the attitude there is no pointing */
+/* error to follow, and the body may be turning at the rate its pointing asks (a nadir hold turns at the orbital rate, 1.1e-3 */
+/* rad/s at 400 km): only the rate beyond 2e-3 rad/s (the developer's bound, about twice that, for gdn to sign) is damped, so */
+/* that the hold is not stopped inertially across a gap of the attitude and the rate stays bounded. */
+/* The part of the rate beyond the bound, along the rate. */
+/* - w */
+/* - returns e */
+pc_a3f steplaws_damp_excess(pc_a3f w);
+
+/* The torque -kd e against the excess rate (kd the rotor loop's rate gain). */
+/* - kd */
+/* - w */
+/* - returns tau */
+pc_a3f steplaws_damp_torque(pc_a3f kd, pc_a3f w);
+
+/* The dipole that makes it for the coils, (k/|B|) (e x b) with b the unit field (the detumble law's sign: the torque */
+/* -k e perpendicular to the field). */
+/* - w */
+/* - b */
+/* - k */
+/* - returns m */
+pc_a3f steplaws_damp_dipole(pc_a3f w, pc_a3f b, double k);
+
 typedef struct { pc_a8f cmd_r; pc_a4f cmd_g; } steplaws_alloc_rotors_out;
 
 /* The rotor commands for a torque: the fixed rotors still working by the minimum-norm inverse, */

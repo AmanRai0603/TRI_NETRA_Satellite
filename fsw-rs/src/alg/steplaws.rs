@@ -272,6 +272,60 @@ pub fn ctl_sun_acq(st: CtlState, cp: CtlParams, hdev: [f64; 3]) -> CtlState {
     s
 }
 
+/// The rate damping of a pointing state whose attitude is invalid (DR-fdir-002, G4). Without the attitude there is no pointing
+/// error to follow, and the body may be turning at the rate its pointing asks (a nadir hold turns at the orbital rate, 1.1e-3
+/// rad/s at 400 km): only the rate beyond 2e-3 rad/s (the developer's bound, about twice that, for gdn to sign) is damped, so
+/// that the hold is not stopped inertially across a gap of the attitude and the rate stays bounded.
+/// The part of the rate beyond the bound, along the rate.
+/// - w: real[1][3] (passed a plain number)
+/// - returns e: real[1][3] (passed a plain number)
+#[allow(clippy::too_many_arguments)]
+pub fn damp_excess(w: [f64; 3]) -> [f64; 3] {
+    let mut e: [f64; 3] = [0.0; 3];
+    e = [0.0; 3];
+    let mut n: f64 = rt::norm(w);
+    if (n > 0.002) {
+        e = rt::vscale(w, (1.0 - (0.002 / n)));
+    }
+    e
+}
+
+/// The torque -kd e against the excess rate (kd the rotor loop's rate gain).
+/// - kd: real[1][3] (passed a plain number)
+/// - w: real[1][3] (passed a plain number)
+/// - returns tau: real[1][3] (passed a plain number)
+#[allow(clippy::too_many_arguments)]
+pub fn damp_torque(kd: [f64; 3], w: [f64; 3]) -> [f64; 3] {
+    let mut tau: [f64; 3] = [0.0; 3];
+    let mut e: [f64; 3] = crate::alg::steplaws::damp_excess(w);
+    {
+        let __end113: i64 = 3;
+        let mut i: i64 = 0;
+        while i < __end113 {
+            tau[(i) as usize] = ((-(kd[(i) as usize])) * e[(i) as usize]);
+            i += 1;
+        }
+    }
+    tau
+}
+
+/// The dipole that makes it for the coils, (k/|B|) (e x b) with b the unit field (the detumble law's sign: the torque
+/// -k e perpendicular to the field).
+/// - w: real[1][3] (passed a plain number)
+/// - b: real[1][3] (passed a plain number)
+/// - k: real[1] (passed a plain number)
+/// - returns m: real[1][3] (passed a plain number)
+#[allow(clippy::too_many_arguments)]
+pub fn damp_dipole(w: [f64; 3], b: [f64; 3], k: f64) -> [f64; 3] {
+    let mut m: [f64; 3] = [0.0; 3];
+    m = [0.0; 3];
+    let mut bn: f64 = rt::norm(b);
+    if (bn > 1.0e-9) {
+        m = rt::vscale(rt::cross(crate::alg::steplaws::damp_excess(w), rt::vdiv(b, bn)), (k / bn));
+    }
+    m
+}
+
 /// The rotor commands for a torque: the fixed rotors still working by the minimum-norm inverse,
 /// the gimbals by singularity-robust steering (VSCMG rotors take their momentum rate and a null
 /// motion back to their nominal momentum). Commands of rotors not set keep their value.
@@ -302,9 +356,9 @@ pub fn alloc_rotors(tau_rot: [f64; 3], a: [[f64; 8]; 3], cmd_r0: [f64; 8], cmd_g
     let mut fixed: [i64; 8] = [0; 8];
     let mut nf: i64 = 0;
     {
-        let __end113: i64 = nr;
+        let __end114: i64 = nr;
         let mut i: i64 = 0;
-        while i < __end113 {
+        while i < __end114 {
             if ((rot_gi[(i) as usize] == 0) && (!rot_failed[(i) as usize])) {
                 fixed[(nf) as usize] = i;
                 nf = (nf + 1);
@@ -315,13 +369,13 @@ pub fn alloc_rotors(tau_rot: [f64; 3], a: [[f64; 8]; 3], cmd_r0: [f64; 8], cmd_g
     if (nf > 0) {
         let mut af: [[f64; 8]; 3] = [[0.0; 8]; 3];
         {
-            let __end114: i64 = nf;
+            let __end115: i64 = nf;
             let mut i: i64 = 0;
-            while i < __end114 {
+            while i < __end115 {
                 {
-                    let __end115: i64 = 3;
+                    let __end116: i64 = 3;
                     let mut k: i64 = 0;
-                    while k < __end115 {
+                    while k < __end116 {
                         af[(k) as usize][(i) as usize] = a[(k) as usize][(fixed[(i) as usize]) as usize];
                         k += 1;
                     }
@@ -331,9 +385,9 @@ pub fn alloc_rotors(tau_rot: [f64; 3], a: [[f64; 8]; 3], cmd_r0: [f64; 8], cmd_g
         }
         let mut pi8: [[f64; 3]; 8] = crate::alg::math::pinv_rows(af, nf);
         {
-            let __end116: i64 = nf;
+            let __end117: i64 = nf;
             let mut i: i64 = 0;
-            while i < __end116 {
+            while i < __end117 {
                 cmd_r[(fixed[(i) as usize]) as usize] = (-((((pi8[(i) as usize][0] * tau_rot[0]) + (pi8[(i) as usize][1] * tau_rot[1])) + (pi8[(i) as usize][2] * tau_rot[2]))));
                 i += 1;
             }
@@ -342,9 +396,9 @@ pub fn alloc_rotors(tau_rot: [f64; 3], a: [[f64; 8]; 3], cmd_r0: [f64; 8], cmd_g
     if (ng > 0) {
         let mut wheels: bool = false;
         {
-            let __end117: i64 = nr;
+            let __end118: i64 = nr;
             let mut i: i64 = 0;
-            while i < __end117 {
+            while i < __end118 {
                 if (rot_kind[(i) as usize] == 3) {
                     wheels = true;
                 }
@@ -353,18 +407,18 @@ pub fn alloc_rotors(tau_rot: [f64; 3], a: [[f64; 8]; 3], cmd_r0: [f64; 8], cmd_g
         }
         let (mut gd, mut hd) = crate::alg::allocation::steer_sr(tau_rot, a, zh, nr, ng, rot_gi, gim_axis, gim_rate_max, cmg_lam0, cmg_mu, wheels);
         {
-            let __end118: i64 = ng;
+            let __end119: i64 = ng;
             let mut j: i64 = 0;
-            while j < __end118 {
+            while j < __end119 {
                 cmd_g[(j) as usize] = gd[(j) as usize];
                 j += 1;
             }
         }
         if wheels {
             {
-                let __end119: i64 = nr;
+                let __end120: i64 = nr;
                 let mut i: i64 = 0;
-                while i < __end119 {
+                while i < __end120 {
                     if (rot_gi[(i) as usize] > 0) {
                         cmd_r[(i) as usize] = (hd[(i) as usize] - (cmg_k_null * (zh[(i) as usize] - rot_h0[(i) as usize])));
                     }
@@ -391,9 +445,9 @@ pub fn alloc_idle(cmd_r0: [f64; 8], nr: i64, zh: [f64; 8], h_t_rot: [f64; 8], ro
     let mut cmd_r: [f64; 8] = [0.0; 8];
     cmd_r = cmd_r0;
     {
-        let __end120: i64 = nr;
+        let __end121: i64 = nr;
         let mut i: i64 = 0;
-        while i < __end120 {
+        while i < __end121 {
             cmd_r[(i) as usize] = ((-(0.2)) * (zh[(i) as usize] - h_t_rot[(i) as usize]));
             if ((zero_cmg && (rot_gi[(i) as usize] > 0)) && (rot_kind[(i) as usize] == 2)) {
                 cmd_r[(i) as usize] = 0.0;

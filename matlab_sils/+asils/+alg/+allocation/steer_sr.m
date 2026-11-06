@@ -22,16 +22,16 @@ function [gdot, hdot] = steer_sr(tau, a, h, nr, ng, rot_gi, gim_axis, gim_rate_m
     t__19 = ((0):((nr) - 1)).';
     for i = t__19(logical((rot_gi((t__19) + 1) > 0))).'
         j = (rot_gi((i) + 1) - 1);
-        h__86 = [a(1, (i) + 1); a(2, (i) + 1); a(3, (i) + 1)];
-        c = [gim_axis((j) + 1, 2)*h__86(3) - gim_axis((j) + 1, 3)*h__86(2); gim_axis((j) + 1, 3)*h__86(1) - gim_axis((j) + 1, 1)*h__86(3); gim_axis((j) + 1, 1)*h__86(2) - gim_axis((j) + 1, 2)*h__86(1)];
+        h__88 = [a(1, (i) + 1); a(2, (i) + 1); a(3, (i) + 1)];
+        c = [gim_axis((j) + 1, 2)*h__88(3) - gim_axis((j) + 1, 3)*h__88(2); gim_axis((j) + 1, 3)*h__88(1) - gim_axis((j) + 1, 1)*h__88(3); gim_axis((j) + 1, 1)*h__88(2) - gim_axis((j) + 1, 2)*h__88(1)];
         k = ((0):((3) - 1)).';
         jg((k) + 1, (j) + 1) = ((-(h((i) + 1))) .* reshape(c((k) + 1), [], 1));
-        h__87 = h((i) + 1);
-        if h__87 < 0, h__87 = -h__87; elseif h__87 == 0, h__87 = 0; end
-        if (h__87 > h0)
-            h__88 = h((i) + 1);
-            if h__88 < 0, h__88 = -h__88; elseif h__88 == 0, h__88 = 0; end
-            h0 = h__88;
+        h__89 = h((i) + 1);
+        if h__89 < 0, h__89 = -h__89; elseif h__89 == 0, h__89 = 0; end
+        if (h__89 > h0)
+            h__90 = h((i) + 1);
+            if h__90 < 0, h__90 = -h__90; elseif h__90 == 0, h__90 = 0; end
+            h0 = h__90;
         end
     end
     m = zeros(3, 3);
@@ -46,11 +46,11 @@ function [gdot, hdot] = steer_sr(tau, a, h, nr, ng, rot_gi, gim_axis, gim_rate_m
     end
     ms = (asils.alg.math.det3(m) / (((((h0 * h0) * h0) * h0) * h0) * h0));
     if wheels
-        h__89 = (ng + nr);
+        h__91 = (ng + nr);
     else
-        h__89 = ng;
+        h__91 = ng;
     end
-    n = h__89;
+    n = h__91;
     jj = zeros(3, 12);
     i = ((0):((3) - 1)).';
     j = (0):((ng) - 1);
@@ -85,12 +85,12 @@ function [gdot, hdot] = steer_sr(tau, a, h, nr, ng, rot_gi, gim_axis, gim_rate_m
     gdot = zeros(4, 1);
     for j = (0):((ng) - 1)
         gdot((j) + 1) = u((j) + 1);
-        h__90 = u((j) + 1);
-        if h__90 < 0, h__90 = -h__90; elseif h__90 == 0, h__90 = 0; end
-        if ((h__90 / gim_rate_max) > s)
-            h__91 = u((j) + 1);
-            if h__91 < 0, h__91 = -h__91; elseif h__91 == 0, h__91 = 0; end
-            s = (h__91 / gim_rate_max);
+        h__92 = u((j) + 1);
+        if h__92 < 0, h__92 = -h__92; elseif h__92 == 0, h__92 = 0; end
+        if ((h__92 / gim_rate_max) > s)
+            h__93 = u((j) + 1);
+            if h__93 < 0, h__93 = -h__93; elseif h__93 == 0, h__93 = 0; end
+            s = (h__93 / gim_rate_max);
         end
     end
     j = ((0):((ng) - 1)).';
@@ -100,10 +100,10 @@ function [gdot, hdot] = steer_sr(tau, a, h, nr, ng, rot_gi, gim_axis, gim_rate_m
     hdot = zeros(8, 1);
     for i = (0):((nr) - 1)
         if wheels
-            h__92 = (u(((ng + i)) + 1) / s);
+            h__94 = (u(((ng + i)) + 1) / s);
         else
-            h__92 = 0;
+            h__94 = 0;
         end
-        hdot((i) + 1) = h__92;
+        hdot((i) + 1) = h__94;
     end
 end

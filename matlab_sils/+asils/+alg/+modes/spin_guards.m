@@ -12,15 +12,15 @@ function [s] = spin_guards(st, mp, sun_ok, sun, dt)
     s = st;
     d = (pi / 180);
     wz = s.w_est(3);
-    h__97 = ((s.w_est(1) * s.w_est(1)) + (s.w_est(2) * s.w_est(2)));
-    if h__97 < 0, h__97 = NaN; else, h__97 = sqrt(h__97); end
-    wp = h__97;
+    h__99 = ((s.w_est(1) * s.w_est(1)) + (s.w_est(2) * s.w_est(2)));
+    if h__99 < 0, h__99 = NaN; else, h__99 = sqrt(h__99); end
+    wp = h__99;
     if (sqrt(s.w_est(1)*s.w_est(1) + s.w_est(2)*s.w_est(2) + s.w_est(3)*s.w_est(3)) > (mp.ss_omega_max_dps * d))
         s = asils.alg.modes.modes_enter(s, 0);
     elseif (s.mode == 5)
-        h__98 = (wz - ((s.sigma * mp.ss_spin_dps) * d));
-        if h__98 < 0, h__98 = -h__98; elseif h__98 == 0, h__98 = 0; end
-        conv = ((h__98 < (mp.ss_z_in_dps * d)) && (wp < (mp.ss_perp_in_dps * d)));
+        h__100 = (wz - ((s.sigma * mp.ss_spin_dps) * d));
+        if h__100 < 0, h__100 = -h__100; elseif h__100 == 0, h__100 = 0; end
+        conv = ((h__100 < (mp.ss_z_in_dps * d)) && (wp < (mp.ss_perp_in_dps * d)));
         if (conv && sun_ok)
             s.sz_sum = (s.sz_sum + sun(3));
             s.sz_n = (s.sz_n + 1);
@@ -41,9 +41,9 @@ function [s] = spin_guards(st, mp, sun_ok, sun, dt)
             s = asils.alg.modes.modes_enter(s, 6);
         end
     else
-        h__99 = wz;
-        if h__99 < 0, h__99 = -h__99; elseif h__99 == 0, h__99 = 0; end
-        bad = ((h__99 < (mp.ss_omega_exit_dps * d)) || (wp > (mp.ss_perp_out_dps * d)));
+        h__101 = wz;
+        if h__101 < 0, h__101 = -h__101; elseif h__101 == 0, h__101 = 0; end
+        bad = ((h__101 < (mp.ss_omega_exit_dps * d)) || (wp > (mp.ss_perp_out_dps * d)));
         if bad
             s.hold = (s.hold + dt);
         else

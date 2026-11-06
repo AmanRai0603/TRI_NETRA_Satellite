@@ -421,12 +421,16 @@ int32_t adcs_fsw_step(uint64_t now_ns)
                 adcs_torque2dipole(S.tau_req, z->B, p->m_max, m_body);
             }
             adcs_sub3(m_body, p->m_res_est, m_body); adcs_sat_dipole(m_body, p->m_max);
+        } else if (mi == S.meas_i && !S.ad_ok) {
+            /* no attitude: damp the rate (DR-fdir-002, G4: steplaws::damp_dipole) */
+            gl_o3(steplaws_damp_dipole(gl_v3(S.w_est), gl_v3(z->B), p->bdot_k), m_body);
+            adcs_sub3(m_body, p->m_res_est, m_body); adcs_sat_dipole(m_body, p->m_max);
         } else if (mi < S.meas_c) adcs_zero3(m_body);
         break;
 
     case ADCS_MODE_NADIR_FINE: case ADCS_MODE_TARGET_FINE: case ADCS_MODE_SLEW_FINE:
     case ADCS_MODE_SUN_FINE: case ADCS_MODE_SUN_ACQ_ROTOR: {
-        int acq = S.mode == ADCS_MODE_SUN_ACQ_ROTOR, ctl_ok = S.ad_ok || acq;
+        int acq = S.mode == ADCS_MODE_SUN_ACQ_ROTOR, damp = !acq && !S.ad_ok, ctl_ok = S.ad_ok || acq || damp;   /* damp: no attitude, the rate is damped (G4) */
         adcs_real A[3][8], Hdev[3] = {0, 0, 0}, dH[3], tau_rcs[3] = {0, 0, 0}, tau_coil[3] = {0, 0, 0}, tr[3];
         adcs_rotor_axes(p, z->delta, A);
         for (i = 0; i < nr; i++) { Hdev[0] += A[0][i]*z->h[i]; Hdev[1] += A[1][i]*z->h[i]; Hdev[2] += A[2][i]*z->h[i]; }
@@ -440,6 +444,9 @@ int32_t adcs_fsw_step(uint64_t now_ns)
             if (S.capturing) adcs_zero3(S.I_q);
             else adcs_control_law(S.K.q, S.w_est, S.q_ref, S.w_ref, S.I_q, p->rw_dt, &S.g_rw, p->J, Hdev, wd, S.tau_req);
             S.k_ctrl = (int64_t)S.tick;
+        } else if (damp && (S.k_ctrl < 0 || (int64_t)S.tick - S.k_ctrl >= S.n_rw)) {
+            gl_o3(steplaws_damp_torque(gl_v3(S.g_rw.Kd), gl_v3(S.w_est)), S.tau_req);      /* DR-fdir-002, G4 */
+            adcs_zero3(S.I_q); S.k_ctrl = (int64_t)S.tick;
         }
         /* momentum management */
         adcs_sub3(Hdev, S.H_t, dH);
@@ -488,7 +495,7 @@ int32_t adcs_fsw_step(uint64_t now_ns)
         if (m_body[0] != 0 || m_body[1] != 0 || m_body[2] != 0) {
             adcs_real mm[3]; adcs_add3(m_body, p->m_res_est, mm); adcs_cross(mm, S.B_dump, tau_coil);
         }
-        if (ctl_ok && (S.have_r || acq) && nr > 0) {
+        if (ctl_ok && (S.have_r || acq || damp) && nr > 0) {
             for (i = 0; i < 3; i++) tr[i] = S.tau_req[i] - tau_coil[i] - tau_rcs[i];
             adcs_alloc_rotors(&S, tr, A, cmd_r, cmd_g);
         }

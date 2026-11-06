@@ -450,11 +450,15 @@ impl Fsw {
                         ctl::torque2dipole(&self.tau_req, &z.b, p.m_max)
                     };
                     m_body = ctl::sat_dipole(&sub3(&md, &p.m_res_est), p.m_max);
+                } else if mi == self.meas_i && !self.ad_ok {
+                    // no attitude: damp the rate (DR-fdir-002, G4: steplaws::damp_dipole)
+                    m_body = ctl::sat_dipole(&sub3(&laws::damp_dipole(self.w_est, z.b, p.bdot_k), &p.m_res_est), p.m_max);
                 } else if mi < self.meas_c { m_body = [0.0; 3]; }
             }
             NADIR_FINE | TARGET_FINE | SLEW_FINE | SUN_FINE | SUN_ACQ_ROTOR => {
                 let acq = self.mode == SUN_ACQ_ROTOR;
-                let ctl_ok = self.ad_ok || acq;
+                let damp = !acq && !self.ad_ok;       // no attitude: the rate is damped (G4)
+                let ctl_ok = self.ad_ok || acq || damp;
                 let a = alloc::rotor_axes(&p, &z.delta);
                 let mut hdev = [0.0; 3];
                 for i in 0..nr { hdev[0] += a[0][i]*z.h[i]; hdev[1] += a[1][i]*z.h[i]; hdev[2] += a[2][i]*z.h[i]; }
@@ -470,6 +474,9 @@ impl Fsw {
                         self.tau_req = ctl::control_law(&self.k.q, &self.w_est, &self.q_ref, &self.w_ref, &mut self.i_q, p.rw_dt, &self.g_rw, &p.J, &hdev, &rf.wd);
                     }
                     self.k_ctrl = self.tick as i64;
+                } else if damp && (self.k_ctrl < 0 || self.tick as i64 - self.k_ctrl >= self.n_rw as i64) {
+                    self.tau_req = laws::damp_torque(self.g_rw.kd, self.w_est);      // DR-fdir-002, G4
+                    self.i_q = [0.0; 3]; self.k_ctrl = self.tick as i64;
                 }
                 // momentum management
                 let dh = sub3(&hdev, &self.h_t);
@@ -522,7 +529,7 @@ impl Fsw {
                 // momentum devices deliver the rest (coil and thruster torques fed forward)
                 let mut tau_coil = [0.0; 3];
                 if !is_zero3(&m_body) { tau_coil = cross(&add3(&m_body, &p.m_res_est), &self.b_dump); }
-                if ctl_ok && (self.have_r || acq) && nr > 0 {
+                if ctl_ok && (self.have_r || acq || damp) && nr > 0 {
                     let mut tr = [0.0; 3];
                     for i in 0..3 { tr[i] = self.tau_req[i] - tau_coil[i] - tau_rcs[i]; }
                     self.allocate(&tr, &a, &mut cmd_r, &mut cmd_g);

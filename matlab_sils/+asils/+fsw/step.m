@@ -252,12 +252,16 @@ function [F, bus] = step(F, bus)
                     md = asils.alg.control.torque2dipole(F.tau_req, z.b, p.m_max);
                 end
                 m_body = asils.alg.control.sat_dipole(md - p.m_res_est, p.m_max);
+            elseif mi == F.meas_i && ~F.ad_ok
+                % no attitude: damp the rate (DR-fdir-002, G4: steplaws::damp_dipole)
+                m_body = asils.alg.control.sat_dipole(asils.alg.steplaws.damp_dipole(F.w_est, z.b, p.bdot_k) - p.m_res_est, p.m_max);
             elseif mi < F.meas_c
                 m_body = zeros(3, 1);
             end
         case {2, 3, 4, 10, 8}                          % NADIR_FINE, TARGET_FINE, SLEW_FINE, SUN_FINE, SUN_ACQ_ROTOR
             acq = F.mode == 8;
-            ctl_ok = F.ad_ok || acq;
+            damp = ~acq && ~F.ad_ok;                   % no attitude: the rate is damped (G4)
+            ctl_ok = F.ad_ok || acq || damp;
             A = asils.alg.allocation.rotor_axes(p.nr, p.rot_a0, p.rot_gi, p.gim_axis, z.delta);
             hdev = zeros(3, 1);
             for i = 1:nr
@@ -283,6 +287,9 @@ function [F, bus] = step(F, bus)
                         gr.kd, gr.ki, gr.klqr, gr.lambda, gr.phi, gr.gs, gr.err_max, gr.int_max, p.J, hdev, wd);
                 end
                 F.k_ctrl = F.tick;
+            elseif damp && (F.k_ctrl < 0 || F.tick - F.k_ctrl >= F.n_rw)
+                F.tau_req = asils.alg.steplaws.damp_torque(F.g_rw.kd, F.w_est);      % DR-fdir-002, G4
+                F.i_q = zeros(3, 1); F.k_ctrl = F.tick;
             end
             % momentum management
             dh = hdev - F.h_t;
@@ -336,7 +343,7 @@ function [F, bus] = step(F, bus)
             % momentum devices deliver the rest (coil and thruster torques fed forward)
             tau_coil = zeros(3, 1);
             if ~is_zero3_(m_body), tau_coil = cross3_(m_body + p.m_res_est, F.b_dump); end
-            if ctl_ok && (F.have_r || acq) && nr > 0
+            if ctl_ok && (F.have_r || acq || damp) && nr > 0
                 tr = zeros(3, 1);
                 for i = 1:3, tr(i) = F.tau_req(i) - tau_coil(i) - tau_rcs(i); end
                 [cmd_r, cmd_g] = asils.alg.steplaws.alloc_rotors(tr, A, cmd_r, cmd_g, p.nr, p.ng, p.rot_gi, p.rot_kind, ...

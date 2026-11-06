@@ -182,6 +182,15 @@ function y = call(name, x)
         case 'steplaws::ctl_sun_acq'
             [o1] = asils.alg.steplaws.ctl_sun_acq(struct('q', {reshape(x(1:4), 4, 1)}, 'w_est', {reshape(x(5:7), 3, 1)}, 'q_ref', {reshape(x(8:11), 4, 1)}, 'w_ref', {reshape(x(12:14), 3, 1)}, 'i_q', {reshape(x(15:17), 3, 1)}, 'tau_req', {reshape(x(18:20), 3, 1)}, 'mode', {x(21)}, 's_prop', {reshape(x(22:24), 3, 1)}, 's_prop_ok', {(x(25) ~= 0)}, 'cap', {reshape(x(26:28), 3, 1)}, 'hcap', {reshape(x(29:31), 3, 1)}), struct('mtq_law', {x(32)}, 'mtq_eps', {x(33)}, 'mtq_k1', {x(34)}, 'mtq_k2', {x(35)}, 'mtq_k16', {x(36)}, 'mtq_lam16', {x(37)}, 'sb_kp', {x(38)}, 'sb_kd', {x(39)}, 'sb_kroll', {x(40)}, 'sb_kdroll', {x(41)}, 'sb_roll_gate', {x(42)}, 'sun_axis', {reshape(x(43:45), 3, 1)}, 'roll_axis', {reshape(x(46:48), 3, 1)}, 'mtq_pth', {reshape(x(49:57), 3, 3).'}, 'mtq_pw', {reshape(x(58:66), 3, 3).'}, 'mtq_period', {x(67)}, 'j', {reshape(x(68:76), 3, 3).'}, 'capture_deg', {x(77)}, 'capture_rate_deg_s', {x(78)}, 'sa_w_max_deg_s', {x(79)}, 'sa_kd', {x(80)}, 'g_law', {x(81)}, 'g_kp', {reshape(x(82:84), 3, 1)}, 'g_kd', {reshape(x(85:87), 3, 1)}, 'g_ki', {reshape(x(88:90), 3, 1)}, 'g_klqr', {reshape(x(91:99), 3, 3).'}, 'g_lambda', {x(100)}, 'g_phi', {x(101)}, 'g_gs', {reshape(x(102:104), 3, 1)}, 'g_err_max', {x(105)}, 'g_int_max', {x(106)}), reshape(x(107:109), 3, 1));
             y = [[reshape(o1.q, [], 1); reshape(o1.w_est, [], 1); reshape(o1.q_ref, [], 1); reshape(o1.w_ref, [], 1); reshape(o1.i_q, [], 1); reshape(o1.tau_req, [], 1); double(o1.mode); reshape(o1.s_prop, [], 1); double(o1.s_prop_ok); reshape(o1.cap, [], 1); reshape(o1.hcap, [], 1)]];
+        case 'steplaws::damp_excess'
+            [o1] = asils.alg.steplaws.damp_excess(reshape(x(1:3), 3, 1));
+            y = [reshape(o1, [], 1)];
+        case 'steplaws::damp_torque'
+            [o1] = asils.alg.steplaws.damp_torque(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1));
+            y = [reshape(o1, [], 1)];
+        case 'steplaws::damp_dipole'
+            [o1] = asils.alg.steplaws.damp_dipole(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), x(7));
+            y = [reshape(o1, [], 1)];
         case 'steplaws::alloc_rotors'
             [o1, o2] = asils.alg.steplaws.alloc_rotors(reshape(x(1:3), 3, 1), reshape(x(4:27), 8, 3).', reshape(x(28:35), 8, 1), reshape(x(36:39), 4, 1), x(40), x(41), reshape(x(42:49), 8, 1), reshape(x(50:57), 8, 1), reshape(x(58:65), 8, 1), reshape(x(66:73), 8, 1), reshape(x(74:85), 3, 4).', x(86), x(87), x(88), x(89), reshape(x(90:97), 8, 1));
             y = [reshape(o1, [], 1); reshape(o2, [], 1)];

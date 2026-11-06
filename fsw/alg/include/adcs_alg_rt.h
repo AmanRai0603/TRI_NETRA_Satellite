@@ -39,5 +39,6 @@ static inline pc_a3f pc_sub_a3f(pc_a3f a, pc_a3f b) { pc_a3f r = a; int i; for (
 static inline pc_a3f pc_scale_a3f(pc_a3f a, double s) { pc_a3f r = a; int i; for (i = 0; i < 3; i++) { r.v[i] = a.v[i] * s; } return r; }
 static inline pc_a3f pc_cross_a3f(pc_a3f a, pc_a3f b) { pc_a3f r; r.v[0] = a.v[1] * b.v[2] - a.v[2] * b.v[1]; r.v[1] = a.v[2] * b.v[0] - a.v[0] * b.v[2]; r.v[2] = a.v[0] * b.v[1] - a.v[1] * b.v[0]; return r; }
 static inline pc_a3f pc_add_a3f(pc_a3f a, pc_a3f b) { pc_a3f r = a; int i; for (i = 0; i < 3; i++) { r.v[i] = a.v[i] + b.v[i]; } return r; }
+static inline pc_a3f pc_div_a3f(pc_a3f a, double s) { pc_a3f r = a; int i; for (i = 0; i < 3; i++) { r.v[i] = a.v[i] / s; } return r; }
 
 #endif

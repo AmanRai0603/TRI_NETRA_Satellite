@@ -214,6 +214,37 @@ fn ctl_sun_acq(st: CtlState, cp: CtlParams, hdev: vec3[1] in -0.01 .. 0.01) -> s
     s.tau_req = cp.j*x + gy
 end
 
+## The rate damping of a pointing state whose attitude is invalid (DR-fdir-002, G4). Without the attitude there is no pointing
+## error to follow, and the body may be turning at the rate its pointing asks (a nadir hold turns at the orbital rate, 1.1e-3
+## rad/s at 400 km): only the rate beyond 2e-3 rad/s (the developer's bound, about twice that, for gdn to sign) is damped, so
+## that the hold is not stopped inertially across a gap of the attitude and the rate stays bounded.
+## The part of the rate beyond the bound, along the rate.
+fn damp_excess(w: vec3[1] in -0.3 .. 0.3) -> e: vec3[1]
+    e = 0
+    let n = norm(w)
+    if n > 2e-3
+        e = w*(1.0 - 2e-3/n)
+    end
+end
+
+## The torque -kd e against the excess rate (kd the rotor loop's rate gain).
+fn damp_torque(kd: vec3[1] in 0 .. 10, w: vec3[1] in -0.3 .. 0.3) -> tau: vec3[1]
+    let e = damp_excess(w)
+    for i in 0 .. 3
+        tau[i] = -kd[i]*e[i]
+    end
+end
+
+## The dipole that makes it for the coils, (k/|B|) (e x b) with b the unit field (the detumble law's sign: the torque
+## -k e perpendicular to the field).
+fn damp_dipole(w: vec3[1] in -0.3 .. 0.3, b: vec3[1] in -6e-5 .. 6e-5, k: real[1] in 0 .. 1e6) -> m: vec3[1]
+    m = 0
+    let bn = norm(b)
+    if bn > 1e-9
+        m = cross(damp_excess(w), b/bn)*(k/bn)
+    end
+end
+
 ## The rotor commands for a torque: the fixed rotors still working by the minimum-norm inverse,
 ## the gimbals by singularity-robust steering (VSCMG rotors take their momentum rate and a null
 ## motion back to their nominal momentum). Commands of rotors not set keep their value.

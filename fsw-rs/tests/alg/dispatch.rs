@@ -335,6 +335,21 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             let r = crate::steplaws::ctl_sun_acq(crate::steplaws::CtlState { q: [x[0], x[1], x[2], x[3]], w_est: [x[4], x[5], x[6]], q_ref: [x[7], x[8], x[9], x[10]], w_ref: [x[11], x[12], x[13]], i_q: [x[14], x[15], x[16]], tau_req: [x[17], x[18], x[19]], mode: x[20] as i64, s_prop: [x[21], x[22], x[23]], s_prop_ok: x[24] != 0.0, cap: [x[25], x[26], x[27]], hcap: [x[28], x[29], x[30]] }, crate::steplaws::CtlParams { mtq_law: x[31] as i64, mtq_eps: x[32], mtq_k1: x[33], mtq_k2: x[34], mtq_k16: x[35], mtq_lam16: x[36], sb_kp: x[37], sb_kd: x[38], sb_kroll: x[39], sb_kdroll: x[40], sb_roll_gate: x[41], sun_axis: [x[42], x[43], x[44]], roll_axis: [x[45], x[46], x[47]], mtq_pth: [[x[48], x[49], x[50]], [x[51], x[52], x[53]], [x[54], x[55], x[56]]], mtq_pw: [[x[57], x[58], x[59]], [x[60], x[61], x[62]], [x[63], x[64], x[65]]], mtq_period: x[66], j: [[x[67], x[68], x[69]], [x[70], x[71], x[72]], [x[73], x[74], x[75]]], capture_deg: x[76], capture_rate_deg_s: x[77], sa_w_max_deg_s: x[78], sa_kd: x[79], g_law: x[80] as i64, g_kp: [x[81], x[82], x[83]], g_kd: [x[84], x[85], x[86]], g_ki: [x[87], x[88], x[89]], g_klqr: [[x[90], x[91], x[92]], [x[93], x[94], x[95]], [x[96], x[97], x[98]]], g_lambda: x[99], g_phi: x[100], g_gs: [x[101], x[102], x[103]], g_err_max: x[104], g_int_max: x[105] }, [x[106], x[107], x[108]]);
             for v in r.q.iter() { let v = *v; out.push(v); } for v in r.w_est.iter() { let v = *v; out.push(v); } for v in r.q_ref.iter() { let v = *v; out.push(v); } for v in r.w_ref.iter() { let v = *v; out.push(v); } for v in r.i_q.iter() { let v = *v; out.push(v); } for v in r.tau_req.iter() { let v = *v; out.push(v); } out.push(r.mode as f64); for v in r.s_prop.iter() { let v = *v; out.push(v); } out.push(if r.s_prop_ok { 1.0 } else { 0.0 }); for v in r.cap.iter() { let v = *v; out.push(v); } for v in r.hcap.iter() { let v = *v; out.push(v); }
         }
+        "steplaws::damp_excess" => {
+            if x.len() != 3 { return None; }
+            let r = crate::steplaws::damp_excess([x[0], x[1], x[2]]);
+            for v in r.iter() { let v = *v; out.push(v); }
+        }
+        "steplaws::damp_torque" => {
+            if x.len() != 6 { return None; }
+            let r = crate::steplaws::damp_torque([x[0], x[1], x[2]], [x[3], x[4], x[5]]);
+            for v in r.iter() { let v = *v; out.push(v); }
+        }
+        "steplaws::damp_dipole" => {
+            if x.len() != 7 { return None; }
+            let r = crate::steplaws::damp_dipole([x[0], x[1], x[2]], [x[3], x[4], x[5]], x[6]);
+            for v in r.iter() { let v = *v; out.push(v); }
+        }
         "steplaws::alloc_rotors" => {
             if x.len() != 97 { return None; }
             let r = crate::steplaws::alloc_rotors([x[0], x[1], x[2]], [[x[3], x[4], x[5], x[6], x[7], x[8], x[9], x[10]], [x[11], x[12], x[13], x[14], x[15], x[16], x[17], x[18]], [x[19], x[20], x[21], x[22], x[23], x[24], x[25], x[26]]], [x[27], x[28], x[29], x[30], x[31], x[32], x[33], x[34]], [x[35], x[36], x[37], x[38]], x[39] as i64, x[40] as i64, [x[41] as i64, x[42] as i64, x[43] as i64, x[44] as i64, x[45] as i64, x[46] as i64, x[47] as i64, x[48] as i64], [x[49] as i64, x[50] as i64, x[51] as i64, x[52] as i64, x[53] as i64, x[54] as i64, x[55] as i64, x[56] as i64], [x[57] != 0.0, x[58] != 0.0, x[59] != 0.0, x[60] != 0.0, x[61] != 0.0, x[62] != 0.0, x[63] != 0.0, x[64] != 0.0], [x[65], x[66], x[67], x[68], x[69], x[70], x[71], x[72]], [[x[73], x[74], x[75]], [x[76], x[77], x[78]], [x[79], x[80], x[81]], [x[82], x[83], x[84]]], x[85], x[86], x[87], x[88], [x[89], x[90], x[91], x[92], x[93], x[94], x[95], x[96]]);
