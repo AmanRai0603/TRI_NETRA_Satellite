@@ -25,6 +25,11 @@ from engine_runs import one, scenarios
 
 TABLE = OUT / "golden.json"
 SCHEMA = "trinetra-golden/1"
+CAMPAIGN_TOL = 0.05
+CAMPAIGN_NOTE = ("DR-vv-003: a campaign run flown on another toolchain fingerprint passes when every verdict is equal and every "
+                 "metric is within this relative tolerance; a Monte Carlo run of fine pointing is noise-dominated, so another "
+                 "libm moves its metrics by up to percent; 5 % is the tolerance O19 uses for SILS against soft OILS "
+                 "(docs/TEST_BENCH_PLAN.md section 5)")
 SEED = 1
 # the tolerance a metric starts with when the table is first written (afterwards the table's column rules):
 # a time to a threshold moves by whole samples, a count by whole events, anything else by rounding
@@ -142,6 +147,8 @@ def write(a):
             was = (old or {}).get("scenarios", {}).get(scen, {}).get("metrics", {}).get(mid)
             m["rel_tol"] = was["rel_tol"] if was else START_TOL.get(m["kind"], DEFAULT_TOL)
     table = {"schema": SCHEMA, "decision": "DR-vv-003", "seed": SEED, "fsw": "c", "fingerprint": fp,
+             "campaign_relative_tolerance": old["campaign_relative_tolerance"] if old else CAMPAIGN_TOL,
+             "campaign_relative_tolerance_note": old["campaign_relative_tolerance_note"] if old else CAMPAIGN_NOTE,
              "scenarios": {k: v for k, v in sorted((keep | rows).items())}}
     write_text(TABLE, json.dumps(table, indent=1, allow_nan=True) + "\n")
     print(f"wrote {TABLE.relative_to(TABLE.parent.parent)}: {len(table['scenarios'])} scenario(s)")

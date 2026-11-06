@@ -29,6 +29,7 @@ Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 import argparse
 import concurrent.futures as cf
 import json
+import math
 import os
 import pathlib
 import shutil
@@ -59,41 +60,43 @@ def campaign_fingerprint():
     return json.loads(CAMPAIGN_FINGERPRINT.read_text()).get("fingerprint", "unrecorded")
 
 
-def golden_tolerances():
-    """Relative tolerance per metric kind from results/golden.json (the largest the table states for the kind)."""
-    t = json.loads(golden.TABLE.read_text())
-    out = {}
-    for sc in t["scenarios"].values():
-        for m in sc["metrics"].values():
-            out[m["kind"]] = max(out.get(m["kind"], 0.0), m["rel_tol"])
-    return out
-
-
-def as_row(metrics, tols):
-    return {"algorithms": {}, "metrics": {m["id"]: {"kind": m["kind"], "value": m["value"], "pass": m["pass"],
-                                                     "rel_tol": tols.get(m["kind"], golden.DEFAULT_TOL)} for m in metrics}}
+def campaign_tolerance():
+    """The relative tolerance of a campaign run on another toolchain: the one number golden.json states
+    (campaign_relative_tolerance, DR-vv-003)."""
+    return float(json.loads(golden.TABLE.read_text())["campaign_relative_tolerance"])
 
 
 def relative(a, b):
-    if not all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in (a, b)) or a == b:
+    """|a - b| / max(|a|, |b|); 0 when equal (two NaN are equal); infinite when a value is not a number or one is."""
+    num = [isinstance(x, (int, float)) and not isinstance(x, bool) for x in (a, b)]
+    if all(num) and a != a and b != b:
         return 0.0
+    if a == b:
+        return 0.0
+    if not all(num) or a != a or b != b:
+        return math.inf
     m = max(abs(a), abs(b))
     return abs(a - b) / m if m else 0.0
 
 
-def judge(got, want, fingerprint, recorded, tols):
+def judge(got, want, fingerprint, recorded, tol):
     """(status, why, largest relative difference) of one re-flown run against its stored metrics: bit-exact; else, when the
-    fingerprint is not the record's, each metric within its kind's tolerance and every verdict equal; else why not."""
+    fingerprint is not the record's, every verdict equal and every metric within the campaign tolerance tol (relative); else why."""
     if got == want:
         return "exact", None, 0.0
     if fingerprint == recorded:      # the toolchain is the record's: any change is a change
         return None, "its metrics differ", 0.0
     if [m["id"] for m in got] != [m["id"] for m in want]:
         return None, "its metrics differ (the metric ids)", 0.0
-    diffs = golden.compare(as_row(want, tols), as_row(got, tols), False)
-    if diffs:
-        return None, "; ".join(f"{m}: {why} (stored {a}, new {b})" for m, a, b, why in diffs), 0.0
-    return "tolerance", None, max([relative(w["value"], g["value"]) for w, g in zip(want, got)] or [0.0])
+    bad, worst = [], 0.0
+    for w, g in zip(want, got):
+        r = relative(w["value"], g["value"])
+        if w["pass"] != g["pass"]:
+            bad.append(f"{w['id']}: verdict (stored {w['pass']}, new {g['pass']})")
+        elif r > tol:
+            bad.append(f"{w['id']}: outside relative tolerance {tol:g} (stored {w['value']}, new {g['value']})")
+        worst = max(worst, r)
+    return ("tolerance", None, worst) if not bad else (None, "; ".join(bad), 0.0)
 
 
 class Gate:
@@ -201,7 +204,7 @@ class Gate:
                 jobs.append((C, r, sets, d, summ.get("fsw") if summ.get("fsw") in ("c", "rust") else "c"))
 
         recorded = campaign_fingerprint()
-        tols = golden_tolerances()
+        tols = campaign_tolerance()
 
         def one(j):
             C, want, sets, d, fsw = j
