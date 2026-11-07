@@ -374,6 +374,37 @@ def campaign(a):
     return failed_total
 
 
+def comparison_sentence(rows):
+    """What the ledger says of the two sides' run counts and pass rates, from the data's own numbers: the run
+    counts per campaign, and on how many judged metrics each side's pass rate is the lower (the more
+    conservative there). Nothing is claimed that the numbers do not show."""
+    out = []
+    counts = {}
+    for r in rows:
+        if r.get("matlab_runs") is not None and r.get("engine_runs") is not None:
+            counts[r["campaign"]] = (r["matlab_runs"], r["engine_runs"])
+    if counts:
+        if all(m == e for m, e in counts.values()):
+            out.append("The two sides flew the same run count in every campaign they share.")
+        else:
+            uneq = "; ".join(f"{c}: MATLAB twin {m}, engine {e}" for c, (m, e) in sorted(counts.items()) if m != e)
+            out.append(f"The run counts are not the same on both sides ({uneq}), so pass rates and spreads compare samples of different size.")
+    judged = [r for r in rows if r.get("matlab_pass_rate") is not None and r.get("engine_pass_rate") is not None]
+    if judged:
+        lower = sum(r["engine_pass_rate"] < r["matlab_pass_rate"] for r in judged)
+        higher = sum(r["engine_pass_rate"] > r["matlab_pass_rate"] for r in judged)
+        equal = len(judged) - lower - higher
+        parts = []
+        if lower:
+            parts.append(f"lower than the twin's on {lower} (the engine the more conservative there)")
+        if higher:
+            parts.append(f"higher on {higher} (the MATLAB twin the more conservative there)")
+        if equal:
+            parts.append(f"equal on {equal}")
+        out.append(f"Of the {len(judged)} judged metrics that both sides report, the engine's pass rate is " + ", ".join(parts) + ".")
+    return out
+
+
 def campaign_ledger(announce=False):
     """results/ENGINE_CAMPAIGNS.md: every campaign, engine vs MATLAB twin, requirement metrics.
     `announce`: say its own steps (when it is the command, not the last step of `campaign`)."""
@@ -389,7 +420,8 @@ def campaign_ledger(announce=False):
          "Two differences are by design and are named, not hidden: the random streams (Mersenne twister vs",
          "SplitMix64 / Python) so MC realisations differ and only distributions compare; and the flight software",
          "on the engine keeps the NOMINAL (ground-calibrated) inertia while the plant is dispersed, whereas the",
-         "MATLAB twin's control laws read the dispersed inertia. The engine is therefore the more conservative.", ""]
+         "MATLAB twin's control laws read the dispersed inertia.", ""]
+    head_end = len(L)
     allrows = []
     for cid in sorted(p.stem for p in CAMP.glob("*.json")):
         e, m = ENG / "campaigns" / cid / "summary.json", TWIN / cid / "summary.json"
@@ -407,7 +439,8 @@ def campaign_ledger(announce=False):
                 continue
             mm = lambda z: "—" if z.get("mean") is None else f"{z['mean']:.4g} ± {z.get('std', 0):.3g} [{z['min']:.4g}, {z['max']:.4g}]"
             L.append(f"| {s['id']} ({s['unit']}) | {fmt(s.get('req'))} | {mm(t) if t else '—'} | {pr(t.get('pass_rate')) if t else '—'} | {mm(s)} | {pr(s.get('pass_rate'))} |")
-            allrows.append({"campaign": cid, "metric": s["id"], "req": s.get("req"), "matlab_pass_rate": t.get("pass_rate"), "engine_pass_rate": s.get("pass_rate"),
+            allrows.append({"campaign": cid, "metric": s["id"], "req": s.get("req"), "matlab_runs": M.get("runs") if t else None, "engine_runs": E["runs"],
+                            "matlab_pass_rate": t.get("pass_rate"), "engine_pass_rate": s.get("pass_rate"),
                             "matlab_mean": t.get("mean"), "engine_mean": s.get("mean"), "matlab_std": t.get("std"), "engine_std": s.get("std")})
         if E.get("interpretations"):
             L += ["", "ECSS-E-ST-60-10C interpretations of the error metrics (engine): temporal = the statistic in each run, worst run;",
@@ -432,6 +465,11 @@ def campaign_ledger(announce=False):
                     cells.append(f"{fmt(mv)} / {fmt(ev)}")
                 L.append(f"| {k} | {lab} | " + " | ".join(cells) + " |")
         L.append("")
+    L[head_end:head_end] = comparison_sentence(allrows) + [""]
+    two = OUT / "engine_twosample.json"
+    if two.exists():            # the two-sample campaign (tools/engine_twosample.py), when it has been flown
+        import engine_twosample
+        L += engine_twosample.section(json.loads(two.read_text()))
     OUT.mkdir(exist_ok=True)
     S(2)
     write_text(OUT / "engine_campaigns.json", json.dumps(allrows, indent=1))

@@ -21,6 +21,9 @@ software in C (fsw/) or Rust (fsw-rs/), all from one pseudocode (fsw/pseudocode)
   python3 tools/engine.py campaign [id ...]                         every Monte Carlo / edge campaign on the engine
                                                                     (asils.campaign.draw semantics) vs the MATLAB twin
                                                                     -> results/ENGINE_CAMPAIGNS.md
+  python3 tools/engine.py twosample <campaign> [--draws 100]       the same draws on the engine and the MATLAB twin and a
+                                                                    Mann-Whitney test per metric -> results/engine_twosample.json
+                                                                    (a section of results/ENGINE_CAMPAIGNS.md)
   python3 tools/engine.py oils [scen ...] [--fsw qemu|qemu-rs]      SILS and soft OILS (flight software as Cortex-M4F
                                                                     firmware, exact instruction timing, command latency)
                                                                     side by side -> results/SOFT_OILS.md
@@ -49,6 +52,7 @@ from engine_campaigns import (
     AP_NODES, CAMP, KP_NODES, camp_job, campaign, campaign_ledger,
     case_values, draw, kp2ap, summarise,
 )
+from engine_twosample import twosample
 from engine_oils import (
     oils, oils_job, oils_ledger,
 )
@@ -82,6 +86,10 @@ def main():
     p.add_argument("--keep-runs", action="store_true", help="keep every run's folder after the summary (by default only run_0001, the "
                    "campaign's provenance, stays: summary.json holds every run's metrics and draws, all its figures need)")
     p.add_argument("--jobs", type=int, default=os.cpu_count()); p.set_defaults(f=campaign)
+    p = sp.add_parser("twosample", help="identical draws on the engine and the twin, a Mann-Whitney test per metric (tools/engine_twosample.py)")
+    p.add_argument("id"); p.add_argument("--draws", type=int, default=100); p.add_argument("--fsw", default="c")
+    p.add_argument("--duration-s", type=float, default=None, help="a shorter run than the campaign's (a smoke test)")
+    p.add_argument("--out", default=None); p.add_argument("--jobs", type=int, default=os.cpu_count()); p.set_defaults(f=twosample)
     sp.add_parser("campaign-ledger").set_defaults(f=lambda a: campaign_ledger(announce=True))
     p = sp.add_parser("oils"); p.add_argument("scenarios", nargs="*"); p.add_argument("--fsw", default="qemu")
     p.add_argument("--cpi", type=float, nargs="+", default=None, help="also fly each scenario at each of these CPIs (the sweep)")
