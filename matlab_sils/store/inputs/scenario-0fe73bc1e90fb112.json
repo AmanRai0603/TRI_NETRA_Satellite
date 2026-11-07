@@ -1,0 +1,64 @@
+{
+ "case": "ais_img_3u",
+ "faults": [
+  {
+   "kind": "clock_jitter",
+   "t_s": 1.0,
+   "value": 1e-06
+  }
+ ],
+ "fsw": {
+  "guidance": {
+   "kind": "nadir"
+  },
+  "rw_bandwidth": 0.9,
+  "rw_damping": 2.0,
+  "rw_rate_hz": 10.0,
+  "start_mode": "nadir_fine"
+ },
+ "id": "fault_clock_jitter_1us",
+ "initial": {
+  "attitude": {
+   "angle_deg": 2.0,
+   "axis_body": [
+    0.577,
+    0.577,
+    0.577
+   ],
+   "kind": "error_from_target"
+  },
+  "rate": {
+   "kind": "lvlh"
+  }
+ },
+ "label": "3U imaging - timestamps jittered by +/- 1 us",
+ "metrics": [
+  {
+   "id": "fine_law_fraction",
+   "kind": "fine_law_fraction",
+   "limit": 99.9,
+   "sense": "min"
+  },
+  {
+   "id": "ape_los_p9973",
+   "kind": "ape_los",
+   "requirement": "req.ape",
+   "statistic": "p99.73",
+   "window": "after_s:1500"
+  },
+  {
+   "id": "ake_los_p9973",
+   "kind": "ake_los",
+   "requirement": "req.ake",
+   "statistic": "p99.73",
+   "window": "after_s:1500"
+  }
+ ],
+ "product": "TRN-P-3U-IMG",
+ "schema": "adcs-scenario/1",
+ "time": {
+  "dt_s": 0.1,
+  "duration_s": 2000.0,
+  "record_dt_s": 0.1
+ }
+}

@@ -1,0 +1,60 @@
+{
+ "case": "ais_img_3u",
+ "faults": [
+  {
+   "index": 1,
+   "kind": "st_head_fail",
+   "t_s": 1300.0
+  },
+  {
+   "index": 2,
+   "kind": "st_head_fail",
+   "t_s": 1300.0
+  },
+  {
+   "kind": "fsw_reset",
+   "t_s": 1400.0
+  }
+ ],
+ "fsw": {
+  "guidance": {
+   "kind": "nadir"
+  },
+  "rw_bandwidth": 0.9,
+  "rw_damping": 2.0,
+  "rw_rate_hz": 10.0,
+  "start_mode": "nadir_fine"
+ },
+ "id": "fault_st_blind",
+ "initial": {
+  "attitude": {
+   "angle_deg": 2.0,
+   "axis_body": [
+    0.577,
+    0.577,
+    0.577
+   ],
+   "kind": "error_from_target"
+  },
+  "rate": {
+   "kind": "lvlh"
+  }
+ },
+ "label": "3U imaging - both star-tracker heads fail and the flight software resets in the eclipse: the attitude is invalid",
+ "metrics": [
+  {
+   "id": "rate_max_blind",
+   "kind": "rate_stability",
+   "limit": 0.2,
+   "statistic": "max",
+   "window": "after_s:1500"
+  }
+ ],
+ "product": "TRN-P-3U-IMG",
+ "schema": "adcs-scenario/1",
+ "time": {
+  "dt_s": 0.1,
+  "duration_s": 3300.0,
+  "record_dt_s": 1.0
+ }
+}

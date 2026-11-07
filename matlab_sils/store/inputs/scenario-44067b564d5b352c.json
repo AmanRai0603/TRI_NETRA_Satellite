@@ -1,0 +1,64 @@
+{
+ "case": "ais_img_3u",
+ "faults": [
+  {
+   "kind": "gyro_fail",
+   "t_s": 1200.0
+  }
+ ],
+ "fsw": {
+  "guidance": {
+   "kind": "nadir"
+  },
+  "rw_bandwidth": 0.9,
+  "rw_damping": 2.0,
+  "rw_rate_hz": 10.0,
+  "start_mode": "nadir_fine"
+ },
+ "id": "fault_gyro_silent",
+ "initial": {
+  "attitude": {
+   "angle_deg": 2.0,
+   "axis_body": [
+    0.577,
+    0.577,
+    0.577
+   ],
+   "kind": "error_from_target"
+  },
+  "rate": {
+   "kind": "lvlh"
+  }
+ },
+ "label": "3U imaging - the gyro freezes on its last sample, flagged ok, during fine hold",
+ "metrics": [
+  {
+   "id": "ake_3ax_max",
+   "kind": "ake",
+   "limit": 1.0,
+   "statistic": "max",
+   "window": "pointing"
+  },
+  {
+   "diagnostic": "the knowledge error across the line of sight, beside the judged three-axis bound (a clean run holds 0.004 deg)",
+   "id": "ake_los_max",
+   "kind": "ake_los",
+   "statistic": "max",
+   "window": "pointing"
+  },
+  {
+   "diagnostic": "the performance error across the line of sight (a clean run holds 0.008 deg)",
+   "id": "ape_los_max",
+   "kind": "ape_los",
+   "statistic": "max",
+   "window": "pointing"
+  }
+ ],
+ "product": "TRN-P-3U-IMG",
+ "schema": "adcs-scenario/1",
+ "time": {
+  "dt_s": 0.1,
+  "duration_s": 5740.0,
+  "record_dt_s": 0.1
+ }
+}
