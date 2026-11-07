@@ -2870,6 +2870,16 @@ function y = call(name, x)
         case 'kpistats::kpi_confidence_verdict'
             [o1, o2, o3] = asils.models.kpistats.kpi_confidence_verdict(x(1), x(2), x(3), x(4));
             y = [double(o1); double(o2); double(o3)];
+        case 'kpistats::kpi_mann_whitney'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            n2 = x(at + 1);
+            a2 = reshape(x(at + 2:at + 1 + n2), [], 1);
+            at = at + 1 + n2;
+            [o1, o2, o3, o4, o5, io1, io2] = asils.models.kpistats.kpi_mann_whitney(a1, a2);
+            y = [double(o1); double(o2); double(o3); double(o4); double(o5); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1)];
         case 'emucodec::emu_scale'
             [o1] = asils.models.emucodec.emu_scale();
             y = [[double(o1.mag); double(o1.gyro); double(o1.unit); double(o1.q); double(o1.pos); double(o1.vel); double(o1.h); double(o1.delta); double(o1.word); double(o1.valve); double(o1.lo16); double(o1.hi16); double(o1.lo32); double(o1.hi32)]];

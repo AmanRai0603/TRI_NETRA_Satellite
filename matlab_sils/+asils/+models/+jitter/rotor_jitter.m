@@ -17,21 +17,21 @@ function [j] = rotor_jitter(n, h, jrot, us, ud, jmin, d, wbw)
     for i = (0):((n) - 1)
         t = 0;
         if ((~((us((i) + 1) == 0) && (ud((i) + 1) == 0))) && (jrot((i) + 1) > 0))
-            h__669 = h((i) + 1);
-            if h__669 < 0, h__669 = -h__669; elseif h__669 == 0, h__669 = 0; end
-            w = (h__669 / jrot((i) + 1));
+            h__675 = h((i) + 1);
+            if h__675 < 0, h__675 = -h__675; elseif h__675 == 0, h__675 = 0; end
+            w = (h__675 / jrot((i) + 1));
             if (~isfinite(w))
                 w = 0;
             end
-            h__670 = (w * w);
-            h__671 = (wbw * wbw);
-            if h__671 > h__670, h__670 = h__671; end
-            th = (((((us((i) + 1) * d) + ud((i) + 1)) * w) * w) / (jmin * h__670));
+            h__676 = (w * w);
+            h__677 = (wbw * wbw);
+            if h__677 > h__676, h__676 = h__677; end
+            th = (((((us((i) + 1) * d) + ud((i) + 1)) * w) * w) / (jmin * h__676));
             t = (th * th);
         end
         th2 = (th2 + t);
     end
-    h__672 = th2;
-    if h__672 < 0, h__672 = NaN; else, h__672 = sqrt(h__672); end
-    j = ((h__672 * (180 / pi)) * 3600);
+    h__678 = th2;
+    if h__678 < 0, h__678 = NaN; else, h__678 = sqrt(h__678); end
+    j = ((h__678 * (180 / pi)) * 3600);
 end

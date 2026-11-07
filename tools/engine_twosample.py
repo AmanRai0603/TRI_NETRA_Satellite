@@ -4,7 +4,7 @@ whether each metric's values come from the same distribution (A2).
 The engine's own campaigns and the twin's draw from different random streams, so their run counts and
 realisations differ. Here the draws are the engine's (engine_campaigns.draw, run k of the campaign's
 seed), written once to a file; the engine reads them as `--set` strings and the twin through
-matlab_sils/tools/run_draws.m, so a pair of runs differs only in the simulator. The test is the Mann-Whitney
+matlab_sils/tools/run_draws.m, so a pair of runs differs only in the simulator. The test is the design's Mann-Whitney
 U test (normal approximation with tie correction and continuity correction), a published two-sample test of
 a location shift; it judges no requirement, it says whether the two simulators agree on a metric.
 
@@ -15,6 +15,7 @@ Copyright (c) 2026 Agastya. All rights reserved.
 """
 import concurrent.futures as cf, json, math, pathlib, statistics, subprocess
 from common import write_text
+from design_call import Buf, call
 from engine_base import ENG, OUT, ROOT, TWIN
 import engine_campaigns as EC
 
@@ -22,35 +23,13 @@ MIN_DRAWS = 100          # fewer is a smoke test, not a result
 
 
 def mann_whitney(a, b):
-    """Mann-Whitney U test of two samples (non-finite values are left out). Returns n1, n2, u (the smaller of the
-    two U statistics), z and the two-sided p-value by the normal approximation with the tie correction and a
-    continuity correction; p is None when a side is empty, 1 when every value is tied."""
-    fin = lambda v: [float(x) for x in v if isinstance(x, (int, float)) and math.isfinite(x)]
-    a, b = fin(a), fin(b)
-    n1, n2 = len(a), len(b)
-    if not n1 or not n2:
-        return {"n1": n1, "n2": n2, "u": None, "z": None, "p": None}
-    allv = sorted([(x, 0) for x in a] + [(x, 1) for x in b])
-    ranks, ties, i = [0.0] * len(allv), 0.0, 0
-    while i < len(allv):
-        j = i
-        while j + 1 < len(allv) and allv[j + 1][0] == allv[i][0]:
-            j += 1
-        for k in range(i, j + 1):
-            ranks[k] = (i + j) / 2 + 1
-        t = j - i + 1
-        ties += t ** 3 - t
-        i = j + 1
-    r1 = sum(r for r, (_, side) in zip(ranks, allv) if side == 0)
-    u1 = r1 - n1 * (n1 + 1) / 2
-    u = min(u1, n1 * n2 - u1)
-    n = n1 + n2
-    mu = n1 * n2 / 2
-    var = n1 * n2 / 12 * ((n + 1) - ties / (n * (n - 1))) if n > 1 else 0.0
-    if var <= 0:
-        return {"n1": n1, "n2": n2, "u": u, "z": 0.0, "p": 1.0}
-    z = (abs(u1 - mu) - 0.5) / math.sqrt(var) if abs(u1 - mu) > 0.5 else 0.0
-    return {"n1": n1, "n2": n2, "u": u, "z": z, "p": math.erfc(z / math.sqrt(2))}
+    """The design's Mann-Whitney U test (kpistats::kpi_mann_whitney, asked of the engine): n1, n2, u, z and the
+    two-sided p; u, z and p are None when a side has no finite value. This file keeps no test of its own."""
+    num = lambda v: [float(x) if isinstance(x, (int, float)) else math.nan for x in v]
+    out = call("kpistats::kpi_mann_whitney", Buf(num(a)), Buf(num(b)))
+    n1, n2, u, z, p = out[:5]
+    nn = lambda x: None if math.isnan(x) else x
+    return {"n1": int(n1), "n2": int(n2), "u": nn(u), "z": nn(z), "p": nn(p)}
 
 
 def identical_draws(C, n):

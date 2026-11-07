@@ -56,3 +56,12 @@ pub fn lookup_linear<const C: usize, const R: usize>(t: &[[f64; C]; R], x: f64) 
     for j in 0..C { r[j] = t[i][j] + s * (t[i + 1][j] - t[i][j]); }
     r
 }
+extern "C" {
+    #[link_name = "erf"]
+    fn c_erf(x: f64) -> f64;
+}
+/// The error function of the platform's C maths library, the one C and MATLAB call (Rust's std has none).
+pub fn erf(x: f64) -> f64 {
+    // SAFETY: erf is a pure C99 <math.h> function of one double, in the system libm std already links.
+    unsafe { c_erf(x) }
+}

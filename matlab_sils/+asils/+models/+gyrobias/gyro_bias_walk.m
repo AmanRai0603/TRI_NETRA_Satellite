@@ -10,7 +10,7 @@ function [w, g] = gyro_bias_walk(brw, rrw, dt, g)
     [t__597, t__598] = asils.pc.stream_normal3(g);
     n1 = t__597;
     g = t__598;
-    h__691 = dt;
-    if h__691 < 0, h__691 = NaN; else, h__691 = sqrt(h__691); end
-    w = (brw + ((rrw * h__691) * n1));
+    h__697 = dt;
+    if h__697 < 0, h__697 = NaN; else, h__697 = sqrt(h__697); end
+    w = (brw + ((rrw * h__697) * n1));
 end

@@ -1430,6 +1430,28 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             out.push(r.1);
             out.push(r.2);
         }
+        "kpistats::kpi_mann_whitney" => {
+            let mut at: usize = 0;
+            if x.len() < at + 1 { return None; }
+            let n0 = x[at] as usize;
+            if x.len() < at + 1 + n0 { return None; }
+            let mut io0 = x[at + 1..at + 1 + n0].to_vec();
+            at += 1 + n0;
+            if x.len() < at + 1 { return None; }
+            let n1 = x[at] as usize;
+            if x.len() < at + 1 + n1 { return None; }
+            let mut io1 = x[at + 1..at + 1 + n1].to_vec();
+            at += 1 + n1;
+            if x.len() != at { return None; }
+            let r = crate::kpistats::kpi_mann_whitney(&mut io0, &mut io1);
+            out.push(r.0 as f64);
+            out.push(r.1 as f64);
+            out.push(r.2);
+            out.push(r.3);
+            out.push(r.4);
+            out.push(io0.len() as f64); for v in io0.iter() { let v = *v; out.push(v); }
+            out.push(io1.len() as f64); for v in io1.iter() { let v = *v; out.push(v); }
+        }
         "jitter::jitter_min" => {
             if x.len() != 2 { return None; }
             let r = crate::jitter::jitter_min(x[0], x[1]);

@@ -380,3 +380,92 @@ fn kpi_confidence_verdict(n: int in 0 .. 2000, k: int in 0 .. 2000, p: real[1] i
         end
     end
 end
+
+## The Mann-Whitney U test of two samples a[0..na] and b[0..nb] (A2: do two simulators give the same distribution of a metric): a
+## value that is not finite is left out. Mann and Whitney (1947), Ann. Math. Statist. 18:50; the normal approximation with the
+## tie correction and the continuity correction as in Hollander and Wolfe, Nonparametric Statistical Methods, 2nd ed. (1999),
+## 4.1: the rank of a value among the finite values of both is the number below it and half of one more than the number equal to it
+## (the mid-rank); U1 is the first sample's rank sum less n1 (n1 + 1)/2, the statistic u the smaller of U1 and n1 n2 - U1; the
+## variance n1 n2/12 ((n + 1) - sum(t^3 - t)/(n (n - 1))), over the groups of t equal values, n = n1 + n2; z = (|U1 - n1 n2/2| -
+## 1/2)/sd (0 when the difference is no more than 1/2) and the two-sided p = erfc(z/sqrt 2) = 1 - erf(z/sqrt 2). With a side
+## empty there is no test (u, z and p are nan); with every value tied (no variance) z is 0 and p is 1. The ranks are counted in
+## pairs, so a sample of a few hundred is what it is for.
+## length: 24
+fn kpi_mann_whitney(a: inout real[1][*] in -1000 .. 1000, b: inout real[1][*] in -1000 .. 1000) -> (n1: int, n2: int, u: real[1], z: real[1], p: real[1])
+    n1 = 0
+    n2 = 0
+    for i in 0 .. len(a)
+        if isfinite(a[i])
+            n1 = n1 + 1
+        end
+    end
+    for i in 0 .. len(b)
+        if isfinite(b[i])
+            n2 = n2 + 1
+        end
+    end
+    u = nan
+    z = nan
+    p = nan
+    if n1 > 0 and n2 > 0
+        let r1: real[1] = 0.0
+        let ties: real[1] = 0.0
+        for side in 0 .. 2
+            let m = len(a)
+            if side == 1
+                m = len(b)
+            end
+            for i in 0 .. m
+                let x: real[1] = nan
+                if side == 0
+                    x = a[i]
+                else
+                    x = b[i]
+                end
+                if isfinite(x)
+                    let less: real[1] = 0.0
+                    let eq: real[1] = 0.0
+                    for j in 0 .. len(a)
+                        if isfinite(a[j])
+                            if a[j] < x
+                                less = less + 1.0
+                            elif a[j] == x
+                                eq = eq + 1.0
+                            end
+                        end
+                    end
+                    for j in 0 .. len(b)
+                        if isfinite(b[j])
+                            if b[j] < x
+                                less = less + 1.0
+                            elif b[j] == x
+                                eq = eq + 1.0
+                            end
+                        end
+                    end
+                    ties = ties + eq*eq - 1.0
+                    if side == 0
+                        r1 = r1 + less + (eq + 1.0)/2.0
+                    end
+                end
+            end
+        end
+        let f1 = real(n1)
+        let f2 = real(n2)
+        let ntot = f1 + f2
+        let u1 = r1 - f1*(f1 + 1.0)/2.0
+        u = min(u1, f1*f2 - u1)
+        let mu = f1*f2/2.0
+        let var = f1*f2/12.0*((ntot + 1.0) - ties/(ntot*(ntot - 1.0)))
+        if var <= 0.0
+            z = 0.0
+            p = 1.0
+        else
+            z = 0.0
+            if abs(u1 - mu) > 0.5
+                z = (abs(u1 - mu) - 0.5)/sqrt(var)
+            end
+            p = 1.0 - erf(z/sqrt(2.0))
+        end
+    end
+end

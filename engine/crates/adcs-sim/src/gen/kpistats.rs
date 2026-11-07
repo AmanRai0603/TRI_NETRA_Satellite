@@ -600,3 +600,136 @@ pub fn kpi_confidence_verdict(n: i64, k: i64, p: f64, g: f64) -> (i64, f64, f64)
     }
     (v, lower, upper)
 }
+
+/// The Mann-Whitney U test of two samples a[0..na] and b[0..nb] (A2: do two simulators give the same distribution of a metric): a
+/// value that is not finite is left out. Mann and Whitney (1947), Ann. Math. Statist. 18:50; the normal approximation with the
+/// tie correction and the continuity correction as in Hollander and Wolfe, Nonparametric Statistical Methods, 2nd ed. (1999),
+/// 4.1: the rank of a value among the finite values of both is the number below it and half of one more than the number equal to it
+/// (the mid-rank); U1 is the first sample's rank sum less n1 (n1 + 1)/2, the statistic u the smaller of U1 and n1 n2 - U1; the
+/// variance n1 n2/12 ((n + 1) - sum(t^3 - t)/(n (n - 1))), over the groups of t equal values, n = n1 + n2; z = (|U1 - n1 n2/2| -
+/// 1/2)/sd (0 when the difference is no more than 1/2) and the two-sided p = erfc(z/sqrt 2) = 1 - erf(z/sqrt 2). With a side
+/// empty there is no test (u, z and p are nan); with every value tied (no variance) z is 0 and p is 1. The ranks are counted in
+/// pairs, so a sample of a few hundred is what it is for.
+/// length: 24
+/// - a: inout real[1][*] (passed a plain number)
+/// - b: inout real[1][*] (passed a plain number)
+/// - returns n1: int (passed a whole number)
+/// - returns n2: int (passed a whole number)
+/// - returns u: real[1] (passed a plain number)
+/// - returns z: real[1] (passed a plain number)
+/// - returns p: real[1] (passed a plain number)
+#[allow(clippy::too_many_arguments)]
+pub fn kpi_mann_whitney(a: &mut [f64], b: &mut [f64]) -> (i64, i64, f64, f64, f64) {
+    let mut n1: i64 = 0;
+    let mut n2: i64 = 0;
+    let mut u: f64 = 0.0;
+    let mut z: f64 = 0.0;
+    let mut p: f64 = 0.0;
+    n1 = 0;
+    n2 = 0;
+    {
+        let __end77: i64 = ((*a).len() as i64);
+        let mut i: i64 = 0;
+        while i < __end77 {
+            if ((*a)[(i) as usize]).is_finite() {
+                n1 = (n1 + 1);
+            }
+            i += 1;
+        }
+    }
+    {
+        let __end78: i64 = ((*b).len() as i64);
+        let mut i: i64 = 0;
+        while i < __end78 {
+            if ((*b)[(i) as usize]).is_finite() {
+                n2 = (n2 + 1);
+            }
+            i += 1;
+        }
+    }
+    u = f64::NAN;
+    z = f64::NAN;
+    p = f64::NAN;
+    if ((n1 > 0) && (n2 > 0)) {
+        let mut r1: f64 = 0.0;
+        let mut ties: f64 = 0.0;
+        {
+            let __end79: i64 = 2;
+            let mut side: i64 = 0;
+            while side < __end79 {
+                let mut m: i64 = ((*a).len() as i64);
+                if (side == 1) {
+                    m = ((*b).len() as i64);
+                }
+                {
+                    let __end80: i64 = m;
+                    let mut i: i64 = 0;
+                    while i < __end80 {
+                        let mut x: f64 = f64::NAN;
+                        if (side == 0) {
+                            x = (*a)[(i) as usize];
+                        } else {
+                            x = (*b)[(i) as usize];
+                        }
+                        if (x).is_finite() {
+                            let mut less: f64 = 0.0;
+                            let mut eq: f64 = 0.0;
+                            {
+                                let __end81: i64 = ((*a).len() as i64);
+                                let mut j: i64 = 0;
+                                while j < __end81 {
+                                    if ((*a)[(j) as usize]).is_finite() {
+                                        if ((*a)[(j) as usize] < x) {
+                                            less = (less + 1.0);
+                                        } else if ((*a)[(j) as usize] == x) {
+                                            eq = (eq + 1.0);
+                                        }
+                                    }
+                                    j += 1;
+                                }
+                            }
+                            {
+                                let __end82: i64 = ((*b).len() as i64);
+                                let mut j: i64 = 0;
+                                while j < __end82 {
+                                    if ((*b)[(j) as usize]).is_finite() {
+                                        if ((*b)[(j) as usize] < x) {
+                                            less = (less + 1.0);
+                                        } else if ((*b)[(j) as usize] == x) {
+                                            eq = (eq + 1.0);
+                                        }
+                                    }
+                                    j += 1;
+                                }
+                            }
+                            ties = ((ties + (eq * eq)) - 1.0);
+                            if (side == 0) {
+                                r1 = ((r1 + less) + ((eq + 1.0) / 2.0));
+                            }
+                        }
+                        i += 1;
+                    }
+                }
+                side += 1;
+            }
+        }
+        let mut f1: f64 = (n1 as f64);
+        let mut f2: f64 = (n2 as f64);
+        let mut ntot: f64 = (f1 + f2);
+        let mut u1: f64 = (r1 - ((f1 * (f1 + 1.0)) / 2.0));
+        u = rt::fmin(u1, ((f1 * f2) - u1));
+        let mut mu: f64 = ((f1 * f2) / 2.0);
+        let mut var: f64 = (((f1 * f2) / 12.0) * ((ntot + 1.0) - (ties / (ntot * (ntot - 1.0)))));
+        if (var <= 0.0) {
+            z = 0.0;
+            p = 1.0;
+        } else {
+            z = 0.0;
+            if (rt::fabs((u1 - mu)) > 0.5) {
+                z = ((rt::fabs((u1 - mu)) - 0.5) / f64::sqrt(var));
+            }
+            p = (1.0 - rt::erf((z / f64::sqrt(2.0))));
+        }
+    }
+    (n1, n2, u, z, p)
+}

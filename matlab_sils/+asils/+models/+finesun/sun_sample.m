@@ -26,8 +26,8 @@ function [ok, s, u] = sun_sample(u, d, s_body, nu)
             g = u.g;
             if d.chain
                 rh = asils.models.sunquad.head_frame((d.normals((jm) + 1, :)).');
-                h__686 = asils.models.coildisp.small_rotation((u.bias((jm) + 1, :)).');
-                sb = [h__686(1, 1)*s_body(1) + h__686(1, 2)*s_body(2) + h__686(1, 3)*s_body(3); h__686(2, 1)*s_body(1) + h__686(2, 2)*s_body(2) + h__686(2, 3)*s_body(3); h__686(3, 1)*s_body(1) + h__686(3, 2)*s_body(2) + h__686(3, 3)*s_body(3)];
+                h__692 = asils.models.coildisp.small_rotation((u.bias((jm) + 1, :)).');
+                sb = [h__692(1, 1)*s_body(1) + h__692(1, 2)*s_body(2) + h__692(1, 3)*s_body(3); h__692(2, 1)*s_body(1) + h__692(2, 2)*s_body(2) + h__692(2, 3)*s_body(3); h__692(3, 1)*s_body(1) + h__692(3, 2)*s_body(2) + h__692(3, 3)*s_body(3)];
                 [t__567, t__568] = asils.models.sunquad.quad_currents([rh(1, 1)*sb(1) + rh(1, 2)*sb(2) + rh(1, 3)*sb(3); rh(2, 1)*sb(1) + rh(2, 2)*sb(2) + rh(2, 3)*sb(3); rh(3, 1)*sb(1) + rh(3, 2)*sb(2) + rh(3, 3)*sb(3)], d.head, g);
                 cur = t__567;
                 g = t__568;
@@ -41,8 +41,8 @@ function [ok, s, u] = sun_sample(u, d, s_body, nu)
                 n = t__569;
                 g = t__570;
                 e = ((u.bias((jm) + 1, :)).' + (n * d.noise));
-                h__687 = asils.models.coildisp.small_rotation(e);
-                s = asils.models.facets.unit_or_zero([h__687(1, 1)*s_body(1) + h__687(1, 2)*s_body(2) + h__687(1, 3)*s_body(3); h__687(2, 1)*s_body(1) + h__687(2, 2)*s_body(2) + h__687(2, 3)*s_body(3); h__687(3, 1)*s_body(1) + h__687(3, 2)*s_body(2) + h__687(3, 3)*s_body(3)]);
+                h__693 = asils.models.coildisp.small_rotation(e);
+                s = asils.models.facets.unit_or_zero([h__693(1, 1)*s_body(1) + h__693(1, 2)*s_body(2) + h__693(1, 3)*s_body(3); h__693(2, 1)*s_body(1) + h__693(2, 2)*s_body(2) + h__693(2, 3)*s_body(3); h__693(3, 1)*s_body(1) + h__693(3, 2)*s_body(2) + h__693(3, 3)*s_body(3)]);
                 ok = true;
             end
             u.g = g;

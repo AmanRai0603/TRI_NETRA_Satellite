@@ -64,6 +64,33 @@ class MannWhitney(unittest.TestCase):
         self.assertEqual((r["n1"], r["n2"]), (3, 3))
         self.assertEqual(r["p"], 1.0)
 
+    def test_a_published_example(self):
+        # R's documentation of wilcox.test (data of Hollander and Wolfe, Nonparametric Statistical Methods): W = 35 for these
+        # samples (the first sample's U), so the smaller U is 10 * 5 - 35 = 15; the normal approximation with the continuity
+        # correction is worked from the published formula: sd^2 = 10 * 5 / 12 * 16, z = (|35 - 25| - 0.5) / sd.
+        x = [0.80, 0.83, 1.89, 1.04, 1.45, 1.38, 1.91, 1.64, 0.73, 1.46]
+        y = [1.15, 0.88, 0.90, 0.74, 1.21]
+        r = T.mann_whitney(x, y)
+        self.assertEqual((r["n1"], r["n2"], r["u"]), (10, 5, 15.0))
+        z = 9.5 / math.sqrt(50 / 12 * 16)
+        self.assertAlmostEqual(r["z"], z, places=12)
+        self.assertAlmostEqual(r["p"], math.erfc(z / math.sqrt(2)), places=12)
+        self.assertEqual(T.mann_whitney(y, x)["u"], 15.0)            # the test is symmetric in the samples
+
+    def test_ties_are_worked_by_the_published_correction(self):
+        # [1, 2, 2, 3] against [2, 4, 5]: mid-ranks 1, 3, 3, 5 give U1 = 12 - 10 = 2; one group of three ties (t^3 - t = 24);
+        # var = 12 / 12 * (8 - 24 / 42); z = (|2 - 6| - 0.5) / sd
+        r = T.mann_whitney([1, 2, 2, 3], [2, 4, 5])
+        z = 3.5 / math.sqrt(8 - 24 / 42)
+        self.assertEqual(r["u"], 2.0)
+        self.assertAlmostEqual(r["z"], z, places=12)
+        self.assertAlmostEqual(r["p"], math.erfc(z / math.sqrt(2)), places=12)
+
+    def test_the_test_is_the_designs_and_this_file_keeps_none(self):
+        text = pathlib.Path(T.__file__).read_text(encoding="utf-8")
+        self.assertIn("kpistats::kpi_mann_whitney", text)
+        self.assertNotIn("ranks", text.split("def identical_draws")[0].split("def mann_whitney")[1])
+
     def test_an_empty_side_gives_no_test(self):
         self.assertIsNone(T.mann_whitney([], [1.0])["p"])
 
