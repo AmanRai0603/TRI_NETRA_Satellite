@@ -33,10 +33,10 @@ function [n, mmax, c_mjd, c_xp, c_yp, c_ut, c_dx, c_dy, f_mjd, f_xp, f_yp, f_ut,
     mmax = 0;
     mmax = (-(Inf));
     for i = (0):((numel(c_mjd)) - 1)
-        h__235 = mmax;
-        h__236 = c_mjd((i) + 1);
-        if h__236 > h__235, h__235 = h__236; end
-        mmax = h__235;
+        h__241 = mmax;
+        h__242 = c_mjd((i) + 1);
+        if h__242 > h__241, h__241 = h__242; end
+        mmax = h__241;
     end
     n = 0;
     for i1 = (0):((numel(c_mjd)) - 1)

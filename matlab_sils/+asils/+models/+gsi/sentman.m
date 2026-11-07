@@ -13,22 +13,22 @@ function [cp, ct] = sentman(s, delta, a_t, tw, talt)
     ct = 0;
     c = cos(delta);
     sn = (s * c);
-    h__292 = (s)^(2);
-    if ~isreal(h__292), h__292 = NaN; end
-    ti = (((2 / 3) * h__292) * talt);
+    h__298 = (s)^(2);
+    if ~isreal(h__298), h__298 = NaN; end
+    ti = (((2 / 3) * h__298) * talt);
     e = (1 + erf(sn));
-    h__293 = (sn)^(2);
-    if ~isreal(h__293), h__293 = NaN; end
-    p = exp((-(h__293)));
-    h__294 = pi;
-    if h__294 < 0, h__294 = NaN; else, h__294 = sqrt(h__294); end
-    sqpi = h__294;
-    h__295 = (s)^(2);
-    if ~isreal(h__295), h__295 = NaN; end
-    h__296 = (c)^(2);
-    if ~isreal(h__296), h__296 = NaN; end
-    h__297 = ((2 / 3) * (1 + (a_t * ((tw / ti) - 1))));
-    if h__297 < 0, h__297 = NaN; else, h__297 = sqrt(h__297); end
-    cp = ((((c / (sqpi * s)) * p) + (((1 / (2 * h__295)) + h__296) * e)) + ((0.5 * h__297) * (((sqpi * c) * e) + ((1 / s) * p))));
+    h__299 = (sn)^(2);
+    if ~isreal(h__299), h__299 = NaN; end
+    p = exp((-(h__299)));
+    h__300 = pi;
+    if h__300 < 0, h__300 = NaN; else, h__300 = sqrt(h__300); end
+    sqpi = h__300;
+    h__301 = (s)^(2);
+    if ~isreal(h__301), h__301 = NaN; end
+    h__302 = (c)^(2);
+    if ~isreal(h__302), h__302 = NaN; end
+    h__303 = ((2 / 3) * (1 + (a_t * ((tw / ti) - 1))));
+    if h__303 < 0, h__303 = NaN; else, h__303 = sqrt(h__303); end
+    cp = ((((c / (sqpi * s)) * p) + (((1 / (2 * h__301)) + h__302) * e)) + ((0.5 * h__303) * (((sqpi * c) * e) + ((1 / s) * p))));
     ct = ((sin(delta) / (sqpi * s)) * (p + ((sqpi * sn) * e)));
 end

@@ -267,3 +267,27 @@ fn the_body_comes_from_the_class_the_case_names() {
     let set = [("engine.vb_ratio".to_string(), "1.5".to_string())];
     says(Config::build(&root(), "nadir_hold_ais", &case_for("nadir_hold_ais"), 1, &set), "engine.vb_ratio");
 }
+
+/// A5: a body whose principal moment is above the sum of the other two cannot exist; a case that states one, or a draw that makes one, is
+/// refused by name, and a limit one (Iz = Ix + Iy, a flat plate) is flown.
+#[test]
+fn an_inertia_that_cannot_exist_is_refused_by_name() {
+    let d = std::env::temp_dir().join(format!("adcs-inertia-{}", std::process::id()));
+    std::fs::create_dir_all(&d).unwrap();
+    let base = std::fs::read_to_string(root().join("cases/ais_3u.csv")).unwrap();
+    let with = |vals: [(&str, &str); 3]| -> String {
+        base.lines().map(|l| {
+            let f: Vec<&str> = l.split(',').collect();
+            match vals.iter().find(|(k, _)| f.len() > 4 && f[1] == *k) { Some((_, v)) => { let mut g = f.clone(); g[4] = v; g.join(",") } None => l.to_string() }
+        }).collect::<Vec<_>>().join("\n") + "\n"
+    };
+    let f = d.join("case.csv");
+    std::fs::write(&f, with([("mass.imin", "1"), ("mass.iint", "1"), ("mass.imax", "2.4")])).unwrap();
+    let e = Config::build(&root(), "nadir_hold_ais", &f, 1, &[]).unwrap_err();
+    assert!(e.message().contains("Ix = 1, Iy = 1, Iz = 2.4") && e.message().contains("not a body that can exist") && e.kind == adcs_sim::Kind::Refused, "{e:?}");
+    std::fs::write(&f, with([("mass.imin", "1"), ("mass.iint", "1"), ("mass.imax", "2.0")])).unwrap();
+    Config::build(&root(), "nadir_hold_ais", &f, 1, &[]).expect("Iz = Ix + Iy is a flat plate: it can exist");
+    // a draw: the case's inertia (0.0067, 0.042, 0.042) scaled by [0.5, 0.5, 1.5] leaves Iz above Ix + Iy
+    refused("nadir_hold_ais", &[("engine.inertia_scale", "[0.5, 0.5, 1.5]")], "not a body that can exist");
+    let _ = std::fs::remove_dir_all(&d);
+}

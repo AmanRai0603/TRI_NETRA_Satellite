@@ -7,9 +7,9 @@ function [m] = ram_attitude(vrel)
     m = zeros(3, 3);
     x = asils.models.drag.ounit(vrel);
     zref = [0; 0; 1];
-    h__183 = (x(1)*zref(1) + x(2)*zref(2) + x(3)*zref(3));
-    if h__183 < 0, h__183 = -h__183; elseif h__183 == 0, h__183 = 0; end
-    if (h__183 > 0.98)
+    h__189 = (x(1)*zref(1) + x(2)*zref(2) + x(3)*zref(3));
+    if h__189 < 0, h__189 = -h__189; elseif h__189 == 0, h__189 = 0; end
+    if (h__189 > 0.98)
         zref = [0; 1; 0];
     end
     y = asils.models.drag.ounit([zref(2)*x(3) - zref(3)*x(2); zref(3)*x(1) - zref(1)*x(3); zref(1)*x(2) - zref(2)*x(1)]);

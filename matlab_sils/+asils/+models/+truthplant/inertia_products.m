@@ -9,19 +9,19 @@ function [jo, pd] = inertia_products(j, f)
     jo = zeros(3, 3);
     pd = false;
     jo = j;
-    h__155 = (j(1, 1) * j(2, 2));
-    if h__155 < 0, h__155 = NaN; else, h__155 = sqrt(h__155); end
-    pxy = (f(1) * h__155);
+    h__161 = (j(1, 1) * j(2, 2));
+    if h__161 < 0, h__161 = NaN; else, h__161 = sqrt(h__161); end
+    pxy = (f(1) * h__161);
     jo(1, 2) = pxy;
     jo(2, 1) = pxy;
-    h__156 = (j(1, 1) * j(3, 3));
-    if h__156 < 0, h__156 = NaN; else, h__156 = sqrt(h__156); end
-    pxz = (f(2) * h__156);
+    h__162 = (j(1, 1) * j(3, 3));
+    if h__162 < 0, h__162 = NaN; else, h__162 = sqrt(h__162); end
+    pxz = (f(2) * h__162);
     jo(1, 3) = pxz;
     jo(3, 1) = pxz;
-    h__157 = (j(2, 2) * j(3, 3));
-    if h__157 < 0, h__157 = NaN; else, h__157 = sqrt(h__157); end
-    pyz = (f(3) * h__157);
+    h__163 = (j(2, 2) * j(3, 3));
+    if h__163 < 0, h__163 = NaN; else, h__163 = sqrt(h__163); end
+    pyz = (f(3) * h__163);
     jo(2, 3) = pyz;
     jo(3, 2) = pyz;
     d2 = ((jo(1, 1) * jo(2, 2)) - (jo(1, 2) * jo(2, 1)));

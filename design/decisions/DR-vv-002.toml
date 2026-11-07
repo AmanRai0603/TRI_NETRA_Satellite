@@ -11,10 +11,10 @@ items = ["A5"]
 context = "Each principal moment is scaled independently by +/- frac (matlab_sils/+asils/+campaign/draw.m:30-33; the engine's scale_inertia, design/revisions/S7.11/truthplant.pc): about 4 % of Monte Carlo draws and every edge-campaign corner break the triangle inequality, so the body is impossible."
 drivers = ["every Monte Carlo and edge campaign"]
 standard = ["the triangle inequality of principal moments (I1 + I2 >= I3 for every ordering)"]
-current = "independent scaling, no check"
-choice = "redraw until the triangle inequality holds (the same seed stream, the next draw), and refuse by name a stated inertia that breaks it; edge corners that break it are moved to the nearest realisable corner and say so"
+current = "independent scaling, no check (1.0.0 and until S11.9); from S11.9 what is under choice flies, the developer's proposal, unsigned"
+choice = "what flies since S11.9 (the developer's proposal, unsigned; the owner may prefer rotation-based R diag(I) R^T with bounded moments, which changes every draw): dyn_truth_plant's inertia_realisable (each principal moment positive and none above the sum of the other two, every ordering) and realisable_scale (an edge corner is shortened along its own direction, by the largest factor that keeps it a body, and one part in 1e9 inside the limit). Monte Carlo: redraw until the triangle inequality holds (the same seed stream, the next draw), and refuse by name a stated inertia that breaks it (the engine, at build: \"not a body that can exist\"). The redraw comes from a stream of its own, the run's seed and the attempt, so no other dispersion of the run moves. Edge corners that break it are moved to the nearest realisable point on their own line (the 10 % high corner of the AIS 3U, scales 1.1, 0.9, 1.1, is flown at 1.0867, 0.9133, 1.0867) and the draw records the scales flown"
 rationale = "Redrawing keeps the stored dispersion and its seeds readable: every draw that was realisable is unchanged."
-consequences = "About 4 % of draws change; campaign verdicts may move."
+consequences = "About 4 % of draws change (stored campaigns: 173 of 4484 Monte Carlo draws, 3.9 %, and all 6 edge corners), and every run of a campaign that drew one is flown again (S11.16); campaign verdicts may move. Engine and twin redraw from their own generators (as their draws always differed): the rule and the realisability test are the design's."
 sets = ["dyn_truth_plant (truthplant.pc scale_inertia), S11.9", "the twin's asils.campaign.draw"]
 revisit_when = "S13, when each dispersion gets its pedigree"
 signature = {}

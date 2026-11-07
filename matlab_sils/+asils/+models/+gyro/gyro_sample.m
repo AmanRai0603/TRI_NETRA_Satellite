@@ -19,8 +19,8 @@ function [o, u] = gyro_sample(u, d, w, dt)
     mw = [u.m(1, 1)*w(1) + u.m(1, 2)*w(2) + u.m(1, 3)*w(3); u.m(2, 1)*w(1) + u.m(2, 2)*w(2) + u.m(2, 3)*w(3); u.m(3, 1)*w(1) + u.m(3, 2)*w(2) + u.m(3, 3)*w(3)];
     o = [0; 0; 0];
     for i = (0):((3) - 1)
-        h__676 = dt;
-        if h__676 < 0, h__676 = NaN; else, h__676 = sqrt(h__676); end
-        o((i) + 1) = asils.models.coilsat.act_clamp((((mw((i) + 1) + u.b((i) + 1)) + u.brw((i) + 1)) + ((d.arw / h__676) * n2((i) + 1))), (-(d.range)), d.range);
+        h__682 = dt;
+        if h__682 < 0, h__682 = NaN; else, h__682 = sqrt(h__682); end
+        o((i) + 1) = asils.models.coilsat.act_clamp((((mw((i) + 1) + u.b((i) + 1)) + u.brw((i) + 1)) + ((d.arw / h__682) * n2((i) + 1))), (-(d.range)), d.range);
     end
 end

@@ -14,11 +14,11 @@ function [v, spin_z, idx, w, tmp] = kpi_spin_error_stat(spin_z, idx, ni, spin_dp
     v = 0;
     k = 0;
     for i = (0):((ni) - 1)
-        h__629 = spin_z((idx((i) + 1)) + 1);
-        if h__629 < 0, h__629 = -h__629; elseif h__629 == 0, h__629 = 0; end
-        h__630 = (h__629 - spin_dps);
-        if h__630 < 0, h__630 = -h__630; elseif h__630 == 0, h__630 = 0; end
-        x = h__630;
+        h__635 = spin_z((idx((i) + 1)) + 1);
+        if h__635 < 0, h__635 = -h__635; elseif h__635 == 0, h__635 = 0; end
+        h__636 = (h__635 - spin_dps);
+        if h__636 < 0, h__636 = -h__636; elseif h__636 == 0, h__636 = 0; end
+        x = h__636;
         if isfinite(x)
             w((k) + 1) = x;
             k = (k + 1);

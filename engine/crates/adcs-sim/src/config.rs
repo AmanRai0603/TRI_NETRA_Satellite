@@ -611,6 +611,11 @@ impl Config {
         for (i, row) in self.inertia.iter().enumerate() {
             if !(row[i] > 0.0) { return Err(Error::refused(format!("inertia axis {} = {} kg m^2: a principal inertia is positive", i + 1, row[i]))); }
         }
+        // dyn_truth_plant: the principal moments of a body that can exist (A5): none above the sum of the other two
+        if !crate::gen::truthplant::inertia_realisable(self.inertia, [1.0, 1.0, 1.0]) {
+            let d = [self.inertia[0][0], self.inertia[1][1], self.inertia[2][2]];
+            return Err(Error::refused(format!("inertia Ix = {}, Iy = {}, Iz = {} kg m^2: not a body that can exist, a principal moment is at most the sum of the other two (Ix + Iy >= Iz in every ordering)", d[0], d[1], d[2])));
+        }
         if !(self.duration_s > 0.0 && self.duration_s <= DURATION_MAX_S) {
             return Err(Error::refused(format!("duration {} s: a run lasts more than 0 s and at most {} s (30 days)", self.duration_s, DURATION_MAX_S)));
         }

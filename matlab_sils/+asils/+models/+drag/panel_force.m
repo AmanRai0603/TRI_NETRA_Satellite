@@ -62,8 +62,8 @@ function [st, k, o] = panel_force(r, v, atm, f, model, g, mass, aref, r_bi, wind
                 else
                     nsun = asils.models.gravity.onorm(sun);
                     sh = [(sun(1) / nsun); (sun(2) / nsun); (sun(3) / nsun)];
-                    h__173 = (r_bi).';
-                    sb = [h__173(1, 1)*sh(1) + h__173(1, 2)*sh(2) + h__173(1, 3)*sh(3); h__173(2, 1)*sh(1) + h__173(2, 2)*sh(2) + h__173(2, 3)*sh(3); h__173(3, 1)*sh(1) + h__173(3, 2)*sh(2) + h__173(3, 3)*sh(3)];
+                    h__179 = (r_bi).';
+                    sb = [h__179(1, 1)*sh(1) + h__179(1, 2)*sh(2) + h__179(1, 3)*sh(3); h__179(2, 1)*sh(1) + h__179(2, 2)*sh(2) + h__179(2, 3)*sh(3); h__179(3, 1)*sh(1) + h__179(3, 2)*sh(2) + h__179(3, 3)*sh(3)];
                     nb = asils.models.drag.drag_array_normal((f.axis((j) + 1, :)).', sb);
                 end
             end
@@ -82,20 +82,20 @@ function [st, k, o] = panel_force(r, v, atm, f, model, g, mass, aref, r_bi, wind
                 end
                 if (~(cosd <= 0))
                     aproj = (aproj + (f.a((j) + 1) * cosd));
-                    h__174 = acos(asils.models.srp.min_one(cosd));
-                    if ~isreal(h__174), h__174 = NaN; end
-                    delta = h__174;
-                    h__175 = (cosd)^(2);
-                    if ~isreal(h__175), h__175 = NaN; end
-                    s2 = (1 - h__175);
+                    h__180 = acos(asils.models.srp.min_one(cosd));
+                    if ~isreal(h__180), h__180 = NaN; end
+                    delta = h__180;
+                    h__181 = (cosd)^(2);
+                    if ~isreal(h__181), h__181 = NaN; end
+                    s2 = (1 - h__181);
                     if (s2 > 0)
-                        h__176 = s2;
+                        h__182 = s2;
                     else
-                        h__176 = 0;
+                        h__182 = 0;
                     end
-                    h__177 = h__176;
-                    if h__177 < 0, h__177 = NaN; else, h__177 = sqrt(h__177); end
-                    sind = h__177;
+                    h__183 = h__182;
+                    if h__183 < 0, h__183 = NaN; else, h__183 = sqrt(h__183); end
+                    sind = h__183;
                     tgas = [0; 0; 0];
                     if (sind > 1e-9)
                         tgas = [(((-(uhat(1))) + (cosd * n(1))) / sind); (((-(uhat(2))) + (cosd * n(2))) / sind); (((-(uhat(3))) + (cosd * n(3))) / sind)];
@@ -113,9 +113,9 @@ function [st, k, o] = panel_force(r, v, atm, f, model, g, mass, aref, r_bi, wind
                             cp = t__386;
                             ct = t__387;
                         end
-                        h__178 = (vm)^(2);
-                        if ~isreal(h__178), h__178 = NaN; end
-                        q = (((0.5 * rho_s((jj) + 1)) * h__178) * f.a((j) + 1));
+                        h__184 = (vm)^(2);
+                        if ~isreal(h__184), h__184 = NaN; end
+                        q = (((0.5 * rho_s((jj) + 1)) * h__184) * f.a((j) + 1));
                         i = ((0):((3) - 1)).';
                         fs((i) + 1) = (reshape(fs((i) + 1), [], 1) + (q .* ((ct .* reshape(tgas((i) + 1), [], 1)) - (cp .* reshape(n((i) + 1), [], 1)))));
                     end
@@ -124,10 +124,10 @@ function [st, k, o] = panel_force(r, v, atm, f, model, g, mass, aref, r_bi, wind
         end
     end
     if (st == 0)
-        h__179 = (r_bi).';
-        fbody = [h__179(1, 1)*fs(1) + h__179(1, 2)*fs(2) + h__179(1, 3)*fs(3); h__179(2, 1)*fs(1) + h__179(2, 2)*fs(2) + h__179(2, 3)*fs(3); h__179(3, 1)*fs(1) + h__179(3, 2)*fs(2) + h__179(3, 3)*fs(3)];
-        h__180 = asils.models.drag.body_to_wind(alpha, beta);
-        fwind = [h__180(1, 1)*fbody(1) + h__180(1, 2)*fbody(2) + h__180(1, 3)*fbody(3); h__180(2, 1)*fbody(1) + h__180(2, 2)*fbody(2) + h__180(2, 3)*fbody(3); h__180(3, 1)*fbody(1) + h__180(3, 2)*fbody(2) + h__180(3, 3)*fbody(3)];
+        h__185 = (r_bi).';
+        fbody = [h__185(1, 1)*fs(1) + h__185(1, 2)*fs(2) + h__185(1, 3)*fs(3); h__185(2, 1)*fs(1) + h__185(2, 2)*fs(2) + h__185(2, 3)*fs(3); h__185(3, 1)*fs(1) + h__185(3, 2)*fs(2) + h__185(3, 3)*fs(3)];
+        h__186 = asils.models.drag.body_to_wind(alpha, beta);
+        fwind = [h__186(1, 1)*fbody(1) + h__186(1, 2)*fbody(2) + h__186(1, 3)*fbody(3); h__186(2, 1)*fbody(1) + h__186(2, 2)*fbody(2) + h__186(2, 3)*fbody(3); h__186(3, 1)*fbody(1) + h__186(3, 2)*fbody(2) + h__186(3, 3)*fbody(3)];
         d = (-(fwind(1)));
         sd = fwind(2);
         l = (-(fwind(3)));
@@ -135,9 +135,9 @@ function [st, k, o] = panel_force(r, v, atm, f, model, g, mass, aref, r_bi, wind
         for i2 = (0):((ns) - 1)
             rho_tot = (rho_tot + rho_s((i2) + 1));
         end
-        h__181 = (vm)^(2);
-        if ~isreal(h__181), h__181 = NaN; end
-        qd = ((0.5 * rho_tot) * h__181);
+        h__187 = (vm)^(2);
+        if ~isreal(h__187), h__187 = NaN; end
+        qd = ((0.5 * rho_tot) * h__187);
         fu = (fs(1)*uhat(1) + fs(2)*uhat(2) + fs(3)*uhat(3));
         dv = [(fu * uhat(1)); (fu * uhat(2)); (fu * uhat(3))];
         o.f = fs;
@@ -159,11 +159,11 @@ function [st, k, o] = panel_force(r, v, atm, f, model, g, mass, aref, r_bi, wind
         o.cs = (sd / (qd * aref));
         o.a_proj = aproj;
         if (aproj > 0)
-            h__182 = (d / (qd * aproj));
+            h__188 = (d / (qd * aproj));
         else
-            h__182 = NaN;
+            h__188 = NaN;
         end
-        o.cd_a = h__182;
+        o.cd_a = h__188;
         o.aref_used = aref;
     end
 end

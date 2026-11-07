@@ -73,9 +73,9 @@ pub fn kpi_window(w: i64, after: f64, t: &mut [f64], mode: &mut [i64], n: i64, p
     }
     ni = 0;
     {
-        let __end57: i64 = n;
+        let __end58: i64 = n;
         let mut j: i64 = 0;
-        while j < __end57 {
+        while j < __end58 {
             let mut inw: bool = true;
             if (w == crate::gen::kpistats::METRICWINDOW_LAST_ORBIT) {
                 inw = ((*t)[(j) as usize] >= (te - per));
@@ -110,18 +110,18 @@ pub fn kpi_merge(src: &mut [f64], dst: &mut [f64], m: i64, wd: i64) -> i64 {
     z = 0;
     let mut nb: i64 = (((m + (2 * wd)) - 1) / (2 * wd));
     {
-        let __end58: i64 = nb;
+        let __end59: i64 = nb;
         let mut bk: i64 = 0;
-        while bk < __end58 {
+        while bk < __end59 {
             let mut lo: i64 = ((bk * 2) * wd);
             let mut mid: i64 = rt::imin((lo + wd), m);
             let mut hi: i64 = rt::imin((lo + (2 * wd)), m);
             let mut i: i64 = lo;
             let mut j: i64 = mid;
             {
-                let __end59: i64 = hi;
+                let __end60: i64 = hi;
                 let mut k: i64 = lo;
-                while k < __end59 {
+                while k < __end60 {
                     if ((i < mid) && ((j >= hi) || (!((*src)[(j) as usize] < (*src)[(i) as usize])))) {
                         (*dst)[(k) as usize] = (*src)[(i) as usize];
                         i = (i + 1);
@@ -151,9 +151,9 @@ pub fn kpi_sort(x: &mut [f64], m: i64, tmp: &mut [f64]) -> i64 {
     passes = 0;
     let mut wd: i64 = 1;
     {
-        let __end60: i64 = 62;
+        let __end61: i64 = 62;
         let mut it: i64 = 0;
-        while it < __end60 {
+        while it < __end61 {
             if (wd < m) {
                 if ((passes % 2) == 0) {
                     let mut z0: i64 = crate::gen::kpistats::kpi_merge(&mut (*x), &mut (*tmp), m, wd);
@@ -168,9 +168,9 @@ pub fn kpi_sort(x: &mut [f64], m: i64, tmp: &mut [f64]) -> i64 {
     }
     if ((passes % 2) == 1) {
         {
-            let __end61: i64 = m;
+            let __end62: i64 = m;
             let mut i: i64 = 0;
-            while i < __end61 {
+            while i < __end62 {
                 (*x)[(i) as usize] = (*tmp)[(i) as usize];
                 i += 1;
             }
@@ -195,9 +195,9 @@ pub fn kpi_stat_of(w: &mut [f64], m: i64, st: i64, tmp: &mut [f64]) -> f64 {
         if (st == crate::gen::kpistats::METRICSTAT_MAX) {
             let mut acc: f64 = (-(1.7976931348623157e+308));
             {
-                let __end62: i64 = m;
+                let __end63: i64 = m;
                 let mut i: i64 = 0;
-                while i < __end62 {
+                while i < __end63 {
                     acc = rt::fmax(acc, (*w)[(i) as usize]);
                     i += 1;
                 }
@@ -206,9 +206,9 @@ pub fn kpi_stat_of(w: &mut [f64], m: i64, st: i64, tmp: &mut [f64]) -> f64 {
         } else if (st == crate::gen::kpistats::METRICSTAT_RMS) {
             let mut s: f64 = (-(0.0));
             {
-                let __end63: i64 = m;
+                let __end64: i64 = m;
                 let mut i: i64 = 0;
-                while i < __end63 {
+                while i < __end64 {
                     s = (s + ((*w)[(i) as usize] * (*w)[(i) as usize]));
                     i += 1;
                 }
@@ -217,9 +217,9 @@ pub fn kpi_stat_of(w: &mut [f64], m: i64, st: i64, tmp: &mut [f64]) -> f64 {
         } else if (st == crate::gen::kpistats::METRICSTAT_MEAN) {
             let mut s2: f64 = (-(0.0));
             {
-                let __end64: i64 = m;
+                let __end65: i64 = m;
                 let mut i: i64 = 0;
-                while i < __end64 {
+                while i < __end65 {
                     s2 = (s2 + (*w)[(i) as usize]);
                     i += 1;
                 }
@@ -254,9 +254,9 @@ pub fn kpi_statistic(x: &mut [f64], n: i64, st: i64, w: &mut [f64], tmp: &mut [f
     let mut v: f64 = 0.0;
     let mut m: i64 = 0;
     {
-        let __end65: i64 = n;
+        let __end66: i64 = n;
         let mut i: i64 = 0;
-        while i < __end65 {
+        while i < __end66 {
             if ((*x)[(i) as usize]).is_finite() {
                 (*w)[(m) as usize] = (*x)[(i) as usize];
                 m = (m + 1);
@@ -283,9 +283,9 @@ pub fn kpi_channel_stat(ch: &mut [f64], idx: &mut [i64], ni: i64, st: i64, w: &m
     let mut v: f64 = 0.0;
     let mut m: i64 = 0;
     {
-        let __end66: i64 = ni;
+        let __end67: i64 = ni;
         let mut i: i64 = 0;
-        while i < __end66 {
+        while i < __end67 {
             let mut x: f64 = (*ch)[((*idx)[(i) as usize]) as usize];
             if (x).is_finite() {
                 (*w)[(m) as usize] = x;
@@ -315,9 +315,9 @@ pub fn kpi_time_to(t: &mut [f64], x: &mut [f64], n: i64, thr: f64, hold: f64) ->
     let mut start: i64 = 0;
     let mut inrun: bool = false;
     {
-        let __end67: i64 = n;
+        let __end68: i64 = n;
         let mut k: i64 = 0;
-        while k < __end67 {
+        while k < __end68 {
             if (!found) {
                 if ((*x)[(k) as usize] < thr) {
                     if (!inrun) {
@@ -362,9 +362,9 @@ pub fn kpi_time_to_from(t: &mut [f64], x: &mut [f64], n: i64, t0: f64, thr: f64,
     let mut v: f64 = 0.0;
     let mut m: i64 = 0;
     {
-        let __end68: i64 = n;
+        let __end69: i64 = n;
         let mut j: i64 = 0;
-        while j < __end68 {
+        while j < __end69 {
             if ((*t)[(j) as usize] >= t0) {
                 (*tt)[(m) as usize] = ((*t)[(j) as usize] - t0);
                 (*xx)[(m) as usize] = (*x)[(j) as usize];

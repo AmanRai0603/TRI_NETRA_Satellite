@@ -15,11 +15,11 @@ function [p] = pinv_rows(a, n)
     end
     tr = (((s(1, 1) + s(2, 2)) + s(3, 3)) / 3);
     if (tr > 1e-30)
-        h__575 = tr;
+        h__581 = tr;
     else
-        h__575 = 1e-30;
+        h__581 = 1e-30;
     end
-    eps = (1e-12 * h__575);
+    eps = (1e-12 * h__581);
     for i = (0):((3) - 1)
         s((i) + 1, (i) + 1) = (s((i) + 1, (i) + 1) + eps);
     end

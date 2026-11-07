@@ -101,9 +101,9 @@ pub fn kpi_ecss(k: i64, los: bool, e: &mut [f64], bs: [f64; 3], t: &mut [f64], i
         let mut t0: f64 = (*t)[((*idx)[0]) as usize];
         let mut nb: i64 = (crate::gen::kpiecss::kpi_ecss_block((*t)[((*idx)[((ni - 1)) as usize]) as usize], t0, delta) + 1);
         {
-            let __end40: i64 = nb;
+            let __end41: i64 = nb;
             let mut bk: i64 = 0;
-            while bk < __end40 {
+            while bk < __end41 {
                 (*sums)[((3 * bk)) as usize] = 0.0;
                 (*sums)[(((3 * bk) + 1)) as usize] = 0.0;
                 (*sums)[(((3 * bk) + 2)) as usize] = 0.0;
@@ -112,9 +112,9 @@ pub fn kpi_ecss(k: i64, los: bool, e: &mut [f64], bs: [f64; 3], t: &mut [f64], i
             }
         }
         {
-            let __end41: i64 = ni;
+            let __end42: i64 = ni;
             let mut i: i64 = 0;
-            while i < __end41 {
+            while i < __end42 {
                 let mut v: [f64; 3] = crate::gen::kpiecss::kpi_ecss_vec(&mut (*e), (*idx)[(i) as usize], los, b);
                 if (((v[0]).is_finite() && (v[1]).is_finite()) && (v[2]).is_finite()) {
                     let mut bk: i64 = crate::gen::kpiecss::kpi_ecss_block((*t)[((*idx)[(i) as usize]) as usize], t0, delta);
@@ -128,9 +128,9 @@ pub fn kpi_ecss(k: i64, los: bool, e: &mut [f64], bs: [f64; 3], t: &mut [f64], i
         }
         if (k == crate::gen::kpiecss::ECSSINDEX_RELATIVE) {
             {
-                let __end42: i64 = ni;
+                let __end43: i64 = ni;
                 let mut i: i64 = 0;
-                while i < __end42 {
+                while i < __end43 {
                     let mut v: [f64; 3] = crate::gen::kpiecss::kpi_ecss_vec(&mut (*e), (*idx)[(i) as usize], los, b);
                     let mut bk: i64 = crate::gen::kpiecss::kpi_ecss_block((*t)[((*idx)[(i) as usize]) as usize], t0, delta);
                     if (((((*cnt)[(bk) as usize] > 0) && (v[0]).is_finite()) && (v[1]).is_finite()) && (v[2]).is_finite()) {
@@ -144,9 +144,9 @@ pub fn kpi_ecss(k: i64, los: bool, e: &mut [f64], bs: [f64; 3], t: &mut [f64], i
             }
         } else if (k == crate::gen::kpiecss::ECSSINDEX_MEAN) {
             {
-                let __end43: i64 = nb;
+                let __end44: i64 = nb;
                 let mut bk: i64 = 0;
-                while bk < __end43 {
+                while bk < __end44 {
                     if ((*cnt)[(bk) as usize] > 0) {
                         let mut r: f64 = (1.0 / ((*cnt)[(bk) as usize] as f64));
                         let mut m: [f64; 3] = [((*sums)[((3 * bk)) as usize] * r), ((*sums)[(((3 * bk) + 1)) as usize] * r), ((*sums)[(((3 * bk) + 2)) as usize] * r)];
@@ -165,9 +165,9 @@ pub fn kpi_ecss(k: i64, los: bool, e: &mut [f64], bs: [f64; 3], t: &mut [f64], i
             }
             let mut s: i64 = (sr as i64);
             {
-                let __end44: i64 = (nb - s);
+                let __end45: i64 = (nb - s);
                 let mut kb: i64 = 0;
-                while kb < __end44 {
+                while kb < __end45 {
                     if (((*cnt)[(kb) as usize] > 0) && ((*cnt)[((kb + s)) as usize] > 0)) {
                         let mut ra: f64 = (1.0 / ((*cnt)[(kb) as usize] as f64));
                         let mut rb: f64 = (1.0 / ((*cnt)[((kb + s)) as usize] as f64));

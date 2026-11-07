@@ -52,15 +52,15 @@ pub fn fsw_rotors(n: i64, ng: i64, kind: [i64; 8], a0: [[f64; 3]; 8], gi: [i64; 
     rot_hmax = [0.0; 8];
     rot_h0 = [0.0; 8];
     {
-        let __end11: i64 = crate::gen::fswrotor::FSW_NR;
+        let __end12: i64 = crate::gen::fswrotor::FSW_NR;
         let mut i: i64 = 0;
-        while i < __end11 {
+        while i < __end12 {
             if (i < n) {
                 rot_kind[(i) as usize] = kind[(i) as usize];
                 {
-                    let __end12: i64 = 3;
+                    let __end13: i64 = 3;
                     let mut k: i64 = 0;
-                    while k < __end12 {
+                    while k < __end13 {
                         rot_a0[(i) as usize][(k) as usize] = a0[(i) as usize][(k) as usize];
                         k += 1;
                     }
@@ -74,14 +74,14 @@ pub fn fsw_rotors(n: i64, ng: i64, kind: [i64; 8], a0: [[f64; 3]; 8], gi: [i64; 
         }
     }
     {
-        let __end13: i64 = crate::gen::fswrotor::FSW_NG;
+        let __end14: i64 = crate::gen::fswrotor::FSW_NG;
         let mut m: i64 = 0;
-        while m < __end13 {
+        while m < __end14 {
             if (m < ng) {
                 {
-                    let __end14: i64 = 3;
+                    let __end15: i64 = 3;
                     let mut k: i64 = 0;
-                    while k < __end14 {
+                    while k < __end15 {
                         gim_axis[(m) as usize][(k) as usize] = g[(m) as usize][(k) as usize];
                         k += 1;
                     }
@@ -107,9 +107,9 @@ pub fn fsw_rotor_targets(n: i64, kind: [i64; 8], hmax: [f64; 8], h0: [f64; 8], h
     let mut h: [f64; 8] = [0.0; 8];
     h = [0.0; 8];
     {
-        let __end15: i64 = crate::gen::fswrotor::FSW_NR;
+        let __end16: i64 = crate::gen::fswrotor::FSW_NR;
         let mut i: i64 = 0;
-        while i < __end15 {
+        while i < __end16 {
             if (i < n) {
                 if (kind[(i) as usize] == 0) {
                     h[(i) as usize] = rt::fmin(h_bias, (0.25 * hmax[(i) as usize]));

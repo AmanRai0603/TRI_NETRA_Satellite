@@ -15,11 +15,11 @@ function [r, v] = coe2rv(a, e, inc, raan, argp, nu, mu)
     v = zeros(3, 1);
     p = (a * (1 - (e * e)));
     r_pf = [((p * cos(nu)) / (1 + (e * cos(nu)))); ((p * sin(nu)) / (1 + (e * cos(nu)))); 0];
-    h__225 = (mu / p);
-    if h__225 < 0, h__225 = NaN; else, h__225 = sqrt(h__225); end
-    h__226 = (mu / p);
-    if h__226 < 0, h__226 = NaN; else, h__226 = sqrt(h__226); end
-    v_pf = [((-(h__225)) * sin(nu)); (h__226 * (e + cos(nu))); 0];
+    h__231 = (mu / p);
+    if h__231 < 0, h__231 = NaN; else, h__231 = sqrt(h__231); end
+    h__232 = (mu / p);
+    if h__232 < 0, h__232 = NaN; else, h__232 = sqrt(h__232); end
+    v_pf = [((-(h__231)) * sin(nu)); (h__232 * (e + cos(nu))); 0];
     co = cos(raan);
     so = sin(raan);
     ci = cos(inc);

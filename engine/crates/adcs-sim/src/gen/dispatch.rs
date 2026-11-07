@@ -107,6 +107,16 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             let r = crate::truthplant::scale_inertia([[x[0], x[1], x[2]], [x[3], x[4], x[5]], [x[6], x[7], x[8]]], [x[9], x[10], x[11]]);
             for v in r.iter() { let v = *v; for v in v.iter() { let v = *v; out.push(v); } }
         }
+        "truthplant::inertia_realisable" => {
+            if x.len() != 12 { return None; }
+            let r = crate::truthplant::inertia_realisable([[x[0], x[1], x[2]], [x[3], x[4], x[5]], [x[6], x[7], x[8]]], [x[9], x[10], x[11]]);
+            out.push(if r { 1.0 } else { 0.0 });
+        }
+        "truthplant::realisable_scale" => {
+            if x.len() != 12 { return None; }
+            let r = crate::truthplant::realisable_scale([[x[0], x[1], x[2]], [x[3], x[4], x[5]], [x[6], x[7], x[8]]], [x[9], x[10], x[11]]);
+            for v in r.iter() { let v = *v; out.push(v); }
+        }
         "truthplant::inertia_products" => {
             if x.len() != 12 { return None; }
             let r = crate::truthplant::inertia_products([[x[0], x[1], x[2]], [x[3], x[4], x[5]], [x[6], x[7], x[8]]], [x[9], x[10], x[11]]);

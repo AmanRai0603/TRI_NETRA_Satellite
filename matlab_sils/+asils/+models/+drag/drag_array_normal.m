@@ -11,9 +11,9 @@ function [nrm] = drag_array_normal(axis, s_hat_b)
     proj = [(s_hat_b(1) - (d * ax(1))); (s_hat_b(2) - (d * ax(2))); (s_hat_b(3) - (d * ax(3)))];
     if (asils.models.gravity.onorm(proj) < 1e-9)
         t = [1; 0; 0];
-        h__172 = ax(1);
-        if h__172 < 0, h__172 = -h__172; elseif h__172 == 0, h__172 = 0; end
-        if (h__172 > 0.9)
+        h__178 = ax(1);
+        if h__178 < 0, h__178 = -h__178; elseif h__178 == 0, h__178 = 0; end
+        if (h__178 > 0.9)
             t = [0; 1; 0];
         end
         d2 = (t(1)*ax(1) + t(2)*ax(2) + t(3)*ax(3));

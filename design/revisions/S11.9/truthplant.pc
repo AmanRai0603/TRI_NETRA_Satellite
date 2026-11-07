@@ -1,0 +1,85 @@
+## The truth plant's parameters from the case, transcribed from adcs-sim config.rs (build and apply_engine): the
+## principal inertia on the body's axes (the smallest about x, the intermediate about y, the largest about z), the
+## residual dipole split evenly over the three axes, the flexible mode's coupling from its modal participation, and the
+## campaigns' dispersions of the inertia (a scale of each principal moment; products of inertia, each a fraction of
+## sqrt(I_ii I_jj), and whether the body is still a body: positive definite). Plain numbers in SI.
+## The developer's transcription (S7.11), unsigned; since S11.9 (A5, DR-vv-002) the dispersion of the inertia is held to a body
+## that can exist (the triangle inequality of its principal moments) and an edge corner is moved to the nearest one.
+module truthplant
+
+## The body's inertia [kg m^2] from the case's principal moments: imin about x, iint about y, imax about z.
+fn principal_inertia(imin: real[1] in 0.001 .. 1, iint: real[1] in 0.001 .. 1, imax: real[1] in 0.001 .. 1) -> j: mat3[1]
+    j = [[imin, 0.0, 0.0], [0.0, iint, 0.0], [0.0, 0.0, imax]]
+end
+
+## The residual dipole [A m^2] along each body axis: the case's magnitude dres split evenly, dres/sqrt(3) on each.
+fn residual_dipole_axes(dres: real[1] in 0 .. 0.1) -> m: vec3[1]
+    let c = dres/sqrt(3.0)
+    m = [c, c, c]
+end
+
+## The flexible mode on the truth body: its coupling delta along the body axis it bends about (axis 1, 2 or 3), with
+## |delta|^2 the share mpart of that axis's inertia; its natural frequency omega = 2 pi fmode [rad/s]; its damping zeta.
+fn flexible_mode(fmode: real[1] in 0.001 .. 100, mpart: real[1] in 0 .. 0.95, zeta: real[1] in 0 .. 1, axis: int in 1 .. 3, \
+                 j: mat3[1] in 0.001 .. 1) -> (delta: vec3[1], omega: real[1], z: real[1])
+    delta = 0
+    let a = axis - 1
+    delta[a] = sqrt(mpart*j[a][a])
+    omega = 2.0*pi*fmode
+    z = zeta
+end
+
+## The inertia with each principal moment scaled by s (a campaign's dispersion of the truth body).
+fn scale_inertia(j: mat3[1] in 0.001 .. 1, s: vec3[1] in 0.5 .. 1.5) -> jo: mat3[1]
+    jo = j
+    for i in 0 .. 3
+        jo[i][i] = jo[i][i]*s[i]
+    end
+end
+
+## Whether principal moments j (the diagonal of the inertia) scaled by s are the moments of a body that can exist: each moment
+## positive and no one above the sum of the other two (a rigid body's I1 + I2 >= I3, for every ordering; equal to it is a flat plate).
+## A campaign's draw that breaks it is drawn again from the seed's stream; a stated inertia that breaks it is refused by name.
+fn inertia_realisable(j: mat3[1] in 0.001 .. 1, s: vec3[1] in 0.5 .. 1.5) -> ok: bool
+    let a = j[0][0]*s[0]
+    let b = j[1][1]*s[1]
+    let c = j[2][2]*s[2]
+    ok = a > 0.0 and b > 0.0 and c > 0.0 and a + b >= c and b + c >= a and a + c >= b
+end
+
+## The scale of an edge corner moved to the nearest realisable one: the excursion from nominal (s - 1) is shortened by the largest
+## factor t in 0 .. 1 for which the scaled moments are still those of a body that can exist (each triangle inequality is linear in t),
+## along the corner's own direction and kept one part in 1e9 inside the limit (so the rounding of the sums cannot put it back outside); a corner that is realisable is returned as it is, and a nominal body that is not gives t = 0.
+fn realisable_scale(j: mat3[1] in 0.001 .. 1, s: vec3[1] in 0.5 .. 1.5) -> so: vec3[1]
+    let t = 1.0
+    for k in 0 .. 3
+        let p = if k == 2 then 0 else k + 1
+        let q = if k == 0 then 2 else k - 1
+        let a0 = j[p][p] + j[q][q] - j[k][k]
+        let a1 = j[p][p]*(s[p] - 1.0) + j[q][q]*(s[q] - 1.0) - j[k][k]*(s[k] - 1.0)
+        if a1 < 0.0 and a0 + a1 < 0.0
+            let tk = max(a0, 0.0)*(1.0 - 1e-9)/(0.0 - a1)
+            t = min(t, tk)
+        end
+    end
+    so = [1.0 + t*(s[0] - 1.0), 1.0 + t*(s[1] - 1.0), 1.0 + t*(s[2] - 1.0)]
+end
+
+## The inertia with products of inertia f = [xy, xz, yz], each a fraction of sqrt(I_ii I_jj) (each below 1 in size), and
+## whether it is still positive definite (its leading 2 x 2 minor and its determinant above 0).
+fn inertia_products(j: mat3[1] in 0.001 .. 1, f: vec3[1] in -0.99 .. 0.99) -> (jo: mat3[1], pd: bool)
+    jo = j
+    let pxy = f[0]*sqrt(j[0][0]*j[1][1])
+    jo[0][1] = pxy
+    jo[1][0] = pxy
+    let pxz = f[1]*sqrt(j[0][0]*j[2][2])
+    jo[0][2] = pxz
+    jo[2][0] = pxz
+    let pyz = f[2]*sqrt(j[1][1]*j[2][2])
+    jo[1][2] = pyz
+    jo[2][1] = pyz
+    let d2 = jo[0][0]*jo[1][1] - jo[0][1]*jo[1][0]
+    let d3 = jo[0][0]*(jo[1][1]*jo[2][2] - jo[1][2]*jo[2][1]) - jo[0][1]*(jo[1][0]*jo[2][2] - jo[1][2]*jo[2][0]) \
+             + jo[0][2]*(jo[1][0]*jo[2][1] - jo[1][1]*jo[2][0])
+    pd = d2 > 0.0 and d3 > 0.0
+end

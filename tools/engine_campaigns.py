@@ -16,6 +16,30 @@ def case_values(case):
     return common.case_values(case)
 
 
+def principal_moments(cv):
+    """The case's principal moments as the 3 x 3 the design's truth plant takes (dyn_truth_plant: principal_inertia)."""
+    return [[cv["mass.imin"], 0.0, 0.0], [0.0, cv["mass.iint"], 0.0], [0.0, 0.0, cv["mass.imax"]]]
+
+
+def realisable_scale(cv, f):
+    """dyn_truth_plant's realisable_scale: an edge corner's scales shortened to the nearest body that can exist (A5)."""
+    import design_call
+    return design_call.call("truthplant::realisable_scale", principal_moments(cv), f)
+
+
+def redraw_inertia(cv, f, frac, stream):
+    """A5 (DR-vv-002): a draw of the principal moments' scales that is not a body (dyn_truth_plant: inertia_realisable) is
+    drawn again, from a stream of its own derived from the run's seed and the attempt, so no other dispersion of the run moves
+    and a draw that was a body is unchanged."""
+    import design_call, random
+    for n in range(1, 1001):
+        if design_call.call("truthplant::inertia_realisable", principal_moments(cv), f)[0] == 1.0:
+            return f
+        r = random.Random(stream + 104729 * n)
+        f = [1 + frac * (2 * r.random() - 1) for _ in range(3)]
+    raise SystemExit(f"campaign draw: no realisable inertia in 1000 draws (frac {frac}, case inertia {principal_moments(cv)})")
+
+
 def draw(C, k):
     """asils.campaign.draw for the engine: the dispersed overrides of run k (1-based).
     MC: every dispersion drawn from its own stream (seed + 7919 k). Edge (type = "edge"): run
@@ -46,7 +70,9 @@ def draw(C, k):
             f = [1 + s["frac"] * (2 * rng.random() - 1) for _ in range(3)]
             if edge:
                 g = 1 + s["frac"] * (2 * U(0, 1) - 1)
-                f = [g, 2 - g, g]
+                f = realisable_scale(cv, [g, 2 - g, g])      # a corner that breaks the triangle inequality is moved to the nearest one
+            else:
+                f = redraw_inertia(cv, f, s["frac"], C["seed"] + 7919 * k)
             sets.append(("engine.inertia_scale", f)); d.update(inertia_scale_x=f[0], inertia_scale_y=f[1], inertia_scale_z=f[2])
         elif kind == "mass":
             v = cv["mass.m"] * (1 + s["frac"] * rng.gauss(0, 1)); sets.append(("engine.mass_kg", v)); d["mass_kg"] = v

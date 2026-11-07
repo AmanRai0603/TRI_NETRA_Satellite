@@ -7,8 +7,8 @@ function [n, t] = case_mean_motion(h)
     n = 0;
     t = 0;
     r = (6378137 + h);
-    h__163 = (398600441800000 / (r * r * r));
-    if h__163 < 0, h__163 = NaN; else, h__163 = sqrt(h__163); end
-    n = h__163;
+    h__169 = (398600441800000 / (r * r * r));
+    if h__169 < 0, h__169 = NaN; else, h__169 = sqrt(h__169); end
+    n = h__169;
     t = ((2 * pi) / n);
 end

@@ -29,7 +29,13 @@ function [set, d] = draw(C, P0, k)
         switch s.kind
             case 'inertia'           % each principal moment +/- s.frac (uniform)
                 f = 1 + s.frac*(2*rand(3,1) - 1);
-                if edge, f = 1 + s.frac*(2*U(0, 1) - 1)*[1; -1; 1]; end
+                J0 = diag([P0.sc.I(1,1), P0.sc.I(2,2), P0.sc.I(3,3)]);
+                if edge
+                    % an edge corner that breaks the triangle inequality is moved to the nearest realisable one (dyn_truth_plant)
+                    f = asils.models.truthplant.realisable_scale(J0, 1 + s.frac*(2*U(0, 1) - 1)*[1; -1; 1]);
+                else
+                    f = redraw_inertia_(J0, f, s.frac, C.seed + 7919*k);
+                end
                 set.engine__inertia_scale = f(:); d.inertia_scale_x = f(1); d.inertia_scale_y = f(2); d.inertia_scale_z = f(3);
             case 'mass'
                 v = P0.sc.mass_kg*(1 + s.frac*randn); set.engine__mass_kg = v; d.mass_kg = v;
@@ -68,6 +74,22 @@ function [set, d] = draw(C, P0, k)
             otherwise
                 error('asils:campaign:kind', 'unknown dispersion %s', s.kind);
         end
+    end
+end
+
+function f = redraw_inertia_(J0, f, frac, stream)
+%REDRAW_INERTIA_  A5 (DR-vv-002): scales that are not a body (dyn_truth_plant: inertia_realisable) are drawn again from a
+%   stream of their own (the run's seed and the attempt), so no other dispersion of the run moves and a draw that was a
+%   body is unchanged. The run's own stream is put back after.
+    keep = rng;
+    for n = 1:1000
+        if asils.models.truthplant.inertia_realisable(J0, f(:)), break, end
+        rng(stream + 104729*n, 'twister');
+        f = 1 + frac*(2*rand(3,1) - 1);
+    end
+    rng(keep);
+    if ~asils.models.truthplant.inertia_realisable(J0, f(:))
+        error('asils:campaign:inertia', 'no realisable inertia in 1000 draws (frac %g)', frac);
     end
 end
 

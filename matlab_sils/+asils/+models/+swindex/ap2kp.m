@@ -7,12 +7,12 @@ function [kp] = ap2kp(ap)
     if isnan(ap)
         kp = NaN;
     else
-        h__501 = ap;
-        h__502 = 400;
-        if h__502 < h__501, h__501 = h__502; end
-        h__503 = h__501;
-        h__504 = 0;
-        if h__504 > h__503, h__503 = h__504; end
-        kp = asils.models.swindex.kp_ap_nearest(false, h__503);
+        h__507 = ap;
+        h__508 = 400;
+        if h__508 < h__507, h__507 = h__508; end
+        h__509 = h__507;
+        h__510 = 0;
+        if h__510 > h__509, h__509 = h__510; end
+        kp = asils.models.swindex.kp_ap_nearest(false, h__509);
     end
 end

@@ -16,21 +16,21 @@ function [lam, v] = jacobi_eig4(k)
             p = pp((pi_) + 1);
             q = qq((pi_) + 1);
             apq = a((p) + 1, (q) + 1);
-            h__576 = apq;
-            if h__576 < 0, h__576 = -h__576; elseif h__576 == 0, h__576 = 0; end
-            if (h__576 >= 1e-300)
+            h__582 = apq;
+            if h__582 < 0, h__582 = -h__582; elseif h__582 == 0, h__582 = 0; end
+            if (h__582 >= 1e-300)
                 th = ((a((q) + 1, (q) + 1) - a((p) + 1, (p) + 1)) / (2 * apq));
-                h__577 = th;
-                if h__577 < 0, h__577 = -h__577; elseif h__577 == 0, h__577 = 0; end
-                h__578 = ((th * th) + 1);
-                if h__578 < 0, h__578 = NaN; else, h__578 = sqrt(h__578); end
-                t = (sign(th) / (h__577 + h__578));
+                h__583 = th;
+                if h__583 < 0, h__583 = -h__583; elseif h__583 == 0, h__583 = 0; end
+                h__584 = ((th * th) + 1);
+                if h__584 < 0, h__584 = NaN; else, h__584 = sqrt(h__584); end
+                t = (sign(th) / (h__583 + h__584));
                 if (th == 0)
                     t = 1;
                 end
-                h__579 = ((t * t) + 1);
-                if h__579 < 0, h__579 = NaN; else, h__579 = sqrt(h__579); end
-                c = (1 / h__579);
+                h__585 = ((t * t) + 1);
+                if h__585 < 0, h__585 = NaN; else, h__585 = sqrt(h__585); end
+                c = (1 / h__585);
                 sn = (t * c);
                 i = ((0):((4) - 1)).';
                 aip = a((i) + 1, (p) + 1);

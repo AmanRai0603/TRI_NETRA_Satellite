@@ -7,7 +7,7 @@ function [h] = fsw_hyp(a, b)
     h = 0;
     x = asils.models.fswsens.fsw_or_zero(a);
     y = asils.models.fswsens.fsw_or_zero(b);
-    h__558 = ((x * x) + (y * y));
-    if h__558 < 0, h__558 = NaN; else, h__558 = sqrt(h__558); end
-    h = h__558;
+    h__564 = ((x * x) + (y * y));
+    if h__564 < 0, h__564 = NaN; else, h__564 = sqrt(h__564); end
+    h = h__564;
 end

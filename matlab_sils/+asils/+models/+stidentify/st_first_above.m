@@ -15,17 +15,17 @@ function [lo, pa] = st_first_above(pa, np, x)
             mid = (lo + fix(((hi - lo)) / (2)));
             left = (pa((mid) + 1) <= x);
             if left
-                h__719 = (mid + 1);
+                h__725 = (mid + 1);
             else
-                h__719 = lo;
+                h__725 = lo;
             end
-            lo = h__719;
+            lo = h__725;
             if left
-                h__720 = hi;
+                h__726 = hi;
             else
-                h__720 = mid;
+                h__726 = mid;
             end
-            hi = h__720;
+            hi = h__726;
         end
         k__647 = k__647 + 1;
         if (~(lo < hi)), break; end

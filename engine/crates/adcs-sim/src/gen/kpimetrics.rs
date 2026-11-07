@@ -222,9 +222,9 @@ pub fn kpi_time_to_rate(t: &mut [f64], rate: &mut [f64], mode: &mut [i64], n: i6
         let mut found: bool = false;
         let mut j: i64 = 0;
         {
-            let __end45: i64 = n;
+            let __end46: i64 = n;
             let mut k: i64 = 0;
-            while k < __end45 {
+            while k < __end46 {
                 if ((!found) && ((*mode)[(k) as usize] != (*mode)[0])) {
                     found = true;
                     j = k;
@@ -278,13 +278,13 @@ pub fn kpi_wheel_peak(h: &mut [f64], nr: i64, idx: &mut [i64], ni: i64) -> f64 {
     let mut v: f64 = 0.0;
     v = f64::NAN;
     {
-        let __end46: i64 = ni;
+        let __end47: i64 = ni;
         let mut i: i64 = 0;
-        while i < __end46 {
+        while i < __end47 {
             {
-                let __end47: i64 = nr;
+                let __end48: i64 = nr;
                 let mut r: i64 = 0;
-                while r < __end47 {
+                while r < __end48 {
                     v = crate::gen::kpistats::kpi_max(v, rt::fabs((*h)[((((*idx)[(i) as usize] * nr) + r)) as usize]));
                     r += 1;
                 }
@@ -308,9 +308,9 @@ pub fn kpi_time_to_mode(t: &mut [f64], mode: &mut [i64], n: i64, m: i64) -> f64 
     v = f64::NAN;
     let mut found: bool = false;
     {
-        let __end48: i64 = n;
+        let __end49: i64 = n;
         let mut j: i64 = 0;
-        while j < __end48 {
+        while j < __end49 {
             if ((!found) && ((*mode)[(j) as usize] == m)) {
                 v = ((*t)[(j) as usize] / 60.0);
                 found = true;
@@ -339,9 +339,9 @@ pub fn kpi_sun_angle_stat(sun: &mut [f64], mode: &mut [i64], idx: &mut [i64], ni
     let mut v: f64 = 0.0;
     let mut k: i64 = 0;
     {
-        let __end49: i64 = ni;
+        let __end50: i64 = ni;
         let mut i: i64 = 0;
-        while i < __end49 {
+        while i < __end50 {
             let mut j: i64 = (*idx)[(i) as usize];
             if ((!by_mode) || ((*mode)[(j) as usize] == m)) {
                 let mut x: f64 = (*sun)[(j) as usize];
@@ -373,9 +373,9 @@ pub fn kpi_spin_error_stat(spin_z: &mut [f64], idx: &mut [i64], ni: i64, spin_dp
     let mut v: f64 = 0.0;
     let mut k: i64 = 0;
     {
-        let __end50: i64 = ni;
+        let __end51: i64 = ni;
         let mut i: i64 = 0;
-        while i < __end50 {
+        while i < __end51 {
             let mut x: f64 = rt::fabs((rt::fabs((*spin_z)[((*idx)[(i) as usize]) as usize]) - spin_dps));
             if (x).is_finite() {
                 (*w)[(k) as usize] = x;
@@ -400,9 +400,9 @@ pub fn kpi_mode_fraction(mode: &mut [i64], idx: &mut [i64], ni: i64, m: i64) -> 
     let mut v: f64 = 0.0;
     let mut k: i64 = 0;
     {
-        let __end51: i64 = ni;
+        let __end52: i64 = ni;
         let mut i: i64 = 0;
-        while i < __end51 {
+        while i < __end52 {
             if ((*mode)[((*idx)[(i) as usize]) as usize] == m) {
                 k = (k + 1);
             }
@@ -445,9 +445,9 @@ pub fn kpi_schedule_replays(crossings: &mut [i64], ns: i64) -> f64 {
     let mut v: f64 = 0.0;
     v = 0.0;
     {
-        let __end52: i64 = ns;
+        let __end53: i64 = ns;
         let mut e: i64 = 0;
-        while e < __end52 {
+        while e < __end53 {
             if ((*crossings)[(e) as usize] > 1) {
                 v = (v + (((*crossings)[(e) as usize] - 1) as f64));
             }
@@ -467,9 +467,9 @@ pub fn kpi_propellant(prop: &mut [f64], n: i64) -> f64 {
     let mut v: f64 = 0.0;
     let mut acc: f64 = 0.0;
     {
-        let __end53: i64 = n;
+        let __end54: i64 = n;
         let mut j: i64 = 0;
-        while j < __end53 {
+        while j < __end54 {
             acc = crate::gen::kpistats::kpi_max(acc, (*prop)[(j) as usize]);
             j += 1;
         }
@@ -497,9 +497,9 @@ pub fn kpi_adcs_power(p_mtq: &mut [f64], p_rw: &mut [f64], p_rcs: &mut [f64], p_
     let mut s: f64 = (-(0.0));
     let mut acc: f64 = (-(1.7976931348623157e+308));
     {
-        let __end54: i64 = ni;
+        let __end55: i64 = ni;
         let mut i: i64 = 0;
-        while i < __end54 {
+        while i < __end55 {
             let mut j: i64 = (*idx)[(i) as usize];
             let mut p: f64 = ((((*p_mtq)[(j) as usize] + (*p_rw)[(j) as usize]) + (*p_rcs)[(j) as usize]) + (*p_sens)[(j) as usize]);
             s = (s + p);
@@ -536,9 +536,9 @@ pub fn kpi_power_margin(has: bool, p_gen: &mut [f64], p_mtq: &mut [f64], p_rw: &
     if has {
         let mut s: f64 = (-(0.0));
         {
-            let __end55: i64 = ni;
+            let __end56: i64 = ni;
             let mut i: i64 = 0;
-            while i < __end55 {
+            while i < __end56 {
                 let mut j: i64 = (*idx)[(i) as usize];
                 s = (s + ((((((*p_gen)[(j) as usize] - load_w) - (*p_mtq)[(j) as usize]) - (*p_rw)[(j) as usize]) - (*p_rcs)[(j) as usize]) - (*p_sens)[(j) as usize]));
                 i += 1;
@@ -567,9 +567,9 @@ pub fn kpi_battery(soc: &mut [f64], idx: &mut [i64], ni: i64) -> (f64, f64) {
     let mut soc_min: f64 = 0.0;
     let mut acc: f64 = f64::NAN;
     {
-        let __end56: i64 = ni;
+        let __end57: i64 = ni;
         let mut i: i64 = 0;
-        while i < __end56 {
+        while i < __end57 {
             acc = crate::gen::kpistats::kpi_min(acc, (*soc)[((*idx)[(i) as usize]) as usize]);
             i += 1;
         }

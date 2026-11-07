@@ -18,9 +18,9 @@ function [r] = orem(x, y)
         else
             r = (x - (y * fix(q)));
             if (x ~= y)
-                h__305 = r;
-                if h__305 < 0, h__305 = -h__305; elseif h__305 == 0, h__305 = 0; end
-                r = (h__305 * sign(x));
+                h__311 = r;
+                if h__311 < 0, h__311 = -h__311; elseif h__311 == 0, h__311 = 0; end
+                r = (h__311 * sign(x));
             end
         end
     end

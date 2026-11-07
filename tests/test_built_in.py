@@ -373,11 +373,12 @@ class BuiltIn(unittest.TestCase):
             rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
             self.assertEqual(self.beh(nid), "method", nid)
             self.assertEqual(x["body"]["node"]["group_id"], group, nid)
-            self.assertIn("the developer's revision S7.11", rows[("code", "pseudocode")][1], nid)
+            rev = "S11.9" if nid == "dyn_truth_plant" else "S7.11"       # S11.9 (A5) revised the truth plant's method
+            self.assertIn(f"the developer's revision {rev}", rows[("code", "pseudocode")][1], nid)
             self.assertTrue(rows[("code", "transcribes")][0], nid)
             self.assertEqual(rows[("code", "generate")][0], target, nid)
             self.assertEqual(x["sealed_as"], "unconfirmed", nid)
-            self.assertTrue(any(w.startswith("the developer's revision S7.11") and "not yet signed by a person" in w for w in x["why"]), nid)
+            self.assertTrue(any(w.startswith(f"the developer's revision {rev}") and "not yet signed by a person" in w for w in x["why"]), nid)
         for path, fn in (("act/ringnoise.pc", "ring_flow_noise"), ("act/rcstorque.pc", "couple_arms"), ("sens/earthsensor.pc", "es_boresight"),
                          ("sens/sttracker.pc", "st_calibrated")):
             self.assertIn(f"\nfn {fn}(", from_design.text(path, REG / "design.tndb"), path)

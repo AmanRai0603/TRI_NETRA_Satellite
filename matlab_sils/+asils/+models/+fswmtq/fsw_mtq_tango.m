@@ -22,27 +22,27 @@ function [pth, pw] = fsw_mtq_tango(ii, wn, z, gp, gd)
     ax = ((0):((3) - 1)).';
     mi((ax) + 1) = ((((7 / 15) .* reshape(d((ax) + 1), [], 1)) + (trd / 15)) ./ r);
     mref = (((mi(1) + mi(2)) + mi(3)) / 3);
-    h__548 = (((jm * wn) * wn) * r);
-    qt = (mref * (h__548 * h__548));
-    h__549 = ((((2 * z) * jm) * wn) * r);
-    h__550 = (qt / mref);
-    if h__550 < 0, h__550 = NaN; else, h__550 = sqrt(h__550); end
-    qw0 = ((mref * (h__549 * h__549)) - (2 * h__550));
+    h__554 = (((jm * wn) * wn) * r);
+    qt = (mref * (h__554 * h__554));
+    h__555 = ((((2 * z) * jm) * wn) * r);
+    h__556 = (qt / mref);
+    if h__556 < 0, h__556 = NaN; else, h__556 = sqrt(h__556); end
+    qw0 = ((mref * (h__555 * h__555)) - (2 * h__556));
     if (qw0 > 0)
-        h__551 = qw0;
+        h__557 = qw0;
     else
-        h__551 = 0;
+        h__557 = 0;
     end
-    qw = h__551;
+    qw = h__557;
     pth = zeros(3, 3);
     pw = zeros(3, 3);
     for ax = (0):((3) - 1)
-        h__552 = (qt / mi((ax) + 1));
-        if h__552 < 0, h__552 = NaN; else, h__552 = sqrt(h__552); end
-        p12 = h__552;
-        h__553 = ((qw + (2 * p12)) / mi((ax) + 1));
-        if h__553 < 0, h__553 = NaN; else, h__553 = sqrt(h__553); end
-        p22 = h__553;
+        h__558 = (qt / mi((ax) + 1));
+        if h__558 < 0, h__558 = NaN; else, h__558 = sqrt(h__558); end
+        p12 = h__558;
+        h__559 = ((qw + (2 * p12)) / mi((ax) + 1));
+        if h__559 < 0, h__559 = NaN; else, h__559 = sqrt(h__559); end
+        p22 = h__559;
         pth((ax) + 1, (ax) + 1) = ((gp * p12) / r);
         pw((ax) + 1, (ax) + 1) = ((gd * p22) / r);
     end

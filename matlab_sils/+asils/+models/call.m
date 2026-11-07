@@ -1048,6 +1048,12 @@ function y = call(name, x)
         case 'truthplant::scale_inertia'
             [o1] = asils.models.truthplant.scale_inertia(reshape(x(1:9), 3, 3).', reshape(x(10:12), 3, 1));
             y = [reshape((o1).', [], 1)];
+        case 'truthplant::inertia_realisable'
+            [o1] = asils.models.truthplant.inertia_realisable(reshape(x(1:9), 3, 3).', reshape(x(10:12), 3, 1));
+            y = [double(o1)];
+        case 'truthplant::realisable_scale'
+            [o1] = asils.models.truthplant.realisable_scale(reshape(x(1:9), 3, 3).', reshape(x(10:12), 3, 1));
+            y = [reshape(o1, [], 1)];
         case 'truthplant::inertia_products'
             [o1, o2] = asils.models.truthplant.inertia_products(reshape(x(1:9), 3, 3).', reshape(x(10:12), 3, 1));
             y = [reshape((o1).', [], 1); double(o2)];

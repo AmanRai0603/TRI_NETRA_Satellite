@@ -17,8 +17,8 @@ function [gm, re, cbar] = default_field()
     cbar(1) = 1;
     for k = (0):((5) - 1)
         n = (k + 2);
-        h__270 = ((2 * n) + 1);
-        if h__270 < 0, h__270 = NaN; else, h__270 = sqrt(h__270); end
-        cbar(((n * 7)) + 1) = ((-(D__GRAV_DEFAULT_J((k) + 1))) / h__270);
+        h__276 = ((2 * n) + 1);
+        if h__276 < 0, h__276 = NaN; else, h__276 = sqrt(h__276); end
+        cbar(((n * 7)) + 1) = ((-(D__GRAV_DEFAULT_J((k) + 1))) / h__276);
     end
 end

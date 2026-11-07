@@ -13,8 +13,8 @@ function [c] = zonal_c(j, nj)
     c(1) = 1;
     for kk = (2):(((nj + 1)) - 1)
         n = (kk + 1);
-        h__287 = ((2 * n) + 1);
-        if h__287 < 0, h__287 = NaN; else, h__287 = sqrt(h__287); end
-        c(((n * st)) + 1) = ((-(j(((kk - 1)) + 1))) / h__287);
+        h__293 = ((2 * n) + 1);
+        if h__293 < 0, h__293 = NaN; else, h__293 = sqrt(h__293); end
+        c(((n * st)) + 1) = ((-(j(((kk - 1)) + 1))) / h__293);
     end
 end

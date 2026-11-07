@@ -10,9 +10,9 @@ function [c] = jitter_min(a, b)
     elseif isnan(b)
         c = a;
     else
-        h__646 = a;
-        h__647 = b;
-        if h__647 < h__646, h__646 = h__647; end
-        c = h__646;
+        h__652 = a;
+        h__653 = b;
+        if h__653 < h__652, h__652 = h__653; end
+        c = h__652;
     end
 end

@@ -4120,3 +4120,19 @@ source = "docs/S11_INVENTORY.md Y1; DR-design-003"
 generate = ["adcs-sim"]
 uses = ["kpi/kpistats.pc", "kpi/kpiecss.pc"]
 why = "power_mean, power_peak and power_margin are of the whole ADCS (Y1)"
+
+[[revision]]
+id = "S11.9"
+at = "2026-11-07T12:00:00Z"
+by = "the developer"
+about = "the dispersion of the inertia (docs/S11_INVENTORY.md A5; decision DR-vv-002): a campaign's inertia is held to a body that can exist, each principal moment positive and none above the sum of the other two; a draw that breaks it is drawn again from the seed's stream, an edge corner that breaks it is moved to the nearest realisable one along its own direction, and a stated inertia that breaks it is refused by name"
+
+[[revision.method]]
+node = "dyn_truth_plant"
+pseudocode = "design/revisions/S11.9/truthplant.pc"
+path = "dyn/truthplant.pc"
+transcribes = "design/revisions/S7.11/truthplant.pc as S7.11 left it, with inertia_realisable (the triangle inequality of the principal moments, every ordering) and realisable_scale (an edge corner shortened to the nearest realisable one)"
+source = "docs/S11_INVENTORY.md A5; DR-vv-002 (design/decisions/DR-vv-002.toml); the triangle inequality of a rigid body's principal moments (Wie (2008), Space Vehicle Dynamics and Control, chapter 4): I1 + I2 >= I3 for every ordering, because I1 + I2 - I3 = 2 integral of z^2 dm"
+generate = ["adcs-sim"]
+why = "about 4 % of Monte Carlo inertia draws and every edge corner of 10 % were impossible bodies (A5); the realisability test and the corner's clip are the design's, the engine and the twin call them"
+

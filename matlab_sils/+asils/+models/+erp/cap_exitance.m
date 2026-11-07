@@ -18,11 +18,11 @@ function [msw, mlw, geo] = cap_exitance(alb, emi, n_el, shat, cos_e, da, rho)
     s = getfield(asils.models.de440.de440_constants(), 'tsi');
     cz = (n_el(1)*shat(1) + n_el(2)*shat(2) + n_el(3)*shat(3));
     if (cz > 0)
-        h__247 = ((alb * s) * cz);
+        h__253 = ((alb * s) * cz);
     else
-        h__247 = 0;
+        h__253 = 0;
     end
-    msw = h__247;
+    msw = h__253;
     mlw = ((emi * s) / 4);
     geo = ((cos_e * da) / ((pi * rho) * rho));
 end
