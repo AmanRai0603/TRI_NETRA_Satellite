@@ -6,7 +6,7 @@ The working record of S11 (`docs/PLAN_2_0.md`, S11 Corrections (U0); the steps a
 Written at a hand-over between sessions; the next session keeps it current and `docs/S11_REPORT.md` is written from it at
 the phase's end. Everything here is the developer's and unsigned.
 
-## Steps done (on `claude/brave-dijkstra-rshrb7`, last commit at this writing b8727d79)
+## Steps done (on `claude/brave-dijkstra-rshrb7`, last commit at this writing 6a715573)
 
 | step | items | commits | what it shows |
 |---|---|---|---|
@@ -16,24 +16,19 @@ the phase's end. Everything here is the developer's and unsigned.
 | S11.4b | F3, F1, F10/G8 | afad7643, 30a4cafe, c35cc8d9 (picked) | integer-tick rate groups; monotonic bounded clock with GNSS date and no schedule replay (`fsw_param_clock_step_max_s`, `fsw/pseudocode/09_time.pc`); double only, `tests/test_precision_claim.py`. |
 | S11.5 | F2/G3, F5, G4 | 13f05030..4b01552a (picked) | quiet gyro after 3 ticks (fault bit 10), filter attitude rate stands in (`att_rate`), damping beyond 2e-3 rad/s (`damp_excess`), B-dot rate for the gyroless detumble exit; `fault_st_blind`. fault_gyro_silent knowledge error 179.98 -> 0.020 deg; fault_st_blind rate 229 -> 0.096 deg/s. DR-fdir-002 amended to what flies (73aecf6a). |
 | S11.6 | F4, G1, G2, G6, TS3 | b1138aff..b8727d79 | TS3 harness `engine/crates/adcs-sim/tests/loops.rs` (rise 0.62x -> 0.98x, settling 0.44x -> 0.99x of rw_bandwidth; GM 28.8 dB, PM 40.6 deg); gains x2 (DR-ctl-001); `st_plausible`, `st_head`, TRIAD sine floor 0.2 with `triad_cov`; per-sensor rejection counts; vector-scaled rotor allocation. Golden: G6 moved 175 rows in 44 scenarios, 4 fail -> pass, 1 pass -> fail (below). |
+| decisions | DR-ctl-001, DR-vv-003 | 5d6aecb5, a65a1db5 | factor 2 kept on the wheel PID, off the magnetic PD behind one switch (`kp_factor` in `fsw_mtq_pd`, design/revisions/S11.6/fswmtq.pc); golden: nadir_hold_ais_css ape_los_last_orbit 10.94 -> 9.71 deg (fail -> pass), nadir_hold_ais 17.06 -> 10.61 (still fails), safe_mode_ais recovery_to_ape 128.4 -> 85.9 s. DR-vv-003 carries the campaign rule across machines. |
+| S11.7 | M1, M5, M2, M9, M10 | e0da8c19..ea446034 | failed ring spins down with T_sd; failed CMG spins down on the wheel's friction ratios (DR-act-002) and its gimbal stops; wheel copper loss tau^2 w_nl/tau_stall (17 golden values, no verdict); tracker latency over 0.5 s refused by name; GNSS rate_Hz in the schedule. |
+| S11.8 | Y2, Y4, Y5, Y1 | 40f97886..6a715573 | CMG cluster one unit on its own figures, a stated zero is not stated; h_req = k_h (h_dist + h_slew), k_h = 2 floor refused by name, achieved margin in sizing.json, no panic; survey in the inertial frame; `sens_power` (sensorpower.pc) a fourth power channel `P_sens_W` and gb_2 the peak (duty: the tracker in modes 1-4 and 10 only, DR-design-003). Golden: 30 verdicts pass -> fail (power_mean 23, power_peak 4, power_margin 3), none the other way. Default selection: wheel CW0017 -> CW0057, h_req 1.71e-3 -> 2.81e-3 N m s; stored pipeline selection.json not regenerated (S11.16). |
 | S11.12 | P5 | cd64add3 | orbit step capped at 30 s. |
 | S11.13 | O2, O12, O19, O20, O21 | 0b529c76..6026be2a (picked) | plugin refused by name; `fsw/devices/example_3u.toml` held to the header (`tools/device_map.py`); 5 % numeric SILS/OILS tolerance; CI `oils-deadline` (`results/oils_deadline_min.json`, smallest 32.585 ms); `--record`/`adcs replay`. |
 | S11.15 | TS17 | b19f8a13 | four oracles replaced, each failing a mutation the old passed; 10 more weak tests listed in `docs/TEST_STRATEGY.md` TS17, left. |
 | gate fixes | — | 496c4936, baa2874b, b1cfc6e6, b634b6e0, c32676f4, 0c7e313d | stale firmware refused or rebuilt (`tools/fsw_firmware.py`); evaluation rewritten (no closure verdict changed); campaign parity: bit-exact on the record's fingerprint, else verdicts equal and every metric within 5 % (`campaign_relative_tolerance` in `results/golden.json`). |
 
-## The developer's decisions taken during S11 (to amend into the records, unsigned)
+## The developer's decisions taken during S11
 
-- **Campaign parity across machines** (refines DR-vv-003): the 4,516 stored campaign runs encode the libm of the machine
-  that flew them (439 differ on this machine at cf397d1 already; switching glibc's FMA path moves which). Across
-  fingerprints a campaign run passes on equal verdicts and every metric within 5 % relative (largest seen 1.41e-2, no
-  verdict differs). **DR-vv-003's text still has to say so** (a design edit: rebuild the regression copy).
-- **The magnetic PD's factor 2 (to do next).** G6's factor 2 is proven for the wheel PID by TS3, but the magnetic loop is
-  not in the harness, and flown it is worse: `nadir_hold_ais` ape_los 10.67 -> 16.62 deg (already failing) and
-  `nadir_hold_ais_css` `ape_los_last_orbit` 9.71 -> 10.76 deg against 10 (pass -> fail). The magnetic loop is periodic
-  and its placement rests on an averaged field, so the stiffness the placement assumes is not what flies. **Decision:**
-  keep the factor 2 on the wheel PID; take it off the magnetic PD (S7.13's `fsw_mtq_pd` as before) until a magnetic loop
-  test (TS3 for coils, with S13's T1 margins) proves a placement; amend DR-ctl-001 with this and the numbers; rewrite the
-  golden rows that move back. One switch: the factor on `fsw_mtq_pd`.
+Both carried into their records (5d6aecb5, a65a1db5): DR-ctl-001 (the magnetic PD without the factor 2 until a coil loop test
+proves a placement) and DR-vv-003 (campaign parity across machines). S11.7 amended DR-act-002, S11.8 DR-design-003 (k_h floor,
+the sensors' duty by mode), unsigned.
 
 ## Open, found on the way
 
@@ -50,10 +45,17 @@ the phase's end. Everything here is the developer's and unsigned.
 - The flight images were not resealed after S11.5-S11.6 (`flight-image` passed; confirm in S11.16).
 - `tools/tokens.py checked`: no agent has been marked yet.
 
+- The pipeline loop's fluid-loop mass lever (x0.75 from scale 1) is now refused by the sizing's k_h = 2 floor, which stops the
+  loop: the momentum parts need their own lower scale bound, apart from the coils'. It lives in `looprules.pc` (sealed vectors);
+  DR-design-003 notes it. Settle before the S11.16 pipeline re-fly.
+- S11.7 and S11.8's new tests were written with the fix and not watched failing on the old tree (the generated code was rebuilt
+  in place); each asserts a value the old code could not give.
+- Step 1's single python-tests failure was a flaky browser click (a `tn-dialog` over the button in group.test.mjs): the suite
+  passed in full on a65a1db (484, 5 skipped).
+
 ## Steps left, in order
 
-S11.7 device models (M1, M2, M5 with DR-act-002, M9, M10) · S11.8 power and sizing (Y2, Y4, Y5, then Y1; DR-design-003)
-· S11.9 A5 (DR-vv-002) · S11.10 verdicts (A7 windows, A1 on DR-kpi-001 with a stated `kpi_verdict_confidence`, A3, A2)
+S11.9 A5 (DR-vv-002) · S11.10 verdicts (A7 windows, A1 on DR-kpi-001 with a stated `kpi_verdict_confidence`, A3, A2)
 · S11.11 E6 and E1 · S11.14 O11 · S11.16 regenerate, gates, reseal, re-fly (the twin re-fly waits for the S7 re-fly's last
 commit and the filled §4 of `docs/S7_REPORT.md`) · S11.17 counts and tables · S11.18 the phase review and
 `docs/S11_REPORT.md`, ending with `python3 tools/tokens.py ledger --stage S11`.
