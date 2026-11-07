@@ -453,11 +453,21 @@ def parity():
            "inside the distributions of section 6. The differences traced to their cause are listed in results/ENGINE_PARITY.md.</p>")
     if er:
         txt += table(["scenario", "samples", "max |r| difference [m]", "max density ratio − 1", "max Sun-direction difference", "max |B| ratio − 1"], er, num=(1, 2, 3, 4, 5))
-    dis = [[e(r["scenario"]), e(r["metric"]), fmt(r["matlab"]), fmt(r["engine"]), fmt(r["req"]), verdict(r["pass_matlab"]), verdict(r["pass_engine"])]
-           for r in judged if not r["agree"]]
-    if dis:
-        txt += "<p>Verdicts that differ (all traced; see ENGINE_PARITY.md):</p>" + table(["scenario", "metric", "MATLAB", "engine", "req", "MATLAB", "engine"], dis, num=(2, 3, 4))
-    return txt
+    return txt + differing_verdicts(judged)
+
+
+def differing_verdicts(judged):
+    """The engine/twin verdicts that differ, each with its traced cause (tools/engine_twin.py CAUSES) or 'untraced'."""
+    import engine_twin
+    rows = [r for r in judged if not r["agree"]]
+    if not rows:
+        return ""
+    causes = [engine_twin.cause(r["scenario"], r["metric"]) for r in rows]
+    n_un = sum(c is None for c in causes)
+    lead = "all traced; see ENGINE_PARITY.md" if not n_un else f"{n_un} of {len(rows)} untraced, no cause on record; the others are in ENGINE_PARITY.md"
+    dis = [[e(r["scenario"]), e(r["metric"]), fmt(r["matlab"]), fmt(r["engine"]), fmt(r["req"]), verdict(r["pass_matlab"]), verdict(r["pass_engine"]),
+            "untraced" if c is None else "traced"] for r, c in zip(rows, causes)]
+    return f"<p>Verdicts that differ ({lead}):</p>" + table(["scenario", "metric", "MATLAB", "engine", "req", "MATLAB", "engine", "cause"], dis, num=(2, 3, 4))
 
 
 def oils():

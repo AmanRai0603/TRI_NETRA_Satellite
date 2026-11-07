@@ -2,7 +2,7 @@
 
 Copyright (c) 2026 Agastya. All rights reserved.
 """
-import json, math
+import fnmatch, json, math
 from common import Steps, write_text
 from engine_base import ENG, OUT, TWIN
 from engine_runs import scenarios
@@ -12,42 +12,54 @@ from engine_runs import scenarios
 MC_PAIRS = {"mc_detumble_ais": "detumble_ais", "mc_nadir_ais": "nadir_hold_ais", "mc_fine_img": "fine_hold_img", "mc_slew_img": "slew_img"}
 
 
-# Differences that were traced to their cause (kept with the ledger).
-NOTES = [
-    ("fine_hold_fmr, fine_hold_fmr_rcs · power_mean",
+# Differences that were traced to their cause (kept with the ledger): (label, scenarios, metrics, cause). A differing
+# verdict is traced only when its (scenario, metric) matches an entry (fnmatch); the report says "untraced" otherwise.
+_CAUSE_TABLE = [
+    ("fine_hold_fmr, fine_hold_fmr_rcs · power_mean", ("fine_hold_fmr", "fine_hold_fmr_rcs"), ("power_mean",),
      "Knife-edge in the fluid-ring power model, not an engine difference: the 2 W field power per ring is on while the "
      "driver's momentum target exceeds 2 % of h_max (2e-5 N m s). Both runs start with all three rings on (6 W); the "
      "ring momenta then hover at 2.3-2.6e-5 N m s, so which side of the threshold each run settles on decides a 2 W "
      "requirement. Action: a hysteresis band on the field-power switch (asils.devices.mex and the engine's Mex)."),
-    ("fine_hold_rw_rcs · ape_los_p9973",
+    ("fine_hold_rw_rcs · ape_los_p9973", ("fine_hold_rw_rcs",), ("ape_los_p9973",),
      "Traced: the momentum-dump pulses (same times, same counts, same propellant on both sides) are fed forward with "
      "the nominal thruster torque; the unit's thrust-scale draw (sigma 3 %) leaves an uncompensated torque for the "
      "~30 s dump. Engine draw 0.985 -> ~3e-6 N m -> 0.03 deg offset against Kp = 5.4e-3; MATLAB draw 0.995 -> 0.01 deg. "
      "Engine Monte Carlo (24 seeds): mean 0.034 deg, range 0.009-0.079 deg; the MATLAB run sits at the lucky end. "
      "Finding: RCS dumping during imaging breaks the 0.01 deg APE for most thrust-scale draws -> calibrate thrust "
      "on orbit or inhibit RCS dumping in the fine modes."),
-    ("sun_spin_ais · sun_angle, spin_rate_error, share",
+    ("sun_spin_ais · sun_angle, spin_rate_error, share", ("sun_spin_ais",), ("sun_angle", "spin_rate_error", "share"),
      "Traced to the flight logic (identical in MATLAB, C and Rust): when spin-up converges with the Sun on +Z, the "
      "sigma flip reverses the spin every 60 s check, which drives the body through zero spin and never moves the Sun "
      "to -Z. Engine seed 1 is that case; 3 of 24 Monte Carlo seeds lock up (mean sun angle 26 deg, range 2.7-173 deg), "
      "the MATLAB run (6.5 deg) is inside. Finding: the sign-flip guard needs a hemisphere manoeuvre, not a spin reversal."),
-    ("sun_spin_ais, detumble_ais_bangbang (the twin of today) · sun_angle, spin_rate_error, share; power_mean",
+    ("sun_spin_ais, detumble_ais_bangbang (the twin of today) · sun_angle, spin_rate_error, share; power_mean", ("sun_spin_ais", "detumble_ais_bangbang"), ("sun_angle", "spin_rate_error", "share", "power_mean"),
      "Not a model difference: the same realisation parts by the last bits. The orbit is the same to the file's 9 digits "
      "over the whole run; the attitude first differs in the 9th digit at 235 s (the maths library: Octave's glibc against "
      "the engine's libm crate, and the POP port's last bits) and the tumble amplifies it; the Sun-spin entry comes 12 s "
      "apart (3793 s engine, 3806 s twin) and the two spins then part (the spin-reversal lock-up above decides one of them). "
      "The bang-bang detumble's power mean is 1e-4 apart the same way (its sign decisions)."),
-    ("nadir_hold_ais, mission_ais · ake_los / ape_los",
+    ("nadir_hold_ais, mission_ais · ake_los / ape_los", ("nadir_hold_ais", "mission_ais"), ("ake_los*", "ape_los*"),
      "Realisation spread of the coils-only MEKF (magnetometer + Sun): engine 24-seed AKE mean 4.0 deg (0.8-8.5 deg); "
      "the MATLAB runs (3.9-4.0 deg) are inside the distribution."),
-    ("detumble_* and mission_* · detumble_time",
+    ("detumble_* and mission_* · detumble_time", ("detumble_*", "mission_*"), ("detumble_time",),
      "Random initial tumble direction; at distribution level the MATLAB campaign (48.5 +/- 12 min) and the engine "
      "campaign mc_detumble_ais with the full dispersions (56.3 +/- 11.4 min) overlap; results/ENGINE_CAMPAIGNS.md."),
-    ("mc_nadir_ais · ape_los",
+    ("mc_nadir_ais · ape_los", ("mc_nadir_ais",), ("ape_los",),
      "Like-for-like since the engine campaigns (tools/engine.py campaign, results/ENGINE_CAMPAIGNS.md) disperse the "
      "residual dipole, inertia, CM offset, flux, Kp, accommodation and reflectivity exactly as asils.campaign.draw: "
      "MATLAB mean 89.7 deg vs engine 93.0 deg; the coils-only nadir hold cannot absorb the dispersed dipole."),
 ]
+
+NOTES = [(label, text) for label, _, _, text in _CAUSE_TABLE]
+CAUSES = {(sc, mt): text for _, scs, mts, text in _CAUSE_TABLE for sc in scs for mt in mts}
+
+
+def cause(scenario, metric):
+    """The traced cause of a difference in (scenario, metric), or None when nobody has traced it."""
+    for (sc, mt), text in CAUSES.items():
+        if fnmatch.fnmatchcase(scenario, sc) and fnmatch.fnmatchcase(metric, mt):
+            return text
+    return None
 
 
 def _angle_deg(u, v):

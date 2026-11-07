@@ -144,5 +144,47 @@ class VVFormats(unittest.TestCase):
         self.assertIn("missing", vv_report.svg_inline("docs/figures/no_such_figure.svg"))
 
 
+class DifferingVerdicts(unittest.TestCase):
+    """A differing engine/twin verdict is 'traced' only when the cause table has an entry for (scenario, metric)."""
+
+    @staticmethod
+    def row(scen, metric):
+        return {"scenario": scen, "metric": metric, "matlab": 1.0, "engine": 2.0, "req": 1.5, "pass_matlab": 1, "pass_engine": 0, "agree": False}
+
+    @staticmethod
+    def traced_key():
+        import engine_twin
+        return next(k for k in engine_twin.CAUSES if "*" not in k[0] and "*" not in k[1])
+
+    def test_a_differing_verdict_with_no_entry_prints_untraced_and_not_all_traced(self):
+        txt = vv_report.differing_verdicts([self.row("no_such_scenario", "no_such_metric")])
+        self.assertIn("untraced", txt)
+        self.assertNotIn("all traced", txt)
+
+    def test_a_differing_verdict_with_an_entry_is_traced(self):
+        txt = vv_report.differing_verdicts([self.row(*self.traced_key())])
+        self.assertNotIn("untraced", txt)
+        self.assertIn("all traced", txt)
+
+    def test_a_mix_says_untraced_and_not_all_traced(self):
+        txt = vv_report.differing_verdicts([self.row(*self.traced_key()), self.row("x", "y")])
+        self.assertIn("untraced", txt)
+        self.assertNotIn("all traced", txt)
+
+    def test_no_differing_verdict_prints_nothing(self):
+        self.assertEqual(vv_report.differing_verdicts([]), "")
+
+    def test_every_differing_verdict_in_the_filed_parity_has_an_entry_or_prints_untraced(self):
+        import engine_twin
+        rows = json.loads((pathlib.Path(__file__).resolve().parents[1] / "results" / "engine_parity.json").read_text())
+        dis = [r for r in rows if r.get("agree") is not None and not r["agree"]]
+        for r in dis:
+            txt = vv_report.differing_verdicts([r])
+            if engine_twin.cause(r["scenario"], r["metric"]) is None:
+                self.assertIn("untraced", txt, (r["scenario"], r["metric"]))
+            else:
+                self.assertNotIn("untraced", txt)
+
+
 if __name__ == "__main__":
     unittest.main()
