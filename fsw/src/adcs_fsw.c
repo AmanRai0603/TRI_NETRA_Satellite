@@ -608,7 +608,7 @@ const char *adcs_fsw_build_id(void) { return "trinetra-fsw-c/1.0.0 (adcs-fswcfg/
 /* ---- extension for the SILS and the parity ledger (not part of adcs_fsw.h) ---- */
 int32_t adcs_fsw_debug(double *out, int n)
 {
-    /* t, mode, ad_ok, q[4], b[3], w_est[3], q_ref[4], tau_req[3], m[3], cmd_r[8], cmd_g[4], duty[6] */
+    /* t, mode, ad_ok, q[4], b[3], w_est[3], q_ref[4], tau_req[3], m[3], cmd_r[8], cmd_g[4], duty[6], faults (the fault word: it is not otherwise on the link) */
     double v[48]; int i, k = 0;
     v[k++] = S.t; v[k++] = S.mode; v[k++] = S.ad_ok;
     for (i = 0; i < 4; i++) v[k++] = S.K.q[i];
@@ -620,6 +620,7 @@ int32_t adcs_fsw_debug(double *out, int n)
     for (i = 0; i < 8; i++) v[k++] = S.out_r[i];
     for (i = 0; i < 4; i++) v[k++] = S.out_g[i];
     for (i = 0; i < 6; i++) v[k++] = S.out_duty[i];
+    v[k++] = S.faults;
     for (i = 0; i < n && i < k; i++) out[i] = v[i];
     return k;
 }

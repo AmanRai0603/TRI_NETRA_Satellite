@@ -244,7 +244,7 @@ pub enum Fsw {
 
 static C_LOCK: Mutex<()> = Mutex::new(());
 
-pub const DEBUG_LEN: usize = 41;
+pub const DEBUG_LEN: usize = 42;
 
 impl Fsw {
     pub fn init(which: Impl, blob: &[u8], start_ns: u64, bus: &mut Bus) -> Result<Fsw, FswError> {
@@ -311,10 +311,11 @@ impl Fsw {
             Fsw::C(_) => { let mut s = adcs_fsw::State::default(); (unsafe { adcs_fsw_peek(&mut s) } == 0).then_some(s) }
             Fsw::Rust(f) => f.peek(),
             Fsw::Obc(l) => {
-                // faults are not on the link; report what the debug vector carries
+                // the faults and the attitude are what the debug vector carries (its last value is the fault word)
                 let d = &l.debug;
                 if d.len() < 7 { return None; }
-                Some(adcs_fsw::State { mode: d[1] as u16, q_est: [d[6] as f32, d[3] as f32, d[4] as f32, d[5] as f32], ..Default::default() })
+                Some(adcs_fsw::State { mode: d[1] as u16, q_est: [d[6] as f32, d[3] as f32, d[4] as f32, d[5] as f32],
+                    faults: d.get(DEBUG_LEN - 1).map(|x| *x as u16).unwrap_or(0), ..Default::default() })
             }
         }
     }

@@ -635,7 +635,7 @@ impl Fsw {
         Some(o)
     }
 
-    /// t, mode, ad_ok, q[4], b[3], w_est[3], q_ref[4], tau_req[3], m[3], cmd_r[8], cmd_g[4], duty[6] (= adcs_fsw_debug).
+    /// t, mode, ad_ok, q[4], b[3], w_est[3], q_ref[4], tau_req[3], m[3], cmd_r[8], cmd_g[4], duty[6], faults (= adcs_fsw_debug).
     pub fn debug(&self, out: &mut [f64]) -> usize {
         let mut v = [0.0f64; 48];
         let mut k = 0;
@@ -650,6 +650,7 @@ impl Fsw {
         for &x in &self.out_r { put(x); }
         for &x in &self.out_g { put(x); }
         for &x in &self.out_duty { put(x); }
+        put(self.faults as f64);
         let n = out.len().min(k);
         out[..n].copy_from_slice(&v[..n]);
         k
