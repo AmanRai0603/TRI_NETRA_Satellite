@@ -31,9 +31,11 @@ abb5bd7ff4ba25a4b,2026-10-10,,code,deep,standard,461858,276,146.3,,Speed up gene
 a11805d61ec083044,2026-11-06,S7,watch,light,light,79106,16,21.0,,watch: S7 twin re-fly to the end
 a25f243c96aa6fbb2,2026-11-06,S11,code,standard,standard,52496,67,63.7,,code: campaign cross-machine tolerance and the python-tests failures
 a28e4bdc8ac6c488b,2026-11-06,S11,code,standard,standard,0,0,0.0,,code: S11.4b F3 F1 F10 tick time and rate groups
+a29cd0e1b14f7c46d,2026-11-06,S11,code,standard,standard,0,0,0.0,,code: S11.7 device models
 a370ea8e05e64aad0,2026-11-06,S11,code,standard,standard,59839,45,53.2,,code: S11.3 TS11 golden table
 a8253bb44e4b09b8e,2026-11-06,S11,code,standard,standard,128569,91,72.2,,code: S11.12 P5 orbit step and S11.15 TS17 oracles
 a9578668c91eda6e3,2026-11-06,S11,decide,standard,deep,183051,100,11.7,,decide-prep: S11 inventory draft
+a9c4be999adfe11d0,2026-11-06,S11,code,standard,standard,63423,74,103.2,,code: S11 magnetic PD factor and DR-vv-003
 aa8dc41a08452d687,2026-11-06,S11,code,standard,standard,44463,25,54.0,,code: S11.2 decision records into the design
 aaa6b98a246c03e48,2026-11-06,S11,code,standard,standard,374378,11,17.6,,code: S11.5 F2/G3 F5 G4 gyro chain
 ab2d49b1a0cce6c5e,2026-11-06,S11,code,standard,standard,53997,45,63.1,,code: parity gate campaign comparison by machine fingerprint
@@ -41,3 +43,11 @@ abca20bfc1e756bdb,2026-11-06,S11,code,standard,standard,419619,239,144.7,,code: 
 ac298b8088a1c6e76,2026-11-06,S11,code,standard,standard,131841,85,75.1,,code: S11.13 soft OILS O2 O12 O19 O20 O21
 ad03ed8402e555792,2026-11-06,S11,code,standard,standard,97202,75,91.4,,code: S11 parity differences after the tick fixes
 af06edbe2d843f0ac,2026-11-06,S11,code,standard,standard,330570,129,67.5,,code: S11.4a TS4 fault rig gyro reset clock jitter
+aff0743acce602d1a,2026-11-06,S11,code,standard,standard,338377,193,120.7,,code: S11.8 power and sizing
+a1b3a17225611683a,2026-11-07,S11,code,standard,standard,86068,2,0.4,,code: S11.10 ledger texts A3 A2
+a43ba86fdb86e636e,2026-11-07,S11,code,standard,standard,27720,19,1.0,,code: S11.11 E1 parity directions
+a64e0f70c57462461,2026-11-07,S11,code,standard,standard,326024,176,93.5,,code: S11.14 O11 bus faults
+a81b3a73271e7c42c,2026-11-07,S11,code,standard,standard,212386,5,1.9,,code: S11.10 follow-up and S11.11 E6
+aee1b16f414efcc5b,2026-11-07,S11,code,standard,standard,106470,85,117.2,,code: S11.9 inertia dispersion A5
+af2c8ad2eae275add,2026-11-07,S11,code,standard,standard,217162,33,69.5,,code: S11.10 verdicts A7 A1
+af9bdecb955abe27b,2026-11-07,S11,code,standard,standard,183805,130,71.9,,"code: pre-S11.16 loop lever, srp, guard"
