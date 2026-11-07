@@ -60,6 +60,8 @@ def adcs():
     b = pathlib.Path(os.environ.get("ADCS_BIN") or BIN)
     if not b.is_file():
         raise SystemExit(f"{b}: no engine build, and the engine draws every figure; build it: python3 tools/engine.py build")
+    import engine_fresh
+    engine_fresh.exit_if_stale(b)
     return str(b)
 
 

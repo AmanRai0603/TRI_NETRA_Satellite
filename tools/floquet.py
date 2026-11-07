@@ -74,6 +74,8 @@ def frame(path, q_off, roll_axis):
 def blob(scen, path, case, pkg):
     """The flight software's parameters a scenario boots with: its blob built by `adcs params`, decoded."""
     write_text(path, json.dumps(scen))
+    import engine_fresh
+    engine_fresh.exit_if_stale(E.BIN)
     subprocess.run([str(E.BIN), "params", str(path), "--case", str(MS / "cases" / f"{case}.csv"), "--out", str(path.with_suffix(".bin"))], cwd=MS,
                    check=True, capture_output=True, env={**os.environ, "ADCS_SIZED_DIR": str(pkg / "sized")})
     return fswcfg.decode(path.with_suffix(".bin").read_bytes())

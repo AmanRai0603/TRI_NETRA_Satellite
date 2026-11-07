@@ -188,6 +188,8 @@ def main(argv=None):
     a = ap.parse_args(argv)
     if not BIN.exists():
         sys.exit("engine not built: cd engine && cargo build --release -p adcs-cli")
+    import engine_fresh
+    engine_fresh.exit_if_stale()
     return a.f(a)
 
 

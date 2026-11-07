@@ -326,6 +326,8 @@ def main(argv=None):
     a = ap.parse_args(argv)
     if not ADCS.is_file():
         sys.exit("parity: the engine is not built (cargo build --release in engine/)")
+    import engine_fresh
+    engine_fresh.exit_if_stale(ADCS)
     if a.oils:
         try:
             fsw_firmware.ensure()   # the firmware is rebuilt when older than its sources or the blob layout, else refused by name

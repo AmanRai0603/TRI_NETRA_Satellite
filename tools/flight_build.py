@@ -272,6 +272,8 @@ def blobs(design):
     """{scenario: the adcs-fswcfg/1 blob the engine boots it with}, read from the design itself."""
     if not ADCS.is_file():
         raise SystemExit("flight_build: the engine is not built (python3 tools/engine.py build): it makes the configuration blobs")
+    import engine_fresh
+    engine_fresh.exit_if_stale(ADCS)
     with sqlite3.connect(f"file:{design}?mode=ro", uri=True) as c:
         scen = [pathlib.PurePosixPath(p).stem for (p,) in c.execute(
             "SELECT \"path\" FROM engine_input WHERE \"path\" LIKE 'data/scenarios/%.json' ORDER BY \"path\"")]

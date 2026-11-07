@@ -40,8 +40,10 @@ the sensors' duty by mode), unsigned.
   is the underdamped one; the analysis closure passes at 2.2 s while the flown 2 % settling is 27.8 s against the case's
   20 s. ctl's node; record it for ctl, or state gc_0/gc_1 to the flown settling.
 - `safe_mode_ais` recovery_to_ape 66.6 -> 128.4 s with F4/G1 (TRIAD refused at low sine): no verdict, but read it in the review.
-- A stale engine binary (`engine/target/release/adcs` older than its sources or the blob) makes tests fail with misleading
-  errors; the firmware has a guard (`tools/fsw_firmware.py`), the engine none yet. Give it the same guard.
+- A stale engine binary (`engine/target/release/adcs` older than its sources) made tests fail with misleading errors: the engine
+  has the firmware's guard now (`tools/engine_fresh.py`: refused by name, with the rebuild command, by `engine.py`, `golden.py`,
+  `design_call.py`, `catalogue.py`, `flight_build.py`, `oils_gate.py`, `parity_2_0.py`, `pointing_budget.py`, `report_base.py`,
+  `floquet.py`; tests/test_engine_fresh.py).
 - `adcs replay` of a QEMU recording on `obc-posix` differs in one frame (frame 26): not looked at.
 - O19 is covered by unit tests only; `engine.py oils` has not been re-flown for the ledger.
 - The full `verify_work.py --since cf397d1` has not run green in one piece since S11.4b: run it detached once the next

@@ -572,6 +572,18 @@ checks = "tests/test_fsw_firmware.py: a current firmware is accepted, one older 
 undo = "It writes the untracked build folder only: `make -C fsw clean`."
 
 [[command]]
+tool = "engine_fresh.py"
+name = "engine-fresh"
+usage = "python3 tools/engine_fresh.py"
+what = "Hold the engine binary engine/target/release/adcs to its sources: refuse by name, giving the rebuild command, when it is missing or older than a source it is built from (the crates adcs-cli depends on, the flight software's sources, the files the crates include, Cargo.lock; the design reaches it through the generated sources). A stale binary answers with the old code's rules and fails tests with errors that are not the change. The tools that call the binary (engine.py, golden.py, design_call.py, catalogue.py, flight_build.py, oils_gate.py, parity_2_0.py, pointing_budget.py, report_base.py, floquet.py) call it before the first call."
+steps = ["follow adcs-cli's path dependencies to the crates the binary is built from", "compare the binary's time with each source's", "name the newest source it is older than and the rebuild command, or say it is current"]
+reads = ["engine/", "fsw/", "fsw-rs/", "design/"]
+writes = []
+runs = []
+checks = "tests/test_engine_fresh.py: a current binary is accepted, a newer dependency source, included file or lock is refused by name with the rebuild command, a crate it does not depend on is not counted, a missing binary is refused, and a tool stops before calling the binary"
+undo = "It writes nothing."
+
+[[command]]
 tool = "device_map.py"
 name = "device-map"
 usage = "python3 tools/device_map.py [map.toml ...]"

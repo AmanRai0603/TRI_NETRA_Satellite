@@ -40,6 +40,8 @@ def flatten(x, out):
 
 def call(name, *args):
     """The method's outputs, flattened (a list of floats)."""
+    import engine_fresh
+    engine_fresh.exit_if_stale(ENGINE)                  # an engine older than its sources answers with the old code's rules
     text = " ".join(repr(float(v)) for v in flatten(list(args), []))
     r = subprocess.run([str(ENGINE), "design", "call", name], input=text, capture_output=True, text=True)
     if r.returncode:

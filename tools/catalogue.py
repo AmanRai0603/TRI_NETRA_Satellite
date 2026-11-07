@@ -26,6 +26,8 @@ ENGINE = ROOT / "engine" / "target" / "release" / "adcs"
 
 def engine_derive(cs):
     """Each datasheet's derivation by the design's method, through the engine (one call for all)."""
+    import engine_fresh
+    engine_fresh.exit_if_stale(ENGINE)
     with tempfile.TemporaryDirectory(prefix="catalogue_") as d:
         files = []
         for i, c in enumerate(cs):

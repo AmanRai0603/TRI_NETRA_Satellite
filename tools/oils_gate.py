@@ -59,6 +59,8 @@ def main():
     stored = json.loads(STORE.read_text())
     if not ADCS.exists():
         sys.exit("engine not built: cargo build --release -p adcs-cli (in engine/)")
+    import engine_fresh
+    engine_fresh.exit_if_stale(ADCS)
     with tempfile.TemporaryDirectory() as d:
         measured = {s: fly(s, stored["duration_s"], Path(d) / s) for s in stored["minimum_margin_s"]}
     for s, m in measured.items():

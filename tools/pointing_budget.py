@@ -89,6 +89,8 @@ def markdown(rows):
 def main(argv=None):
     if not ENGINE.exists():
         raise SystemExit(f"pointing_budget: no engine at {ENGINE} (cd engine && cargo build --release)")
+    import engine_fresh
+    engine_fresh.exit_if_stale(ENGINE)
     with tempfile.TemporaryDirectory() as tmp:
         rows = [row(fly(sid, pathlib.Path(tmp))) for sid in SCENARIOS]
     write_text(ROOT / "results" / "POINTING_BUDGET.md", markdown(rows))

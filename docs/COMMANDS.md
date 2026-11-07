@@ -52,6 +52,7 @@
 | [`health.py health`](#healthpy-health) | The health map of a design for a case (docs/OPERATING_2_0.md §6): every node's health with why (fails, refused, blocked, open, unproven, tight, closes; worst first), rolled up group by group to the ADCS; each closure's answer, its range verdict (closes for the whole range, for part of it, or fails for all of it) and its tornado from the case's edge campaigns; and trace to cause for every closure that does not close; and the built-in count, the nodes whose relation is still compiled code, by group (docs/PLAN_2_0.md S7 lowers it to zero; --built-in prints only that). Every value comes from tools/evaluate.py on the design; nothing here computes one of its own. |
 | [`boundary.py boundary`](#boundarypy-boundary) | The database/code boundary (docs/PLAN_2_0.md S7 done-when, docs/CODE_ARCHITECTURE.md §1): every source file of the code is either generated from the design (and says so) or classified in tools/boundary.toml as toolbox, reader, core, runtime, rig, translator, library, application, cli, tools, test or vendored, with no class for a relation or a published model; every classified file but a test is searched for the marks of a relation or a published model (published constants, the shapes of a gravity or drag law, a coefficient table), and a find passes only by an allowance with its reason. A relation still in code is a declared exception with what removes it, printed on every run. |
 | [`fsw_firmware.py fsw-firmware`](#fsw_firmwarepy-fsw-firmware) | Hold the virtual OBC's firmware under fsw/build (default obc_qemu.elf and insn_count.so) to its sources and to the parameter-blob layout (fsw/include/adcs_params.h): rebuild what is older, or refuse by name. A firmware older than the blob the engine writes would refuse it as a bad size or CRC. The parity gate calls it before it flies the firmware (--oils), and the tests that fly it refuse by name. |
+| [`engine_fresh.py engine-fresh`](#engine_freshpy-engine-fresh) | Hold the engine binary engine/target/release/adcs to its sources: refuse by name, giving the rebuild command, when it is missing or older than a source it is built from (the crates adcs-cli depends on, the flight software's sources, the files the crates include, Cargo.lock; the design reaches it through the generated sources). A stale binary answers with the old code's rules and fails tests with errors that are not the change. The tools that call the binary (engine.py, golden.py, design_call.py, catalogue.py, flight_build.py, oils_gate.py, parity_2_0.py, pointing_budget.py, report_base.py, floquet.py) call it before the first call. |
 | [`device_map.py device-map`](#device_mappy-device-map) | Hold the rig's device map (default fsw/devices/example_3u.toml) equal to the HAL header fsw/include/adcs_devices.h, which is the truth (design/decisions/DR-oils-001.toml): every bus, address, chip select, UART and CAN identifier in the map is the header's number. |
 | [`oils_gate.py oils-gate`](#oils_gatepy-oils-gate) | The soft-OILS deadline gate: fly the scenarios named in results/oils_deadline_min.json for its duration on the firmware in QEMU with --oils, and fail when a worst-case deadline margin is below its stored minimum, a run overran, or a run was not timed by the instruction-count plugin. With --set, measure and store the minima, recording how. |
 | [`parity_2_0.py parity-2-0`](#parity_2_0py-parity-2-0) | The parity gate (docs/PLAN_2_0.md S4): today's design, read alone by the engine (an empty data folder), gives the repository's own inputs, flight parameter table, parameter blobs, stored scenario runs, stored campaign runs and evaluation; optionally soft OILS on QEMU and the MATLAB twin flown from the design's export. |
@@ -1021,6 +1022,25 @@ Hold the virtual OBC's firmware under fsw/build (default obc_qemu.elf and insn_c
 - **Checks:** tests/test_fsw_firmware.py: a current firmware is accepted, one older than a header or missing is refused by name, ensure rebuilds it, the gate refuses before flying, and the real Makefile rebuilds on a change of the parameter table
 - **Undo:** It writes the untracked build folder only: `make -C fsw clean`.
 - **Code:** `tools/fsw_firmware.py`
+
+## engine_fresh.py engine-fresh
+
+Hold the engine binary engine/target/release/adcs to its sources: refuse by name, giving the rebuild command, when it is missing or older than a source it is built from (the crates adcs-cli depends on, the flight software's sources, the files the crates include, Cargo.lock; the design reaches it through the generated sources). A stale binary answers with the old code's rules and fails tests with errors that are not the change. The tools that call the binary (engine.py, golden.py, design_call.py, catalogue.py, flight_build.py, oils_gate.py, parity_2_0.py, pointing_budget.py, report_base.py, floquet.py) call it before the first call.
+
+    python3 tools/engine_fresh.py
+
+**Steps**
+
+1. follow adcs-cli's path dependencies to the crates the binary is built from
+2. compare the binary's time with each source's
+3. name the newest source it is older than and the rebuild command, or say it is current
+
+- **Reads:** `engine/`; `fsw/`; `fsw-rs/`; `design/`
+- **Writes:** nothing
+- **Starts:** nothing
+- **Checks:** tests/test_engine_fresh.py: a current binary is accepted, a newer dependency source, included file or lock is refused by name with the rebuild command, a crate it does not depend on is not counted, a missing binary is refused, and a tool stops before calling the binary
+- **Undo:** It writes nothing.
+- **Code:** `tools/engine_fresh.py`
 
 ## device_map.py device-map
 
