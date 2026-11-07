@@ -6,7 +6,7 @@ The working record of S11 (`docs/PLAN_2_0.md`, S11 Corrections (U0); the steps a
 Written at a hand-over between sessions; the next session keeps it current and `docs/S11_REPORT.md` is written from it at
 the phase's end. Everything here is the developer's and unsigned.
 
-## Steps done (on `claude/brave-dijkstra-rshrb7`, last commit at this writing 6a715573)
+## Steps done (on `claude/brave-dijkstra-rshrb7`, last commit at this writing 21824211)
 
 | step | items | commits | what it shows |
 |---|---|---|---|
@@ -19,6 +19,9 @@ the phase's end. Everything here is the developer's and unsigned.
 | decisions | DR-ctl-001, DR-vv-003 | 5d6aecb5, a65a1db5 | factor 2 kept on the wheel PID, off the magnetic PD behind one switch (`kp_factor` in `fsw_mtq_pd`, design/revisions/S11.6/fswmtq.pc); golden: nadir_hold_ais_css ape_los_last_orbit 10.94 -> 9.71 deg (fail -> pass), nadir_hold_ais 17.06 -> 10.61 (still fails), safe_mode_ais recovery_to_ape 128.4 -> 85.9 s. DR-vv-003 carries the campaign rule across machines. |
 | S11.7 | M1, M5, M2, M9, M10 | e0da8c19..ea446034 | failed ring spins down with T_sd; failed CMG spins down on the wheel's friction ratios (DR-act-002) and its gimbal stops; wheel copper loss tau^2 w_nl/tau_stall (17 golden values, no verdict); tracker latency over 0.5 s refused by name; GNSS rate_Hz in the schedule. |
 | S11.8 | Y2, Y4, Y5, Y1 | 40f97886..6a715573 | CMG cluster one unit on its own figures, a stated zero is not stated; h_req = k_h (h_dist + h_slew), k_h = 2 floor refused by name, achieved margin in sizing.json, no panic; survey in the inertial frame; `sens_power` (sensorpower.pc) a fourth power channel `P_sens_W` and gb_2 the peak (duty: the tracker in modes 1-4 and 10 only, DR-design-003). Golden: 30 verdicts pass -> fail (power_mean 23, power_peak 4, power_margin 3), none the other way. Default selection: wheel CW0017 -> CW0057, h_req 1.71e-3 -> 2.81e-3 N m s; stored pipeline selection.json not regenerated (S11.16). |
+| S11.9 | A5 | 347e677c | `inertia_realisable`, `realisable_scale` (dyn_truth_plant, S11.9): a Monte Carlo draw that is not a body is drawn again from its own stream, an edge corner is moved to the nearest body (AIS 10 % corner 1.0867/0.9133/1.0867), a stated one refused by name; DR-vv-002. 179 of 4,490 stored draws change (173 MC, all 6 edge corners): re-flown in S11.16. No golden row. |
+| S11.10 | A7, A1, A3, A2 | 785619f4, 1e1d533b, bcefe05a, 7bbd8c35, 3da67a66, 1119317e, 25fb884e, 751eaeda | windows: fine holds fly 2 orbits judged `last_orbit`, slews from 280 s, `eclipse_s:` window (16 golden rows, no verdict). One verdict `kpi_confidence_verdict` (Clopper-Pearson at the stated `kpi_verdict_confidence` = 0.95, NaN a failure, infeasible selection a fail; DR-kpi-001), called by evaluate and trace (`tools/verdict.py`). EVALUATION: ais_img_3u APE, AKE pass -> not demonstrated (R >= 0.78 at 95 %); ais_3u APE, AKE, detumble, power pass -> fail (selection closest, not feasible). Cause table (scenario, metric) or "untraced"; the ledger sentence from the run counts; `engine.py twosample` with the design's `kpi_mann_whitney` (not flown: S11.16). |
+| S11.11 | E1, E6 | 01c10e1c, 21824211 | parity tool: max angle of B, Sun, nadir directions. m3_3 the DTM2020 bundle (F10.7 70/130/250, Kp 2; high for worst, unsigned), spec text off NRLMSIS; gd_1, gd_4 move, no closure or selection (the survey flies the fast orbit's table). |
 | S11.12 | P5 | cd64add3 | orbit step capped at 30 s. |
 | S11.13 | O2, O12, O19, O20, O21 | 0b529c76..6026be2a (picked) | plugin refused by name; `fsw/devices/example_3u.toml` held to the header (`tools/device_map.py`); 5 % numeric SILS/OILS tolerance; CI `oils-deadline` (`results/oils_deadline_min.json`, smallest 32.585 ms); `--record`/`adcs replay`. |
 | S11.15 | TS17 | b19f8a13 | four oracles replaced, each failing a mutation the old passed; 10 more weak tests listed in `docs/TEST_STRATEGY.md` TS17, left. |
@@ -53,9 +56,12 @@ the sensors' duty by mode), unsigned.
 - Step 1's single python-tests failure was a flaky browser click (a `tn-dialog` over the button in group.test.mjs): the suite
   passed in full on a65a1db (484, 5 skipped).
 
+- The sizing survey's "high" activity (F10.7 = 250) is inert on the fast orbit (its density is the static table times
+  `density_scale`); making the survey's high truly high (fly it on the POP orbit or DTM2020) belongs with P6 (S12).
+- results/ENGINE_CAMPAIGNS.md still carries the old fixed sentence until `engine.py campaign-ledger` is run (S11.16/S11.17).
+
 ## Steps left, in order
 
-S11.9 A5 (DR-vv-002) · S11.10 verdicts (A7 windows, A1 on DR-kpi-001 with a stated `kpi_verdict_confidence`, A3, A2)
-· S11.11 E6 and E1 · S11.14 O11 · S11.16 regenerate, gates, reseal, re-fly (the twin re-fly waits for the S7 re-fly's last
+S11.14 O11 · S11.16 regenerate, gates, reseal, re-fly (the twin re-fly waits for the S7 re-fly's last
 commit and the filled §4 of `docs/S7_REPORT.md`) · S11.17 counts and tables · S11.18 the phase review and
 `docs/S11_REPORT.md`, ending with `python3 tools/tokens.py ledger --stage S11`.
