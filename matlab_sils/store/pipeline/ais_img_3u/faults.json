@@ -58,7 +58,7 @@
     "coils": 3,
     "rotors": 0,
     "gimbals": 0,
-    "st_heads": 1,
+    "st_heads": 2,
     "gyros": 1,
     "gnss": 1,
     "magnetometers": 1,
@@ -75,6 +75,7 @@
      "failing": [],
      "also_fails_without_fault": [
       "ape_los_p9973",
+      "power_mean",
       "ake_los_p9973"
      ],
      "metrics": {
@@ -82,7 +83,7 @@
        {
         "id": "detumble_time",
         "kind": "time_to_rate",
-        "value": 59.59,
+        "value": 57.34,
         "unit": "min",
         "req": 284.0,
         "req_key": "req.detumble",
@@ -91,7 +92,7 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 75.229821392742,
+        "value": 100.72545679772358,
         "unit": "deg",
         "req": 0.01,
         "req_key": "req.ape",
@@ -100,7 +101,7 @@
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.003357177700814213,
+        "value": 0.00285266039188655,
         "unit": "deg",
         "req": 0.005,
         "req_key": "req.ake",
@@ -109,16 +110,16 @@
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.07192198864616489,
+        "value": 2.8709277017748347,
         "unit": "W",
         "req": 2.0,
         "req_key": "req.pavg",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.3188772629300953,
+        "value": 3.7318784107643155,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -138,7 +139,7 @@
        {
         "id": "detumble_time",
         "kind": "time_to_rate",
-        "value": 50.85666666666667,
+        "value": 50.99,
         "unit": "min",
         "req": 284.0,
         "req_key": "req.detumble",
@@ -147,7 +148,7 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 90.68518236296283,
+        "value": 108.30691479934366,
         "unit": "deg",
         "req": 0.01,
         "req_key": "req.ape",
@@ -156,7 +157,7 @@
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.035241402893219476,
+        "value": 0.12716030139009749,
         "unit": "deg",
         "req": 0.005,
         "req_key": "req.ake",
@@ -165,16 +166,143 @@
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.0760846000169555,
+        "value": 2.8741789985694726,
         "unit": "W",
         "req": 2.0,
         "req_key": "req.pavg",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.3246734249926403,
+        "value": 3.7378868103313594,
+        "unit": "W",
+        "req": null,
+        "req_key": "",
+        "pass": null
+       },
+       {
+        "id": "propellant",
+        "kind": "propellant",
+        "value": 0.0,
+        "unit": "g",
+        "req": null,
+        "req_key": "",
+        "pass": null
+       }
+      ]
+     }
+    },
+    {
+     "kind": "st_head_fail",
+     "index": 2,
+     "t_s": 24391.0,
+     "flown": true,
+     "pass": true,
+     "failing": [],
+     "also_fails_without_fault": [
+      "ape_los_p9973",
+      "power_mean",
+      "ake_los_p9973"
+     ],
+     "metrics": {
+      "1": [
+       {
+        "id": "detumble_time",
+        "kind": "time_to_rate",
+        "value": 57.34,
+        "unit": "min",
+        "req": 284.0,
+        "req_key": "req.detumble",
+        "pass": 1
+       },
+       {
+        "id": "ape_los_p9973",
+        "kind": "ape_los",
+        "value": 15.234423896742006,
+        "unit": "deg",
+        "req": 0.01,
+        "req_key": "req.ape",
+        "pass": 0
+       },
+       {
+        "id": "ake_los_p9973",
+        "kind": "ake_los",
+        "value": 0.0028640803792515292,
+        "unit": "deg",
+        "req": 0.005,
+        "req_key": "req.ake",
+        "pass": 1
+       },
+       {
+        "id": "power_mean",
+        "kind": "power_mean",
+        "value": 2.8711525715070385,
+        "unit": "W",
+        "req": 2.0,
+        "req_key": "req.pavg",
+        "pass": 0
+       },
+       {
+        "id": "power_peak",
+        "kind": "power_peak",
+        "value": 3.7318784107643155,
+        "unit": "W",
+        "req": null,
+        "req_key": "",
+        "pass": null
+       },
+       {
+        "id": "propellant",
+        "kind": "propellant",
+        "value": 0.0,
+        "unit": "g",
+        "req": null,
+        "req_key": "",
+        "pass": null
+       }
+      ],
+      "2": [
+       {
+        "id": "detumble_time",
+        "kind": "time_to_rate",
+        "value": 50.99,
+        "unit": "min",
+        "req": 284.0,
+        "req_key": "req.detumble",
+        "pass": 1
+       },
+       {
+        "id": "ape_los_p9973",
+        "kind": "ape_los",
+        "value": 42.25155721540651,
+        "unit": "deg",
+        "req": 0.01,
+        "req_key": "req.ape",
+        "pass": 0
+       },
+       {
+        "id": "ake_los_p9973",
+        "kind": "ake_los",
+        "value": 0.094202337889858,
+        "unit": "deg",
+        "req": 0.005,
+        "req_key": "req.ake",
+        "pass": 0
+       },
+       {
+        "id": "power_mean",
+        "kind": "power_mean",
+        "value": 2.8745406710883805,
+        "unit": "W",
+        "req": 2.0,
+        "req_key": "req.pavg",
+        "pass": 0
+       },
+       {
+        "id": "power_peak",
+        "kind": "power_peak",
+        "value": 3.7378868103313594,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -201,10 +329,13 @@
      ],
      "t_s": 24391.0,
      "flown": true,
-     "pass": true,
-     "failing": [],
+     "pass": false,
+     "failing": [
+      "ake_los_p9973"
+     ],
      "also_fails_without_fault": [
       "ape_los_p9973",
+      "power_mean",
       "ake_los_p9973"
      ],
      "metrics": {
@@ -212,7 +343,7 @@
        {
         "id": "detumble_time",
         "kind": "time_to_rate",
-        "value": 59.59,
+        "value": 57.34,
         "unit": "min",
         "req": 284.0,
         "req_key": "req.detumble",
@@ -221,7 +352,7 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 15.122225429126829,
+        "value": 15.884739249216798,
         "unit": "deg",
         "req": 0.01,
         "req_key": "req.ape",
@@ -230,25 +361,25 @@
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.0029189961602809522,
+        "value": 0.006306879787097063,
         "unit": "deg",
         "req": 0.005,
         "req_key": "req.ake",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.07229132492954317,
+        "value": 2.871137081111358,
         "unit": "W",
         "req": 2.0,
         "req_key": "req.pavg",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.3188772629300953,
+        "value": 3.7318784107643155,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -268,7 +399,7 @@
        {
         "id": "detumble_time",
         "kind": "time_to_rate",
-        "value": 50.85666666666667,
+        "value": 50.99,
         "unit": "min",
         "req": 284.0,
         "req_key": "req.detumble",
@@ -277,7 +408,7 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 19.75109837902614,
+        "value": 42.83466090023222,
         "unit": "deg",
         "req": 0.01,
         "req_key": "req.ape",
@@ -286,7 +417,7 @@
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.03719986983595664,
+        "value": 0.0062889521428755825,
         "unit": "deg",
         "req": 0.005,
         "req_key": "req.ake",
@@ -295,16 +426,16 @@
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.07674024068662107,
+        "value": 2.8745231514057035,
         "unit": "W",
         "req": 2.0,
         "req_key": "req.pavg",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.3246734249926403,
+        "value": 3.7378868103313594,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -331,6 +462,7 @@
      "failing": [],
      "also_fails_without_fault": [
       "ape_los_p9973",
+      "power_mean",
       "ake_los_p9973"
      ],
      "metrics": {
@@ -338,7 +470,7 @@
        {
         "id": "detumble_time",
         "kind": "time_to_rate",
-        "value": 59.59,
+        "value": 57.34,
         "unit": "min",
         "req": 284.0,
         "req_key": "req.detumble",
@@ -347,7 +479,7 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 15.168908258836977,
+        "value": 15.066958587628598,
         "unit": "deg",
         "req": 0.01,
         "req_key": "req.ape",
@@ -356,7 +488,7 @@
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.0028758063423316442,
+        "value": 0.002630106637445723,
         "unit": "deg",
         "req": 0.005,
         "req_key": "req.ake",
@@ -365,16 +497,16 @@
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.07229457122630871,
+        "value": 2.871151289498965,
         "unit": "W",
         "req": 2.0,
         "req_key": "req.pavg",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.3188772629300953,
+        "value": 3.7318784107643155,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -394,7 +526,7 @@
        {
         "id": "detumble_time",
         "kind": "time_to_rate",
-        "value": 50.85666666666667,
+        "value": 50.99,
         "unit": "min",
         "req": 284.0,
         "req_key": "req.detumble",
@@ -403,7 +535,7 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 18.446173822854867,
+        "value": 43.11157595613759,
         "unit": "deg",
         "req": 0.01,
         "req_key": "req.ape",
@@ -412,7 +544,7 @@
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.025222275013727112,
+        "value": 0.005457114380028923,
         "unit": "deg",
         "req": 0.005,
         "req_key": "req.ake",
@@ -421,16 +553,16 @@
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.07670807874599206,
+        "value": 2.874543367906582,
         "unit": "W",
         "req": 2.0,
         "req_key": "req.pavg",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.3246734249926403,
+        "value": 3.7378868103313594,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -459,11 +591,6 @@
      "skipped": "0 gimbals, needs 1"
     },
     {
-     "kind": "st_head_fail",
-     "flown": false,
-     "skipped": "1 st_heads, needs 2"
-    },
-    {
      "kind": "rcs_valve_fail",
      "flown": false,
      "skipped": "0 rcs_couples, needs 1"
@@ -474,7 +601,7 @@
      {
       "id": "detumble_time",
       "kind": "time_to_rate",
-      "value": 59.59,
+      "value": 57.34,
       "unit": "min",
       "req": 284.0,
       "req_key": "req.detumble",
@@ -483,7 +610,7 @@
      {
       "id": "ape_los_p9973",
       "kind": "ape_los",
-      "value": 15.148816587088724,
+      "value": 15.280798162760446,
       "unit": "deg",
       "req": 0.01,
       "req_key": "req.ape",
@@ -492,7 +619,7 @@
      {
       "id": "ake_los_p9973",
       "kind": "ake_los",
-      "value": 0.002918295239140803,
+      "value": 0.0026293743098271195,
       "unit": "deg",
       "req": 0.005,
       "req_key": "req.ake",
@@ -501,16 +628,16 @@
      {
       "id": "power_mean",
       "kind": "power_mean",
-      "value": 0.07229382113895928,
+      "value": 2.8711523297988313,
       "unit": "W",
       "req": 2.0,
       "req_key": "req.pavg",
-      "pass": 1
+      "pass": 0
      },
      {
       "id": "power_peak",
       "kind": "power_peak",
-      "value": 0.3188772629300953,
+      "value": 3.7318784107643155,
       "unit": "W",
       "req": null,
       "req_key": "",
@@ -530,7 +657,7 @@
      {
       "id": "detumble_time",
       "kind": "time_to_rate",
-      "value": 50.85666666666667,
+      "value": 50.99,
       "unit": "min",
       "req": 284.0,
       "req_key": "req.detumble",
@@ -539,7 +666,7 @@
      {
       "id": "ape_los_p9973",
       "kind": "ape_los",
-      "value": 18.44547133084349,
+      "value": 43.11093174950876,
       "unit": "deg",
       "req": 0.01,
       "req_key": "req.ape",
@@ -548,7 +675,7 @@
      {
       "id": "ake_los_p9973",
       "kind": "ake_los",
-      "value": 0.026918423238116204,
+      "value": 0.005490041253476055,
       "unit": "deg",
       "req": 0.005,
       "req_key": "req.ake",
@@ -557,16 +684,16 @@
      {
       "id": "power_mean",
       "kind": "power_mean",
-      "value": 0.07670845966437803,
+      "value": 2.8745433633093684,
       "unit": "W",
       "req": 2.0,
       "req_key": "req.pavg",
-      "pass": 1
+      "pass": 0
      },
      {
       "id": "power_peak",
       "kind": "power_peak",
-      "value": 0.3246734249926403,
+      "value": 3.7378868103313594,
       "unit": "W",
       "req": null,
       "req_key": "",
@@ -583,36 +710,42 @@
      }
     ]
    },
-   "gaps": []
+   "gaps": [
+    "fault: gyro_bias_step: ake_los_p9973"
+   ]
   },
   "mtq_fmr": {
    "product": "SZ-ais_img_3u-mtq_fmr",
    "units": {
     "coils": 3,
-    "rotors": 4,
+    "rotors": 3,
     "gimbals": 0,
-    "st_heads": 1,
+    "st_heads": 2,
     "gyros": 1,
     "gnss": 1,
     "magnetometers": 1,
     "rcs_couples": 0
    },
-   "t_s": 12913,
+   "t_s": 24391,
    "faults": [
     {
      "kind": "coil_fail",
      "index": 1,
-     "t_s": 12913.0,
+     "t_s": 24391.0,
      "flown": true,
      "pass": true,
      "failing": [],
-     "also_fails_without_fault": [],
+     "also_fails_without_fault": [
+      "ape_los_p9973",
+      "ake_los_p9973",
+      "power_mean"
+     ],
      "metrics": {
       "1": [
        {
         "id": "detumble_time",
         "kind": "time_to_rate",
-        "value": 73.825,
+        "value": 75.275,
         "unit": "min",
         "req": 284.0,
         "req_key": "req.detumble",
@@ -621,34 +754,34 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.004087730914034275,
+        "value": 61.28191251043916,
         "unit": "deg",
         "req": 0.01,
         "req_key": "req.ape",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.0033123026415945206,
+        "value": 0.010412068254330994,
         "unit": "deg",
         "req": 0.005,
         "req_key": "req.ake",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.38255644288137236,
+        "value": 2.849905087259343,
         "unit": "W",
         "req": 2.0,
         "req_key": "req.pavg",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.8518138894886615,
+        "value": 3.639164929578055,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -668,7 +801,7 @@
        {
         "id": "detumble_time",
         "kind": "time_to_rate",
-        "value": 65.39166666666667,
+        "value": 62.975,
         "unit": "min",
         "req": 284.0,
         "req_key": "req.detumble",
@@ -677,34 +810,34 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.004029297957582194,
+        "value": 80.27398325334121,
         "unit": "deg",
         "req": 0.01,
         "req_key": "req.ape",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.00311987068171583,
+        "value": 0.009356801516310482,
         "unit": "deg",
         "req": 0.005,
         "req_key": "req.ake",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.3966818053099775,
+        "value": 2.8568723257331445,
         "unit": "W",
         "req": 2.0,
         "req_key": "req.pavg",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.8527229244711587,
+        "value": 3.640041515580715,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -725,17 +858,21 @@
     {
      "kind": "rotor_fail",
      "index": 1,
-     "t_s": 12913.0,
+     "t_s": 24391.0,
      "flown": true,
      "pass": true,
      "failing": [],
-     "also_fails_without_fault": [],
+     "also_fails_without_fault": [
+      "ape_los_p9973",
+      "ake_los_p9973",
+      "power_mean"
+     ],
      "metrics": {
       "1": [
        {
         "id": "detumble_time",
         "kind": "time_to_rate",
-        "value": 73.825,
+        "value": 75.275,
         "unit": "min",
         "req": 284.0,
         "req_key": "req.detumble",
@@ -744,34 +881,34 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.003980176172726178,
+        "value": 17.845416312550515,
         "unit": "deg",
         "req": 0.01,
         "req_key": "req.ape",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.0032589693114378044,
+        "value": 0.005273113950801419,
         "unit": "deg",
         "req": 0.005,
         "req_key": "req.ake",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.34379826639612987,
+        "value": 2.8497067716970905,
         "unit": "W",
         "req": 2.0,
         "req_key": "req.pavg",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.8518138894886615,
+        "value": 3.639164929578055,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -791,7 +928,7 @@
        {
         "id": "detumble_time",
         "kind": "time_to_rate",
-        "value": 65.39166666666667,
+        "value": 62.975,
         "unit": "min",
         "req": 284.0,
         "req_key": "req.detumble",
@@ -800,16 +937,16 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.004106299952381241,
+        "value": 35.36094789019736,
         "unit": "deg",
         "req": 0.01,
         "req_key": "req.ape",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.003117349962957594,
+        "value": 0.0032976968132393245,
         "unit": "deg",
         "req": 0.005,
         "req_key": "req.ake",
@@ -818,16 +955,143 @@
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.35995183870216846,
+        "value": 2.8567657857892703,
         "unit": "W",
         "req": 2.0,
         "req_key": "req.pavg",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.8527229244711587,
+        "value": 3.65118824899341,
+        "unit": "W",
+        "req": null,
+        "req_key": "",
+        "pass": null
+       },
+       {
+        "id": "propellant",
+        "kind": "propellant",
+        "value": 0.0,
+        "unit": "g",
+        "req": null,
+        "req_key": "",
+        "pass": null
+       }
+      ]
+     }
+    },
+    {
+     "kind": "st_head_fail",
+     "index": 2,
+     "t_s": 24391.0,
+     "flown": true,
+     "pass": true,
+     "failing": [],
+     "also_fails_without_fault": [
+      "ape_los_p9973",
+      "ake_los_p9973",
+      "power_mean"
+     ],
+     "metrics": {
+      "1": [
+       {
+        "id": "detumble_time",
+        "kind": "time_to_rate",
+        "value": 75.275,
+        "unit": "min",
+        "req": 284.0,
+        "req_key": "req.detumble",
+        "pass": 1
+       },
+       {
+        "id": "ape_los_p9973",
+        "kind": "ape_los",
+        "value": 18.74939720494705,
+        "unit": "deg",
+        "req": 0.01,
+        "req_key": "req.ape",
+        "pass": 0
+       },
+       {
+        "id": "ake_los_p9973",
+        "kind": "ake_los",
+        "value": 0.07522200197090635,
+        "unit": "deg",
+        "req": 0.005,
+        "req_key": "req.ake",
+        "pass": 0
+       },
+       {
+        "id": "power_mean",
+        "kind": "power_mean",
+        "value": 2.8497876802202198,
+        "unit": "W",
+        "req": 2.0,
+        "req_key": "req.pavg",
+        "pass": 0
+       },
+       {
+        "id": "power_peak",
+        "kind": "power_peak",
+        "value": 3.639164929578055,
+        "unit": "W",
+        "req": null,
+        "req_key": "",
+        "pass": null
+       },
+       {
+        "id": "propellant",
+        "kind": "propellant",
+        "value": 0.0,
+        "unit": "g",
+        "req": null,
+        "req_key": "",
+        "pass": null
+       }
+      ],
+      "2": [
+       {
+        "id": "detumble_time",
+        "kind": "time_to_rate",
+        "value": 62.975,
+        "unit": "min",
+        "req": 284.0,
+        "req_key": "req.detumble",
+        "pass": 1
+       },
+       {
+        "id": "ape_los_p9973",
+        "kind": "ape_los",
+        "value": 37.01249239260067,
+        "unit": "deg",
+        "req": 0.01,
+        "req_key": "req.ape",
+        "pass": 0
+       },
+       {
+        "id": "ake_los_p9973",
+        "kind": "ake_los",
+        "value": 0.11731942686110697,
+        "unit": "deg",
+        "req": 0.005,
+        "req_key": "req.ake",
+        "pass": 0
+       },
+       {
+        "id": "power_mean",
+        "kind": "power_mean",
+        "value": 2.856877009594432,
+        "unit": "W",
+        "req": 2.0,
+        "req_key": "req.pavg",
+        "pass": 0
+       },
+       {
+        "id": "power_peak",
+        "kind": "power_peak",
+        "value": 3.640041515580715,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -852,17 +1116,21 @@
       0.0,
       0.0
      ],
-     "t_s": 12913.0,
+     "t_s": 24391.0,
      "flown": true,
      "pass": true,
      "failing": [],
-     "also_fails_without_fault": [],
+     "also_fails_without_fault": [
+      "ape_los_p9973",
+      "ake_los_p9973",
+      "power_mean"
+     ],
      "metrics": {
       "1": [
        {
         "id": "detumble_time",
         "kind": "time_to_rate",
-        "value": 73.825,
+        "value": 75.275,
         "unit": "min",
         "req": 284.0,
         "req_key": "req.detumble",
@@ -871,34 +1139,34 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.004081459268696274,
+        "value": 19.695792439770578,
         "unit": "deg",
         "req": 0.01,
         "req_key": "req.ape",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.0033027586579865904,
+        "value": 0.010689301507161094,
         "unit": "deg",
         "req": 0.005,
         "req_key": "req.ake",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.39334287600471946,
+        "value": 2.8497903720592075,
         "unit": "W",
         "req": 2.0,
         "req_key": "req.pavg",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.8557967989791824,
+        "value": 3.639164929578055,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -918,7 +1186,7 @@
        {
         "id": "detumble_time",
         "kind": "time_to_rate",
-        "value": 65.39166666666667,
+        "value": 62.975,
         "unit": "min",
         "req": 284.0,
         "req_key": "req.detumble",
@@ -927,34 +1195,34 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.004035880952725287,
+        "value": 39.14318522463763,
         "unit": "deg",
         "req": 0.01,
         "req_key": "req.ape",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.0031251332104943207,
+        "value": 0.01251166658210265,
         "unit": "deg",
         "req": 0.005,
         "req_key": "req.ake",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.4203850750103867,
+        "value": 2.856899522152332,
         "unit": "W",
         "req": 2.0,
         "req_key": "req.pavg",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.8600288438074633,
+        "value": 3.640041515580715,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -974,18 +1242,22 @@
     },
     {
      "kind": "gps_outage",
-     "t_s": 12913.0,
-     "end_s": 14713.0,
+     "t_s": 24391.0,
+     "end_s": 26191.0,
      "flown": true,
      "pass": true,
      "failing": [],
-     "also_fails_without_fault": [],
+     "also_fails_without_fault": [
+      "ape_los_p9973",
+      "ake_los_p9973",
+      "power_mean"
+     ],
      "metrics": {
       "1": [
        {
         "id": "detumble_time",
         "kind": "time_to_rate",
-        "value": 73.825,
+        "value": 75.275,
         "unit": "min",
         "req": 284.0,
         "req_key": "req.detumble",
@@ -994,34 +1266,34 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.008559207279910058,
+        "value": 18.74172326006533,
         "unit": "deg",
         "req": 0.01,
         "req_key": "req.ape",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.003334734614778094,
+        "value": 0.011178774428773545,
         "unit": "deg",
         "req": 0.005,
         "req_key": "req.ake",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.3933340903142791,
+        "value": 2.8497877284290785,
         "unit": "W",
         "req": 2.0,
         "req_key": "req.pavg",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.8570191009090018,
+        "value": 3.639164929578055,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -1041,7 +1313,7 @@
        {
         "id": "detumble_time",
         "kind": "time_to_rate",
-        "value": 65.39166666666667,
+        "value": 62.975,
         "unit": "min",
         "req": 284.0,
         "req_key": "req.detumble",
@@ -1050,34 +1322,34 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.0041165215857353376,
+        "value": 36.90193957833281,
         "unit": "deg",
         "req": 0.01,
         "req_key": "req.ape",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.0031181640521575596,
+        "value": 0.012477394059050554,
         "unit": "deg",
         "req": 0.005,
         "req_key": "req.ake",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.41080224686162103,
+        "value": 2.856877287753627,
         "unit": "W",
         "req": 2.0,
         "req_key": "req.pavg",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.8544103290363185,
+        "value": 3.640041515580715,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -1101,11 +1373,6 @@
      "skipped": "0 gimbals, needs 1"
     },
     {
-     "kind": "st_head_fail",
-     "flown": false,
-     "skipped": "1 st_heads, needs 2"
-    },
-    {
      "kind": "rcs_valve_fail",
      "flown": false,
      "skipped": "0 rcs_couples, needs 1"
@@ -1116,7 +1383,7 @@
      {
       "id": "detumble_time",
       "kind": "time_to_rate",
-      "value": 73.825,
+      "value": 75.275,
       "unit": "min",
       "req": 284.0,
       "req_key": "req.detumble",
@@ -1125,34 +1392,34 @@
      {
       "id": "ape_los_p9973",
       "kind": "ape_los",
-      "value": 0.004065567549770241,
+      "value": 19.556341763543834,
       "unit": "deg",
       "req": 0.01,
       "req_key": "req.ape",
-      "pass": 1
+      "pass": 0
      },
      {
       "id": "ake_los_p9973",
       "kind": "ake_los",
-      "value": 0.0033048824642448993,
+      "value": 0.011193286054532745,
       "unit": "deg",
       "req": 0.005,
       "req_key": "req.ake",
-      "pass": 1
+      "pass": 0
      },
      {
       "id": "power_mean",
       "kind": "power_mean",
-      "value": 0.3933814496093153,
+      "value": 2.84979448831757,
       "unit": "W",
       "req": 2.0,
       "req_key": "req.pavg",
-      "pass": 1
+      "pass": 0
      },
      {
       "id": "power_peak",
       "kind": "power_peak",
-      "value": 0.8559799524197897,
+      "value": 3.639164929578055,
       "unit": "W",
       "req": null,
       "req_key": "",
@@ -1172,7 +1439,7 @@
      {
       "id": "detumble_time",
       "kind": "time_to_rate",
-      "value": 65.39166666666667,
+      "value": 62.975,
       "unit": "min",
       "req": 284.0,
       "req_key": "req.detumble",
@@ -1181,34 +1448,34 @@
      {
       "id": "ape_los_p9973",
       "kind": "ape_los",
-      "value": 0.004038090770458827,
+      "value": 36.901208311104384,
       "unit": "deg",
       "req": 0.01,
       "req_key": "req.ape",
-      "pass": 1
+      "pass": 0
      },
      {
       "id": "ake_los_p9973",
       "kind": "ake_los",
-      "value": 0.003122899417425807,
+      "value": 0.012479781310303499,
       "unit": "deg",
       "req": 0.005,
       "req_key": "req.ake",
-      "pass": 1
+      "pass": 0
      },
      {
       "id": "power_mean",
       "kind": "power_mean",
-      "value": 0.4116254963778878,
+      "value": 2.8568772868695347,
       "unit": "W",
       "req": 2.0,
       "req_key": "req.pavg",
-      "pass": 1
+      "pass": 0
      },
      {
       "id": "power_peak",
       "kind": "power_peak",
-      "value": 0.8573806946628064,
+      "value": 3.640041515580715,
       "unit": "W",
       "req": null,
       "req_key": "",
@@ -1231,30 +1498,34 @@
    "product": "SZ-ais_img_3u-mtq_fmr_rcs",
    "units": {
     "coils": 3,
-    "rotors": 4,
+    "rotors": 3,
     "gimbals": 0,
-    "st_heads": 1,
+    "st_heads": 2,
     "gyros": 1,
     "gnss": 1,
     "magnetometers": 1,
     "rcs_couples": 6
    },
-   "t_s": 12913,
+   "t_s": 24391,
    "faults": [
     {
      "kind": "coil_fail",
      "index": 1,
-     "t_s": 12913.0,
+     "t_s": 24391.0,
      "flown": true,
      "pass": true,
      "failing": [],
-     "also_fails_without_fault": [],
+     "also_fails_without_fault": [
+      "ape_los_p9973",
+      "ake_los_p9973",
+      "power_mean"
+     ],
      "metrics": {
       "1": [
        {
         "id": "detumble_time",
         "kind": "time_to_rate",
-        "value": 2.025,
+        "value": 75.275,
         "unit": "min",
         "req": 284.0,
         "req_key": "req.detumble",
@@ -1263,34 +1534,34 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.004093423958134261,
+        "value": 61.28191251043916,
         "unit": "deg",
         "req": 0.01,
         "req_key": "req.ape",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.003311346091067261,
+        "value": 0.010412068254330994,
         "unit": "deg",
         "req": 0.005,
         "req_key": "req.ake",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.3353919581382534,
+        "value": 2.849905087259343,
         "unit": "W",
         "req": 2.0,
         "req_key": "req.pavg",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 3.0,
+        "value": 3.639164929578055,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -1299,7 +1570,7 @@
        {
         "id": "propellant",
         "kind": "propellant",
-        "value": 0.08721831115771245,
+        "value": 0.0,
         "unit": "g",
         "req": null,
         "req_key": "",
@@ -1310,7 +1581,7 @@
        {
         "id": "detumble_time",
         "kind": "time_to_rate",
-        "value": 2.125,
+        "value": 62.975,
         "unit": "min",
         "req": 284.0,
         "req_key": "req.detumble",
@@ -1319,34 +1590,34 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.004033198150112695,
+        "value": 80.27398325334121,
         "unit": "deg",
         "req": 0.01,
         "req_key": "req.ape",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.003115628733989775,
+        "value": 0.009356801516310482,
         "unit": "deg",
         "req": 0.005,
         "req_key": "req.ake",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.28945856273163123,
+        "value": 2.8568723257331445,
         "unit": "W",
         "req": 2.0,
         "req_key": "req.pavg",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 3.0,
+        "value": 3.640041515580715,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -1355,7 +1626,7 @@
        {
         "id": "propellant",
         "kind": "propellant",
-        "value": 0.10949313688633311,
+        "value": 0.0,
         "unit": "g",
         "req": null,
         "req_key": "",
@@ -1367,17 +1638,21 @@
     {
      "kind": "rotor_fail",
      "index": 1,
-     "t_s": 12913.0,
+     "t_s": 24391.0,
      "flown": true,
      "pass": true,
      "failing": [],
-     "also_fails_without_fault": [],
+     "also_fails_without_fault": [
+      "ape_los_p9973",
+      "ake_los_p9973",
+      "power_mean"
+     ],
      "metrics": {
       "1": [
        {
         "id": "detumble_time",
         "kind": "time_to_rate",
-        "value": 2.025,
+        "value": 75.275,
         "unit": "min",
         "req": 284.0,
         "req_key": "req.detumble",
@@ -1386,34 +1661,34 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.003970466884438494,
+        "value": 17.845416312550515,
         "unit": "deg",
         "req": 0.01,
         "req_key": "req.ape",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.0032618783902262586,
+        "value": 0.005273113950801419,
         "unit": "deg",
         "req": 0.005,
         "req_key": "req.ake",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.2921412241529194,
+        "value": 2.8497067716970905,
         "unit": "W",
         "req": 2.0,
         "req_key": "req.pavg",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 3.0,
+        "value": 3.639164929578055,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -1422,7 +1697,7 @@
        {
         "id": "propellant",
         "kind": "propellant",
-        "value": 0.08721831115771245,
+        "value": 0.0,
         "unit": "g",
         "req": null,
         "req_key": "",
@@ -1433,7 +1708,7 @@
        {
         "id": "detumble_time",
         "kind": "time_to_rate",
-        "value": 2.125,
+        "value": 62.975,
         "unit": "min",
         "req": 284.0,
         "req_key": "req.detumble",
@@ -1442,16 +1717,16 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.004104648642992371,
+        "value": 35.36094789019736,
         "unit": "deg",
         "req": 0.01,
         "req_key": "req.ape",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.003118254636248166,
+        "value": 0.0032976968132393245,
         "unit": "deg",
         "req": 0.005,
         "req_key": "req.ake",
@@ -1460,16 +1735,16 @@
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.2997662548867861,
+        "value": 2.8567657857892703,
         "unit": "W",
         "req": 2.0,
         "req_key": "req.pavg",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 3.0,
+        "value": 3.65118824899341,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -1478,7 +1753,134 @@
        {
         "id": "propellant",
         "kind": "propellant",
-        "value": 0.10949313688633311,
+        "value": 0.0,
+        "unit": "g",
+        "req": null,
+        "req_key": "",
+        "pass": null
+       }
+      ]
+     }
+    },
+    {
+     "kind": "st_head_fail",
+     "index": 2,
+     "t_s": 24391.0,
+     "flown": true,
+     "pass": true,
+     "failing": [],
+     "also_fails_without_fault": [
+      "ape_los_p9973",
+      "ake_los_p9973",
+      "power_mean"
+     ],
+     "metrics": {
+      "1": [
+       {
+        "id": "detumble_time",
+        "kind": "time_to_rate",
+        "value": 75.275,
+        "unit": "min",
+        "req": 284.0,
+        "req_key": "req.detumble",
+        "pass": 1
+       },
+       {
+        "id": "ape_los_p9973",
+        "kind": "ape_los",
+        "value": 18.74939720494705,
+        "unit": "deg",
+        "req": 0.01,
+        "req_key": "req.ape",
+        "pass": 0
+       },
+       {
+        "id": "ake_los_p9973",
+        "kind": "ake_los",
+        "value": 0.07522200197090635,
+        "unit": "deg",
+        "req": 0.005,
+        "req_key": "req.ake",
+        "pass": 0
+       },
+       {
+        "id": "power_mean",
+        "kind": "power_mean",
+        "value": 2.8497876802202198,
+        "unit": "W",
+        "req": 2.0,
+        "req_key": "req.pavg",
+        "pass": 0
+       },
+       {
+        "id": "power_peak",
+        "kind": "power_peak",
+        "value": 3.639164929578055,
+        "unit": "W",
+        "req": null,
+        "req_key": "",
+        "pass": null
+       },
+       {
+        "id": "propellant",
+        "kind": "propellant",
+        "value": 0.0,
+        "unit": "g",
+        "req": null,
+        "req_key": "",
+        "pass": null
+       }
+      ],
+      "2": [
+       {
+        "id": "detumble_time",
+        "kind": "time_to_rate",
+        "value": 62.975,
+        "unit": "min",
+        "req": 284.0,
+        "req_key": "req.detumble",
+        "pass": 1
+       },
+       {
+        "id": "ape_los_p9973",
+        "kind": "ape_los",
+        "value": 37.01249239260067,
+        "unit": "deg",
+        "req": 0.01,
+        "req_key": "req.ape",
+        "pass": 0
+       },
+       {
+        "id": "ake_los_p9973",
+        "kind": "ake_los",
+        "value": 0.11731942686110697,
+        "unit": "deg",
+        "req": 0.005,
+        "req_key": "req.ake",
+        "pass": 0
+       },
+       {
+        "id": "power_mean",
+        "kind": "power_mean",
+        "value": 2.856877009594432,
+        "unit": "W",
+        "req": 2.0,
+        "req_key": "req.pavg",
+        "pass": 0
+       },
+       {
+        "id": "power_peak",
+        "kind": "power_peak",
+        "value": 3.640041515580715,
+        "unit": "W",
+        "req": null,
+        "req_key": "",
+        "pass": null
+       },
+       {
+        "id": "propellant",
+        "kind": "propellant",
+        "value": 0.0,
         "unit": "g",
         "req": null,
         "req_key": "",
@@ -1494,17 +1896,21 @@
       0.0,
       0.0
      ],
-     "t_s": 12913.0,
+     "t_s": 24391.0,
      "flown": true,
      "pass": true,
      "failing": [],
-     "also_fails_without_fault": [],
+     "also_fails_without_fault": [
+      "ape_los_p9973",
+      "ake_los_p9973",
+      "power_mean"
+     ],
      "metrics": {
       "1": [
        {
         "id": "detumble_time",
         "kind": "time_to_rate",
-        "value": 2.025,
+        "value": 75.275,
         "unit": "min",
         "req": 284.0,
         "req_key": "req.detumble",
@@ -1513,34 +1919,34 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.004077169298183792,
+        "value": 19.695792439770578,
         "unit": "deg",
         "req": 0.01,
         "req_key": "req.ape",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.0033013449720750284,
+        "value": 0.010689301507161094,
         "unit": "deg",
         "req": 0.005,
         "req_key": "req.ake",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.35465712534376576,
+        "value": 2.8497903720592075,
         "unit": "W",
         "req": 2.0,
         "req_key": "req.pavg",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 3.0,
+        "value": 3.639164929578055,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -1549,7 +1955,7 @@
        {
         "id": "propellant",
         "kind": "propellant",
-        "value": 0.08721831115771245,
+        "value": 0.0,
         "unit": "g",
         "req": null,
         "req_key": "",
@@ -1560,7 +1966,7 @@
        {
         "id": "detumble_time",
         "kind": "time_to_rate",
-        "value": 2.125,
+        "value": 62.975,
         "unit": "min",
         "req": 284.0,
         "req_key": "req.detumble",
@@ -1569,34 +1975,34 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.004034245900271138,
+        "value": 39.14318522463763,
         "unit": "deg",
         "req": 0.01,
         "req_key": "req.ape",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.003124725467303394,
+        "value": 0.01251166658210265,
         "unit": "deg",
         "req": 0.005,
         "req_key": "req.ake",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.3360046553078997,
+        "value": 2.856899522152332,
         "unit": "W",
         "req": 2.0,
         "req_key": "req.pavg",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 3.0,
+        "value": 3.640041515580715,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -1605,7 +2011,7 @@
        {
         "id": "propellant",
         "kind": "propellant",
-        "value": 0.10949313688633311,
+        "value": 0.0,
         "unit": "g",
         "req": null,
         "req_key": "",
@@ -1616,18 +2022,22 @@
     },
     {
      "kind": "gps_outage",
-     "t_s": 12913.0,
-     "end_s": 14713.0,
+     "t_s": 24391.0,
+     "end_s": 26191.0,
      "flown": true,
      "pass": true,
      "failing": [],
-     "also_fails_without_fault": [],
+     "also_fails_without_fault": [
+      "ape_los_p9973",
+      "ake_los_p9973",
+      "power_mean"
+     ],
      "metrics": {
       "1": [
        {
         "id": "detumble_time",
         "kind": "time_to_rate",
-        "value": 2.025,
+        "value": 75.275,
         "unit": "min",
         "req": 284.0,
         "req_key": "req.detumble",
@@ -1636,34 +2046,34 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.0085646777354407,
+        "value": 18.74172326006533,
         "unit": "deg",
         "req": 0.01,
         "req_key": "req.ape",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.0033371976172055,
+        "value": 0.011178774428773545,
         "unit": "deg",
         "req": 0.005,
         "req_key": "req.ake",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.35521548736043385,
+        "value": 2.8497877284290785,
         "unit": "W",
         "req": 2.0,
         "req_key": "req.pavg",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 3.0,
+        "value": 3.639164929578055,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -1672,7 +2082,7 @@
        {
         "id": "propellant",
         "kind": "propellant",
-        "value": 0.08721831115771245,
+        "value": 0.0,
         "unit": "g",
         "req": null,
         "req_key": "",
@@ -1683,7 +2093,7 @@
        {
         "id": "detumble_time",
         "kind": "time_to_rate",
-        "value": 2.125,
+        "value": 62.975,
         "unit": "min",
         "req": 284.0,
         "req_key": "req.detumble",
@@ -1692,34 +2102,34 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.0041056210792731074,
+        "value": 36.90193957833281,
         "unit": "deg",
         "req": 0.01,
         "req_key": "req.ape",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.0031229422486595397,
+        "value": 0.012477394059050554,
         "unit": "deg",
         "req": 0.005,
         "req_key": "req.ake",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.33606266802265516,
+        "value": 2.856877287753627,
         "unit": "W",
         "req": 2.0,
         "req_key": "req.pavg",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 3.0,
+        "value": 3.640041515580715,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -1728,7 +2138,7 @@
        {
         "id": "propellant",
         "kind": "propellant",
-        "value": 0.10949313688633311,
+        "value": 0.0,
         "unit": "g",
         "req": null,
         "req_key": "",
@@ -1740,17 +2150,21 @@
     {
      "kind": "rcs_valve_fail",
      "index": 1,
-     "t_s": 12913.0,
+     "t_s": 24391.0,
      "flown": true,
      "pass": true,
      "failing": [],
-     "also_fails_without_fault": [],
+     "also_fails_without_fault": [
+      "ape_los_p9973",
+      "ake_los_p9973",
+      "power_mean"
+     ],
      "metrics": {
       "1": [
        {
         "id": "detumble_time",
         "kind": "time_to_rate",
-        "value": 2.025,
+        "value": 75.275,
         "unit": "min",
         "req": 284.0,
         "req_key": "req.detumble",
@@ -1759,34 +2173,34 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.004059558662811371,
+        "value": 19.556341763543834,
         "unit": "deg",
         "req": 0.01,
         "req_key": "req.ape",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.0033094114562436327,
+        "value": 0.011193286054532745,
         "unit": "deg",
         "req": 0.005,
         "req_key": "req.ake",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.3551389663558025,
+        "value": 2.84979448831757,
         "unit": "W",
         "req": 2.0,
         "req_key": "req.pavg",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 3.0,
+        "value": 3.639164929578055,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -1795,7 +2209,7 @@
        {
         "id": "propellant",
         "kind": "propellant",
-        "value": 0.08721831115771245,
+        "value": 0.0,
         "unit": "g",
         "req": null,
         "req_key": "",
@@ -1806,7 +2220,7 @@
        {
         "id": "detumble_time",
         "kind": "time_to_rate",
-        "value": 2.125,
+        "value": 62.975,
         "unit": "min",
         "req": 284.0,
         "req_key": "req.detumble",
@@ -1815,34 +2229,34 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.00402782284074943,
+        "value": 36.901208311104384,
         "unit": "deg",
         "req": 0.01,
         "req_key": "req.ape",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.0031189473130000876,
+        "value": 0.012479781310303499,
         "unit": "deg",
         "req": 0.005,
         "req_key": "req.ake",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.3370716325039572,
+        "value": 2.8568772868695347,
         "unit": "W",
         "req": 2.0,
         "req_key": "req.pavg",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 3.0,
+        "value": 3.640041515580715,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -1851,7 +2265,7 @@
        {
         "id": "propellant",
         "kind": "propellant",
-        "value": 0.10949313688633311,
+        "value": 0.0,
         "unit": "g",
         "req": null,
         "req_key": "",
@@ -1864,11 +2278,6 @@
      "kind": "gimbal_stuck",
      "flown": false,
      "skipped": "0 gimbals, needs 1"
-    },
-    {
-     "kind": "st_head_fail",
-     "flown": false,
-     "skipped": "1 st_heads, needs 2"
     }
    ],
    "nominal": {
@@ -1876,7 +2285,7 @@
      {
       "id": "detumble_time",
       "kind": "time_to_rate",
-      "value": 2.025,
+      "value": 75.275,
       "unit": "min",
       "req": 284.0,
       "req_key": "req.detumble",
@@ -1885,34 +2294,34 @@
      {
       "id": "ape_los_p9973",
       "kind": "ape_los",
-      "value": 0.004059558662811371,
+      "value": 19.556341763543834,
       "unit": "deg",
       "req": 0.01,
       "req_key": "req.ape",
-      "pass": 1
+      "pass": 0
      },
      {
       "id": "ake_los_p9973",
       "kind": "ake_los",
-      "value": 0.0033094114562436327,
+      "value": 0.011193286054532745,
       "unit": "deg",
       "req": 0.005,
       "req_key": "req.ake",
-      "pass": 1
+      "pass": 0
      },
      {
       "id": "power_mean",
       "kind": "power_mean",
-      "value": 0.3551389663558025,
+      "value": 2.84979448831757,
       "unit": "W",
       "req": 2.0,
       "req_key": "req.pavg",
-      "pass": 1
+      "pass": 0
      },
      {
       "id": "power_peak",
       "kind": "power_peak",
-      "value": 3.0,
+      "value": 3.639164929578055,
       "unit": "W",
       "req": null,
       "req_key": "",
@@ -1921,7 +2330,7 @@
      {
       "id": "propellant",
       "kind": "propellant",
-      "value": 0.08721831115771245,
+      "value": 0.0,
       "unit": "g",
       "req": null,
       "req_key": "",
@@ -1932,7 +2341,7 @@
      {
       "id": "detumble_time",
       "kind": "time_to_rate",
-      "value": 2.125,
+      "value": 62.975,
       "unit": "min",
       "req": 284.0,
       "req_key": "req.detumble",
@@ -1941,34 +2350,34 @@
      {
       "id": "ape_los_p9973",
       "kind": "ape_los",
-      "value": 0.00402782284074943,
+      "value": 36.901208311104384,
       "unit": "deg",
       "req": 0.01,
       "req_key": "req.ape",
-      "pass": 1
+      "pass": 0
      },
      {
       "id": "ake_los_p9973",
       "kind": "ake_los",
-      "value": 0.0031189473130000876,
+      "value": 0.012479781310303499,
       "unit": "deg",
       "req": 0.005,
       "req_key": "req.ake",
-      "pass": 1
+      "pass": 0
      },
      {
       "id": "power_mean",
       "kind": "power_mean",
-      "value": 0.3370716325039572,
+      "value": 2.8568772868695347,
       "unit": "W",
       "req": 2.0,
       "req_key": "req.pavg",
-      "pass": 1
+      "pass": 0
      },
      {
       "id": "power_peak",
       "kind": "power_peak",
-      "value": 3.0,
+      "value": 3.640041515580715,
       "unit": "W",
       "req": null,
       "req_key": "",
@@ -1977,7 +2386,7 @@
      {
       "id": "propellant",
       "kind": "propellant",
-      "value": 0.10949313688633311,
+      "value": 0.0,
       "unit": "g",
       "req": null,
       "req_key": "",

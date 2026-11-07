@@ -3,9 +3,9 @@
  "id": "dispatch_ais_3u_mtq_fmr__fault_gps_outage",
  "case": "ais_3u",
  "product": "SZ-ais_3u-mtq_fmr",
- "label": "ais_3u \u2014 dispatched mtq_fmr: detumble -> sun_acq_rotor (auto) -> nadir_fine (schedule)",
+ "label": "ais_3u \u2014 dispatched mtq_fmr: detumble -> sun_acq_rotor (auto) -> nadir_mtq (schedule)",
  "time": {
-  "duration_s": 17217,
+  "duration_s": 28695,
   "dt_s": 0.1,
   "record_dt_s": 1.0
  },
@@ -26,16 +26,18 @@
   },
   "algorithms": {
    "detumble": "bdot_gyro",
-   "pointing": "pid"
+   "mtq_pointing": "mtq_celani2026"
   },
   "schedule": [
    {
     "t_s": 11478,
-    "mode": "nadir_fine"
+    "mode": "nadir_mtq"
    }
   ],
   "rcs_dump": 0.0,
-  "dump_gain": 0.03
+  "mtq_gain_p": 4.0,
+  "mtq_gain_d": 0.25,
+  "handover_out_dps": 0.5
  },
  "metrics": [
   {
@@ -80,8 +82,8 @@
  "faults": [
   {
    "kind": "gps_outage",
-   "t_s": 12913.0,
-   "end_s": 14713.0
+   "t_s": 24391.0,
+   "end_s": 26191.0
   }
  ]
 }

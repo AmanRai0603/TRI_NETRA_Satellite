@@ -1,5 +1,6 @@
 {
- "scale": {},
- "fmr_lambda": 0.9000000000000001,
- "fmr_flow_sigma": 0.0005
+ "scale": {
+  "mtqp": 0.5625
+ },
+ "fmr_lambda": 0.9000000000000001
 }

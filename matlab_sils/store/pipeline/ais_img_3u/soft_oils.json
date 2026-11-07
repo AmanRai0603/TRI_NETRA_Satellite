@@ -1,13 +1,13 @@
 {
- "_key": "3302ed34366a2107",
+ "_key": "a7ddf2905bc02dc7",
  "sils": {
   "rc": 0,
-  "wall_s": 1.7950818538665771,
+  "wall_s": 6.284002780914307,
   "metrics": [
    {
     "id": "detumble_time",
     "kind": "time_to_rate",
-    "value": 73.825,
+    "value": 75.275,
     "unit": "min",
     "req": 284.0,
     "req_key": "req.detumble",
@@ -16,34 +16,34 @@
    {
     "id": "ape_los_p9973",
     "kind": "ape_los",
-    "value": 0.004065567549770241,
+    "value": 19.556341763543834,
     "unit": "deg",
     "req": 0.01,
     "req_key": "req.ape",
-    "pass": 1
+    "pass": 0
    },
    {
     "id": "ake_los_p9973",
     "kind": "ake_los",
-    "value": 0.0033048824642448993,
+    "value": 0.011193286054532745,
     "unit": "deg",
     "req": 0.005,
     "req_key": "req.ake",
-    "pass": 1
+    "pass": 0
    },
    {
     "id": "power_mean",
     "kind": "power_mean",
-    "value": 0.3933814496093153,
+    "value": 2.84979448831757,
     "unit": "W",
     "req": 2.0,
     "req_key": "req.pavg",
-    "pass": 1
+    "pass": 0
    },
    {
     "id": "power_peak",
     "kind": "power_peak",
-    "value": 0.8559799524197897,
+    "value": 3.639164929578055,
     "unit": "W",
     "req": null,
     "req_key": "",
@@ -62,17 +62,17 @@
   "oils": null,
   "fsw": {
    "impl": "c (in-process)",
-   "build_id": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1)"
+   "build_id": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg de1905be024c8a82"
   }
  },
  "oils": {
   "rc": 0,
-  "wall_s": 1462.5354368686676,
+  "wall_s": 2605.130299091339,
   "metrics": [
    {
     "id": "detumble_time",
     "kind": "time_to_rate",
-    "value": 74.70833333333333,
+    "value": 76.475,
     "unit": "min",
     "req": 284.0,
     "req_key": "req.detumble",
@@ -81,34 +81,34 @@
    {
     "id": "ape_los_p9973",
     "kind": "ape_los",
-    "value": 0.004203740502413753,
+    "value": 31.14888476620515,
     "unit": "deg",
     "req": 0.01,
     "req_key": "req.ape",
-    "pass": 1
+    "pass": 0
    },
    {
     "id": "ake_los_p9973",
     "kind": "ake_los",
-    "value": 0.003373566187305103,
+    "value": 0.019520946480538492,
     "unit": "deg",
     "req": 0.005,
     "req_key": "req.ake",
-    "pass": 1
+    "pass": 0
    },
    {
     "id": "power_mean",
     "kind": "power_mean",
-    "value": 0.35784551957851596,
+    "value": 2.853491644274038,
     "unit": "W",
     "req": 2.0,
     "req_key": "req.pavg",
-    "pass": 1
+    "pass": 0
    },
    {
     "id": "power_peak",
     "kind": "power_peak",
-    "value": 0.8590414776371372,
+    "value": 3.6432223432053936,
     "unit": "W",
     "req": null,
     "req_key": "",
@@ -135,7 +135,7 @@
    {
     "id": "oils_worst_case_margin",
     "kind": "oils_deadline",
-    "value": 39.13178571428572,
+    "value": 36.24894047619048,
     "unit": "ms",
     "req": 0.0,
     "req_key": "oils",
@@ -154,53 +154,54 @@
     "deadline_frac": 0.5,
     "fixed_s": null
    },
-   "ticks": 172171,
+   "time_base": "qemu insn_count plugin (exact guest instructions)",
+   "ticks": 286951,
    "overruns": 0,
    "control_period_s": 0.1,
    "exec_s": {
-    "mean": 0.00178283042337511,
-    "p99": 0.005847790178571429,
-    "max": 0.005949508928571429
+    "mean": 0.002345563453435615,
+    "p99": 0.006935357142857143,
+    "max": 0.007832537202380953
    },
    "bus_s": {
-    "mean": 0.001298999999996486,
-    "p99": 0.001299,
-    "max": 0.001299
+    "mean": 0.0011690000000033785,
+    "p99": 0.0011690000000000001,
+    "max": 0.0011690000000000001
    },
    "latency_s": {
-    "mean": 0.0030818304233750753,
-    "p99": 0.0071467901785714286,
-    "max": 0.007248508928571429
+    "mean": 0.0035145634534355518,
+    "p99": 0.008104357142857144,
+    "max": 0.009001537202380953
    },
    "worst_latency_s": {
-    "mean": 0.004201528677400272,
-    "p99": 0.010705464285714285,
-    "max": 0.010868214285714287
+    "mean": 0.00497190152549689,
+    "p99": 0.01231557142857143,
+    "max": 0.013751059523809525
    },
    "instructions": {
-    "mean": 239612.40890161524,
-    "p99": 785943.0,
-    "max": 799614.0
+    "mean": 315243.7281417385,
+    "p99": 932112.0,
+    "max": 1052693.0
    },
-   "cpu_load_mean": 0.017828304233751098,
-   "cpu_load_max": 0.05949508928571429,
-   "deadline_margin_min_s": 0.09275149107142858,
+   "cpu_load_mean": 0.02345563453435615,
+   "cpu_load_max": 0.07832537202380953,
+   "deadline_margin_min_s": 0.09099846279761906,
    "deadline_s": 0.05,
-   "worst_case_margin_s": 0.039131785714285716
+   "worst_case_margin_s": 0.036248940476190476
   },
   "fsw": {
    "impl": "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
-   "build_id": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) via adcs-link/1"
+   "build_id": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg de1905be024c8a82 via adcs-link/1"
   }
  },
  "oils_rs": {
   "rc": 0,
-  "wall_s": 1503.2413918972015,
+  "wall_s": 2755.601018667221,
   "metrics": [
    {
     "id": "detumble_time",
     "kind": "time_to_rate",
-    "value": 74.79166666666667,
+    "value": 76.475,
     "unit": "min",
     "req": 284.0,
     "req_key": "req.detumble",
@@ -209,34 +210,34 @@
    {
     "id": "ape_los_p9973",
     "kind": "ape_los",
-    "value": 0.004229075092867596,
+    "value": 46.58447564719749,
     "unit": "deg",
     "req": 0.01,
     "req_key": "req.ape",
-    "pass": 1
+    "pass": 0
    },
    {
     "id": "ake_los_p9973",
     "kind": "ake_los",
-    "value": 0.0034012549399781416,
+    "value": 0.0271851945666201,
     "unit": "deg",
     "req": 0.005,
     "req_key": "req.ake",
-    "pass": 1
+    "pass": 0
    },
    {
     "id": "power_mean",
     "kind": "power_mean",
-    "value": 0.357515056057716,
+    "value": 2.8524743214443706,
     "unit": "W",
     "req": 2.0,
     "req_key": "req.pavg",
-    "pass": 1
+    "pass": 0
    },
    {
     "id": "power_peak",
     "kind": "power_peak",
-    "value": 0.8594097344762068,
+    "value": 3.644794686027177,
     "unit": "W",
     "req": null,
     "req_key": "",
@@ -263,7 +264,7 @@
    {
     "id": "oils_worst_case_margin",
     "kind": "oils_deadline",
-    "value": 37.90309523809524,
+    "value": 34.000166666666665,
     "unit": "ms",
     "req": 0.0,
     "req_key": "oils",
@@ -282,43 +283,44 @@
     "deadline_frac": 0.5,
     "fixed_s": null
    },
-   "ticks": 172171,
+   "time_base": "qemu insn_count plugin (exact guest instructions)",
+   "ticks": 286951,
    "overruns": 0,
    "control_period_s": 0.1,
    "exec_s": {
-    "mean": 0.0022117775179251887,
-    "p99": 0.006659665178571429,
-    "max": 0.006717440476190476
+    "mean": 0.0030415208391052326,
+    "p99": 0.008131190476190476,
+    "max": 0.009238020833333334
    },
    "bus_s": {
-    "mean": 0.001298999999996486,
-    "p99": 0.001299,
-    "max": 0.001299
+    "mean": 0.0011690000000033785,
+    "p99": 0.0011690000000000001,
+    "max": 0.0011690000000000001
    },
    "latency_s": {
-    "mean": 0.00351077751792511,
-    "p99": 0.007958665178571429,
-    "max": 0.008016440476190476
+    "mean": 0.004210520839105265,
+    "p99": 0.009300190476190476,
+    "max": 0.010407020833333334
    },
    "worst_latency_s": {
-    "mean": 0.004887844028680299,
-    "p99": 0.012004464285714285,
-    "max": 0.01209690476190476
+    "mean": 0.006085433342568107,
+    "p99": 0.01422890476190476,
+    "max": 0.015999833333333338
    },
    "instructions": {
-    "mean": 297262.8984091398,
-    "p99": 895059.0,
-    "max": 902824.0
+    "mean": 408780.4007757422,
+    "p99": 1092832.0,
+    "max": 1241590.0
    },
-   "cpu_load_mean": 0.022117775179251887,
-   "cpu_load_max": 0.06717440476190475,
-   "deadline_margin_min_s": 0.09198355952380953,
+   "cpu_load_mean": 0.030415208391052325,
+   "cpu_load_max": 0.09238020833333334,
+   "deadline_margin_min_s": 0.08959297916666667,
    "deadline_s": 0.05,
-   "worst_case_margin_s": 0.03790309523809524
+   "worst_case_margin_s": 0.034000166666666665
   },
   "fsw": {
    "impl": "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
-   "build_id": "trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1) via adcs-link/1"
+   "build_id": "trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1) alg de1905be024c8a82 via adcs-link/1"
   }
  }
 }

@@ -3,9 +3,9 @@
  "id": "dispatch_ais_img_3u_mtq_fmr_rcs__fault_rotor_fail",
  "case": "ais_img_3u",
  "product": "SZ-ais_img_3u-mtq_fmr_rcs",
- "label": "ais_img_3u \u2014 dispatched mtq_fmr_rcs: detumble_rcs -> sun_acq_rotor (auto) -> nadir_fine (schedule)",
+ "label": "ais_img_3u \u2014 dispatched mtq_fmr_rcs: detumble -> sun_acq_rotor (auto) -> nadir_mtq (schedule)",
  "time": {
-  "duration_s": 17217,
+  "duration_s": 28695,
   "dt_s": 0.1,
   "record_dt_s": 1.0
  },
@@ -19,23 +19,26 @@
   }
  },
  "fsw": {
-  "start_mode": "detumble_rcs",
+  "start_mode": "detumble",
   "auto_next": "sun_acq_rotor",
   "guidance": {
    "kind": "nadir"
   },
   "algorithms": {
-   "pointing": "pid"
+   "detumble": "bdot_gyro",
+   "pointing": "pid",
+   "mtq_pointing": "mtq_celani2026"
   },
   "schedule": [
    {
     "t_s": 11478,
-    "mode": "nadir_fine"
+    "mode": "nadir_mtq"
    }
   ],
   "rcs_dump": 0.0,
-  "dump_gain": 0.03,
-  "rw_bandwidth": 4.0
+  "mtq_gain_p": 1.0,
+  "mtq_gain_d": 0.25,
+  "handover_out_dps": 1.0
  },
  "metrics": [
   {
@@ -81,7 +84,7 @@
   {
    "kind": "rotor_fail",
    "index": 1,
-   "t_s": 12913.0
+   "t_s": 24391.0
   }
  ]
 }

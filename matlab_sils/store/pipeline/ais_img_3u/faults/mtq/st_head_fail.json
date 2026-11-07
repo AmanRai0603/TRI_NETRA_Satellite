@@ -38,7 +38,7 @@
   "rcs_dump": 0.0,
   "spin_rate_dps": 2.0,
   "ss_gain": 1.0,
-  "mtq_gain_p": 4.0,
+  "mtq_gain_p": 1.0,
   "mtq_gain_d": 0.25,
   "handover_out_dps": 1.0
  },

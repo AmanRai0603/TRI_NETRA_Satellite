@@ -3,16 +3,16 @@
  "selected": true,
  "dir": "dist/dispatch/ais_3u/mtq_fmr/converged",
  "check_dir": "matlab_sils/store/pipeline/ais_3u/dispatch",
- "scenario": "/home/user/TRI_NETRA_Satellite/dist/dispatch/ais_3u/mtq_fmr/converged/mission_scenario.json",
+ "scenario": "/workspace/TRI_NETRA_Satellite/dist/dispatch/ais_3u/mtq_fmr/converged/mission_scenario.json",
  "check": {
   "c": {
    "rc": 0,
-   "build_id": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1)",
+   "build_id": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg de1905be024c8a82",
    "metrics": [
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 52.291666666666664,
+     "value": 191.30833333333334,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
@@ -21,16 +21,16 @@
     {
      "id": "ape_los_p9973",
      "kind": "ape_los",
-     "value": 0.1538490070367234,
+     "value": 32.65159706571292,
      "unit": "deg",
      "req": 10.0,
      "req_key": "req.ape",
-     "pass": 1
+     "pass": 0
     },
     {
      "id": "ake_los_p9973",
      "kind": "ake_los",
-     "value": 0.1494049948133427,
+     "value": 0.4549824238315187,
      "unit": "deg",
      "req": 5.0,
      "req_key": "req.ake",
@@ -39,16 +39,16 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.1222025768547082,
+     "value": 1.6187747807600896,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
-     "pass": 1
+     "pass": 0
     },
     {
      "id": "power_peak",
      "kind": "power_peak",
-     "value": 0.849531003739949,
+     "value": 1.7778499726971562,
      "unit": "W",
      "req": null,
      "req_key": "",
@@ -70,23 +70,19 @@
      "mode": "detumble"
     },
     {
-     "t": 3137.3,
-     "mode": "sun_acq_rotor"
-    },
-    {
      "t": 11478.0,
-     "mode": "nadir_fine"
+     "mode": "nadir_mtq"
     }
    ]
   },
   "rust": {
    "rc": 0,
-   "build_id": "trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1)",
+   "build_id": "trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1) alg de1905be024c8a82",
    "metrics": [
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 52.291666666666664,
+     "value": 191.30833333333334,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
@@ -95,16 +91,16 @@
     {
      "id": "ape_los_p9973",
      "kind": "ape_los",
-     "value": 0.1538490070367234,
+     "value": 32.65159706571292,
      "unit": "deg",
      "req": 10.0,
      "req_key": "req.ape",
-     "pass": 1
+     "pass": 0
     },
     {
      "id": "ake_los_p9973",
      "kind": "ake_los",
-     "value": 0.1494049948133427,
+     "value": 0.4549824238315187,
      "unit": "deg",
      "req": 5.0,
      "req_key": "req.ake",
@@ -113,16 +109,16 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.1222025768547082,
+     "value": 1.6187747807600896,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
-     "pass": 1
+     "pass": 0
     },
     {
      "id": "power_peak",
      "kind": "power_peak",
-     "value": 0.849531003739949,
+     "value": 1.7778499726971562,
      "unit": "W",
      "req": null,
      "req_key": "",
@@ -144,12 +140,8 @@
      "mode": "detumble"
     },
     {
-     "t": 3137.3,
-     "mode": "sun_acq_rotor"
-    },
-    {
      "t": 11478.0,
-     "mode": "nadir_fine"
+     "mode": "nadir_mtq"
     }
    ]
   },
@@ -158,11 +150,11 @@
  "methods": {
   "detumble": "mtq",
   "sun_acquisition": "fmr",
-  "sun_referencing": "fmr+mtq",
-  "nadir_pointing": "fmr+mtq"
+  "sun_referencing": "mtq",
+  "nadir_pointing": "mtq"
  },
  "algorithms": {
   "detumble": "bdot_gyro",
-  "pointing": "pid"
+  "mtq_pointing": "mtq_celani2026"
  }
 }
