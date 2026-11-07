@@ -123,6 +123,35 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             for v in r.0.iter() { let v = *v; for v in v.iter() { let v = *v; out.push(v); } }
             out.push(if r.1 { 1.0 } else { 0.0 });
         }
+        "atmosbundle::bundle_activity" => {
+            if x.len() != 1 { return None; }
+            let r = crate::atmosbundle::bundle_activity(x[0] as i64);
+            out.push(r.0);
+            out.push(r.1);
+            out.push(r.2);
+        }
+        "atmosbundle::dtm_density" => {
+            if x.len() != 8 { return None; }
+            let r = crate::atmosbundle::dtm_density(x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7]);
+            out.push(r);
+        }
+        "atmosbundle::density_member" => {
+            if x.len() != 3 { return None; }
+            let r = crate::atmosbundle::density_member(x[0], x[1], x[2] as i64);
+            out.push(r);
+        }
+        "atmosbundle::density_bundle" => {
+            if x.len() != 2 { return None; }
+            let r = crate::atmosbundle::density_bundle(x[0], x[1]);
+            out.push(r.0);
+            out.push(r.1);
+            out.push(r.2);
+        }
+        "atmosbundle::density_worst" => {
+            if x.len() != 2 { return None; }
+            let r = crate::atmosbundle::density_worst(x[0], x[1]);
+            out.push(r);
+        }
         "caltime::jd_utc" => {
             if x.len() != 6 { return None; }
             let r = crate::caltime::jd_utc([x[0], x[1], x[2], x[3], x[4], x[5]]);
@@ -182,6 +211,60 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             let r = crate::caseorbit::dispersed_period(x[0]);
             out.push(r);
         }
+        "dtm2020::dtm_vma" => {
+            if x.len() != 0 { return None; }
+            let r = crate::dtm2020::dtm_vma();
+            for v in r.iter() { let v = *v; out.push(v); }
+        }
+        "dtm2020::dtm_column" => {
+            if x.len() != 2 { return None; }
+            let r = crate::dtm2020::dtm_column(x[0] as i64, x[1] as i64);
+            for v in r.iter() { let v = *v; out.push(v); }
+        }
+        "dtm2020::plg_geographic" => {
+            if x.len() != 1 { return None; }
+            let r = crate::dtm2020::plg_geographic(x[0]);
+            out.push(r.p10); out.push(r.p20); out.push(r.p30); out.push(r.p40); out.push(r.p50); out.push(r.p60); out.push(r.p11); out.push(r.p21); out.push(r.p31); out.push(r.p41); out.push(r.p51); out.push(r.p22); out.push(r.p32); out.push(r.p42); out.push(r.p52); out.push(r.p62); out.push(r.p33); out.push(r.p10mg); out.push(r.p20mg); out.push(r.p30mg); out.push(r.p40mg); out.push(r.p50mg); out.push(r.p60mg); out.push(r.p11mg); out.push(r.p22mg); out.push(r.p31mg);
+        }
+        "dtm2020::hloc_of" => {
+            if x.len() != 1 { return None; }
+            let r = crate::dtm2020::hloc_of(x[0]);
+            out.push(r.ch); out.push(r.sh); out.push(r.c2h); out.push(r.s2h); out.push(r.c3h); out.push(r.s3h);
+        }
+        "dtm2020::gldtm" => {
+            if x.len() != 138 { return None; }
+            let r = crate::dtm2020::gldtm(x[0], x[1], [x[2], x[3], x[4], x[5]], x[6], [x[7], x[8], x[9], x[10], x[11], x[12], x[13], x[14], x[15], x[16], x[17], x[18], x[19], x[20], x[21], x[22], x[23], x[24], x[25], x[26], x[27], x[28], x[29], x[30], x[31], x[32], x[33], x[34], x[35], x[36], x[37], x[38], x[39], x[40], x[41], x[42], x[43], x[44], x[45], x[46], x[47], x[48], x[49], x[50], x[51], x[52], x[53], x[54], x[55], x[56], x[57], x[58], x[59], x[60], x[61], x[62], x[63], x[64], x[65], x[66], x[67], x[68], x[69], x[70], x[71], x[72], x[73], x[74], x[75], x[76], x[77], x[78], x[79], x[80], x[81], x[82], x[83], x[84], x[85], x[86], x[87], x[88], x[89], x[90], x[91], x[92], x[93], x[94], x[95], x[96], x[97], x[98], x[99], x[100], x[101], x[102], x[103]], crate::dtm2020::Plg { p10: x[104], p20: x[105], p30: x[106], p40: x[107], p50: x[108], p60: x[109], p11: x[110], p21: x[111], p31: x[112], p41: x[113], p51: x[114], p22: x[115], p32: x[116], p42: x[117], p52: x[118], p62: x[119], p33: x[120], p10mg: x[121], p20mg: x[122], p30mg: x[123], p40mg: x[124], p50mg: x[125], p60mg: x[126], p11mg: x[127], p22mg: x[128], p31mg: x[129] }, crate::dtm2020::Hloc { ch: x[130], sh: x[131], c2h: x[132], s2h: x[133], c3h: x[134], s3h: x[135] }, x[136], x[137]);
+            out.push(r);
+        }
+        "dtm2020::dtm_profile" => {
+            if x.len() != 11 { return None; }
+            let r = crate::dtm2020::dtm_profile(x[0] as i64, x[1], x[2], x[3], [x[4], x[5], x[6], x[7], x[8], x[9]], x[10]);
+            out.push(r.tz); out.push(r.tinf); out.push(r.ro); for v in r.d.iter() { let v = *v; out.push(v); } out.push(r.wmm);
+        }
+        "dtm2020::dtm3_gdel" => {
+            if x.len() != 40 { return None; }
+            let r = crate::dtm2020::dtm3_gdel(x[0], x[1], [x[2], x[3], x[4], x[5]], x[6], crate::dtm2020::Plg { p10: x[7], p20: x[8], p30: x[9], p40: x[10], p50: x[11], p60: x[12], p11: x[13], p21: x[14], p31: x[15], p41: x[16], p51: x[17], p22: x[18], p32: x[19], p42: x[20], p52: x[21], p62: x[22], p33: x[23], p10mg: x[24], p20mg: x[25], p30mg: x[26], p40mg: x[27], p50mg: x[28], p60mg: x[29], p11mg: x[30], p22mg: x[31], p31mg: x[32] }, crate::dtm2020::Hloc { ch: x[33], sh: x[34], c2h: x[35], s2h: x[36], c3h: x[37], s3h: x[38] }, x[39]);
+            out.push(r.0);
+            out.push(r.1);
+            out.push(r.2);
+            for v in r.3.iter() { let v = *v; out.push(v); }
+        }
+        "dtm2020::dtm3" => {
+            if x.len() != 11 { return None; }
+            let r = crate::dtm2020::dtm3(x[0], x[1], x[2], [x[3], x[4], x[5], x[6]], x[7], x[8], x[9], x[10]);
+            out.push(r.tz); out.push(r.tinf); out.push(r.ro); for v in r.d.iter() { let v = *v; out.push(v); } out.push(r.wmm);
+        }
+        "dtm2020::dtm_pack" => {
+            if x.len() != 10 { return None; }
+            let r = crate::dtm2020::dtm_pack(crate::dtm2020::DtmRaw { tz: x[0], tinf: x[1], ro: x[2], d: [x[3], x[4], x[5], x[6], x[7], x[8]], wmm: x[9] });
+            out.push(r.rho_gcm3); out.push(r.rho_kgm3); out.push(r.t_k); out.push(r.tinf_k); for v in r.n_cm3.iter() { let v = *v; out.push(v); } for v in r.rho_species.iter() { let v = *v; out.push(v); } out.push(r.mbar_amu);
+        }
+        "dtm2020::oper_density" => {
+            if x.len() != 11 { return None; }
+            let r = crate::dtm2020::oper_density(x[0], x[1], x[2], x[3], x[4], x[5], x[6], [x[7], x[8], x[9], x[10]]);
+            out.push(if r.0 { 1.0 } else { 0.0 });
+            out.push(r.1.rho_gcm3); out.push(r.1.rho_kgm3); out.push(r.1.t_k); out.push(r.1.tinf_k); for v in r.1.n_cm3.iter() { let v = *v; out.push(v); } for v in r.1.rho_species.iter() { let v = *v; out.push(v); } out.push(r.1.mbar_amu);
+        }
         "orbitstart::ltan_raan" => {
             if x.len() != 4 { return None; }
             let r = crate::orbitstart::ltan_raan([x[0], x[1], x[2]], x[3]);
@@ -194,6 +277,147 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             out.push(r.1);
             out.push(r.2);
             out.push(r.3);
+        }
+        "timescales::omod" => {
+            if x.len() != 2 { return None; }
+            let r = crate::timescales::omod(x[0], x[1]);
+            out.push(r);
+        }
+        "timescales::deg2rad" => {
+            if x.len() != 1 { return None; }
+            let r = crate::timescales::deg2rad(x[0]);
+            out.push(r);
+        }
+        "timescales::cal2jd" => {
+            if x.len() != 6 { return None; }
+            let r = crate::timescales::cal2jd(x[0], x[1], x[2], x[3], x[4], x[5]);
+            out.push(r);
+        }
+        "timescales::jd2cal" => {
+            if x.len() != 1 { return None; }
+            let r = crate::timescales::jd2cal(x[0]);
+            for v in r.iter() { let v = *v; out.push(v); }
+        }
+        "timescales::jd2mjd" => {
+            if x.len() != 1 { return None; }
+            let r = crate::timescales::jd2mjd(x[0]);
+            out.push(r);
+        }
+        "timescales::mjd2jd" => {
+            if x.len() != 1 { return None; }
+            let r = crate::timescales::mjd2jd(x[0]);
+            out.push(r);
+        }
+        "timescales::tai_minus_utc" => {
+            if x.len() != 1 { return None; }
+            let r = crate::timescales::tai_minus_utc(x[0]);
+            out.push(r);
+        }
+        "timescales::utc2tai" => {
+            if x.len() != 1 { return None; }
+            let r = crate::timescales::utc2tai(x[0]);
+            out.push(r);
+        }
+        "timescales::tai2utc" => {
+            if x.len() != 1 { return None; }
+            let r = crate::timescales::tai2utc(x[0]);
+            out.push(r);
+        }
+        "timescales::tai2tt" => {
+            if x.len() != 1 { return None; }
+            let r = crate::timescales::tai2tt(x[0]);
+            out.push(r);
+        }
+        "timescales::tt2tai" => {
+            if x.len() != 1 { return None; }
+            let r = crate::timescales::tt2tai(x[0]);
+            out.push(r);
+        }
+        "timescales::tt2utc" => {
+            if x.len() != 1 { return None; }
+            let r = crate::timescales::tt2utc(x[0]);
+            out.push(r);
+        }
+        "timescales::utc2tt" => {
+            if x.len() != 1 { return None; }
+            let r = crate::timescales::utc2tt(x[0]);
+            out.push(r);
+        }
+        "timescales::tt2tdb" => {
+            if x.len() != 1 { return None; }
+            let r = crate::timescales::tt2tdb(x[0]);
+            out.push(r);
+        }
+        "timescales::utc2tdb" => {
+            if x.len() != 1 { return None; }
+            let r = crate::timescales::utc2tdb(x[0]);
+            out.push(r);
+        }
+        "timescales::utc2ut1" => {
+            if x.len() != 2 { return None; }
+            let r = crate::timescales::utc2ut1(x[0], x[1]);
+            out.push(r);
+        }
+        "timescales::tai2gps" => {
+            if x.len() != 1 { return None; }
+            let r = crate::timescales::tai2gps(x[0]);
+            out.push(r);
+        }
+        "timescales::utc2gps" => {
+            if x.len() != 1 { return None; }
+            let r = crate::timescales::utc2gps(x[0]);
+            out.push(r);
+        }
+        "timescales::tt2jc" => {
+            if x.len() != 1 { return None; }
+            let r = crate::timescales::tt2jc(x[0]);
+            out.push(r);
+        }
+        "timescales::j2000sec" => {
+            if x.len() != 1 { return None; }
+            let r = crate::timescales::j2000sec(x[0]);
+            out.push(r);
+        }
+        "timescales::gps_week_sow" => {
+            if x.len() != 1 { return None; }
+            let r = crate::timescales::gps_week_sow(x[0]);
+            out.push(r.0);
+            out.push(r.1);
+        }
+        "timescales::gmst82" => {
+            if x.len() != 1 { return None; }
+            let r = crate::timescales::gmst82(x[0]);
+            out.push(r);
+        }
+        "timescales::doy" => {
+            if x.len() != 3 { return None; }
+            let r = crate::timescales::doy(x[0], x[1], x[2]);
+            out.push(r);
+        }
+        "timescales::convert_utc" => {
+            if x.len() != 7 { return None; }
+            let r = crate::timescales::convert_utc(x[0], x[1], x[2], x[3], x[4], x[5], x[6]);
+            out.push(r.utc_jd); out.push(r.tai_jd); out.push(r.tt_jd); out.push(r.tdb_jd); out.push(r.ut1_jd); out.push(r.gps_jd); out.push(r.utc_mjd); out.push(r.tt_mjd); out.push(r.tdb_mjd); out.push(r.leap); out.push(r.dut1); out.push(r.t_tt); out.push(r.j2000_tt_sec); out.push(r.gps_week); out.push(r.gps_sow); out.push(r.gmst_rad); out.push(r.doy);
+        }
+        "timescales::is_leap_year" => {
+            if x.len() != 1 { return None; }
+            let r = crate::timescales::is_leap_year(x[0]);
+            out.push(if r { 1.0 } else { 0.0 });
+        }
+        "timescales::datenum" => {
+            if x.len() != 6 { return None; }
+            let r = crate::timescales::datenum(x[0], x[1], x[2], x[3], x[4], x[5]);
+            out.push(r);
+        }
+        "timescales::datevec" => {
+            if x.len() != 1 { return None; }
+            let r = crate::timescales::datevec(x[0]);
+            for v in r.iter() { let v = *v; out.push(v); }
+        }
+        "timescales::addsec" => {
+            if x.len() != 7 { return None; }
+            let r = crate::timescales::addsec([x[0], x[1], x[2], x[3], x[4], x[5]], x[6]);
+            for v in r.iter() { let v = *v; out.push(v); }
         }
         "fswbody::fsw_epoch_earth" => {
             if x.len() != 1 { return None; }

@@ -1,0 +1,61 @@
+## The density row of the spec (m3_3), over DTM2020 instead of a static table (docs/S11_INVENTORY.md E6): the operational DTM2020
+## (env_dtm2020_operational: Bruinsma and Boniface 2021, J. Space Weather Space Clim. 11, 47) at the three solar activities
+## of the bundle, low, mean and high, at one place and time of day, and the high member as the row's worst. The table of
+## Vallado (2013) table 8-4 stays env's (m3_3's old block, the exponential atmosphere the fast orbit and the density switch
+## read); this row no longer answers with it: at 550 km (the equator, 14 h) it is 10 times denser than DTM2020 at F10.7 = 70 and 4.8 times
+## less dense at F10.7 = 250, so a worst-case torque taken from it understated the aerodynamic torque by that factor (the inventory states 15 and 7.4; these are measured at this place and time of day).
+## The developer's transcription (S11.11), unsigned; the bundle's flux values and the place are the developer's choice.
+module atmosbundle
+
+## Which member of the bundle: the long-term low, mean and high solar activity.
+choice SolarActivity = low, mean, high
+
+## The drivers of a member: the daily F10.7 and its 81-day mean [sfu] (the bundle takes both the same, as the sizing survey
+## does) and Kp. Low 70 and high 250 are the long-term extremes of ECSS-E-ST-10-04C Rev.1 as the inventory states them; the
+## mean is the engine's default flux (env_f107_default, 130). Kp is 2 in all three (the survey's, P6 of the inventory: no
+## storm; the high activity's Ap is S12's).
+fn bundle_activity(level: SolarActivity) -> (f107: real[1], f107a: real[1], kp: real[1])
+    f107 = 130.0
+    if level == SolarActivity.low
+        f107 = 70.0
+    elif level == SolarActivity.high
+        f107 = 250.0
+    end
+    f107a = f107
+    kp = 2.0
+end
+
+## The operational DTM2020's total density [kg/m^3] at a geodetic altitude [km], latitude and longitude [deg], local solar
+## time [h], day of year, F10.7 and its mean [sfu] and Kp (the model's array [Kp, 0, Kp, 0], one Kp for both of its slots).
+fn dtm_density(alt_km: real[1] in 120.5 .. 1500, lat_deg: real[1] in -90 .. 90, lon_deg: real[1] in -180 .. 360, \
+               lst_h: real[1] in 0 .. 24, doy: real[1] in 1 .. 366, f107: real[1] in 60 .. 250, f107a: real[1] in 60 .. 250, \
+               kp: real[1] in 0 .. 9) -> rho: real[1]
+    let akp: real[1][4] = [kp, 0.0, kp, 0.0]
+    let ok, o = oper_density(alt_km, lat_deg, lon_deg, lst_h, doy, f107, f107a, akp)
+    rho = nan
+    if ok
+        rho = o.rho_kgm3
+    end
+end
+
+## The density at altitude h at one member of the bundle. The place is the equator on the diurnal bulge (local solar time
+## 14 h, where DTM2020's daily maximum lies), the day of the year is the epoch's fraction of its year: the row says how dense
+## the air is at worst along the orbit, not where.
+fn density_member(h: real[km] in 150 .. 1000, t_epoch: real[yr] in 20 .. 40, level: SolarActivity) -> rho: real[kg/m^3]
+    let f107, f107a, kp = bundle_activity(level)
+    let years = t_epoch/(1.0 [yr])
+    let doy = 1.0 + 365.0*(years - floor(years))
+    rho = dtm_density(h/(1.0 [km]), 0.0, 0.0, 14.0, doy, f107, f107a, kp)*(1.0 [kg/m^3])
+end
+
+## The bundle: the density at altitude h at low, mean and high solar activity.
+fn density_bundle(h: real[km] in 150 .. 1000, t_epoch: real[yr] in 20 .. 40) -> (rho_low: real[kg/m^3], rho_mean: real[kg/m^3], rho_high: real[kg/m^3])
+    rho_low = density_member(h, t_epoch, SolarActivity.low)
+    rho_mean = density_member(h, t_epoch, SolarActivity.mean)
+    rho_high = density_member(h, t_epoch, SolarActivity.high)
+end
+
+## The node's answer: the worst, the high member (the aerodynamic torque, its consumer, is a worst case).
+fn density_worst(h: real[km] in 150 .. 1000, t_epoch: real[yr] in 20 .. 40) -> rho: real[kg/m^3]
+    rho = density_member(h, t_epoch, SolarActivity.high)
+end

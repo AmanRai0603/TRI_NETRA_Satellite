@@ -1060,6 +1060,21 @@ function y = call(name, x)
         case 'albedo::albedo_pressure'
             [o1] = asils.models.albedo.albedo_pressure(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), x(7));
             y = [double(o1)];
+        case 'atmosbundle::bundle_activity'
+            [o1, o2, o3] = asils.models.atmosbundle.bundle_activity(x(1));
+            y = [double(o1); double(o2); double(o3)];
+        case 'atmosbundle::dtm_density'
+            [o1] = asils.models.atmosbundle.dtm_density(x(1), x(2), x(3), x(4), x(5), x(6), x(7), x(8));
+            y = [double(o1)];
+        case 'atmosbundle::density_member'
+            [o1] = asils.models.atmosbundle.density_member(x(1), x(2), x(3));
+            y = [double(o1)];
+        case 'atmosbundle::density_bundle'
+            [o1, o2, o3] = asils.models.atmosbundle.density_bundle(x(1), x(2));
+            y = [double(o1); double(o2); double(o3)];
+        case 'atmosbundle::density_worst'
+            [o1] = asils.models.atmosbundle.density_worst(x(1), x(2));
+            y = [double(o1)];
         case 'caltime::jd_utc'
             [o1] = asils.models.caltime.jd_utc(reshape(x(1:6), 6, 1));
             y = [double(o1)];

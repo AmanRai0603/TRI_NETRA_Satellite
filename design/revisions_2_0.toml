@@ -4241,3 +4241,47 @@ behaviour = "stated"
 question = "At which one-sided confidence is a requirement that holds at a level (99.73 %) shown to be met by the runs flown (Clopper-Pearson), so that a closure says pass, fail or not demonstrated?"
 content = [["value", "number", "0.95"], ["value", "source", "DR-kpi-001 (design/decisions/DR-kpi-001.toml), option 1: 95 % one-sided, the roadmap's A1 and the usual confidence of ECSS-E-ST-60-10C practice; the developer's value, for the owner to sign or override (docs/S11_INVENTORY.md section 5, question 1)"]]
 why = "the confidence level of A1 as one node to change: every closure's verdict (tools/evaluate.py, tools/trace.py) reads it and calls kpi_metric_statistics's kpi_confidence_verdict with it"
+
+[[revision]]
+id = "S11.11"
+at = "2026-11-07T18:00:00Z"
+by = "the developer"
+about = "the density row and the aerodynamic torque row on DTM2020 (docs/S11_INVENTORY.md E6): m3_3 answers with the operational DTM2020 at the bundle's low, mean and high solar activity, its answer the high member, and gd_1's worst aerodynamic torque is taken at it; the spec's text no longer names NRLMSIS. The static exponential table stays env's, for the fast orbit and the density switch"
+
+[[revision.method]]
+node = "m3_3"
+pseudocode = "design/revisions/S11.11/atmosbundle.pc"
+path = "env/atmosbundle.pc"
+transcribes = "env_dtm2020_operational's oper_density (design/revisions/S7.3b/dtm2020.pc) at three solar activities: the low, mean and high bundle (F10.7 70, 130, 250; Kp 2) at the equator and 14 h local solar time"
+source = "Bruinsma and Boniface (2021), The operational and research DTM-2020 thermosphere models, J. Space Weather Space Clim. 11, 47; ECSS-E-ST-10-04C Rev.1 section 8 (the long-term low and high solar activity); docs/S11_INVENTORY.md E6 (the high bundle for 'worst': the developer's choice, unsigned)"
+generate = ["adcs-sim"]
+uses = ["env/dtm2020.pc"]
+why = "the density row took a static exponential table (Vallado 2013 table 8-4), 10 times denser than DTM2020 at F10.7 = 70 and 4.8 times less dense at F10.7 = 250 at 550 km (the equator, 14 h); it now takes DTM2020, the model the precision orbit and the twin fly"
+
+[[revision.wire]]
+node = "m3_3"
+function = "density_worst"
+why = "the module has several functions; the node's value is the worst, the high member of the bundle (density_bundle gives all three)"
+
+[[revision.change]]
+match = { nodes = ["m3_3"] }
+from = "method"
+to = "method"
+content = [["relation", "derivation", "[\"the operational DTM2020 density at this altitude at the bundle's low, mean and high solar activity; the row answers with the high member\"]"],
+           ["relation", "expression", "rho = DTM2020(h, F10.7 of the bundle's high member)"],
+           ["relation", "source", "dtm2020"],
+           ["relation", "why", "Density is the operational DTM2020 (Bruinsma and Boniface 2021), the model the precision orbit and the MATLAB twin fly, at the long-term low, mean and high solar activity (F10.7 70, 130 and 250 sfu, Kp 2), at the equator and 14 h local solar time. The row answers with the high member, because its consumer is the worst-case aerodynamic torque. The static exponential table (Vallado 2013) is kept for the fast orbit and the density switch, not for this row: at 550 km (the equator, 14 h) it is 10 times denser than DTM2020 at F10.7 = 70 and 4.8 times less dense at F10.7 = 250."],
+           ["sources", "cited", "[\"dtm2020\"]"],
+           ["spec", "expression", "rho = DTM2020(h, F10.7 of the bundle's high member)"],
+           ["spec", "source", "dtm2020"],
+           ["spec", "steps", "[\"the operational DTM2020 density at this altitude at the bundle's low, mean and high solar activity; the row answers with the high member\"]"],
+           ["spec", "why", "Density is the operational DTM2020 (Bruinsma and Boniface 2021), the model the precision orbit and the MATLAB twin fly, at the long-term low, mean and high solar activity (F10.7 70, 130 and 250 sfu, Kp 2), at the equator and 14 h local solar time. The row answers with the high member, because its consumer is the worst-case aerodynamic torque. The static exponential table (Vallado 2013) is kept for the fast orbit and the density switch, not for this row: at 550 km (the equator, 14 h) it is 10 times denser than DTM2020 at F10.7 = 70 and 4.8 times less dense at F10.7 = 250."]]
+why = "the spec's text off NRLMSIS 2.0, which no row computes (E6)"
+
+[[revision.change]]
+match = { nodes = ["gd_1"] }
+from = "method"
+to = "method"
+content = [["relation", "why", "In free-molecular flow the drag force is 0.5 rho v^2 C_D A, and it acts at the centre of pressure; the torque is that force times the offset to the centre of mass. At worst the density is the high member of m3_3's DTM2020 bundle (F10.7 250 sfu), which m3_3 answers with."],
+           ["spec", "why", "In free-molecular flow the drag force is 0.5 rho v^2 C_D A, and it acts at the centre of pressure; the torque is that force times the offset to the centre of mass. At worst the density is the high member of m3_3's DTM2020 bundle (F10.7 250 sfu), which m3_3 answers with."]]
+why = "gd_1 'worst' takes the high bundle (E6): its density input is m3_3's answer, now the high member"
