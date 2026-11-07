@@ -31,13 +31,25 @@
     "why": "computed during a run (by the flight software or the engine, at each step): its inputs nr, rot_a0, rot_gi, gim_axis, delta are the run's state and the product it flies, not rows of the design"
    },
    {
+    "id": "act_cmg_bearing_friction",
+    "group": "act",
+    "label": "CMG bearing friction per unit of rotor momentum",
+    "state": "stated",
+    "si": [
+     0.0023769,
+     0.0035498
+    ],
+    "value": "[0.0023769, 0.0035498]",
+    "why": "the design, DR-act-002 (design/decisions/DR-act-002.toml), docs/S11_INVENTORY.md M5: the catalogue states no CMG bearing friction, so the friction ratios of the catalogue's wheel CAT-CUBESPACE-CUBEWHEEL-CW0017 stand in: Coulomb 4.2071e-6 N m over its 1.77e-3 N m s capacity = 2.3769e-3 1/s, viscous 1e-8 N m s over its 2.8170e-6 kg m^2 inertia = 3.5498e-3 1/s; the developer's value, unsigned, for the owner to sign or replace by a datasheet field"
+   },
+   {
     "id": "act_cmg_model",
     "group": "act",
     "label": "Control moment gyro model",
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (generated into adcs-sim-core): its inputs h, h0, k_speed, torque_max are the run's state and the product it flies, not rows of the design"
+    "why": "computed during a run (generated into adcs-sim-core): its module's 2 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "act_cmg_speed_gain",
@@ -91,7 +103,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (generated into adcs-sim-core): its module's 2 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+    "why": "computed during a run (generated into adcs-sim-core): its module's 3 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "act_rotor_telemetry",
@@ -181,7 +193,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "its module has 6 functions and names none for this node (by its id or its output's symbol)"
+    "why": "its module has 7 functions and names none for this node (by its id or its output's symbol)"
    },
    {
     "id": "cf",
@@ -712,7 +724,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "its module has 7 functions and names none for this node (by its id or its output's symbol)"
+    "why": "its module has 8 functions and names none for this node (by its id or its output's symbol)"
    },
    {
     "id": "design_sizing_fmr",
@@ -748,7 +760,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "its module has 7 functions and names none for this node (by its id or its output's symbol)"
+    "why": "its module has 8 functions and names none for this node (by its id or its output's symbol)"
    },
    {
     "id": "design_sizing_sensors",
@@ -766,7 +778,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "its module has 7 functions and names none for this node (by its id or its output's symbol)"
+    "why": "its module has 8 functions and names none for this node (by its id or its output's symbol)"
    },
    {
     "id": "dr_act_001",
@@ -2293,7 +2305,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (generated into flight): its module's 10 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+    "why": "computed during a run (generated into flight): its module's 14 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "fsw_guidance",
@@ -3331,11 +3343,11 @@
     "label": "rw_Ki",
     "state": "computed",
     "si": [
-     0.0007326450000000001,
-     0.004592700000000001,
-     0.004592700000000001
+     0.0014652900000000002,
+     0.009185400000000002,
+     0.009185400000000002
     ],
-    "value": "[0.000732645, 0.0045927, 0.0045927] (SI)",
+    "value": "[0.00146529, 0.0091854, 0.0091854] (SI)",
     "why": "fsw_rw_pid(ii, wn, z) -> ki"
    },
    {
@@ -3353,11 +3365,11 @@
     "label": "rw_Kp",
     "state": "computed",
     "si": [
-     0.005427,
-     0.03402,
-     0.03402
+     0.010854,
+     0.06804,
+     0.06804
     ],
-    "value": "[0.005427, 0.03402, 0.03402] (SI)",
+    "value": "[0.010854, 0.06804, 0.06804] (SI)",
     "why": "fsw_rw_pid(ii, wn, z) -> kp"
    },
    {
@@ -3392,8 +3404,8 @@
     "group": "fsw",
     "label": "rw_lambda",
     "state": "computed",
-    "si": 0.225,
-    "value": "0.225 (SI)",
+    "si": 0.45,
+    "value": "0.45 (SI)",
     "why": "fsw_rw_smc(wn, z, phi) -> lambda"
    },
    {
@@ -3739,6 +3751,15 @@
     "why": "computed during a run (generated into adcs-sim): its inputs nh, bs, noise_cross, noise_roll, latency are the run's state and the product it flies, not rows of the design"
    },
    {
+    "id": "fsw_param_st_norm_tol",
+    "group": "fsw",
+    "label": "how far from unit length a star tracker's quaternion may be and still be a reading: the filter's start and its updates both refuse a frame beyond it and count it (F4, S11.6)",
+    "state": "stated",
+    "si": 0.001,
+    "value": "0.001",
+    "why": "the design, docs/S11_INVENTORY.md F4 (S11.6): how far from unit length a star tracker's quaternion may be and still be a reading, 1e-3, the value the tick held as ST_NORM_TOL for its updates (the start now asks the same test); the developer's, for the owner to sign or override"
+   },
+   {
     "id": "fsw_param_start_mode",
     "group": "fsw",
     "label": "controller state at init (adcs_mode_t)",
@@ -3759,6 +3780,15 @@
     ],
     "value": "[0, 0, -1] (SI)",
     "why": "fsw_body_model(j, m_res, sun_axis, boresight) -> sun"
+   },
+   {
+    "id": "fsw_param_triad_sin_min",
+    "group": "fsw",
+    "label": "the least sine of the angle between the Sun and the field at which TRIAD fixes an attitude; below it the pair is refused (G1, S11.6; Shuster and Oh 1981)",
+    "state": "stated",
+    "si": 0.2,
+    "value": "0.2",
+    "why": "the design, docs/S11_INVENTORY.md G1 (S11.6): the least sine of the angle between the Sun and the field (11.5 deg) at which TRIAD fixes an attitude, 0.2 within the 0.15 to 0.25 the inventory allows; Shuster and Oh (1981), J. Guidance and Control 4(1):70-77: the attitude error about the first vector is the second vector's noise over this sine, 5 times the field's noise at 0.2; the developer's, for the owner to sign or override"
    },
    {
     "id": "fsw_steplaws",
@@ -3972,26 +4002,26 @@
     "group": "ctl",
     "label": "Control bandwidth",
     "state": "stated",
-    "si": 0.1,
-    "value": "0.1 RadianPerSecond",
-    "why": "the design, adcs_ref_c1"
+    "si": 0.9,
+    "value": "0.9 RadianPerSecond",
+    "why": "the design, the loop as the flight software flies it: fsw_tune_rw_bandwidth (0.9 rad/s, S7.13), which the step response of engine/crates/adcs-sim/tests/loops.rs holds the fine pointing to; 1.0.0's 0.1 rad/s (adcs_ref_c1) was a figure of the analysis row, not of the flown loop (DR-ctl-001)"
    },
    {
     "id": "gc_1",
     "group": "ctl",
     "label": "Damping ratio",
     "state": "stated",
-    "si": 0.707,
-    "value": "0.707 One",
-    "why": "the design, adcs_ref_c1"
+    "si": 2.0,
+    "value": "2.0 One",
+    "why": "the design, the loop as the flight software flies it: fsw_tune_rw_damping (2.0, S7.13); 1.0.0's 0.707 (adcs_ref_c1) was a figure of the analysis row, not of the flown loop (DR-ctl-001)"
    },
    {
     "id": "gc_2",
     "group": "ctl",
     "label": "Settling time",
     "state": "computed",
-    "si": 56.57708628005658,
-    "value": "56.5771 (SI)",
+    "si": 2.2222222222222223,
+    "value": "2.22222 (SI)",
     "why": "settling_time_2pct(w_n, zeta)"
    },
    {
@@ -4694,7 +4724,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "its module has 13 functions and names none for this node (by its id or its output's symbol)"
+    "why": "its module has 17 functions and names none for this node (by its id or its output's symbol)"
    },
    {
     "id": "gw_3",
@@ -4721,7 +4751,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "its module has 7 functions and names none for this node (by its id or its output's symbol)"
+    "why": "its module has 8 functions and names none for this node (by its id or its output's symbol)"
    },
    {
     "id": "gw_6",
@@ -4730,7 +4760,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "its module has 7 functions and names none for this node (by its id or its output's symbol)"
+    "why": "its module has 8 functions and names none for this node (by its id or its output's symbol)"
    },
    {
     "id": "gx",
@@ -4865,7 +4895,16 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (generated into adcs-sim): its module's 10 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+    "why": "computed during a run (generated into adcs-sim): its module's 14 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+   },
+   {
+    "id": "kpi_verdict_confidence",
+    "group": "kpi",
+    "label": "Confidence of a verdict",
+    "state": "stated",
+    "si": 0.95,
+    "value": "0.95",
+    "why": "the design, DR-kpi-001 (design/decisions/DR-kpi-001.toml), option 1: 95 % one-sided, the roadmap's A1 and the usual confidence of ECSS-E-ST-60-10C practice; the developer's value, for the owner to sign or override (docs/S11_INVENTORY.md section 5, question 1)"
    },
    {
     "id": "l3_budget",
@@ -4955,7 +4994,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "its module has 13 functions and names none for this node (by its id or its output's symbol)"
+    "why": "its module has 17 functions and names none for this node (by its id or its output's symbol)"
    },
    {
     "id": "l3_budget_row_02",
@@ -4973,7 +5012,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "its module has 7 functions and names none for this node (by its id or its output's symbol)"
+    "why": "its module has 8 functions and names none for this node (by its id or its output's symbol)"
    },
    {
     "id": "l3_budget_row_04",
@@ -7880,7 +7919,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (generated into adcs-sim-core): its inputs p_steady, tm, om, eta are the run's state and the product it flies, not rows of the design"
+    "why": "computed during a run (generated into adcs-sim-core): its inputs p_steady, tm, om, eta, t_stall, w_nl are the run's state and the product it flies, not rows of the design"
    },
    {
     "id": "l3_rw_row_08",
@@ -10704,6 +10743,15 @@
     "why": "computed during a run (generated into adcs-sim-core): its module's 2 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
+    "id": "sens_power",
+    "group": "sens",
+    "label": "The sensors' power by flight mode",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "its module has 2 functions and names none for this node (by its id or its output's symbol)"
+   },
+   {
     "id": "sens_sky_view",
     "group": "sens",
     "label": "What the sensors see of the sky",
@@ -10737,7 +10785,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (generated into adcs-sim-core): its module's 9 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+    "why": "computed during a run (generated into adcs-sim-core): its module's 10 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "st1",
@@ -11356,8 +11404,9 @@
    {
     "id": "kpi_absolute_pointing_error_ape_verified",
     "kpi": "Absolute pointing error (APE)",
-    "answer": "pass",
-    "why": "p1a_0 = 0.5455 deg <= 10.0 Degree (p1k_0)"
+    "answer": "fail",
+    "why": "p1a_0 = 0.5455 deg <= 10.0 Degree (p1k_0); 12 of 12 runs within it: fail (the selected design is marked infeasible)",
+    "verdict": "fail (the selected design is marked infeasible)"
    },
    {
     "id": "kpi_absolute_pointing_error_ape_analysis",
@@ -11368,8 +11417,9 @@
    {
     "id": "kpi_absolute_knowledge_error_ake_verified",
     "kpi": "Absolute knowledge error (AKE)",
-    "answer": "pass",
-    "why": "p1a_1 = 0.5438 deg <= 5.0 Degree (p1k_1)"
+    "answer": "fail",
+    "why": "p1a_1 = 0.5438 deg <= 5.0 Degree (p1k_1); 12 of 12 runs within it: fail (the selected design is marked infeasible)",
+    "verdict": "fail (the selected design is marked infeasible)"
    },
    {
     "id": "kpi_absolute_knowledge_error_ake_analysis",
@@ -11458,8 +11508,9 @@
    {
     "id": "kpi_detumble_time_verified",
     "kpi": "Detumble time",
-    "answer": "pass",
-    "why": "p3a_0 = 76.38 min <= 284.0 Minute (p3k_0)"
+    "answer": "fail",
+    "why": "p3a_0 = 76.38 min <= 284.0 Minute (p3k_0); 12 of 12 runs within it: fail (the selected design is marked infeasible)",
+    "verdict": "fail (the selected design is marked infeasible)"
    },
    {
     "id": "kpi_detumble_time_analysis",
@@ -11536,8 +11587,9 @@
    {
     "id": "kpi_adcs_orbit_average_power_verified",
     "kpi": "ADCS orbit-average power",
-    "answer": "pass",
-    "why": "p4a_1 = 0.3554 W <= 0.5 Watt (p4k_1)"
+    "answer": "fail",
+    "why": "p4a_1 = 0.3554 W <= 0.5 Watt (p4k_1); 12 of 12 runs within it: fail (the selected design is marked infeasible)",
+    "verdict": "fail (the selected design is marked infeasible)"
    },
    {
     "id": "kpi_adcs_orbit_average_power_analysis",
@@ -11615,13 +11667,25 @@
     "why": "computed during a run (by the flight software or the engine, at each step): its inputs nr, rot_a0, rot_gi, gim_axis, delta are the run's state and the product it flies, not rows of the design"
    },
    {
+    "id": "act_cmg_bearing_friction",
+    "group": "act",
+    "label": "CMG bearing friction per unit of rotor momentum",
+    "state": "stated",
+    "si": [
+     0.0023769,
+     0.0035498
+    ],
+    "value": "[0.0023769, 0.0035498]",
+    "why": "the design, DR-act-002 (design/decisions/DR-act-002.toml), docs/S11_INVENTORY.md M5: the catalogue states no CMG bearing friction, so the friction ratios of the catalogue's wheel CAT-CUBESPACE-CUBEWHEEL-CW0017 stand in: Coulomb 4.2071e-6 N m over its 1.77e-3 N m s capacity = 2.3769e-3 1/s, viscous 1e-8 N m s over its 2.8170e-6 kg m^2 inertia = 3.5498e-3 1/s; the developer's value, unsigned, for the owner to sign or replace by a datasheet field"
+   },
+   {
     "id": "act_cmg_model",
     "group": "act",
     "label": "Control moment gyro model",
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (generated into adcs-sim-core): its inputs h, h0, k_speed, torque_max are the run's state and the product it flies, not rows of the design"
+    "why": "computed during a run (generated into adcs-sim-core): its module's 2 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "act_cmg_speed_gain",
@@ -11675,7 +11739,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (generated into adcs-sim-core): its module's 2 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+    "why": "computed during a run (generated into adcs-sim-core): its module's 3 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "act_rotor_telemetry",
@@ -11765,7 +11829,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "its module has 6 functions and names none for this node (by its id or its output's symbol)"
+    "why": "its module has 7 functions and names none for this node (by its id or its output's symbol)"
    },
    {
     "id": "cf",
@@ -12296,7 +12360,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "its module has 7 functions and names none for this node (by its id or its output's symbol)"
+    "why": "its module has 8 functions and names none for this node (by its id or its output's symbol)"
    },
    {
     "id": "design_sizing_fmr",
@@ -12332,7 +12396,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "its module has 7 functions and names none for this node (by its id or its output's symbol)"
+    "why": "its module has 8 functions and names none for this node (by its id or its output's symbol)"
    },
    {
     "id": "design_sizing_sensors",
@@ -12350,7 +12414,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "its module has 7 functions and names none for this node (by its id or its output's symbol)"
+    "why": "its module has 8 functions and names none for this node (by its id or its output's symbol)"
    },
    {
     "id": "dr_act_001",
@@ -13877,7 +13941,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (generated into flight): its module's 10 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+    "why": "computed during a run (generated into flight): its module's 14 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "fsw_guidance",
@@ -14915,11 +14979,11 @@
     "label": "rw_Ki",
     "state": "computed",
     "si": [
-     0.0007326450000000001,
-     0.004592700000000001,
-     0.004592700000000001
+     0.0014652900000000002,
+     0.009185400000000002,
+     0.009185400000000002
     ],
-    "value": "[0.000732645, 0.0045927, 0.0045927] (SI)",
+    "value": "[0.00146529, 0.0091854, 0.0091854] (SI)",
     "why": "fsw_rw_pid(ii, wn, z) -> ki"
    },
    {
@@ -14937,11 +15001,11 @@
     "label": "rw_Kp",
     "state": "computed",
     "si": [
-     0.005427,
-     0.03402,
-     0.03402
+     0.010854,
+     0.06804,
+     0.06804
     ],
-    "value": "[0.005427, 0.03402, 0.03402] (SI)",
+    "value": "[0.010854, 0.06804, 0.06804] (SI)",
     "why": "fsw_rw_pid(ii, wn, z) -> kp"
    },
    {
@@ -14976,8 +15040,8 @@
     "group": "fsw",
     "label": "rw_lambda",
     "state": "computed",
-    "si": 0.225,
-    "value": "0.225 (SI)",
+    "si": 0.45,
+    "value": "0.45 (SI)",
     "why": "fsw_rw_smc(wn, z, phi) -> lambda"
    },
    {
@@ -15323,6 +15387,15 @@
     "why": "computed during a run (generated into adcs-sim): its inputs nh, bs, noise_cross, noise_roll, latency are the run's state and the product it flies, not rows of the design"
    },
    {
+    "id": "fsw_param_st_norm_tol",
+    "group": "fsw",
+    "label": "how far from unit length a star tracker's quaternion may be and still be a reading: the filter's start and its updates both refuse a frame beyond it and count it (F4, S11.6)",
+    "state": "stated",
+    "si": 0.001,
+    "value": "0.001",
+    "why": "the design, docs/S11_INVENTORY.md F4 (S11.6): how far from unit length a star tracker's quaternion may be and still be a reading, 1e-3, the value the tick held as ST_NORM_TOL for its updates (the start now asks the same test); the developer's, for the owner to sign or override"
+   },
+   {
     "id": "fsw_param_start_mode",
     "group": "fsw",
     "label": "controller state at init (adcs_mode_t)",
@@ -15343,6 +15416,15 @@
     ],
     "value": "[0, 0, -1] (SI)",
     "why": "fsw_body_model(j, m_res, sun_axis, boresight) -> sun"
+   },
+   {
+    "id": "fsw_param_triad_sin_min",
+    "group": "fsw",
+    "label": "the least sine of the angle between the Sun and the field at which TRIAD fixes an attitude; below it the pair is refused (G1, S11.6; Shuster and Oh 1981)",
+    "state": "stated",
+    "si": 0.2,
+    "value": "0.2",
+    "why": "the design, docs/S11_INVENTORY.md G1 (S11.6): the least sine of the angle between the Sun and the field (11.5 deg) at which TRIAD fixes an attitude, 0.2 within the 0.15 to 0.25 the inventory allows; Shuster and Oh (1981), J. Guidance and Control 4(1):70-77: the attitude error about the first vector is the second vector's noise over this sine, 5 times the field's noise at 0.2; the developer's, for the owner to sign or override"
    },
    {
     "id": "fsw_steplaws",
@@ -15556,26 +15638,26 @@
     "group": "ctl",
     "label": "Control bandwidth",
     "state": "stated",
-    "si": 0.1,
-    "value": "0.1 RadianPerSecond",
-    "why": "the design, adcs_ref_c1"
+    "si": 0.9,
+    "value": "0.9 RadianPerSecond",
+    "why": "the design, the loop as the flight software flies it: fsw_tune_rw_bandwidth (0.9 rad/s, S7.13), which the step response of engine/crates/adcs-sim/tests/loops.rs holds the fine pointing to; 1.0.0's 0.1 rad/s (adcs_ref_c1) was a figure of the analysis row, not of the flown loop (DR-ctl-001)"
    },
    {
     "id": "gc_1",
     "group": "ctl",
     "label": "Damping ratio",
     "state": "stated",
-    "si": 0.707,
-    "value": "0.707 One",
-    "why": "the design, adcs_ref_c1"
+    "si": 2.0,
+    "value": "2.0 One",
+    "why": "the design, the loop as the flight software flies it: fsw_tune_rw_damping (2.0, S7.13); 1.0.0's 0.707 (adcs_ref_c1) was a figure of the analysis row, not of the flown loop (DR-ctl-001)"
    },
    {
     "id": "gc_2",
     "group": "ctl",
     "label": "Settling time",
     "state": "computed",
-    "si": 56.57708628005658,
-    "value": "56.5771 (SI)",
+    "si": 2.2222222222222223,
+    "value": "2.22222 (SI)",
     "why": "settling_time_2pct(w_n, zeta)"
    },
    {
@@ -16278,7 +16360,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "its module has 13 functions and names none for this node (by its id or its output's symbol)"
+    "why": "its module has 17 functions and names none for this node (by its id or its output's symbol)"
    },
    {
     "id": "gw_3",
@@ -16305,7 +16387,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "its module has 7 functions and names none for this node (by its id or its output's symbol)"
+    "why": "its module has 8 functions and names none for this node (by its id or its output's symbol)"
    },
    {
     "id": "gw_6",
@@ -16314,7 +16396,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "its module has 7 functions and names none for this node (by its id or its output's symbol)"
+    "why": "its module has 8 functions and names none for this node (by its id or its output's symbol)"
    },
    {
     "id": "gx",
@@ -16449,7 +16531,16 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (generated into adcs-sim): its module's 10 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+    "why": "computed during a run (generated into adcs-sim): its module's 14 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+   },
+   {
+    "id": "kpi_verdict_confidence",
+    "group": "kpi",
+    "label": "Confidence of a verdict",
+    "state": "stated",
+    "si": 0.95,
+    "value": "0.95",
+    "why": "the design, DR-kpi-001 (design/decisions/DR-kpi-001.toml), option 1: 95 % one-sided, the roadmap's A1 and the usual confidence of ECSS-E-ST-60-10C practice; the developer's value, for the owner to sign or override (docs/S11_INVENTORY.md section 5, question 1)"
    },
    {
     "id": "l3_budget",
@@ -16539,7 +16630,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "its module has 13 functions and names none for this node (by its id or its output's symbol)"
+    "why": "its module has 17 functions and names none for this node (by its id or its output's symbol)"
    },
    {
     "id": "l3_budget_row_02",
@@ -16557,7 +16648,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "its module has 7 functions and names none for this node (by its id or its output's symbol)"
+    "why": "its module has 8 functions and names none for this node (by its id or its output's symbol)"
    },
    {
     "id": "l3_budget_row_04",
@@ -19464,7 +19555,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (generated into adcs-sim-core): its inputs p_steady, tm, om, eta are the run's state and the product it flies, not rows of the design"
+    "why": "computed during a run (generated into adcs-sim-core): its inputs p_steady, tm, om, eta, t_stall, w_nl are the run's state and the product it flies, not rows of the design"
    },
    {
     "id": "l3_rw_row_08",
@@ -22288,6 +22379,15 @@
     "why": "computed during a run (generated into adcs-sim-core): its module's 2 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
+    "id": "sens_power",
+    "group": "sens",
+    "label": "The sensors' power by flight mode",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "its module has 2 functions and names none for this node (by its id or its output's symbol)"
+   },
+   {
     "id": "sens_sky_view",
     "group": "sens",
     "label": "What the sensors see of the sky",
@@ -22321,7 +22421,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (generated into adcs-sim-core): its module's 9 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+    "why": "computed during a run (generated into adcs-sim-core): its module's 10 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "st1",
@@ -22940,8 +23040,9 @@
    {
     "id": "kpi_absolute_pointing_error_ape_verified",
     "kpi": "Absolute pointing error (APE)",
-    "answer": "pass",
-    "why": "p1a_0 = 0.00542 deg <= 0.01 Degree (p1k_0)"
+    "answer": "not demonstrated",
+    "why": "p1a_0 = 0.00542 deg <= 0.01 Degree (p1k_0); 12 of 12 runs within it, to show 99.73 %: not demonstrated (R >= 0.78 at 95 %)",
+    "verdict": "not demonstrated (R >= 0.78 at 95 %)"
    },
    {
     "id": "kpi_absolute_pointing_error_ape_analysis",
@@ -22952,8 +23053,9 @@
    {
     "id": "kpi_absolute_knowledge_error_ake_verified",
     "kpi": "Absolute knowledge error (AKE)",
-    "answer": "pass",
-    "why": "p1a_1 = 0.004819 deg <= 0.005 Degree (p1k_1)"
+    "answer": "not demonstrated",
+    "why": "p1a_1 = 0.004819 deg <= 0.005 Degree (p1k_1); 12 of 12 runs within it, to show 99.73 %: not demonstrated (R >= 0.78 at 95 %)",
+    "verdict": "not demonstrated (R >= 0.78 at 95 %)"
    },
    {
     "id": "kpi_absolute_knowledge_error_ake_analysis",
@@ -23018,8 +23120,8 @@
    {
     "id": "kpi_settling_time_after_a_slew_analysis",
     "kpi": "Settling time after a slew",
-    "answer": "fail",
-    "why": "gc_2 = 56.5771 (SI) <= 20.0 Second (p2k_1)"
+    "answer": "pass",
+    "why": "gc_2 = 2.22222 (SI) <= 20.0 Second (p2k_1)"
    },
    {
     "id": "kpi_slews_per_orbit_verified",
@@ -23043,7 +23145,8 @@
     "id": "kpi_detumble_time_verified",
     "kpi": "Detumble time",
     "answer": "pass",
-    "why": "p3a_0 = 79.89 min <= 284.0 Minute (p3k_0)"
+    "why": "p3a_0 = 79.89 min <= 284.0 Minute (p3k_0); 12 of 12 runs within it: pass",
+    "verdict": "pass"
    },
    {
     "id": "kpi_detumble_time_analysis",
@@ -23121,7 +23224,8 @@
     "id": "kpi_adcs_orbit_average_power_verified",
     "kpi": "ADCS orbit-average power",
     "answer": "pass",
-    "why": "p4a_1 = 0.4945 W <= 2.0 Watt (p4k_1)"
+    "why": "p4a_1 = 0.4945 W <= 2.0 Watt (p4k_1); 12 of 12 runs within it: pass",
+    "verdict": "pass"
    },
    {
     "id": "kpi_adcs_orbit_average_power_analysis",

@@ -16,6 +16,8 @@ import carry_over
 import design_inputs
 import evaluate
 import seed_design
+import trace
+import verdict
 
 _ = _path  # imported for its effect: tools/ on sys.path
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -56,7 +58,7 @@ class Evaluate(unittest.TestCase):
         for case, r in self.r.items():
             self.assertEqual(len(r["closures"]), 38, case)          # 22 verified + 16 analysis
             for c in r["closures"]:
-                self.assertIn(c["answer"], ("pass", "fail", "blocked"))
+                self.assertIn(c["answer"], ("pass", "fail", "not demonstrated", "blocked"))
                 self.assertTrue(c["why"], f"{case}: {c['id']}")
                 if c["answer"] == "blocked":
                     self.assertRegex(c["why"], r"\b[a-z0-9]+_[a-z0-9_]+\b|\bp\d", f"{case}: {c['id']} names a row")
@@ -109,6 +111,56 @@ class WiredDesign(unittest.TestCase):
         cl = {c["id"]: c for c in self.r["ais_img_3u"]["closures"]}["kpi_settling_time_after_a_slew_analysis"]
         self.assertEqual(cl["answer"], "pass")
         self.assertAlmostEqual(self.rows["ais_img_3u"]["gc_2"]["si"], 4 / (2.0 * 0.9), delta=1e-2)
+
+
+class Verdict(unittest.TestCase):
+    """A1 (DR-kpi-001): the one verdict of a requirement that holds at a level, the design's (kpistats' kpi_confidence_verdict,
+    asked of the engine through tools/verdict.py) at the confidence the design states (kpi_verdict_confidence, 0.95)."""
+
+    def test_the_confidence_is_the_designs(self):
+        self.assertEqual(verdict.confidence(), 0.95)
+
+    def test_twelve_runs_within_the_limit_do_not_show_99_73_percent(self):
+        v = verdict.verdict(12, 12, 0.9973)
+        self.assertEqual(v["text"], "not demonstrated (R >= 0.78 at 95 %)")
+        self.assertEqual(v["answer"], "not demonstrated")
+        self.assertAlmostEqual(v["lower"], 0.05 ** (1 / 12), places=12)          # the exact bound with every run a success
+
+    def test_1109_runs_without_a_failure_show_it_and_one_failure_does_not(self):
+        self.assertEqual(verdict.verdict(1109, 1109, 0.9973)["answer"], "pass")           # ln(0.05) / ln(0.9973) = 1108.4
+        self.assertEqual(verdict.verdict(1109, 1108, 0.9973)["answer"], "not demonstrated")
+        self.assertEqual(verdict.verdict(24, 0, 0.9973)["answer"], "fail")                # even the upper bound, 0.117, is below the level
+
+    def test_a_clopper_pearson_bound_is_the_exact_one(self):
+        # 98 of 100 at 95 % one-sided: the lower bound is the R at which P(X >= 98) = 0.05, worked here from the binomial sum
+        v = verdict.verdict(100, 98, 0.9)
+        r = v["lower"]
+        tail = sum(math.comb(100, i) * r ** i * (1 - r) ** (100 - i) for i in range(98, 101))
+        self.assertAlmostEqual(tail, 0.05, places=9)
+
+    def test_a_run_with_no_value_is_a_failure(self):
+        runs = [0.004] * 11 + [None]
+        self.assertEqual(verdict.count(runs, 0.01), 11)
+        self.assertEqual(verdict.count([0.004, float("nan"), float("inf"), 0.02], 0.01), 1)
+        self.assertEqual(verdict.verdict(12, verdict.count(runs, 0.01), 0.9973)["answer"], "fail")      # 12 of 12 would be not demonstrated
+        self.assertEqual(verdict.verdict(12, verdict.count([None] * 12, 0.01), 0.9973)["answer"], "fail")
+
+    def test_a_requirement_with_no_level_is_each_runs(self):
+        self.assertEqual(verdict.verdict(12, 12, 0.0)["answer"], "pass")
+        self.assertEqual(verdict.verdict(12, 11, 0.0)["answer"], "fail")
+        self.assertEqual(verdict.verdict(0, 0, 0.9973)["answer"], "fail")
+
+    def test_an_infeasible_selection_never_passes(self):
+        v = verdict.verdict(1109, 1109, 0.9973, feasible=False)
+        self.assertEqual(v["answer"], "fail")
+        self.assertIn("infeasible", v["text"])
+
+    def test_evaluate_and_trace_call_the_one_function_and_keep_no_bound_of_their_own(self):
+        for f in (evaluate, trace):
+            text = pathlib.Path(f.__file__).read_text(encoding="utf-8")
+            self.assertIn("verdict.verdict(", text, f.__name__)
+            for gone in ("ceil(claim", "betainv", "binom", "sorted(v"):
+                self.assertNotIn(gone, text, f"{f.__name__}: {gone}")
 
 
 if __name__ == "__main__":

@@ -14,15 +14,15 @@ function [total, room, verdict] = pointing_budget(ape, e_a, e_t, e_j, req)
     total = 0;
     room = 0;
     verdict = 0;
-    h__668 = ((((ape * ape) + (e_a * e_a)) + (e_t * e_t)) + (e_j * e_j));
-    if h__668 < 0, h__668 = NaN; else, h__668 = sqrt(h__668); end
-    total = h__668;
-    h__669 = (((req * req) - (ape * ape)) - (e_j * e_j));
-    h__670 = 0;
-    if h__670 > h__669, h__669 = h__670; end
-    h__671 = h__669;
-    if h__671 < 0, h__671 = NaN; else, h__671 = sqrt(h__671); end
-    room = h__671;
+    h__676 = ((((ape * ape) + (e_a * e_a)) + (e_t * e_t)) + (e_j * e_j));
+    if h__676 < 0, h__676 = NaN; else, h__676 = sqrt(h__676); end
+    total = h__676;
+    h__677 = (((req * req) - (ape * ape)) - (e_j * e_j));
+    h__678 = 0;
+    if h__678 > h__677, h__677 = h__678; end
+    h__679 = h__677;
+    if h__679 < 0, h__679 = NaN; else, h__679 = sqrt(h__679); end
+    room = h__679;
     verdict = 2;
     if ((isnan(e_a) || isnan(e_t)) || isnan(e_j))
         verdict = 0;

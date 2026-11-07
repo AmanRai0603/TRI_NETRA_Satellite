@@ -31,9 +31,12 @@ How a row gets its value, in order:
              pseudocode, a declared value the case does not state, a supplier's value not kept,
              or a row computed during a run, whose inputs are the run's (code.run_inputs)
 
-A KPI's two closures (kpi_<slug>_verified, kpi_<slug>_analysis) answer pass or fail when the
-requirement and its evidence (or its analysis row) both have a value, in the requirement's
-sense; otherwise they are blocked, naming the row that has no value.
+A KPI's two closures (kpi_<slug>_verified, kpi_<slug>_analysis) answer when the requirement and its
+evidence (or its analysis row) both have a value, in the requirement's sense; otherwise they are
+blocked, naming the row that has no value. An analysis closure is pass or fail. A verified one is the
+design's verdict of the runs (tools/verdict.py, kpistats' kpi_confidence_verdict, A1): pass, fail, or
+'not demonstrated (R >= x at 95 %)' when the runs do not show the requirement at the stated
+confidence; a run with no finite value is a failure, and a selection marked infeasible never passes.
 
 Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 """
@@ -49,6 +52,8 @@ import sys
 import tempfile
 import tomllib
 
+import verdict
+from design_call import Buf, call as call_design
 from common import ROOT, design_folder, write_text
 
 PLAN = "spec/plan"                           # 1.0.0's plan, as the design holds it (tools/from_design.py)
@@ -113,8 +118,8 @@ def load_design(d):
 def case_values(d, case):
     """{node: (si, stated text)} and {key: row} of a case, from DIR/design.tndb."""
     with sqlite3.connect(f"file:{pathlib.Path(d) / 'design.tndb'}?mode=ro", uri=True) as c:
-        rows = [dict(zip(("key", "label", "unit", "value", "node"), r)) for r in
-                c.execute('SELECT "key", "label", "unit", "value", "node" FROM design_case WHERE case_id = ? ORDER BY "ord"', (case,))]
+        rows = [dict(zip(("key", "label", "unit", "value", "node", "level"), r)) for r in
+                c.execute('SELECT "key", "label", "unit", "value", "node", "level" FROM design_case WHERE case_id = ? ORDER BY "ord"', (case,))]
     if not rows:
         raise SystemExit(f"evaluate: no case {case} in {d}/design.tndb (its engine inputs: tools/design_inputs.py)")
     vals = {}
@@ -228,14 +233,24 @@ def _text(v):
     return "[" + ", ".join(_text(x) for x in v) + "]" if isinstance(v, list) else f"{v:.6g}"
 
 
+MAX, P95, P9973 = 0, 3, 4              # kpistats' MetricStat, in its order
+
+
+def statistic(values, st):
+    """The statistic st of the finite values: the design's (kpistats' kpi_statistic, asked of the engine)."""
+    n = len(values)
+    return call_design("kpistats::kpi_statistic", Buf(values), n, st, Buf([0.0] * n), Buf([0.0] * n))[0]
+
+
 def evidence(case):
-    """{requirement key: (si, text, source)}: what the selected design's Monte Carlo (the design loop's,
+    """{requirement key: (si, text, source, runs, claim, feasible)}: what the selected design's Monte Carlo (the design loop's,
     store/pipeline/<case>/mc) shows for each requirement a metric is judged against (the metric's
     req_key): the value at the campaign's claimed probability (99.73 % of runs), else the worst run.
     Before the design loop has run, the case's reference-product campaigns, labelled so."""
     best = {}
     loop = STORE / "pipeline" / case / "mc" / "summary.json"
     sel = STORE / "pipeline" / case / "selection.json"
+    feasible = not sel.is_file() or json.loads(sel.read_text()).get("status") == "feasible"     # an infeasible selection never passes
     if loop.is_file():
         family = json.loads(sel.read_text()).get("selected") if sel.is_file() else "?"
         srcs, label = [loop], f"the design loop's Monte Carlo of the selected family {family}"
@@ -253,26 +268,28 @@ def evidence(case):
         claim = (s.get("claim") or {}).get("probability")
         for st in s["stats"]:
             key, fac = keys.get(st["id"]), UNITS.get(st["unit"])
-            vals = sorted(v for v in st.get("values", []) if v is not None and math.isfinite(v))
+            vals = [v for v in st.get("values", []) if v is not None and math.isfinite(v)]
             if not key or fac is None or not vals:
                 continue
+            runs = [None if x is None else x * fac for x in st.get("values", [])]       # every run, in SI: one with no value is a failure (A1)
             if claim:
-                v = vals[min(len(vals) - 1, max(0, math.ceil(claim * len(vals)) - 1))]
+                v = statistic(vals, P9973 if abs(claim - 0.9973) < 1e-9 else P95 if abs(claim - 0.95) < 1e-9 else MAX)
                 how = f"{100 * claim:g} % of {len(vals)} runs"
             else:
-                v, how = vals[-1], f"the worst of {len(vals)} runs"
+                v, how = statistic(vals, MAX), f"the worst of {len(vals)} runs"
             cur = best.get(key)
             if cur is None or v * fac > cur[0]:
-                best[key] = (v * fac, f"{v:.4g} {st['unit']}", f"{label} ({s['id']}): {st['id']}, {how}")
+                best[key] = (v * fac, f"{v:.4g} {st['unit']}", f"{label} ({s['id']}): {st['id']}, {how}", runs, claim, feasible)
     return best
 
 
 def evaluate(d, case):
     nodes, source = load_design(d)
-    stated, _ = case_values(d, case)
+    stated, case_rows = case_values(d, case)
     kpis = _toml(f"{PLAN}/kpis.toml")["kpi"]
     ci = {x["tree_id"]: x for x in _toml(f"{PLAN}/case_inputs.toml").get("input", []) if x.get("tree_id")}
     ev = evidence(case)
+    evid_runs = {}    # an evidence row's runs in SI, the claim and whether the selection is feasible: the verdict's input
     out = {}
     raw = {}          # a case's value as it states it, with its unit's factor: a row read in that unit takes it whole
 
@@ -294,6 +311,7 @@ def evaluate(d, case):
             e = ev.get(key)
             if e:
                 put(nid, "evidence", e[0], e[1], e[2])
+                evid_runs[nid] = e[3:]
     # what the design states itself, on a stated block the case does not state (S7.13's finding: the engine reads these
     # values by node, data/stated.json; evaluate read none of them): a number in its output's unit, or a list as stated
     for nid, n in nodes.items():
@@ -517,8 +535,15 @@ def evaluate(d, case):
                 closures.append({"id": cid, "kpi": k["label"], "answer": "blocked", "why": f"{other} or {k['requirement']} is not one number"})
             else:
                 ok = o["si"] <= req["si"] if k["sense"] == "<=" else o["si"] >= req["si"]
-                closures.append({"id": cid, "kpi": k["label"], "answer": "pass" if ok else "fail",
-                                 "why": f"{other} = {o['value']} {k['sense']} {req['value']} ({k['requirement']})"})
+                c = {"id": cid, "kpi": k["label"], "answer": "pass" if ok else "fail",
+                     "why": f"{other} = {o['value']} {k['sense']} {req['value']} ({k['requirement']})"}
+                if kind == "verified" and evid_runs.get(other):
+                    runs, claim, feasible = evid_runs[other]
+                    p = verdict.level(claim, case_rows.get((ci.get(k["requirement"]) or {}).get("key"), {}).get("level"))
+                    v = verdict.verdict(len(runs), verdict.count(runs, req["si"], k["sense"]), p, feasible=feasible)
+                    c.update(answer=v["answer"], verdict=v["text"],
+                             why=f"{c['why']}; {v['k']} of {v['n']} runs within it" + (f", to show {100 * p:g} %" if p else "") + f": {v['text']}")
+                closures.append(c)
     return {"case": case, "source": source, "rows": sorted(out.values(), key=lambda r: r["id"]), "closures": closures}
 
 

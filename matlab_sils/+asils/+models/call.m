@@ -2858,6 +2858,18 @@ function y = call(name, x)
             at = at + 1 + n8;
             [o1, io1, io2, io7, io8] = asils.models.kpistats.kpi_time_to_from(a1, a2, a3, a4, a5, a6, a7, a8);
             y = [double(o1); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1); numel(io7); reshape(io7, [], 1); numel(io8); reshape(io8, [], 1)];
+        case 'kpistats::kpi_binomial_tail'
+            [o1] = asils.models.kpistats.kpi_binomial_tail(x(1), x(2), x(3), (x(4) ~= 0));
+            y = [double(o1)];
+        case 'kpistats::kpi_cp_lower'
+            [o1] = asils.models.kpistats.kpi_cp_lower(x(1), x(2), x(3));
+            y = [double(o1)];
+        case 'kpistats::kpi_cp_upper'
+            [o1] = asils.models.kpistats.kpi_cp_upper(x(1), x(2), x(3));
+            y = [double(o1)];
+        case 'kpistats::kpi_confidence_verdict'
+            [o1, o2, o3] = asils.models.kpistats.kpi_confidence_verdict(x(1), x(2), x(3), x(4));
+            y = [double(o1); double(o2); double(o3)];
         case 'emucodec::emu_scale'
             [o1] = asils.models.emucodec.emu_scale();
             y = [[double(o1.mag); double(o1.gyro); double(o1.unit); double(o1.q); double(o1.pos); double(o1.vel); double(o1.h); double(o1.delta); double(o1.word); double(o1.valve); double(o1.lo16); double(o1.hi16); double(o1.lo32); double(o1.hi32)]];

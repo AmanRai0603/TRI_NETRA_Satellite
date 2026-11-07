@@ -425,3 +425,178 @@ pub fn kpi_time_to_from(t: &mut [f64], x: &mut [f64], n: i64, t0: f64, thr: f64,
     v = crate::gen::kpistats::kpi_time_to(&mut (*tt), &mut (*xx), m, thr, hold);
     v
 }
+
+/// The verdict of a requirement that holds at a level (A1, DR-kpi-001). Of n runs, k are successes: their metric is finite and
+/// within the limit (a run with no finite value is a failure, never left out). With each run a success with the
+/// probability R, the count is binomial; the exact (Clopper-Pearson, 1934) one-sided bounds at the confidence g are the
+/// R at which the chance of k or more successes is 1 - g (the lower bound) and of k or fewer is 1 - g (the upper).
+/// Choice Verdict: pass, fail, not_demonstrated.
+pub const VERDICT_PASS: i64 = 0;
+pub const VERDICT_FAIL: i64 = 1;
+pub const VERDICT_NOT_DEMONSTRATED: i64 = 2;
+
+/// The chance that a count of successes among n runs is k or more (upper) or k or fewer (not upper) when each run is a
+/// success with the probability p, by the sum of the binomial terms in logarithms (the term of i from the term of i - 1).
+/// length: 64
+/// - n: int (passed a whole number)
+/// - k: int (passed a whole number)
+/// - p: real[1] (passed a plain number)
+/// - upper: bool (passed true or false)
+/// - returns t: real[1] (passed a plain number)
+#[allow(clippy::too_many_arguments)]
+pub fn kpi_binomial_tail(n: i64, k: i64, p: f64, upper: bool) -> f64 {
+    let mut t: f64 = 0.0;
+    t = 0.0;
+    if (p <= 0.0) {
+        if upper {
+            t = 1.0;
+            if (k > 0) {
+                t = 0.0;
+            }
+        } else {
+            t = 1.0;
+        }
+    } else if (p >= 1.0) {
+        if upper {
+            t = 1.0;
+        } else {
+            t = 0.0;
+            if (k >= n) {
+                t = 1.0;
+            }
+        }
+    } else {
+        let mut lp: f64 = f64::ln(p);
+        let mut lq: f64 = f64::ln((1.0 - p));
+        let mut lc: f64 = 0.0;
+        {
+            let __end74: i64 = (n + 1);
+            let mut i: i64 = 0;
+            while i < __end74 {
+                if (i > 0) {
+                    lc = ((lc + f64::ln((((n - i) + 1) as f64))) - f64::ln((i as f64)));
+                }
+                let mut inside: bool = (i <= k);
+                if upper {
+                    inside = (i >= k);
+                }
+                if inside {
+                    t = (t + f64::exp(((lc + ((i as f64) * lp)) + (((n - i) as f64) * lq))));
+                }
+                i += 1;
+            }
+        }
+        t = rt::fmin(t, 1.0);
+    }
+    t
+}
+
+/// The lower bound of the probability R at confidence g, of k successes in n runs: 0 with none; g' ^ (1/n) with all, g' = 1 - g
+/// (0.05^(1/12) = 0.779 for 12 runs); else the R at which the chance of k or more is 1 - g, by bisection.
+/// length: 64
+/// - n: int (passed a whole number)
+/// - k: int (passed a whole number)
+/// - g: real[1] (passed a plain number)
+/// - returns r: real[1] (passed a plain number)
+#[allow(clippy::too_many_arguments)]
+pub fn kpi_cp_lower(n: i64, k: i64, g: f64) -> f64 {
+    let mut r: f64 = 0.0;
+    r = 0.0;
+    if ((n > 0) && (k >= n)) {
+        r = f64::exp((f64::ln((1.0 - g)) / (n as f64)));
+    } else if (k > 0) {
+        let mut lo: f64 = 0.0;
+        let mut hi: f64 = 1.0;
+        {
+            let __end75: i64 = 60;
+            let mut it: i64 = 0;
+            while it < __end75 {
+                let mut mid: f64 = (0.5 * (lo + hi));
+                if (crate::gen::kpistats::kpi_binomial_tail(n, k, mid, true) < (1.0 - g)) {
+                    lo = mid;
+                } else {
+                    hi = mid;
+                }
+                it += 1;
+            }
+        }
+        r = (0.5 * (lo + hi));
+    }
+    r
+}
+
+/// The upper bound of the probability R at confidence g: 1 with all successes; 1 - g' ^ (1/n) with none; else the R at which the
+/// chance of k or fewer is 1 - g, by bisection.
+/// length: 64
+/// - n: int (passed a whole number)
+/// - k: int (passed a whole number)
+/// - g: real[1] (passed a plain number)
+/// - returns r: real[1] (passed a plain number)
+#[allow(clippy::too_many_arguments)]
+pub fn kpi_cp_upper(n: i64, k: i64, g: f64) -> f64 {
+    let mut r: f64 = 0.0;
+    r = 1.0;
+    if ((n > 0) && (k <= 0)) {
+        r = (1.0 - f64::exp((f64::ln((1.0 - g)) / (n as f64))));
+    } else if (k < n) {
+        let mut lo: f64 = 0.0;
+        let mut hi: f64 = 1.0;
+        {
+            let __end76: i64 = 60;
+            let mut it: i64 = 0;
+            while it < __end76 {
+                let mut mid: f64 = (0.5 * (lo + hi));
+                if (crate::gen::kpistats::kpi_binomial_tail(n, k, mid, false) > (1.0 - g)) {
+                    lo = mid;
+                } else {
+                    hi = mid;
+                }
+                it += 1;
+            }
+        }
+        r = (0.5 * (lo + hi));
+    }
+    r
+}
+
+/// The verdict of k successes among n runs for a requirement at the level p (the probability a run must meet it with) at the
+/// confidence g, with the bounds it rests on: pass when the lower bound reaches p; fail when the upper bound is below p;
+/// else not demonstrated (R >= the lower bound at g). No runs is a fail. A requirement with no level (p = 0) is each run's:
+/// pass when every run succeeds, else fail, the bounds then the fraction itself.
+/// length: 64
+/// - n: int (passed a whole number)
+/// - k: int (passed a whole number)
+/// - p: real[1] (passed a plain number)
+/// - g: real[1] (passed a plain number)
+/// - returns v: Verdict (passed a choice, as its option's number)
+/// - returns lower: real[1] (passed a plain number)
+/// - returns upper: real[1] (passed a plain number)
+#[allow(clippy::too_many_arguments)]
+pub fn kpi_confidence_verdict(n: i64, k: i64, p: f64, g: f64) -> (i64, f64, f64) {
+    let mut v: i64 = 0;
+    let mut lower: f64 = 0.0;
+    let mut upper: f64 = 0.0;
+    v = crate::gen::kpistats::VERDICT_FAIL;
+    lower = 0.0;
+    upper = 0.0;
+    if (n > 0) {
+        if (p <= 0.0) {
+            lower = ((k as f64) / (n as f64));
+            upper = lower;
+            if (k >= n) {
+                v = crate::gen::kpistats::VERDICT_PASS;
+            }
+        } else {
+            lower = crate::gen::kpistats::kpi_cp_lower(n, k, g);
+            upper = crate::gen::kpistats::kpi_cp_upper(n, k, g);
+            if (lower >= p) {
+                v = crate::gen::kpistats::VERDICT_PASS;
+            } else if (upper < p) {
+                v = crate::gen::kpistats::VERDICT_FAIL;
+            } else {
+                v = crate::gen::kpistats::VERDICT_NOT_DEMONSTRATED;
+            }
+        }
+    }
+    (v, lower, upper)
+}

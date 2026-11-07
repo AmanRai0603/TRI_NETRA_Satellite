@@ -25,6 +25,7 @@ import json
 import math
 import sys
 
+import verdict
 from common import ROOT, case_rows, write_json, write_text
 
 DATA = ROOT / "matlab_sils" / "data"
@@ -95,6 +96,7 @@ def build():
     rows = []
     for case in cases():
         reqs = stated(case)
+        levels = {r["key"]: r.get("level") for r in case_rows(case) if r.get("section") == "req"}
         on = [s for s in scen if s.get("case") == case]
         for s in on:
             for m in s.get("metrics", []):
@@ -131,15 +133,25 @@ def build():
                     g = s.get("fsw", {}).get("guidance", {})
                     if g.get("kind") == "slew" and ang is not None and g.get("roll_deg") == ang:
                         row["profile"].append({"scenario": s["id"], "angle_deg": ang, "T_s": g.get("T_s"), "pass": int(g.get("T_s", math.inf) <= value)})
-            verdicts = [f["pass"] for f in row["flight"]] + ([row["design"]["pass"]] if row["design"] else []) + [m["pass"] for m in row["modes"]] + [p["pass"] for p in row["profile"]]
+            # a flown run whose metric has no value is a failure (A1), not a run still to fly
+            runs = [0 if f["pass"] is None and f["run"] else f["pass"] for f in row["flight"]]
+            fixed = ([row["design"]["pass"]] if row["design"] else []) + [m["pass"] for m in row["modes"]] + [p["pass"] for p in row["profile"]]
+            verdicts = runs + fixed
             if not verdicts:
                 row["status"] = "owed: nothing checks it"
             elif any(v is None for v in verdicts):
                 row["status"] = "not yet flown"
-            elif all(v == 1 for v in verdicts):
-                row["status"] = "met"
             else:
-                row["status"] = f"not met ({sum(1 for v in verdicts if v != 1)} of {len(verdicts)})"
+                # the design's verdict (tools/verdict.py) of the runs flown against the level the case states; a budget, a mode's
+                # metric and a profile are each one value, held to the limit
+                v = verdict.verdict(len(runs), sum(1 for r in runs if r == 1), verdict.level(None, levels.get(key))) if runs else None
+                if v is not None and v["answer"] == "fail" or any(x != 1 for x in fixed):
+                    row["status"] = f"not met ({sum(1 for x in verdicts if x != 1)} of {len(verdicts)})"
+                elif v is not None and v["answer"] == "not demonstrated":
+                    row["status"] = v["text"]
+                else:
+                    row["status"] = "met"
+                row["verdict"] = v
             rows.append(row)
     diag = [{"scenario": s["id"], "metric": m["id"], "why": m["diagnostic"]} for s in scen for m in s.get("metrics", []) if "diagnostic" in m]
     return {"rows": rows, "undecided": undecided, "unknown_key": unknown_key, "diagnostics": diag,

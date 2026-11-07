@@ -1408,6 +1408,28 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             out.push(io6.len() as f64); for v in io6.iter() { let v = *v; out.push(v); }
             out.push(io7.len() as f64); for v in io7.iter() { let v = *v; out.push(v); }
         }
+        "kpistats::kpi_binomial_tail" => {
+            if x.len() != 4 { return None; }
+            let r = crate::kpistats::kpi_binomial_tail(x[0] as i64, x[1] as i64, x[2], x[3] != 0.0);
+            out.push(r);
+        }
+        "kpistats::kpi_cp_lower" => {
+            if x.len() != 3 { return None; }
+            let r = crate::kpistats::kpi_cp_lower(x[0] as i64, x[1] as i64, x[2]);
+            out.push(r);
+        }
+        "kpistats::kpi_cp_upper" => {
+            if x.len() != 3 { return None; }
+            let r = crate::kpistats::kpi_cp_upper(x[0] as i64, x[1] as i64, x[2]);
+            out.push(r);
+        }
+        "kpistats::kpi_confidence_verdict" => {
+            if x.len() != 4 { return None; }
+            let r = crate::kpistats::kpi_confidence_verdict(x[0] as i64, x[1] as i64, x[2], x[3]);
+            out.push(r.0 as f64);
+            out.push(r.1);
+            out.push(r.2);
+        }
         "jitter::jitter_min" => {
             if x.len() != 2 { return None; }
             let r = crate::jitter::jitter_min(x[0], x[1]);

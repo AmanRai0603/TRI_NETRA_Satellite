@@ -233,6 +233,8 @@ def health(d, case):
                 add(c["id"], "fails", c["why"])
                 if ach:
                     add(ach, "fails", f"decides {c['id']}, which fails")
+            elif c["answer"] == "not demonstrated":
+                add(c["id"], "open", c["why"])        # the runs do not show the requirement at the stated confidence (A1)
             elif verdict == "part":
                 add(c["id"], "tight", text)
                 if ach:

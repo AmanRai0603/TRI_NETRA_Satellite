@@ -4147,8 +4147,8 @@ about = "the verdicts (docs/S11_INVENTORY.md A7 and A1; decision DR-kpi-001): th
 node = "kpi_metric_statistics"
 pseudocode = "design/revisions/S11.10/kpistats.pc"
 path = "kpi/kpistats.pc"
-transcribes = "design/revisions/S7.14b/kpistats.pc as S7.14b left it, with the window 'eclipse' (the samples within a half width of each change of the shadow factor, the scenario's eclipse_s:<half width>), the shadow factor among kpi_window's inputs, and the finding that the window 'pointing' counts the Sun modes stated at the window"
-source = "docs/S11_INVENTORY.md A7; DR-kpi-001 (design/decisions/DR-kpi-001.toml); ECSS-E-ST-60-10C (the error of a requirement is judged over the whole of the orbit's conditions)"
+transcribes = "design/revisions/S7.14b/kpistats.pc as S7.14b left it, with the window 'eclipse' (the samples within a half width of each change of the shadow factor, the scenario's eclipse_s:<half width>), the shadow factor among kpi_window's inputs, and the finding that the window 'pointing' counts the Sun modes stated at the window; and (A1) the verdict of a requirement that holds at a level: kpi_confidence_verdict of k successes among n runs at a level and a confidence by the exact (Clopper-Pearson) bounds, with kpi_binomial_tail, kpi_cp_lower and kpi_cp_upper"
+source = "docs/S11_INVENTORY.md A7 and A1; DR-kpi-001 (design/decisions/DR-kpi-001.toml); ECSS-E-ST-60-10C (the error of a requirement is judged over the whole of the orbit's conditions, section 4.2.3); Clopper and Pearson (1934), Biometrika 26:404 (the exact binomial bounds)"
 generate = ["adcs-sim"]
 why = "a fine-pointing verdict judged half of one orbit, so a star tracker blind in the other half was never scored (A7); the window words are the design's, the engine and the twin call them"
 
@@ -4231,3 +4231,13 @@ replaces = true
 file = "design/revisions/S11.10/slew_vscmg.toml"
 kind = "scenario"
 replaces = true
+
+[[revision.node]]
+id = "kpi_verdict_confidence"
+group = "kpi"
+parent = "x_closure"
+label = "Confidence of a verdict"
+behaviour = "stated"
+question = "At which one-sided confidence is a requirement that holds at a level (99.73 %) shown to be met by the runs flown (Clopper-Pearson), so that a closure says pass, fail or not demonstrated?"
+content = [["value", "number", "0.95"], ["value", "source", "DR-kpi-001 (design/decisions/DR-kpi-001.toml), option 1: 95 % one-sided, the roadmap's A1 and the usual confidence of ECSS-E-ST-60-10C practice; the developer's value, for the owner to sign or override (docs/S11_INVENTORY.md section 5, question 1)"]]
+why = "the confidence level of A1 as one node to change: every closure's verdict (tools/evaluate.py, tools/trace.py) reads it and calls kpi_metric_statistics's kpi_confidence_verdict with it"

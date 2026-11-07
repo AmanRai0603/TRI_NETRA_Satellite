@@ -4,13 +4,13 @@
 
 ## ais_3u
 
-From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1014 not computed, 173 stated. Closures: 34 blocked, 4 pass.
+From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1015 not computed, 177 stated. Closures: 34 blocked, 4 fail.
 
 | Closure | KPI | Answer | Why |
 |---|---|---|---|
-| `kpi_absolute_pointing_error_ape_verified` | Absolute pointing error (APE) | **pass** | p1a_0 = 0.5455 deg <= 10.0 Degree (p1k_0) |
+| `kpi_absolute_pointing_error_ape_verified` | Absolute pointing error (APE) | **fail** | p1a_0 = 0.5455 deg <= 10.0 Degree (p1k_0); 12 of 12 runs within it: fail (the selected design is marked infeasible) |
 | `kpi_absolute_pointing_error_ape_analysis` | Absolute pointing error (APE) | blocked | gp_5 has no value (needs terms[1] from gp_0 (not computed), terms[2] from gp_1 (not computed), terms[3] from gp_2 (not computed), terms[4] from gp_3 (not computed), terms[5] from gp_4 (not computed)) |
-| `kpi_absolute_knowledge_error_ake_verified` | Absolute knowledge error (AKE) | **pass** | p1a_1 = 0.5438 deg <= 5.0 Degree (p1k_1) |
+| `kpi_absolute_knowledge_error_ake_verified` | Absolute knowledge error (AKE) | **fail** | p1a_1 = 0.5438 deg <= 5.0 Degree (p1k_1); 12 of 12 runs within it: fail (the selected design is marked infeasible) |
 | `kpi_absolute_knowledge_error_ake_analysis` | Absolute knowledge error (AKE) | blocked | ge_5 has no value (no value, relation or pseudocode yet) |
 | `kpi_relative_pointing_error_rpe_verified` | Relative pointing error (RPE) | blocked | the requirement p1k_2 has no value (the case does not state req.rpe) |
 | `kpi_relative_pointing_error_rpe_analysis` | Relative pointing error (RPE) | blocked | the requirement p1k_2 has no value (the case does not state req.rpe) |
@@ -25,7 +25,7 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1014 not 
 | `kpi_slews_per_orbit_verified` | Slews per orbit | blocked | the requirement p2k_2 has no value (the case does not state req.spo) |
 | `kpi_target_tracking_rate_verified` | Target-tracking rate | blocked | the requirement p2k_3 has no value (the case does not state req.track) |
 | `kpi_maximum_body_rate_verified` | Maximum body rate | blocked | the requirement p2k_4 has no value (the case does not state req.wmax) |
-| `kpi_detumble_time_verified` | Detumble time | **pass** | p3a_0 = 76.38 min <= 284.0 Minute (p3k_0) |
+| `kpi_detumble_time_verified` | Detumble time | **fail** | p3a_0 = 76.38 min <= 284.0 Minute (p3k_0); 12 of 12 runs within it: fail (the selected design is marked infeasible) |
 | `kpi_detumble_time_analysis` | Detumble time | blocked | gq_0 has no value (no value, relation or pseudocode yet) |
 | `kpi_sun_acquisition_time_in_safe_mode_verified` | Sun-acquisition time in safe mode | blocked | p3a_1 has no value (evidence: no engine campaign of this case judges a metric against req.sunacq) |
 | `kpi_sun_acquisition_time_in_safe_mode_analysis` | Sun-acquisition time in safe mode | blocked | gq_1 has no value (no value, relation or pseudocode yet) |
@@ -38,7 +38,7 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1014 not 
 | `kpi_momentum_dump_interval_analysis` | Momentum dump interval | blocked | the requirement p3k_5 has no value (the case does not state req.dump) |
 | `kpi_adcs_mass_verified` | ADCS mass | blocked | p4a_0 has no value (evidence: no engine campaign of this case judges a metric against req.mass) |
 | `kpi_adcs_mass_analysis` | ADCS mass | blocked | gb_0 has no value (its module has 2 functions and names none for this node (by its id or its output's symbol)) |
-| `kpi_adcs_orbit_average_power_verified` | ADCS orbit-average power | **pass** | p4a_1 = 0.3554 W <= 0.5 Watt (p4k_1) |
+| `kpi_adcs_orbit_average_power_verified` | ADCS orbit-average power | **fail** | p4a_1 = 0.3554 W <= 0.5 Watt (p4k_1); 12 of 12 runs within it: fail (the selected design is marked infeasible) |
 | `kpi_adcs_orbit_average_power_analysis` | ADCS orbit-average power | blocked | gb_1 has no value (its module has 2 functions and names none for this node (by its id or its output's symbol)) |
 | `kpi_adcs_peak_power_verified` | ADCS peak power | blocked | p4a_2 has no value (evidence: no engine campaign of this case judges a metric against req.ppk) |
 | `kpi_adcs_peak_power_analysis` | ADCS peak power | blocked | gb_2 has no value (its module has 2 functions and names none for this node (by its id or its output's symbol)) |
@@ -49,6 +49,7 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1014 not 
 
 | Row | Group | State | Value | Where from / why not |
 |---|---|---|---|---|
+| `act_cmg_bearing_friction` | act | stated | [0.0023769, 0.0035498] | the design, DR-act-002 (design/decisions/DR-act-002.toml), docs/S11_INVENTORY.md M5: the catalogue states no CMG bearing friction, so the friction ratios of the catalogue's wheel CAT-CUBESPACE-CUBEWHEEL-CW0017 stand in: Coulomb 4.2071e-6 N m over its 1.77e-3 N m s capacity = 2.3769e-3 1/s, viscous 1e-8 N m s over its 2.8170e-6 kg m^2 inertia = 3.5498e-3 1/s; the developer's value, unsigned, for the owner to sign or replace by a datasheet field |
 | `act_cmg_speed_gain` | act | stated | 1.0 | the design, 1.0.0 code: engine/crates/adcs-sim/src/product.rs Dev::load (MexDesc k_speed = 1.0, the device default every product flies) |
 | `act_fmr_flow_gain` | act | stated | 2.0 | the design, 1.0.0 code: engine/crates/adcs-sim/src/product.rs Dev::load (MexDesc k_flow = 2.0, the device default every product flies) |
 | `act_fmr_flow_tau` | act | stated | 0.3 | the design, 1.0.0 code: engine/crates/adcs-sim/src/product.rs Dev::load (MexDesc flow_tau = 0.3, the device default every product flies) |
@@ -158,12 +159,12 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1014 not 
 | `fsw_param_roll_axis` | fsw | computed | [0, 1, 0] (SI) | fsw_body_model(j, m_res, sun_axis, boresight) -> roll |
 | `fsw_param_rw_Gs` | fsw | computed | [0.00072, 0.00072, 0.00072] (SI) | fsw_rw_smc(wn, z, phi) -> gs |
 | `fsw_param_rw_Kd` | fsw | computed | [0.02412, 0.1512, 0.1512] (SI) | fsw_rw_pid(ii, wn, z) -> kd |
-| `fsw_param_rw_Ki` | fsw | computed | [0.000732645, 0.0045927, 0.0045927] (SI) | fsw_rw_pid(ii, wn, z) -> ki |
-| `fsw_param_rw_Kp` | fsw | computed | [0.005427, 0.03402, 0.03402] (SI) | fsw_rw_pid(ii, wn, z) -> kp |
+| `fsw_param_rw_Ki` | fsw | computed | [0.00146529, 0.0091854, 0.0091854] (SI) | fsw_rw_pid(ii, wn, z) -> ki |
+| `fsw_param_rw_Kp` | fsw | computed | [0.010854, 0.06804, 0.06804] (SI) | fsw_rw_pid(ii, wn, z) -> kp |
 | `fsw_param_rw_dt` | fsw | computed | 0.1 (SI) | fsw_rw_period(rate_hz) |
 | `fsw_param_rw_err_max` | fsw | stated | 0.2 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs rw_gains (p.rw_err_max = 0.2) |
 | `fsw_param_rw_int_max` | fsw | stated | 0.02 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs rw_gains (p.rw_int_max = 0.02) |
-| `fsw_param_rw_lambda` | fsw | computed | 0.225 (SI) | fsw_rw_smc(wn, z, phi) -> lambda |
+| `fsw_param_rw_lambda` | fsw | computed | 0.45 (SI) | fsw_rw_smc(wn, z, phi) -> lambda |
 | `fsw_param_rw_phi` | fsw | stated | 0.0002 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs rw_gains (p.rw_phi = 2e-4) |
 | `fsw_param_sa_done_deg` | fsw | stated | 10 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs spin_params (p.sa_done_deg = 10.0) |
 | `fsw_param_sa_done_hold_s` | fsw | stated | 60 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs spin_params (p.sa_done_hold_s = 60.0) |
@@ -190,8 +191,10 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1014 not 
 | `fsw_param_ss_t_check_s` | fsw | stated | 60 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs spin_params (p.ss_t_check_s = 60.0) |
 | `fsw_param_ss_z_in_dps` | fsw | stated | 0.5 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs spin_params (p.ss_z_in_dps = 0.5) |
 | `fsw_param_st_coast_s` | fsw | stated | 900 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs sensor_params (p.st_coast_s = 900.0) |
+| `fsw_param_st_norm_tol` | fsw | stated | 0.001 | the design, docs/S11_INVENTORY.md F4 (S11.6): how far from unit length a star tracker's quaternion may be and still be a reading, 1e-3, the value the tick held as ST_NORM_TOL for its updates (the start now asks the same test); the developer's, for the owner to sign or override |
 | `fsw_param_start_mode` | fsw | stated | 0 | the design, the scenario's fsw.start_mode; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs modes_and_laws (json::s(fsw, start_mode, detumble): detumble, state 0 of adcs_mode_t) |
 | `fsw_param_sun_axis` | fsw | computed | [0, 0, -1] (SI) | fsw_body_model(j, m_res, sun_axis, boresight) -> sun |
+| `fsw_param_triad_sin_min` | fsw | stated | 0.2 | the design, docs/S11_INVENTORY.md G1 (S11.6): the least sine of the angle between the Sun and the field (11.5 deg) at which TRIAD fixes an attitude, 0.2 within the 0.15 to 0.25 the inventory allows; Shuster and Oh (1981), J. Guidance and Control 4(1):70-77: the attitude error about the first vector is the second vector's noise over this sine, 5 times the field's noise at 0.2; the developer's, for the owner to sign or override |
 | `fsw_tune_avanzini_k_over_n` | fsw | stated | 0.84 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs mtq_gains (json::f(fsw, avanzini_k_over_n, 0.84)) |
 | `fsw_tune_avanzini_lambda` | fsw | stated | 0.08 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs mtq_gains (json::f(fsw, avanzini_lambda, 0.08)) |
 | `fsw_tune_bdot_gain_scale` | fsw | stated | 3 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs mtq_gains (json::f(fsw, bdot_gain_scale, 3.0)) |
@@ -208,9 +211,9 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1014 not 
 | `fsw_tune_rw_damping` | fsw | stated | 2 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs rw_gains (json::f(fsw, rw_damping, 2.0)) |
 | `fsw_tune_rw_rate_hz` | fsw | stated | 10 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs rw_gains (json::f(fsw, rw_rate_hz, 10.0)) |
 | `fsw_tune_ss_gain` | fsw | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs spin_params (json::f(fsw, ss_gain, 1.0)) |
-| `gc_0` | ctl | stated | 0.1 RadianPerSecond | the design, adcs_ref_c1 |
-| `gc_1` | ctl | stated | 0.707 One | the design, adcs_ref_c1 |
-| `gc_2` | ctl | computed | 56.5771 (SI) | settling_time_2pct(w_n, zeta) |
+| `gc_0` | ctl | stated | 0.9 RadianPerSecond | the design, the loop as the flight software flies it: fsw_tune_rw_bandwidth (0.9 rad/s, S7.13), which the step response of engine/crates/adcs-sim/tests/loops.rs holds the fine pointing to; 1.0.0's 0.1 rad/s (adcs_ref_c1) was a figure of the analysis row, not of the flown loop (DR-ctl-001) |
+| `gc_1` | ctl | stated | 2.0 One | the design, the loop as the flight software flies it: fsw_tune_rw_damping (2.0, S7.13); 1.0.0's 0.707 (adcs_ref_c1) was a figure of the analysis row, not of the flown loop (DR-ctl-001) |
+| `gc_2` | ctl | computed | 2.22222 (SI) | settling_time_2pct(w_n, zeta) |
 | `gd_0` | env | computed | 6.34679e-08 (SI) | gd_0(r, i_max, i_min) |
 | `gd_1` | env | computed | 1.36971e-08 (SI) | gd_1(rho, v, c_d, a_fr, c_pa) |
 | `gd_2` | env | computed | 5.10763e-09 (SI) | gd_2(p_srp, a_sun, q, c_ps) |
@@ -238,6 +241,7 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1014 not 
 | `gm_3` | act | computed | 1.04652e-05 (SI) | gm_3(m_av, b_min, n_mtq) |
 | `gr_1` | act | stated | 0.8 Metre | the design, idmas_v2 |
 | `gr_2` | act | stated | 220 Second | the design, idmas_v2 |
+| `kpi_verdict_confidence` | kpi | stated | 0.95 | the design, DR-kpi-001 (design/decisions/DR-kpi-001.toml), option 1: 95 % one-sided, the roadmap's A1 and the usual confidence of ECSS-E-ST-60-10C practice; the developer's value, for the owner to sign or override (docs/S11_INVENTORY.md section 5, question 1) |
 | `m1_1` | systems | stated | 27.0 Year | the case, mission.epoch |
 | `m1_3` | systems | stated | 10.0 Count | the case, mission.spd |
 | `m1_4` | systems | stated | 30.0 Degree | the case, mission.sangle |
@@ -282,7 +286,7 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1014 not 
 | `vv_record_step_default` | vv | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(time, record_dt_s, 1.0)) |
 | `vv_run_duration_default` | vv | stated | 600 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(time, duration_s, 600.0)) |
 
-**Not computed (1014), by why:**
+**Not computed (1015), by why:**
 
 - no value, relation or pseudocode yet: 731 (act__cmg, act__vscmg, cas, cat, cf, cf_1, cf_4, cf_5, ci1, ci1_0, ci1_1, ci1_2, …)
 - computed during a run (generated into adcs-sim-core): 72 (act_cmg_model, act_rotor_set, act_rotor_telemetry, act_vscmg_gimbal_limits, act_vscmg_model, dyn_flexible_mode, dyn_initial_state, dyn_rigid_body, dyn_rotor_coupling, dyn_total_momentum, env_calendar_time, env_moon_fast, …)
@@ -291,16 +295,16 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1014 not 
 - computed during a run (by the flight software or the engine, at each step): 19 (act_cmg_axes, act_cmg_steering, dyn_kinematics, fdir_rotor_health, fdir_safe_mode, fdir_sensor_health, fsw_allocation, fsw_control, fsw_drivers, fsw_guidance, gdn_boresight_offset, gdn_guidance, …)
 - a relation, but no pseudocode yet: its author writes it: 18 (rk1_0, rk1_1, rk1_2, rk1_3, rk1_4, rk2_0, rk2_1, rk2_2, rk2_3, rk2_4, rk2_5, rk3_0, …)
 - needs an input that has no value: 16 (fsw_param_mtq_k1, fsw_param_mtq_k16, fsw_param_mtq_k2, fsw_param_mtq_lam16, fsw_param_sb_kd, fsw_param_sb_kp, gf_9, gp_5, gr_3, gr_4, gw_3, gw_4, …)
-- its module has 2 functions and names none for this node (by its id or its output's symbol): 9 (gb_0, gb_1, gb_2, gb_3, l3_budget_row_06, l3_budget_row_07, l3_budget_row_08, l3_fmr_row_14, l3_fmr_row_15)
-- its module has 7 functions and names none for this node (by its id or its output's symbol): 7 (design_sizing_cmg, design_sizing_rw, design_sizing_sensors, design_sizing_vscmg, gw_5, gw_6, l3_budget_row_03)
+- its module has 2 functions and names none for this node (by its id or its output's symbol): 10 (gb_0, gb_1, gb_2, gb_3, l3_budget_row_06, l3_budget_row_07, l3_budget_row_08, l3_fmr_row_14, l3_fmr_row_15, sens_power)
+- its module has 8 functions and names none for this node (by its id or its output's symbol): 9 (ctl_floquet_certificate, design_sizing_cmg, design_sizing_fmr, design_sizing_rw, design_sizing_vscmg, gw_5, gw_6, l3_budget_row_03, l3_budget_row_04)
 - its module has 5 functions and names none for this node (by its id or its output's symbol): 5 (design_sizing_mtq, gm_4, gm_5, gp_4, l3_budget_row_02)
 - computed during a run (generated into flight): 5 (env_time_frames, fsw_estimation, fsw_modes, fsw_steplaws, nav_onboard_orbit)
-- its module has 8 functions and names none for this node (by its id or its output's symbol): 3 (ctl_floquet_certificate, design_sizing_fmr, l3_budget_row_04)
 - its module has 9 functions and names none for this node (by its id or its output's symbol): 3 (design_loop_converge, design_loop_redundancy, design_loop_robustness)
 - its module has 4 functions and names none for this node (by its id or its output's symbol): 3 (fsw_clock, fsw_param_rw_Klqr, l3_fmr_row_07)
-- its module has 6 functions and names none for this node (by its id or its output's symbol): 2 (catalogue_datasheet_derive, design_power_system)
+- its module has 7 functions and names none for this node (by its id or its output's symbol): 2 (catalogue_datasheet_derive, design_sizing_sensors)
 - its module has 3 functions and names none for this node (by its id or its output's symbol): 2 (design_sizing_rcs, l3_budget_row_05)
-- its module has 13 functions and names none for this node (by its id or its output's symbol): 2 (gw_2, l3_budget_row_01)
+- its module has 17 functions and names none for this node (by its id or its output's symbol): 2 (gw_2, l3_budget_row_01)
+- its module has 6 functions and names none for this node (by its id or its output's symbol): 1 (design_power_system)
 - its module has 10 functions and names none for this node (by its id or its output's symbol): 1 (fsw_param_mtq_Klqr)
 - the case does not state pointing.et: 1 (gp_3)
 - computed during a run (generated into adcs-sim, adcs-sim-core): 1 (kpi_metric_channels)
@@ -351,13 +355,13 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1014 not 
 
 ## ais_img_3u
 
-From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1006 not computed, 176 stated. Closures: 33 blocked, 1 fail, 4 pass.
+From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1007 not computed, 180 stated. Closures: 33 blocked, 2 not demonstrated, 3 pass.
 
 | Closure | KPI | Answer | Why |
 |---|---|---|---|
-| `kpi_absolute_pointing_error_ape_verified` | Absolute pointing error (APE) | **pass** | p1a_0 = 0.00542 deg <= 0.01 Degree (p1k_0) |
+| `kpi_absolute_pointing_error_ape_verified` | Absolute pointing error (APE) | **not demonstrated** | p1a_0 = 0.00542 deg <= 0.01 Degree (p1k_0); 12 of 12 runs within it, to show 99.73 %: not demonstrated (R >= 0.78 at 95 %) |
 | `kpi_absolute_pointing_error_ape_analysis` | Absolute pointing error (APE) | blocked | gp_5 has no value (needs terms[1] from gp_0 (not computed), terms[2] from gp_1 (not computed), terms[3] from gp_2 (not computed), terms[4] from gp_3 (not computed), terms[5] from gp_4 (not computed)) |
-| `kpi_absolute_knowledge_error_ake_verified` | Absolute knowledge error (AKE) | **pass** | p1a_1 = 0.004819 deg <= 0.005 Degree (p1k_1) |
+| `kpi_absolute_knowledge_error_ake_verified` | Absolute knowledge error (AKE) | **not demonstrated** | p1a_1 = 0.004819 deg <= 0.005 Degree (p1k_1); 12 of 12 runs within it, to show 99.73 %: not demonstrated (R >= 0.78 at 95 %) |
 | `kpi_absolute_knowledge_error_ake_analysis` | Absolute knowledge error (AKE) | blocked | ge_5 has no value (no value, relation or pseudocode yet) |
 | `kpi_relative_pointing_error_rpe_verified` | Relative pointing error (RPE) | blocked | the requirement p1k_2 has no value (the case does not state req.rpe) |
 | `kpi_relative_pointing_error_rpe_analysis` | Relative pointing error (RPE) | blocked | the requirement p1k_2 has no value (the case does not state req.rpe) |
@@ -368,11 +372,11 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1006 not 
 | `kpi_reference_slew_time_verified` | Reference slew time | blocked | p2a_0 has no value (evidence: no engine campaign of this case judges a metric against req.slew) |
 | `kpi_reference_slew_time_analysis` | Reference slew time | blocked | gc_5 has no value (no value, relation or pseudocode yet) |
 | `kpi_settling_time_after_a_slew_verified` | Settling time after a slew | blocked | p2a_1 has no value (evidence: no engine campaign of this case judges a metric against req.settle) |
-| `kpi_settling_time_after_a_slew_analysis` | Settling time after a slew | **fail** | gc_2 = 56.5771 (SI) <= 20.0 Second (p2k_1) |
+| `kpi_settling_time_after_a_slew_analysis` | Settling time after a slew | **pass** | gc_2 = 2.22222 (SI) <= 20.0 Second (p2k_1) |
 | `kpi_slews_per_orbit_verified` | Slews per orbit | blocked | the requirement p2k_2 has no value (the case does not state req.spo) |
 | `kpi_target_tracking_rate_verified` | Target-tracking rate | blocked | the requirement p2k_3 has no value (the case does not state req.track) |
 | `kpi_maximum_body_rate_verified` | Maximum body rate | blocked | the requirement p2k_4 has no value (the case does not state req.wmax) |
-| `kpi_detumble_time_verified` | Detumble time | **pass** | p3a_0 = 79.89 min <= 284.0 Minute (p3k_0) |
+| `kpi_detumble_time_verified` | Detumble time | **pass** | p3a_0 = 79.89 min <= 284.0 Minute (p3k_0); 12 of 12 runs within it: pass |
 | `kpi_detumble_time_analysis` | Detumble time | blocked | gq_0 has no value (no value, relation or pseudocode yet) |
 | `kpi_sun_acquisition_time_in_safe_mode_verified` | Sun-acquisition time in safe mode | blocked | p3a_1 has no value (evidence: no engine campaign of this case judges a metric against req.sunacq) |
 | `kpi_sun_acquisition_time_in_safe_mode_analysis` | Sun-acquisition time in safe mode | blocked | gq_1 has no value (no value, relation or pseudocode yet) |
@@ -385,7 +389,7 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1006 not 
 | `kpi_momentum_dump_interval_analysis` | Momentum dump interval | blocked | the requirement p3k_5 has no value (the case does not state req.dump) |
 | `kpi_adcs_mass_verified` | ADCS mass | blocked | p4a_0 has no value (evidence: no engine campaign of this case judges a metric against req.mass) |
 | `kpi_adcs_mass_analysis` | ADCS mass | blocked | gb_0 has no value (its module has 2 functions and names none for this node (by its id or its output's symbol)) |
-| `kpi_adcs_orbit_average_power_verified` | ADCS orbit-average power | **pass** | p4a_1 = 0.4945 W <= 2.0 Watt (p4k_1) |
+| `kpi_adcs_orbit_average_power_verified` | ADCS orbit-average power | **pass** | p4a_1 = 0.4945 W <= 2.0 Watt (p4k_1); 12 of 12 runs within it: pass |
 | `kpi_adcs_orbit_average_power_analysis` | ADCS orbit-average power | blocked | gb_1 has no value (its module has 2 functions and names none for this node (by its id or its output's symbol)) |
 | `kpi_adcs_peak_power_verified` | ADCS peak power | blocked | p4a_2 has no value (evidence: no engine campaign of this case judges a metric against req.ppk) |
 | `kpi_adcs_peak_power_analysis` | ADCS peak power | blocked | gb_2 has no value (its module has 2 functions and names none for this node (by its id or its output's symbol)) |
@@ -396,6 +400,7 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1006 not 
 
 | Row | Group | State | Value | Where from / why not |
 |---|---|---|---|---|
+| `act_cmg_bearing_friction` | act | stated | [0.0023769, 0.0035498] | the design, DR-act-002 (design/decisions/DR-act-002.toml), docs/S11_INVENTORY.md M5: the catalogue states no CMG bearing friction, so the friction ratios of the catalogue's wheel CAT-CUBESPACE-CUBEWHEEL-CW0017 stand in: Coulomb 4.2071e-6 N m over its 1.77e-3 N m s capacity = 2.3769e-3 1/s, viscous 1e-8 N m s over its 2.8170e-6 kg m^2 inertia = 3.5498e-3 1/s; the developer's value, unsigned, for the owner to sign or replace by a datasheet field |
 | `act_cmg_speed_gain` | act | stated | 1.0 | the design, 1.0.0 code: engine/crates/adcs-sim/src/product.rs Dev::load (MexDesc k_speed = 1.0, the device default every product flies) |
 | `act_fmr_flow_gain` | act | stated | 2.0 | the design, 1.0.0 code: engine/crates/adcs-sim/src/product.rs Dev::load (MexDesc k_flow = 2.0, the device default every product flies) |
 | `act_fmr_flow_tau` | act | stated | 0.3 | the design, 1.0.0 code: engine/crates/adcs-sim/src/product.rs Dev::load (MexDesc flow_tau = 0.3, the device default every product flies) |
@@ -505,12 +510,12 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1006 not 
 | `fsw_param_roll_axis` | fsw | computed | [0, 1, 0] (SI) | fsw_body_model(j, m_res, sun_axis, boresight) -> roll |
 | `fsw_param_rw_Gs` | fsw | computed | [0.00072, 0.00072, 0.00072] (SI) | fsw_rw_smc(wn, z, phi) -> gs |
 | `fsw_param_rw_Kd` | fsw | computed | [0.02412, 0.1512, 0.1512] (SI) | fsw_rw_pid(ii, wn, z) -> kd |
-| `fsw_param_rw_Ki` | fsw | computed | [0.000732645, 0.0045927, 0.0045927] (SI) | fsw_rw_pid(ii, wn, z) -> ki |
-| `fsw_param_rw_Kp` | fsw | computed | [0.005427, 0.03402, 0.03402] (SI) | fsw_rw_pid(ii, wn, z) -> kp |
+| `fsw_param_rw_Ki` | fsw | computed | [0.00146529, 0.0091854, 0.0091854] (SI) | fsw_rw_pid(ii, wn, z) -> ki |
+| `fsw_param_rw_Kp` | fsw | computed | [0.010854, 0.06804, 0.06804] (SI) | fsw_rw_pid(ii, wn, z) -> kp |
 | `fsw_param_rw_dt` | fsw | computed | 0.1 (SI) | fsw_rw_period(rate_hz) |
 | `fsw_param_rw_err_max` | fsw | stated | 0.2 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs rw_gains (p.rw_err_max = 0.2) |
 | `fsw_param_rw_int_max` | fsw | stated | 0.02 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs rw_gains (p.rw_int_max = 0.02) |
-| `fsw_param_rw_lambda` | fsw | computed | 0.225 (SI) | fsw_rw_smc(wn, z, phi) -> lambda |
+| `fsw_param_rw_lambda` | fsw | computed | 0.45 (SI) | fsw_rw_smc(wn, z, phi) -> lambda |
 | `fsw_param_rw_phi` | fsw | stated | 0.0002 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs rw_gains (p.rw_phi = 2e-4) |
 | `fsw_param_sa_done_deg` | fsw | stated | 10 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs spin_params (p.sa_done_deg = 10.0) |
 | `fsw_param_sa_done_hold_s` | fsw | stated | 60 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs spin_params (p.sa_done_hold_s = 60.0) |
@@ -537,8 +542,10 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1006 not 
 | `fsw_param_ss_t_check_s` | fsw | stated | 60 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs spin_params (p.ss_t_check_s = 60.0) |
 | `fsw_param_ss_z_in_dps` | fsw | stated | 0.5 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs spin_params (p.ss_z_in_dps = 0.5) |
 | `fsw_param_st_coast_s` | fsw | stated | 900 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs sensor_params (p.st_coast_s = 900.0) |
+| `fsw_param_st_norm_tol` | fsw | stated | 0.001 | the design, docs/S11_INVENTORY.md F4 (S11.6): how far from unit length a star tracker's quaternion may be and still be a reading, 1e-3, the value the tick held as ST_NORM_TOL for its updates (the start now asks the same test); the developer's, for the owner to sign or override |
 | `fsw_param_start_mode` | fsw | stated | 0 | the design, the scenario's fsw.start_mode; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs modes_and_laws (json::s(fsw, start_mode, detumble): detumble, state 0 of adcs_mode_t) |
 | `fsw_param_sun_axis` | fsw | computed | [0, 0, -1] (SI) | fsw_body_model(j, m_res, sun_axis, boresight) -> sun |
+| `fsw_param_triad_sin_min` | fsw | stated | 0.2 | the design, docs/S11_INVENTORY.md G1 (S11.6): the least sine of the angle between the Sun and the field (11.5 deg) at which TRIAD fixes an attitude, 0.2 within the 0.15 to 0.25 the inventory allows; Shuster and Oh (1981), J. Guidance and Control 4(1):70-77: the attitude error about the first vector is the second vector's noise over this sine, 5 times the field's noise at 0.2; the developer's, for the owner to sign or override |
 | `fsw_tune_avanzini_k_over_n` | fsw | stated | 0.84 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs mtq_gains (json::f(fsw, avanzini_k_over_n, 0.84)) |
 | `fsw_tune_avanzini_lambda` | fsw | stated | 0.08 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs mtq_gains (json::f(fsw, avanzini_lambda, 0.08)) |
 | `fsw_tune_bdot_gain_scale` | fsw | stated | 3 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs mtq_gains (json::f(fsw, bdot_gain_scale, 3.0)) |
@@ -555,9 +562,9 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1006 not 
 | `fsw_tune_rw_damping` | fsw | stated | 2 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs rw_gains (json::f(fsw, rw_damping, 2.0)) |
 | `fsw_tune_rw_rate_hz` | fsw | stated | 10 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs rw_gains (json::f(fsw, rw_rate_hz, 10.0)) |
 | `fsw_tune_ss_gain` | fsw | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs spin_params (json::f(fsw, ss_gain, 1.0)) |
-| `gc_0` | ctl | stated | 0.1 RadianPerSecond | the design, adcs_ref_c1 |
-| `gc_1` | ctl | stated | 0.707 One | the design, adcs_ref_c1 |
-| `gc_2` | ctl | computed | 56.5771 (SI) | settling_time_2pct(w_n, zeta) |
+| `gc_0` | ctl | stated | 0.9 RadianPerSecond | the design, the loop as the flight software flies it: fsw_tune_rw_bandwidth (0.9 rad/s, S7.13), which the step response of engine/crates/adcs-sim/tests/loops.rs holds the fine pointing to; 1.0.0's 0.1 rad/s (adcs_ref_c1) was a figure of the analysis row, not of the flown loop (DR-ctl-001) |
+| `gc_1` | ctl | stated | 2.0 One | the design, the loop as the flight software flies it: fsw_tune_rw_damping (2.0, S7.13); 1.0.0's 0.707 (adcs_ref_c1) was a figure of the analysis row, not of the flown loop (DR-ctl-001) |
+| `gc_2` | ctl | computed | 2.22222 (SI) | settling_time_2pct(w_n, zeta) |
 | `gd_0` | env | computed | 6.34679e-08 (SI) | gd_0(r, i_max, i_min) |
 | `gd_1` | env | computed | 1.36971e-08 (SI) | gd_1(rho, v, c_d, a_fr, c_pa) |
 | `gd_2` | env | computed | 5.10763e-09 (SI) | gd_2(p_srp, a_sun, q, c_ps) |
@@ -590,6 +597,7 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1006 not 
 | `gr_4` | act | computed | 0 (SI) | propellant_per_year(m_p, n_day, n_rcs) |
 | `gw_3` | act | computed | 0.000733038 (SI) | gw_3(i_max, theta, t_slew) |
 | `gw_4` | act | computed | 2.44346e-05 (SI) | gw_4(i_max, theta, t_slew) |
+| `kpi_verdict_confidence` | kpi | stated | 0.95 | the design, DR-kpi-001 (design/decisions/DR-kpi-001.toml), option 1: 95 % one-sided, the roadmap's A1 and the usual confidence of ECSS-E-ST-60-10C practice; the developer's value, for the owner to sign or override (docs/S11_INVENTORY.md section 5, question 1) |
 | `m1_1` | systems | stated | 27.0 Year | the case, mission.epoch |
 | `m1_3` | systems | stated | 10.0 Count | the case, mission.spd |
 | `m1_4` | systems | stated | 30.0 Degree | the case, mission.sangle |
@@ -637,7 +645,7 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1006 not 
 | `vv_record_step_default` | vv | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(time, record_dt_s, 1.0)) |
 | `vv_run_duration_default` | vv | stated | 600 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(time, duration_s, 600.0)) |
 
-**Not computed (1006), by why:**
+**Not computed (1007), by why:**
 
 - no value, relation or pseudocode yet: 731 (act__cmg, act__vscmg, cas, cat, cf, cf_1, cf_4, cf_5, ci1, ci1_0, ci1_1, ci1_2, …)
 - computed during a run (generated into adcs-sim-core): 72 (act_cmg_model, act_rotor_set, act_rotor_telemetry, act_vscmg_gimbal_limits, act_vscmg_model, dyn_flexible_mode, dyn_initial_state, dyn_rigid_body, dyn_rotor_coupling, dyn_total_momentum, env_calendar_time, env_moon_fast, …)
@@ -646,16 +654,16 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1006 not 
 - computed during a run (by the flight software or the engine, at each step): 19 (act_cmg_axes, act_cmg_steering, dyn_kinematics, fdir_rotor_health, fdir_safe_mode, fdir_sensor_health, fsw_allocation, fsw_control, fsw_drivers, fsw_guidance, gdn_boresight_offset, gdn_guidance, …)
 - a relation, but no pseudocode yet: its author writes it: 18 (rk1_0, rk1_1, rk1_2, rk1_3, rk1_4, rk2_0, rk2_1, rk2_2, rk2_3, rk2_4, rk2_5, rk3_0, …)
 - needs an input that has no value: 11 (fsw_param_mtq_k1, fsw_param_mtq_k16, fsw_param_mtq_k2, fsw_param_mtq_lam16, fsw_param_sb_kd, fsw_param_sb_kp, gp_5, l3_pnt_row_09, rk4_0, rk4_1, rk4_2)
-- its module has 2 functions and names none for this node (by its id or its output's symbol): 9 (gb_0, gb_1, gb_2, gb_3, l3_budget_row_06, l3_budget_row_07, l3_budget_row_08, l3_fmr_row_14, l3_fmr_row_15)
-- its module has 7 functions and names none for this node (by its id or its output's symbol): 7 (design_sizing_cmg, design_sizing_rw, design_sizing_sensors, design_sizing_vscmg, gw_5, gw_6, l3_budget_row_03)
+- its module has 2 functions and names none for this node (by its id or its output's symbol): 10 (gb_0, gb_1, gb_2, gb_3, l3_budget_row_06, l3_budget_row_07, l3_budget_row_08, l3_fmr_row_14, l3_fmr_row_15, sens_power)
+- its module has 8 functions and names none for this node (by its id or its output's symbol): 9 (ctl_floquet_certificate, design_sizing_cmg, design_sizing_fmr, design_sizing_rw, design_sizing_vscmg, gw_5, gw_6, l3_budget_row_03, l3_budget_row_04)
 - its module has 5 functions and names none for this node (by its id or its output's symbol): 5 (design_sizing_mtq, gm_4, gm_5, gp_4, l3_budget_row_02)
 - computed during a run (generated into flight): 5 (env_time_frames, fsw_estimation, fsw_modes, fsw_steplaws, nav_onboard_orbit)
-- its module has 8 functions and names none for this node (by its id or its output's symbol): 3 (ctl_floquet_certificate, design_sizing_fmr, l3_budget_row_04)
 - its module has 9 functions and names none for this node (by its id or its output's symbol): 3 (design_loop_converge, design_loop_redundancy, design_loop_robustness)
 - its module has 4 functions and names none for this node (by its id or its output's symbol): 3 (fsw_clock, fsw_param_rw_Klqr, l3_fmr_row_07)
-- its module has 6 functions and names none for this node (by its id or its output's symbol): 2 (catalogue_datasheet_derive, design_power_system)
+- its module has 7 functions and names none for this node (by its id or its output's symbol): 2 (catalogue_datasheet_derive, design_sizing_sensors)
 - its module has 3 functions and names none for this node (by its id or its output's symbol): 2 (design_sizing_rcs, l3_budget_row_05)
-- its module has 13 functions and names none for this node (by its id or its output's symbol): 2 (gw_2, l3_budget_row_01)
+- its module has 17 functions and names none for this node (by its id or its output's symbol): 2 (gw_2, l3_budget_row_01)
+- its module has 6 functions and names none for this node (by its id or its output's symbol): 1 (design_power_system)
 - its module has 10 functions and names none for this node (by its id or its output's symbol): 1 (fsw_param_mtq_Klqr)
 - the case does not state pointing.et: 1 (gp_3)
 - computed during a run (generated into adcs-sim, adcs-sim-core): 1 (kpi_metric_channels)

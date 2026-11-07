@@ -211,9 +211,12 @@ class DesignBuild(unittest.TestCase):
             answered = [c for c in answered if not c["id"].endswith("_analysis")]
             self.assertEqual(sorted(c["id"] for c in answered), sorted(f"kpi_{k}_verified" for k in (
                 "absolute_pointing_error_ape", "absolute_knowledge_error_ake", "detumble_time", "adcs_orbit_average_power")))
+            # A1 (S11.10): the verdict of the runs at the confidence the design states: ais_3u's selection is not feasible, so none
+            # of its closures passes; ais_img_3u's 12 runs do not show 99.73 % of the APE or the AKE
+            want = {"ais_3u": "fail", "ais_img_3u": "pass"}[case]
             for c in answered:
-                self.assertEqual(c["answer"], "pass", c["id"])
-                self.assertIn(c["verdict"], ("whole", "part"), c["id"])
+                self.assertEqual(c["answer"], "not demonstrated" if case == "ais_img_3u" and c["id"].endswith(("ape_verified", "ake_verified")) else want, c["id"])
+                self.assertIn(c["verdict"], ("whole", "part", "fails"), c["id"])
                 self.assertTrue(any("Monte Carlo" in x for x in c["range_from"]), c["id"])
             for c in h["closures"]:
                 if c["verdict"] == "blocked":

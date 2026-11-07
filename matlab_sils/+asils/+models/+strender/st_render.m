@@ -25,9 +25,9 @@ function [drawn, cr, cm, img, g, tx, ty, tk] = st_render(r_eh, cr, cm, nc, cam, 
     if ~isempty(l)
         img((l) + 1) = cam.bg;
     end
-    h__746 = 2;
-    if h__746 < 0, h__746 = NaN; else, h__746 = sqrt(h__746); end
-    cmin = cos((cam.fov * h__746));
+    h__754 = 2;
+    if h__754 < 0, h__754 = NaN; else, h__754 = sqrt(h__754); end
+    cmin = cos((cam.fov * h__754));
     s2 = ((2 * cam.psf_px) * cam.psf_px);
     drawn = 0;
     for k = (0):((nc) - 1)
@@ -36,9 +36,9 @@ function [drawn, cr, cm, img, g, tx, ty, tk] = st_render(r_eh, cr, cm, nc, cam, 
             x = (((cam.f * v(1)) / v(3)) + cam.c);
             y = (((cam.f * v(2)) / v(3)) + cam.c);
             if (~((((x < 6) || (y < 6)) || (x > (nf - 5))) || (y > (nf - 5))))
-                h__747 = (10)^(((-(0.4)) * (cm((k) + 1) - 6)));
-                if ~isreal(h__747), h__747 = NaN; end
-                fl = (cam.flux0 * h__747);
+                h__755 = (10)^(((-(0.4)) * (cm((k) + 1) - 6)));
+                if ~isreal(h__755), h__755 = NaN; end
+                fl = (cam.flux0 * h__755);
                 rx = round(x);
                 ry = round(y);
                 w = zeros(9, 9);
@@ -79,12 +79,12 @@ function [drawn, cr, cm, img, g, tx, ty, tk] = st_render(r_eh, cr, cm, nc, cam, 
             [t__701, t__702] = asils.pc.stream_normal(g);
             n2 = t__701;
             g = t__702;
-            h__748 = v3;
-            h__749 = 0;
-            if h__749 > h__748, h__748 = h__749; end
-            h__750 = h__748;
-            if h__750 < 0, h__750 = NaN; else, h__750 = sqrt(h__750); end
-            img((l3) + 1) = ((v3 + (h__750 * n1)) + (cam.read_noise * n2));
+            h__756 = v3;
+            h__757 = 0;
+            if h__757 > h__756, h__756 = h__757; end
+            h__758 = h__756;
+            if h__758 < 0, h__758 = NaN; else, h__758 = sqrt(h__758); end
+            img((l3) + 1) = ((v3 + (h__758 * n1)) + (cam.read_noise * n2));
         end
     end
 end
