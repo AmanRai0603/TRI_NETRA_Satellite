@@ -5,6 +5,7 @@ Copyright (c) 2026 Agastya. All rights reserved.
 import concurrent.futures as cf, json, math, shutil, statistics, subprocess, time
 import common
 from common import Steps, write_text
+from design_call import Buf, call, take
 from engine_base import BIN, DATA, ENG, OUT, ROOT, TWIN
 
 
@@ -154,7 +155,7 @@ def keep_interp(run_dir):
         return
     lines = f.read_text().splitlines()
     head = lines[0].split(",")
-    cols = [i for i, h in enumerate(head) if h == "t_s" or h in INTERP_CHANNEL.values()]
+    cols = [i for i, h in enumerate(head) if h in ("t_s", "mode", "shadow_nu") or h in INTERP_CHANNEL.values()]
     write_text(run_dir / "interp.csv", "\n".join(",".join(r[i] for i in cols) for r in (ln.split(",") for ln in lines)) + "\n")
     f.unlink()
 
@@ -247,15 +248,32 @@ def quantile(v, q):
     return v[max(1, math.ceil(q * len(v))) - 1] if v else None
 
 
-def window_index(t, spec, period):
-    te = t[-1] if t else 0.0
-    if spec == "last_orbit":
-        return [j for j, x in enumerate(t) if x >= te - period]
-    if spec == "last_half_orbit":
-        return [j for j, x in enumerate(t) if x >= te - period / 2]
+WINDOW_WORDS = {"all": 0, "last_orbit": 1, "last_half_orbit": 2, "pointing": 3}      # kpistats' MetricWindow, in its order
+WINDOW_AFTER_S, WINDOW_ECLIPSE = 4, 5
+
+
+def window_index(t, spec, period, mode=None, nu=None):
+    """The samples a metric's window (the scenario's word: all, last_orbit, last_half_orbit, pointing, after_s:<s> or
+    eclipse_s:<half width, s>) takes, as the engine and the twin take them: the design's kpi_window, asked of the engine.
+    'pointing' needs the mode channel and 'eclipse_s' the shadow factor; without the one the window needs, this refuses."""
+    after = 0.0
     if spec.startswith("after_s:"):
-        return [j for j, x in enumerate(t) if x >= float(spec[8:])]
-    return list(range(len(t)))      # all (and 'pointing', which needs the mode: taken as all)
+        w, after = WINDOW_AFTER_S, float(spec[8:])
+    elif spec.startswith("eclipse_s:"):
+        w, after = WINDOW_ECLIPSE, float(spec[10:])
+    elif spec in WINDOW_WORDS:
+        w = WINDOW_WORDS[spec]
+    else:
+        raise SystemExit(f"window {spec!r}: one of {', '.join(WINDOW_WORDS)}, after_s:<seconds> or eclipse_s:<half width, seconds>")
+    if w == WINDOW_ECLIPSE and nu is None:
+        raise SystemExit(f"window {spec!r} needs the shadow factor (shadow_nu), which this run's channels do not carry")
+    if w == WINDOW_WORDS["pointing"] and mode is None:
+        raise SystemExit("window 'pointing' needs the mode channel, which this run's channels do not carry")
+    n = len(t)
+    flat = call("kpistats::kpi_window", w, after, Buf(t), Buf(mode if mode is not None else [0] * n),
+                Buf(nu if nu is not None else [1.0] * n), n, period, Buf([0] * n))
+    ni, _t, _mode, _nu, idx = take(flat, 1, "buf", "buf", "buf", "buf")
+    return [int(j) for j in idx[:int(ni)]]
 
 
 def interpretations(run_dirs, metrics):
@@ -294,7 +312,9 @@ def interpretations(run_dirs, metrics):
             if col not in head:
                 continue
             t = data[:, head.index("t_s")]
-            idx = window_index(list(t), m.get("window", "all"), period)
+            idx = window_index(list(t), m.get("window", "all"), period,
+                               list(data[:, head.index("mode")]) if "mode" in head else None,
+                               list(data[:, head.index("shadow_nu")]) if "shadow_nu" in head else None)
             per_run.append(data[idx, head.index(col)])
         if not per_run:
             continue

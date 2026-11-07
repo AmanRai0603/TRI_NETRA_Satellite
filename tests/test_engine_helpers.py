@@ -209,6 +209,48 @@ class Interpretations(unittest.TestCase):
         self.assertEqual(x[0]["temporal"], 1.0, "only the window's samples")
 
 
+class Windows(unittest.TestCase):
+    """window_index reads a window the way the engine and the twin do: the design's kpi_window."""
+    T = [float(i) for i in range(10)]
+    NU = [1, 1, 1, 0, 0, 0, 0, 1, 1, 1]                 # entry at t = 3, exit at t = 7
+    MODE = [0, 0, 1, 1, 2, 2, 2, 2, 3, 3]
+
+    def test_the_eclipse_window_is_the_samples_near_each_change_of_the_shadow(self):
+        # a half width of 1 s: within 1 s of t = 3 (2, 3, 4) and of t = 7 (6, 7, 8)
+        self.assertEqual(C.window_index(self.T, "eclipse_s:1", 100.0, self.MODE, self.NU), [2, 3, 4, 6, 7, 8])
+        self.assertEqual(C.window_index(self.T, "eclipse_s:0", 100.0, self.MODE, self.NU), [3, 7])
+        self.assertEqual(C.window_index(self.T, "eclipse_s:20", 100.0, self.MODE, self.NU), list(range(10)))
+
+    def test_no_shadow_change_no_eclipse_samples(self):
+        self.assertEqual(C.window_index(self.T, "eclipse_s:2", 100.0, self.MODE, [1.0] * 10), [])
+
+    def test_the_other_windows_are_the_designs_too(self):
+        self.assertEqual(C.window_index(self.T, "all", 100.0), list(range(10)))
+        self.assertEqual(C.window_index(self.T, "last_orbit", 4.0), [5, 6, 7, 8, 9])
+        self.assertEqual(C.window_index(self.T, "last_half_orbit", 4.0), [7, 8, 9])
+        self.assertEqual(C.window_index(self.T, "after_s:6", 100.0), [6, 7, 8, 9])
+        self.assertEqual(C.window_index(self.T, "pointing", 100.0, self.MODE, self.NU), list(range(2, 10)))
+
+    def test_a_window_without_the_channel_it_needs_is_refused_not_read_as_all(self):
+        with self.assertRaises(SystemExit):
+            C.window_index(self.T, "eclipse_s:1", 100.0)
+        with self.assertRaises(SystemExit):
+            C.window_index(self.T, "nonsense", 100.0)
+
+    def test_interpretations_judge_the_eclipse_window(self):
+        import pathlib, tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            d = pathlib.Path(tmp) / "run_0001"
+            d.mkdir()
+            err = [9, 9, 9, 1, 2, 9, 9, 3, 9, 9]
+            rows = ["t_s,mode,shadow_nu,ape_los_deg"] + [f"{i},{self.MODE[i]},{self.NU[i]},{err[i]}" for i in range(10)]
+            (d / "channels.csv").write_text("\n".join(rows) + "\n")
+            (d / "manifest.json").write_text(json.dumps({"orbit": {"period_s": 100.0}}))
+            C.keep_interp(d)
+            m = [{"id": "e", "kind": "ape_los", "statistic": "max", "window": "eclipse_s:0"}]
+            self.assertEqual(C.interpretations([d], m)[0]["temporal"], 3.0, "the samples at the two changes only (1 and 3 within 0 s: t = 3, 7)")
+
+
 class Claims(unittest.TestCase):
     """How many runs a probability claim needs, and the reliability a campaign's runs show."""
 
