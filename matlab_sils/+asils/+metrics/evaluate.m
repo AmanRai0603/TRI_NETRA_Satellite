@@ -121,7 +121,7 @@ function idx = window_(P, t, mode, nu, spec, WINDOWS)
     else
         w = opt_(WINDOWS, spec, 0); after = 0;
     end
-    [ni, ~, ~, idx] = asils.models.kpistats.kpi_window(w, after, t, mode, nu, numel(t), P.orbit.period_s, zeros(numel(t), 1));
+    [ni, ~, ~, ~, idx] = asils.models.kpistats.kpi_window(w, after, t, mode, nu, numel(t), P.orbit.period_s, zeros(numel(t), 1));
     idx = idx(1:max(ni, 0));
 end
 

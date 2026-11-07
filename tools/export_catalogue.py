@@ -9,7 +9,7 @@ The export is generated, never edited: run this after changing a TOML file.
                                                  no TOML), change nothing, exit 1 if any does
 Copyright (c) 2026 Agastya. All rights reserved.
 """
-import json, sys, tomllib
+import json, pathlib, sys, tomllib
 from common import write_text, ROOT, V1
 
 KINDS = [("parts", None), ("products", None), ("algorithms", None), ("scenarios", V1 / "scenarios"),
@@ -18,9 +18,14 @@ KINDS = [("parts", None), ("products", None), ("algorithms", None), ("scenarios"
 
 def outputs():
     """Every generated JSON file and the text its TOML gives it."""
+    # a case a revision replaces (`replaces = true`, S11.10) is its file's, not the converted one's
+    revs = tomllib.loads((ROOT / "design" / "revisions_2_0.toml").read_text(encoding="utf-8"))["revision"]
+    replaced = {(x["kind"] + "s", pathlib.Path(x["file"]).stem) for r in revs for x in r.get("case", []) if x.get("replaces")}
     for kind, src in KINDS:
         out = ROOT / "matlab_sils" / "data" / kind
         for f in sorted((src or V1 / "catalogue" / kind).glob("*.toml")):
+            if (kind, f.stem) in replaced:
+                continue
             d = tomllib.loads(f.read_text())
             key = d.get("part_number") or d.get("id") or f.stem
             yield f, out / f"{key}.json", json.dumps(d, indent=1, sort_keys=True) + "\n"
