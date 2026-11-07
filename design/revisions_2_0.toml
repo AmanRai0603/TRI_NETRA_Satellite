@@ -4407,3 +4407,19 @@ source = "DR-design-003 (design/decisions/DR-design-003.toml: the loop's lower b
 generate = ["adcs-design"]
 uses = ["design/sizedemand.pc"]
 why = "the loop never proposes an authority the sizing refuses by name"
+
+[[revision]]
+id = "S11.8c"
+at = "2026-11-07T19:00:00Z"
+by = "the developer"
+about = "the srp translators' vector (env::srp::srp_force, 2.79e-11 against the 1e-12 limit, in Rust and C): not a translator fault. The shadow's partial area (lens_area) is a difference of terms of about 1 and 1e-2, so a last-bit difference in acos between the interpreter and the platform's maths library grows about 1e5 times in the lit fraction and the acceleration; frac_conical, srp_eclipse and srp_force now state the tolerance 1e-8 their translations are held to (the language's `## tolerance:`), their reason beside it. The global 1e-12 is unchanged"
+
+[[revision.method]]
+node = "env_srp_force"
+pseudocode = "design/revisions/S11.8c/srp.pc"
+path = "env/srp.pc"
+transcribes = "design/revisions/S7.6/srp.pc as S7.6 left it, with the tolerance stated (frac_conical, srp_eclipse, srp_force) and its reason; no relation changed"
+source = "the translators' check (tools/translators.py): the failing vector re-derived by the interpreter, the partial shadow's sensitivity measured (one unit in the last place of the separation angle: nu by 1.2e-10 at nu = 0.045)"
+generate = ["adcs-pop"]
+uses = ["env/de440.pc", "env/gravity.pc", "env/thirdbody.pc"]
+why = "an ill-conditioned subtraction in the shadow's area states the tolerance its translations are held to, rather than loosening the global limit"

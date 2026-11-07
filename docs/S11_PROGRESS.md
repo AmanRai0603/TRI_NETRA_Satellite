@@ -65,8 +65,12 @@ the sensors' duty by mode), unsigned.
 - The drivers' missing fault flags of S11.14 (Sun sensor, star tracker, GNSS, coils, magnetometer stuck, gyro delay) are
   findings for the owner's list (S20 or the FDIR phase): the design's driver text states no bus-status check, so nothing
   was changed in flight behaviour.
-- `translators` (check_all) fails on one vector, `env::srp::srp_force`, relative 2.79e-11 against 1e-12, in Rust and C
-  alike; present before S11.14 (measured at the S11.11 tip). Not looked at.
+- `translators` failed on one vector, `env::srp::srp_force` (2.79e-11 against 1e-12): not a translator fault. The vectors are
+  drawn from one PRNG stream in file order, so the draw moves when a function is added before `srp` (S11.8b did, and hid it);
+  on the failing draw the fine shadow is at nu = 0.045, where `lens_area`'s difference of terms of about 1 and 1e-2 makes a last-bit
+  difference in acos grow about 1e5 times (one unit in the last place of the separation: nu by 1.2e-10). S11.8c states
+  `## tolerance: 1e-8` with that reason on `frac_conical`, `srp_eclipse` and `srp_force` (design/revisions/S11.8c/srp.pc); the
+  global 1e-12 stands; checked on the failing draw (worst 1.6e-9, no failure, Rust and C) and on the current one.
 
 ## Steps left, in order
 

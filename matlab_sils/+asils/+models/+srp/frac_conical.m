@@ -1,6 +1,12 @@
 function [nu] = frac_conical(r_sat, r_sun, re, rsun)
 %FRAC_CONICAL  The sunlit fraction of the solar disc of radius rsun seen from r_sat past a spherical Earth of radius re, the Sun at
 %   r_sun (Octave's scaled norms).
+%   tolerance: 1e-8
+%   (The shadow's partial area, lens_area, is r1^2 acos(.) + r2^2 acos(.) - d h: terms of about 1 less one of about 1e-2,
+%   to leave an area of about 1e-4, so a last-bit difference in the maths library's acos between the reference interpreter
+%   and the platform grows about 1e5 times, in the lit fraction nu and so in the acceleration. One unit in the last place
+%   of the separation angle moves nu by 1.2e-10 at nu = 0.045, 2.7e-9 of it; the srp_force vector of the fine shadow at
+%   nu = 0.045 differed by 2.8e-11. The bound holds for a nu of about 0.01 and above.)
 %   r_sat: real[1][3] (passed a plain number)
 %   r_sun: real[1][3] (passed a plain number)
 %   re: real[1] (passed a plain number)

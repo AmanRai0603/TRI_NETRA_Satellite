@@ -203,11 +203,12 @@ class BuiltIn(unittest.TestCase):
             rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
             self.assertEqual(self.beh(nid), "method", nid)
             self.assertEqual(x["body"]["node"]["group_id"], "env", nid)
-            self.assertIn("the developer's revision S7.6", rows[("code", "pseudocode")][1], nid)
+            rev = "S11.8c" if nid == "env_srp_force" else "S7.6"      # S11.8c states the shadow's tolerance, the S7.6 text otherwise
+            self.assertIn(f"the developer's revision {rev}", rows[("code", "pseudocode")][1], nid)
             self.assertTrue(rows[("code", "transcribes")][0], nid)
             self.assertEqual(rows[("code", "generate")][0], target, nid)
             self.assertEqual(x["sealed_as"], "unconfirmed", nid)
-            self.assertTrue(any(w.startswith("the developer's revision S7.6") and "not yet signed by a person" in w for w in x["why"]), nid)
+            self.assertTrue(any(w.startswith(f"the developer's revision {rev}") and "not yet signed by a person" in w for w in x["why"]), nid)
 
     def test_the_actuators_are_methods_the_developer_transcribed(self):
         """S7.7: the coils, the wheels, the rings, the CMG's and VSCMG's rotors and gimbals, the momentum devices as the
