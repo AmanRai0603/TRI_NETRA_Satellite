@@ -33,11 +33,11 @@ function [dn] = datenum(year, month, day, hour, minute, second)
         fracyear = (yr - floor(yr));
         yr = floor(yr);
         if asils.models.timescales.is_leap_year((yr + 1))
-            h__542 = 1;
+            h__544 = 1;
         else
-            h__542 = 0;
+            h__544 = 0;
         end
-        dd = (dd + (fracyear * (365 + h__542)));
+        dd = (dd + (fracyear * (365 + h__544)));
     end
     dd = (dd + ((((365 * yr) + floor((yr / 4))) - floor((yr / 100))) + floor((yr / 400))));
     dn = (dd + ((hour + ((minute + (second / 60)) / 60)) / 24));

@@ -91,68 +91,68 @@ function [worst, tau_dist, h_dist, h_secular, dump_dflt, w0, w0_dflt, h_detumble
     h_dist = (-(1.7976931348623157e+308));
     h_secular = (-(1.7976931348623157e+308));
     for a = (0):((4) - 1)
-        h__125 = h_dist;
-        h__126 = (h_cyclic((a) + 1) + (held * h_secular_orbit((a) + 1)));
-        if h__126 > h__125, h__125 = h__126; end
-        h_dist = h__125;
-        h__127 = h_secular;
-        h__128 = h_secular_orbit((a) + 1);
+        h__127 = h_dist;
+        h__128 = (h_cyclic((a) + 1) + (held * h_secular_orbit((a) + 1)));
         if h__128 > h__127, h__127 = h__128; end
-        h_secular = h__127;
+        h_dist = h__127;
+        h__129 = h_secular;
+        h__130 = h_secular_orbit((a) + 1);
+        if h__130 > h__129, h__129 = h__130; end
+        h_secular = h__129;
     end
     w0_dflt = isnan(w0_case);
     if w0_dflt
-        h__129 = dw0;
+        h__131 = dw0;
     else
-        h__129 = w0_case;
+        h__131 = w0_case;
     end
-    w0 = h__129;
+    w0 = h__131;
     jmax = (-(1.7976931348623157e+308));
     for i = (0):((3) - 1)
-        h__130 = jmax;
-        h__131 = j((i) + 1);
-        if h__131 > h__130, h__130 = h__131; end
-        jmax = h__130;
+        h__132 = jmax;
+        h__133 = j((i) + 1);
+        if h__133 > h__132, h__132 = h__133; end
+        jmax = h__132;
     end
     h_detumble = (((jmax * w0) * pi) / 180);
     sangle_dflt = isnan(sangle_case);
     if sangle_dflt
-        h__132 = dsl;
+        h__134 = dsl;
     else
-        h__132 = sangle_case;
+        h__134 = sangle_case;
     end
-    slew_deg = h__132;
+    slew_deg = h__134;
     slew_dflt = isnan(slew_case);
     if slew_dflt
-        h__133 = dss;
+        h__135 = dss;
     else
-        h__133 = slew_case;
+        h__135 = slew_case;
     end
-    slew_s = h__133;
+    slew_s = h__135;
     w_slew = ((((2 * slew_deg) * pi) / 180) / slew_s);
     a_slew = (((((2 * pi) * slew_deg) * pi) / 180) / (slew_s * slew_s));
     h_slew = (jmax * w_slew);
     tau_slew = (jmax * a_slew);
     life_dflt = isnan(life_case);
     if life_dflt
-        h__134 = dlf;
+        h__136 = dlf;
     else
-        h__134 = life_case;
+        h__136 = life_case;
     end
-    life_yr = h__134;
+    life_yr = h__136;
     if isnan(spd_case)
-        h__135 = dspd;
+        h__137 = dspd;
     else
-        h__135 = spd_case;
+        h__137 = spd_case;
     end
-    slews_per_day = h__135;
+    slews_per_day = h__137;
     if isnan(k_h_knob)
         k_h = dkh;
         if ((isfinite(hsat) && (hsat > 0)) && (hsat < 1))
-            h__136 = dkh;
-            h__137 = (1 / (1 - hsat));
-            if h__137 > h__136, h__136 = h__137; end
-            k_h = h__136;
+            h__138 = dkh;
+            h__139 = (1 / (1 - hsat));
+            if h__139 > h__138, h__138 = h__139; end
+            k_h = h__138;
         end
     else
         k_h = k_h_knob;

@@ -13,7 +13,7 @@ function [ra, dec] = sun_radec(mjd)
     lam = asils.models.timescales.deg2rad(((l + (1.915 * sin(m))) + (0.02 * sin((2 * m)))));
     eps = asils.models.timescales.deg2rad((23.439 - (0.013 * t)));
     ra = asils.models.timescales.omod(atan2((cos(eps) * sin(lam)), cos(lam)), (2 * pi));
-    h__438 = asin((sin(eps) * sin(lam)));
-    if ~isreal(h__438), h__438 = NaN; end
-    dec = h__438;
+    h__440 = asin((sin(eps) * sin(lam)));
+    if ~isreal(h__440), h__440 = NaN; end
+    dec = h__440;
 end

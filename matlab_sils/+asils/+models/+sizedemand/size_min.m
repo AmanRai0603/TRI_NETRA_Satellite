@@ -8,9 +8,9 @@ function [c] = size_min(a, b)
     if isnan(a)
         c = b;
     else
-        h__114 = a;
-        h__115 = b;
-        if h__115 < h__114, h__114 = h__115; end
-        c = h__114;
+        h__116 = a;
+        h__117 = b;
+        if h__117 < h__116, h__116 = h__117; end
+        c = h__116;
     end
 end

@@ -276,6 +276,9 @@ function y = call(name, x)
         case 'looprules::loop_part'
             [o1] = asils.models.looprules.loop_part(x(1));
             y = [double(o1)];
+        case 'looprules::loop_scale_floor'
+            [o1] = asils.models.looprules.loop_scale_floor(x(1), x(2), x(3));
+            y = [double(o1)];
         case 'looprules::loop_round3'
             [o1] = asils.models.looprules.loop_round3(x(1));
             y = [double(o1)];
@@ -660,9 +663,9 @@ function y = call(name, x)
             xa = x(at + 1:end);
             a89 = xa(1);
             at = at + 1;
-            n90 = x(at + 1);
-            a90 = reshape(x(at + 2:at + 1 + n90), [], 1);
-            at = at + 1 + n90;
+            xa = x(at + 1:end);
+            a90 = xa(1);
+            at = at + 1;
             n91 = x(at + 1);
             a91 = reshape(x(at + 2:at + 1 + n91), [], 1);
             at = at + 1 + n91;
@@ -687,8 +690,11 @@ function y = call(name, x)
             n98 = x(at + 1);
             a98 = reshape(x(at + 2:at + 1 + n98), [], 1);
             at = at + 1 + n98;
-            [o1, io1, io2, io3, io4, io5, io6, io7, io8, io9, io10, io11, io12, io13, io14, io15, io16, io17, io18, io19, io20, io21, io22, io25, io26, io27, io28, io29, io30, io32, io33, io52, io53, io63, io64, io74, io75, io76, io77, io78, io79, io90, io91, io92, io93, io94, io95, io96, io97, io98] = asils.models.looprules.loop_converge(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29, a30, a31, a32, a33, a34, a35, a36, a37, a38, a39, a40, a41, a42, a43, a44, a45, a46, a47, a48, a49, a50, a51, a52, a53, a54, a55, a56, a57, a58, a59, a60, a61, a62, a63, a64, a65, a66, a67, a68, a69, a70, a71, a72, a73, a74, a75, a76, a77, a78, a79, a80, a81, a82, a83, a84, a85, a86, a87, a88, a89, a90, a91, a92, a93, a94, a95, a96, a97, a98);
-            y = [double(o1); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1); numel(io3); reshape(io3, [], 1); numel(io4); reshape(io4, [], 1); numel(io5); reshape(io5, [], 1); numel(io6); reshape(io6, [], 1); numel(io7); reshape(io7, [], 1); numel(io8); reshape(io8, [], 1); numel(io9); reshape(io9, [], 1); numel(io10); reshape(io10, [], 1); numel(io11); reshape(io11, [], 1); numel(io12); reshape(io12, [], 1); numel(io13); reshape(io13, [], 1); numel(io14); reshape(io14, [], 1); numel(io15); reshape(io15, [], 1); numel(io16); reshape(io16, [], 1); numel(io17); reshape(io17, [], 1); numel(io18); reshape(io18, [], 1); numel(io19); reshape(io19, [], 1); numel(io20); reshape(io20, [], 1); numel(io21); reshape(io21, [], 1); numel(io22); reshape(io22, [], 1); numel(io25); reshape(io25, [], 1); numel(io26); reshape(io26, [], 1); numel(io27); reshape(io27, [], 1); numel(io28); reshape(io28, [], 1); numel(io29); reshape(io29, [], 1); numel(io30); reshape(io30, [], 1); numel(io32); reshape(io32, [], 1); numel(io33); reshape(io33, [], 1); numel(io52); reshape(io52, [], 1); numel(io53); reshape(io53, [], 1); numel(io63); reshape(io63, [], 1); numel(io64); reshape(io64, [], 1); numel(io74); reshape(io74, [], 1); numel(io75); reshape(io75, [], 1); numel(io76); reshape(io76, [], 1); numel(io77); reshape(io77, [], 1); numel(io78); reshape(io78, [], 1); numel(io79); reshape(io79, [], 1); numel(io90); reshape(io90, [], 1); numel(io91); reshape(io91, [], 1); numel(io92); reshape(io92, [], 1); numel(io93); reshape(io93, [], 1); numel(io94); reshape(io94, [], 1); numel(io95); reshape(io95, [], 1); numel(io96); reshape(io96, [], 1); numel(io97); reshape(io97, [], 1); numel(io98); reshape(io98, [], 1)];
+            n99 = x(at + 1);
+            a99 = reshape(x(at + 2:at + 1 + n99), [], 1);
+            at = at + 1 + n99;
+            [o1, io1, io2, io3, io4, io5, io6, io7, io8, io9, io10, io11, io12, io13, io14, io15, io16, io17, io18, io19, io20, io21, io22, io25, io26, io27, io28, io29, io30, io32, io33, io52, io53, io63, io64, io74, io75, io76, io77, io78, io79, io91, io92, io93, io94, io95, io96, io97, io98, io99] = asils.models.looprules.loop_converge(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29, a30, a31, a32, a33, a34, a35, a36, a37, a38, a39, a40, a41, a42, a43, a44, a45, a46, a47, a48, a49, a50, a51, a52, a53, a54, a55, a56, a57, a58, a59, a60, a61, a62, a63, a64, a65, a66, a67, a68, a69, a70, a71, a72, a73, a74, a75, a76, a77, a78, a79, a80, a81, a82, a83, a84, a85, a86, a87, a88, a89, a90, a91, a92, a93, a94, a95, a96, a97, a98, a99);
+            y = [double(o1); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1); numel(io3); reshape(io3, [], 1); numel(io4); reshape(io4, [], 1); numel(io5); reshape(io5, [], 1); numel(io6); reshape(io6, [], 1); numel(io7); reshape(io7, [], 1); numel(io8); reshape(io8, [], 1); numel(io9); reshape(io9, [], 1); numel(io10); reshape(io10, [], 1); numel(io11); reshape(io11, [], 1); numel(io12); reshape(io12, [], 1); numel(io13); reshape(io13, [], 1); numel(io14); reshape(io14, [], 1); numel(io15); reshape(io15, [], 1); numel(io16); reshape(io16, [], 1); numel(io17); reshape(io17, [], 1); numel(io18); reshape(io18, [], 1); numel(io19); reshape(io19, [], 1); numel(io20); reshape(io20, [], 1); numel(io21); reshape(io21, [], 1); numel(io22); reshape(io22, [], 1); numel(io25); reshape(io25, [], 1); numel(io26); reshape(io26, [], 1); numel(io27); reshape(io27, [], 1); numel(io28); reshape(io28, [], 1); numel(io29); reshape(io29, [], 1); numel(io30); reshape(io30, [], 1); numel(io32); reshape(io32, [], 1); numel(io33); reshape(io33, [], 1); numel(io52); reshape(io52, [], 1); numel(io53); reshape(io53, [], 1); numel(io63); reshape(io63, [], 1); numel(io64); reshape(io64, [], 1); numel(io74); reshape(io74, [], 1); numel(io75); reshape(io75, [], 1); numel(io76); reshape(io76, [], 1); numel(io77); reshape(io77, [], 1); numel(io78); reshape(io78, [], 1); numel(io79); reshape(io79, [], 1); numel(io91); reshape(io91, [], 1); numel(io92); reshape(io92, [], 1); numel(io93); reshape(io93, [], 1); numel(io94); reshape(io94, [], 1); numel(io95); reshape(io95, [], 1); numel(io96); reshape(io96, [], 1); numel(io97); reshape(io97, [], 1); numel(io98); reshape(io98, [], 1); numel(io99); reshape(io99, [], 1)];
         case 'looprules::loop_robust'
             at = 0;
             xa = x(at + 1:end);

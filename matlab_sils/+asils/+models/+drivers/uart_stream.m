@@ -21,20 +21,20 @@ function [b, len] = uart_stream(junk, nj, pl, n, sync2, fault, k)
         len = (len + 1);
     end
     if (fault == 0)
-        h__622 = 1;
+        h__624 = 1;
     else
-        h__622 = 2;
+        h__624 = 2;
     end
-    nf = h__622;
+    nf = h__624;
     for f = (0):((nf) - 1)
         p = zeros(64, 1);
         for i = (0):((n) - 1)
             if (f == 0)
-                h__623 = pl((i) + 1);
+                h__625 = pl((i) + 1);
             else
-                h__623 = pl((rem((i + k), 36)) + 1);
+                h__625 = pl((rem((i + k), 36)) + 1);
             end
-            p((i) + 1) = h__623;
+            p((i) + 1) = h__625;
         end
         c = asils.models.drivers.crc16(p, n);
         if ((f == 1) && (fault == 2))

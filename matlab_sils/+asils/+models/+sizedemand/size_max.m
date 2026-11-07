@@ -8,9 +8,9 @@ function [c] = size_max(a, b)
     if isnan(a)
         c = b;
     else
-        h__112 = a;
-        h__113 = b;
-        if h__113 > h__112, h__112 = h__113; end
-        c = h__112;
+        h__114 = a;
+        h__115 = b;
+        if h__115 > h__114, h__114 = h__115; end
+        c = h__114;
     end
 end

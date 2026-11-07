@@ -34,16 +34,16 @@ function [n, ek, eo, ep, ea, eb, ec, ef] = loop_robust(f_power, f_perf, f_know, 
     n = 0;
     if f_power
         if has_lambda
-            h__98 = lambda;
+            h__100 = lambda;
         else
-            h__98 = d_lambda;
+            h__100 = d_lambda;
         end
-        lam = h__98;
+        lam = h__100;
         if (fmr && (lam < lambda_max))
-            h__99 = lambda_max;
-            h__100 = (lam * 3);
-            if h__100 < h__99, h__99 = h__100; end
-            [t__307, t__308, t__309, t__310, t__311, t__312, t__313, t__314] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 27, (-(1)), (-(1)), lam, h__99, 0, 0);
+            h__101 = lambda_max;
+            h__102 = (lam * 3);
+            if h__102 < h__101, h__101 = h__102; end
+            [t__307, t__308, t__309, t__310, t__311, t__312, t__313, t__314] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 27, (-(1)), (-(1)), lam, h__101, 0, 0);
             n = t__307;
             ek = t__308;
             eo = t__309;
@@ -79,10 +79,10 @@ function [n, ek, eo, ep, ea, eb, ec, ef] = loop_robust(f_power, f_perf, f_know, 
             end
         end
         if ((part >= 0) && (s0 < scale_max))
-            h__101 = scale_max;
-            h__102 = (s0 * up);
-            if h__102 < h__101, h__101 = h__102; end
-            [t__323, t__324, t__325, t__326, t__327, t__328, t__329, t__330] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 29, (-(1)), part, s0, h__101, 0, 0);
+            h__103 = scale_max;
+            h__104 = (s0 * up);
+            if h__104 < h__103, h__103 = h__104; end
+            [t__323, t__324, t__325, t__326, t__327, t__328, t__329, t__330] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 29, (-(1)), part, s0, h__103, 0, 0);
             n = t__323;
             ek = t__324;
             eo = t__325;

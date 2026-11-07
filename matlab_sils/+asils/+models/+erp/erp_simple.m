@@ -16,14 +16,14 @@ function [a, comp] = erp_simple(r_sat, r_sun, cr_aom, doy)
     q = (k.re_earth / d);
     f = (q * q);
     ns = sqrt(r_sun(1)*r_sun(1) + r_sun(2)*r_sun(2) + r_sun(3)*r_sun(3));
-    h__254 = [(r_sun(1) / ns); (r_sun(2) / ns); (r_sun(3) / ns)];
-    c0 = (zhat(1)*h__254(1) + zhat(2)*h__254(2) + zhat(3)*h__254(3));
+    h__256 = [(r_sun(1) / ns); (r_sun(2) / ns); (r_sun(3) / ns)];
+    c0 = (zhat(1)*h__256(1) + zhat(2)*h__256(2) + zhat(3)*h__256(3));
     if (c0 > 0)
-        h__255 = c0;
+        h__257 = c0;
     else
-        h__255 = 0;
+        h__257 = 0;
     end
-    cz = h__255;
+    cz = h__257;
     esw = (((alb * k.tsi) * cz) * f);
     elw = ((emi * (k.tsi / 4)) * f);
     ks = ((cr_aom / k.c) * esw);

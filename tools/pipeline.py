@@ -98,7 +98,7 @@ def run_case(case, a, modes, families, build):
           S(4, f"{case}, iteration {it}")
           sel = node_select(case, res, sizing, modes, families)
           S(5, f"{case}, iteration {it}")
-          knobs2, variants2, changes, blocked = node_converge(case, res, knobs, variants_on, history, sizing["class"] == "fine", modes, sel)
+          knobs2, variants2, changes, blocked = node_converge(case, res, knobs, variants_on, history, sizing["class"] == "fine", modes, sel, sizing["demand"]["k_h"])
           entry = {"iteration": it, "knobs": knobs, "class": sizing["class"], "selected": sel["selected"], "status": sel["status"],
                    "feasible_options": sum(r["feasible"] for r in res.values()), "options": len(res), "changes": changes, "blocked": blocked,
                    "families": {f: {"feasible": v["feasible"], "gaps": v["gaps"], "budget": v["budget"]} for f, v in sel["families"].items()},

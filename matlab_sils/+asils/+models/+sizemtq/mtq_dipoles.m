@@ -20,11 +20,11 @@ function [m_dump, m_mom, m_det, m] = mtq_dipoles(tau_dist, b_min, h_secular, b_m
     m_det = 0;
     m = 0;
     if isnan(req_detumble)
-        h__139 = ((3 * period) / 60);
+        h__141 = ((3 * period) / 60);
     else
-        h__139 = req_detumble;
+        h__141 = req_detumble;
     end
-    td = h__139;
+    td = h__141;
     m_dump = ((2 * tau_dist) / (0.5 * b_min));
     m_mom = ((2 * h_secular) / ((0.3 * b_mean) * period));
     m_det = (h_detumble / ((((0.3 * b_mean) * 0.5) * td) * 60));

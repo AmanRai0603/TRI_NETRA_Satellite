@@ -61,12 +61,12 @@ function [q_body, ok, spots, identified, used, cr, cm, img, work, ia, ib, pi, pj
         mag = zeros(32, 1);
         for k = (0):((ns) - 1)
             b((k) + 1, :) = asils.models.facets.unit_or_zero([((sp((k) + 1, 1) - cam.c) / cam.f); ((sp((k) + 1, 2) - cam.c) / cam.f); 1]).';
-            h__757 = sp((k) + 1, 3);
-            h__758 = 1;
-            if h__758 > h__757, h__757 = h__758; end
-            h__759 = log10((h__757 / cam.flux0));
-            if ~isreal(h__759), h__759 = NaN; end
-            mag((k) + 1) = (6 - (2.5 * h__759));
+            h__759 = sp((k) + 1, 3);
+            h__760 = 1;
+            if h__760 > h__759, h__759 = h__760; end
+            h__761 = log10((h__759 / cam.flux0));
+            if ~isreal(h__761), h__761 = NaN; end
+            mag((k) + 1) = (6 - (2.5 * h__761));
         end
         [t__670, t__671, t__672, t__673, t__674, t__675, t__676] = asils.models.stidentify.st_identify(b, mag, ns, pi, pj, pa, cr, cm, nc, cam.id_tol, cam.mag_tol);
         id = t__670;

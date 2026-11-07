@@ -7,12 +7,12 @@ function [t] = xlocal(z, tcf)
     t = 0;
     dz = (z - 125);
     if (dz > 0)
-        h__319 = (dz)^(2.5);
-        if ~isreal(h__319), h__319 = NaN; end
-        t = (tcf(1) + (tcf(3) * atan(((tcf(4) * dz) * (1 + (0.0000045 * h__319))))));
+        h__321 = (dz)^(2.5);
+        if ~isreal(h__321), h__321 = NaN; end
+        t = (tcf(1) + (tcf(3) * atan(((tcf(4) * dz) * (1 + (0.0000045 * h__321))))));
     else
-        h__320 = (dz)^(2);
-        if ~isreal(h__320), h__320 = NaN; end
-        t = ((((((((-(0.0000098204695)) * dz) - 0.00073039742) * h__320) + 1) * dz) * tcf(2)) + tcf(1));
+        h__322 = (dz)^(2);
+        if ~isreal(h__322), h__322 = NaN; end
+        t = ((((((((-(0.0000098204695)) * dz) - 0.00073039742) * h__322) + 1) * dz) * tcf(2)) + tcf(1));
     end
 end

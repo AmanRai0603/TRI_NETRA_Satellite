@@ -9,14 +9,14 @@ function [p] = albedo_pressure(r, sun_rel, p_sun)
     p = 0;
     rn = sqrt(r(1)*r(1) + r(2)*r(2) + r(3)*r(3));
     vf = ((6378137 / rn) * (6378137 / rn));
-    h__164 = asils.models.facets.unit_or_zero(((sun_rel + r) * 1));
-    h__165 = (r * (1 / rn));
-    cz0 = (h__164(1)*h__165(1) + h__164(2)*h__165(2) + h__164(3)*h__165(3));
+    h__166 = asils.models.facets.unit_or_zero(((sun_rel + r) * 1));
+    h__167 = (r * (1 / rn));
+    cz0 = (h__166(1)*h__167(1) + h__166(2)*h__167(2) + h__166(3)*h__167(3));
     if (cz0 > 0)
-        h__166 = cz0;
+        h__168 = cz0;
     else
-        h__166 = 0;
+        h__168 = 0;
     end
-    cz = h__166;
+    cz = h__168;
     p = (((0.3 * p_sun) * vf) * cz);
 end

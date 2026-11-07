@@ -10,9 +10,9 @@ function [r] = kpi_cp_lower(n, k, g)
     r = 0;
     r = 0;
     if ((n > 0) && (k >= n))
-        h__656 = log((1 - g));
-        if ~isreal(h__656), h__656 = NaN; end
-        r = exp((h__656 / n));
+        h__658 = log((1 - g));
+        if ~isreal(h__658), h__658 = NaN; end
+        r = exp((h__658 / n));
     elseif (k > 0)
         lo = 0;
         hi = 1;

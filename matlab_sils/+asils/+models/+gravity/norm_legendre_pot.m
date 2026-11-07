@@ -12,26 +12,26 @@ function [p] = norm_legendre_pot(sp, cp, nn)
     p = zeros(14641, 1);
     p(1) = 1;
     if (nn >= 1)
-        h__285 = 3;
-        if h__285 < 0, h__285 = NaN; else, h__285 = sqrt(h__285); end
-        p((st) + 1) = (h__285 * sp);
-        h__286 = 3;
-        if h__286 < 0, h__286 = NaN; else, h__286 = sqrt(h__286); end
-        p(((st + 1)) + 1) = (h__286 * cp);
+        h__287 = 3;
+        if h__287 < 0, h__287 = NaN; else, h__287 = sqrt(h__287); end
+        p((st) + 1) = (h__287 * sp);
+        h__288 = 3;
+        if h__288 < 0, h__288 = NaN; else, h__288 = sqrt(h__288); end
+        p(((st + 1)) + 1) = (h__288 * cp);
     end
     for n = (2):(((nn + 1)) - 1)
         nf = n;
-        h__287 = (((2 * nf) + 1) / (2 * nf));
-        if h__287 < 0, h__287 = NaN; else, h__287 = sqrt(h__287); end
-        p((((n * st) + n)) + 1) = ((h__287 * cp) * p((((((n - 1) * st) + n) - 1)) + 1));
+        h__289 = (((2 * nf) + 1) / (2 * nf));
+        if h__289 < 0, h__289 = NaN; else, h__289 = sqrt(h__289); end
+        p((((n * st) + n)) + 1) = ((h__289 * cp) * p((((((n - 1) * st) + n) - 1)) + 1));
         for m = (0):((n) - 1)
             mf = m;
-            h__288 = ((((2 * nf) + 1) * ((2 * nf) - 1)) / ((nf - mf) * (nf + mf)));
-            if h__288 < 0, h__288 = NaN; else, h__288 = sqrt(h__288); end
-            a = h__288;
-            h__289 = (((((2 * nf) + 1) * ((nf + mf) - 1)) * ((nf - mf) - 1)) / ((((2 * nf) - 3) * (nf - mf)) * (nf + mf)));
-            if h__289 < 0, h__289 = NaN; else, h__289 = sqrt(h__289); end
-            b = h__289;
+            h__290 = ((((2 * nf) + 1) * ((2 * nf) - 1)) / ((nf - mf) * (nf + mf)));
+            if h__290 < 0, h__290 = NaN; else, h__290 = sqrt(h__290); end
+            a = h__290;
+            h__291 = (((((2 * nf) + 1) * ((nf + mf) - 1)) * ((nf - mf) - 1)) / ((((2 * nf) - 3) * (nf - mf)) * (nf + mf)));
+            if h__291 < 0, h__291 = NaN; else, h__291 = sqrt(h__291); end
+            b = h__291;
             if (m == (n - 1))
                 p((((n * st) + m)) + 1) = ((a * sp) * p(((((n - 1) * st) + m)) + 1));
             else

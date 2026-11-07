@@ -6,9 +6,9 @@ function [n] = fes_nmax()
     D__FES2004 = asils.models.tidelines.FES2004();
     n = 0;
     for i = (0):((1052) - 1)
-        h__441 = n;
-        h__442 = fix(D__FES2004((i) + 1, 7));
-        if h__442 > h__441, h__441 = h__442; end
-        n = h__441;
+        h__443 = n;
+        h__444 = fix(D__FES2004((i) + 1, 7));
+        if h__444 > h__443, h__443 = h__444; end
+        n = h__443;
     end
 end

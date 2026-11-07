@@ -41,21 +41,21 @@ function [tau_peak, tau_axis_peak, h_cyclic, h_secular_orbit, tau, q] = survey_o
         pk = 0;
         for k = (0):((n) - 1)
             x = [tau((((12 * k) + (3 * a))) + 1); tau(((((12 * k) + (3 * a)) + 1)) + 1); tau(((((12 * k) + (3 * a)) + 2)) + 1)];
-            h__116 = pk;
-            h__117 = sqrt(x(1)*x(1) + x(2)*x(2) + x(3)*x(3));
-            if h__117 > h__116, h__116 = h__117; end
-            pk = h__116;
+            h__118 = pk;
+            h__119 = sqrt(x(1)*x(1) + x(2)*x(2) + x(3)*x(3));
+            if h__119 > h__118, h__118 = h__119; end
+            pk = h__118;
         end
         tau_peak((a) + 1) = pk;
         for i = (0):((3) - 1)
             pk = 0;
             for k = (0):((n) - 1)
-                h__118 = tau(((((12 * k) + (3 * a)) + i)) + 1);
-                if h__118 < 0, h__118 = -h__118; elseif h__118 == 0, h__118 = 0; end
-                h__119 = pk;
-                h__120 = h__118;
-                if h__120 > h__119, h__119 = h__120; end
-                pk = h__119;
+                h__120 = tau(((((12 * k) + (3 * a)) + i)) + 1);
+                if h__120 < 0, h__120 = -h__120; elseif h__120 == 0, h__120 = 0; end
+                h__121 = pk;
+                h__122 = h__120;
+                if h__122 > h__121, h__121 = h__122; end
+                pk = h__121;
             end
             tau_axis_peak((i) + 1, (a) + 1) = pk;
         end
@@ -67,10 +67,10 @@ function [tau_peak, tau_axis_peak, h_cyclic, h_secular_orbit, tau, q] = survey_o
             h((i) + 1) = (reshape(h((i) + 1), [], 1) + (reshape(ti((i) + 1), [], 1) .* dt));
             f = ((k * dt) / t_orb);
             x = [(h(1) - (hend(1) * f)); (h(2) - (hend(2) * f)); (h(3) - (hend(3) * f))];
-            h__121 = pk;
-            h__122 = sqrt(x(1)*x(1) + x(2)*x(2) + x(3)*x(3));
-            if h__122 > h__121, h__121 = h__122; end
-            pk = h__121;
+            h__123 = pk;
+            h__124 = sqrt(x(1)*x(1) + x(2)*x(2) + x(3)*x(3));
+            if h__124 > h__123, h__123 = h__124; end
+            pk = h__123;
         end
         h_cyclic((a) + 1) = pk;
         h_secular_orbit((a) + 1) = sqrt(hend(1)*hend(1) + hend(2)*hend(2) + hend(3)*hend(3));

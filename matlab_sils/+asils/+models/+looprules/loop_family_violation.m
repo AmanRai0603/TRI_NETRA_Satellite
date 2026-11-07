@@ -19,10 +19,10 @@ function [tot, mode_ix, feasible, usable, vstart, vval, vperf] = loop_family_vio
     for m = (0):((nm) - 1)
         have = false;
         best = 0;
-        h__59 = no;
-        h__60 = (numel(vstart) - 1);
-        if h__60 < h__59, h__59 = h__60; end
-        for i = (0):((h__59) - 1)
+        h__61 = no;
+        h__62 = (numel(vstart) - 1);
+        if h__62 < h__61, h__61 = h__62; end
+        for i = (0):((h__61) - 1)
             if ((mode_ix((i) + 1) == m) && (bitand(bitshift(usable((i) + 1), -(b)), 1) == 1))
                 x = 0;
                 if (feasible((i) + 1) == 0)

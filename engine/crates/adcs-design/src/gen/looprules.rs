@@ -1,4 +1,4 @@
-//! looprules: The design loop's rules (docs/DESIGN_LOOP.md, the converge node and its feedback), transcribed from tools/pipeline_design.py (node_converge, node_redundancy), tools/pipeline_verify.py (node_robust) and tools/pipeline_base.py (auth_part, rate_violation, fam_violation): which knob a failure moves and by how much. - A performance failure first flies every algorithm of the option's slot, then tunes every law's gains (a coils-only option of a tuned slot), then grades the gyro (a fine-class rate-stability failure: noise x0.3 to the floor) or the fluid loop's flow sensor (/4 to the floor), else asks the option's part for more authority (x up, to the bound). - A knowledge failure fits the star tracker on the coarse class (blocked when it is fitted); a power failure gives the fluid ring's pump more copper (lambda x3, to the bound; blocked when the thrusters dump, or the mass needs it lower), asks the pointing-grade coil for less authority, or is blocked at the part's floor; a propellant failure asks the thrusters for more authority. - A feasible coils-only option of a tuned slot with less than the tune margin left (its worst seed above margin x req) flies every algorithm, then is tuned. - A move that did not help is undone at the next iteration and its lever closed: the gyro grade when the rate-stability violation did not fall by the improvement needed, a part's authority when its options' performance violation did not; a mass move that broke an option which passed (or raised the closest family's violation) likewise. - When nothing else changes, the closest solution family with a mass gap takes one mass lever: a lighter gyro (x3, to 1), one star-tracker head, a lighter pump (lambda /3, to the bound), less fluid-loop momentum (x down, to the bound). - Authority moves are taken part by part in the parts' order; a part frozen, at its bound, or asked both ways (performance against power) is blocked. The Monte Carlo's feedback (node_robust) and the spare ring (node_redundancy) are the same kind of rule. The loop's bounds and steps are its registry's (the converge and tune nodes' parameters, handed in); a knob's value where the loop has set none is the sizing's default (sizedemand's sizing_knobs). Every decision comes back as an event in the order the loop makes them, with its numbers; the tool says each in words. Rounding a grade to three decimals is Python's round(x, 3), as the tool rounded it: the exact value of x rounded to the nearest thousandth, a tie to the even one (the product by 1000 split exactly, Dekker 1971), and the nearest double to that. The developer's transcription (S7.15), unsigned.
+//! looprules: The design loop's rules (docs/DESIGN_LOOP.md, the converge node and its feedback), transcribed from tools/pipeline_design.py (node_converge, node_redundancy), tools/pipeline_verify.py (node_robust) and tools/pipeline_base.py (auth_part, rate_violation, fam_violation): which knob a failure moves and by how much. - A performance failure first flies every algorithm of the option's slot, then tunes every law's gains (a coils-only option of a tuned slot), then grades the gyro (a fine-class rate-stability failure: noise x0.3 to the floor) or the fluid loop's flow sensor (/4 to the floor), else asks the option's part for more authority (x up, to the bound). - A knowledge failure fits the star tracker on the coarse class (blocked when it is fitted); a power failure gives the fluid ring's pump more copper (lambda x3, to the bound; blocked when the thrusters dump, or the mass needs it lower), asks the pointing-grade coil for less authority, or is blocked at the part's floor; a propellant failure asks the thrusters for more authority. - A feasible coils-only option of a tuned slot with less than the tune margin left (its worst seed above margin x req) flies every algorithm, then is tuned. - A move that did not help is undone at the next iteration and its lever closed: the gyro grade when the rate-stability violation did not fall by the improvement needed, a part's authority when its options' performance violation did not; a mass move that broke an option which passed (or raised the closest family's violation) likewise. - When nothing else changes, the closest solution family with a mass gap takes one mass lever: a lighter gyro (x3, to 1), one star-tracker head, a lighter pump (lambda /3, to the bound), less fluid-loop momentum (x down, to the bound). - Authority moves are taken part by part in the parts' order; a part frozen, at its bound, or asked both ways (performance against power) is blocked. The Monte Carlo's feedback (node_robust) and the spare ring (node_redundancy) are the same kind of rule. The loop's bounds and steps are its registry's (the converge and tune nodes' parameters, handed in); a knob's value where the loop has set none is the sizing's default (sizedemand's sizing_knobs). Every decision comes back as an event in the order the loop makes them, with its numbers; the tool says each in words. Rounding a grade to three decimals is Python's round(x, 3), as the tool rounded it: the exact value of x rounded to the nearest thousandth, a tie to the even one (the product by 1000 split exactly, Dekker 1971), and the nearest double to that. The developer's transcription (S7.15), unsigned. S11.8b: the momentum parts (cmg, fmr, rw, vscmg) have their own lower bound on the authority scale, apart from the coils' (mtq, mtqp keep the registry's scale_min, 0.5): the sizing refuses a scale that takes the momentum margin k_h x scale below its floor (DR-design-003), so the loop never proposes one. The bound is derived, not stated: floor / k_h, with k_h the case's margin (the sizing's, the demand's k_h) and the floor sizedemand's momentum_margin_floor; it is never below scale_min. At the floor margin (k_h = 2, the default) it is 1: the momentum parts' authority-down levers are then closed, truthfully; a case that states a larger margin opens them.
 //! Generated by tools/pcode.py from the pseudocode (trinetra-pcode/2); do not edit.
 #![allow(unused_mut, unused_variables, unused_parens, unused_assignments, unused_imports, unreachable_code, non_snake_case, clippy::all)]
 use crate::gen::rt;
@@ -87,6 +87,27 @@ pub fn loop_part(a: i64) -> i64 {
         p = (crate::gen::looprules::PART_RCS as i64);
     }
     p
+}
+
+/// The lowest authority scale the loop may ask of part p (its Part's number): the registry's scale_min for the coils and
+/// the thrusters; for the momentum parts the least that keeps k_h x scale at the sizing's floor (margin_keeps_floor), never
+/// below scale_min. The quotient is nudged up by one part in 10^13 when its product with k_h rounds below the floor.
+/// - p: int (passed a whole number)
+/// - scale_min: real[1] (passed a plain number)
+/// - k_h: real[1] (passed a plain number)
+/// - returns lo: real[1] (passed a plain number)
+#[allow(clippy::too_many_arguments)]
+pub fn loop_scale_floor(p: i64, scale_min: f64, k_h: f64) -> f64 {
+    let mut lo: f64 = 0.0;
+    lo = scale_min;
+    if ((((p == (crate::gen::looprules::PART_CMG as i64)) || (p == (crate::gen::looprules::PART_FMR as i64))) || (p == (crate::gen::looprules::PART_RW as i64))) || (p == (crate::gen::looprules::PART_VSCMG as i64))) {
+        let mut b: f64 = (crate::gen::sizedemand::momentum_margin_floor() / k_h);
+        if (!crate::gen::sizedemand::margin_keeps_floor((k_h * b))) {
+            b = (b * (1.0 + 1.0e-13));
+        }
+        lo = rt::fmax(scale_min, b);
+    }
+    lo
 }
 
 /// x rounded to three decimals as Python's round(x, 3): its magnitude times 1000 split exactly into p + e (Veltkamp's
@@ -370,6 +391,7 @@ pub fn loop_event(ek: &mut [i64], eo: &mut [i64], ep: &mut [i64], ea: &mut [f64]
 /// - sigma_min: real[1] (passed a plain number)
 /// - gyro_min: real[1] (passed a plain number)
 /// - margin: real[1] (passed a plain number)
+/// - k_h: real[1] (passed a plain number)
 /// - ek: inout int[*] (passed a whole number)
 /// - eo: inout int[*] (passed a whole number)
 /// - ep: inout int[*] (passed a whole number)
@@ -381,7 +403,7 @@ pub fn loop_event(ek: &mut [i64], eo: &mut [i64], ep: &mut [i64], ea: &mut [f64]
 /// - o_feas: inout int[*] (passed a whole number)
 /// - returns n: int (passed a whole number)
 #[allow(clippy::too_many_arguments)]
-pub fn loop_converge(mode_ix: &mut [i64], act: &mut [i64], dump_rcs: &mut [i64], feasible: &mut [i64], has_slot: &mut [i64], tunable: &mut [i64], has_obj: &mut [i64], objective: &mut [f64], has_req: &mut [i64], req: &mut [f64], f_perf: &mut [i64], f_know: &mut [i64], f_power: &mut [i64], f_prop: &mut [i64], f_rate: &mut [i64], in_v: &mut [i64], tuned: &mut [i64], vstart: &mut [i64], vval: &mut [f64], vperf: &mut [i64], vrate: &mut [i64], order: &mut [i64], no: i64, nm: i64, p_act: &mut [i64], p_feas: &mut [i64], p_vstart: &mut [i64], p_vval: &mut [f64], p_vperf: &mut [i64], p_cur: &mut [i64], np: i64, lu_part: &mut [i64], lu_scale: &mut [f64], nlu: i64, lg_has: bool, lg_g0: f64, lg_vb: f64, closed_gyro: bool, closed_heads: bool, closed_lambda: bool, closed_scale_fmr: bool, lam_up: bool, lam_down: bool, st2: bool, frozen: i64, tried_up: i64, tried_down: i64, lm_has: bool, lm_key: i64, lm_old: f64, lm_vb: f64, lm_before: &mut [i64], lm_use: &mut [i64], has_gyro: bool, gyro: f64, has_sigma: bool, sigma: f64, has_lambda: bool, lambda: f64, star_tracker: bool, has_heads: bool, heads: f64, has_scale: &mut [i64], scale: &mut [f64], k0_has_gyro: bool, k0_gyro: f64, k0_has_sigma: bool, k0_sigma: f64, k0_has_lambda: bool, k0_lambda: f64, fine: bool, has_sel: bool, nf: i64, fam_gaps: &mut [i64], fam_simplicity: &mut [f64], fam_mass: &mut [i64], fam_power: &mut [i64], fam_fmr: &mut [i64], fam_use: &mut [i64], improvement: f64, scale_min: f64, scale_max: f64, up: f64, down: f64, lambda_min: f64, lambda_max: f64, sigma_min: f64, gyro_min: f64, margin: f64, ek: &mut [i64], eo: &mut [i64], ep: &mut [i64], ea: &mut [f64], eb: &mut [f64], ec: &mut [f64], ef: &mut [i64], o_lost: &mut [i64], o_feas: &mut [i64]) -> i64 {
+pub fn loop_converge(mode_ix: &mut [i64], act: &mut [i64], dump_rcs: &mut [i64], feasible: &mut [i64], has_slot: &mut [i64], tunable: &mut [i64], has_obj: &mut [i64], objective: &mut [f64], has_req: &mut [i64], req: &mut [f64], f_perf: &mut [i64], f_know: &mut [i64], f_power: &mut [i64], f_prop: &mut [i64], f_rate: &mut [i64], in_v: &mut [i64], tuned: &mut [i64], vstart: &mut [i64], vval: &mut [f64], vperf: &mut [i64], vrate: &mut [i64], order: &mut [i64], no: i64, nm: i64, p_act: &mut [i64], p_feas: &mut [i64], p_vstart: &mut [i64], p_vval: &mut [f64], p_vperf: &mut [i64], p_cur: &mut [i64], np: i64, lu_part: &mut [i64], lu_scale: &mut [f64], nlu: i64, lg_has: bool, lg_g0: f64, lg_vb: f64, closed_gyro: bool, closed_heads: bool, closed_lambda: bool, closed_scale_fmr: bool, lam_up: bool, lam_down: bool, st2: bool, frozen: i64, tried_up: i64, tried_down: i64, lm_has: bool, lm_key: i64, lm_old: f64, lm_vb: f64, lm_before: &mut [i64], lm_use: &mut [i64], has_gyro: bool, gyro: f64, has_sigma: bool, sigma: f64, has_lambda: bool, lambda: f64, star_tracker: bool, has_heads: bool, heads: f64, has_scale: &mut [i64], scale: &mut [f64], k0_has_gyro: bool, k0_gyro: f64, k0_has_sigma: bool, k0_sigma: f64, k0_has_lambda: bool, k0_lambda: f64, fine: bool, has_sel: bool, nf: i64, fam_gaps: &mut [i64], fam_simplicity: &mut [f64], fam_mass: &mut [i64], fam_power: &mut [i64], fam_fmr: &mut [i64], fam_use: &mut [i64], improvement: f64, scale_min: f64, scale_max: f64, up: f64, down: f64, lambda_min: f64, lambda_max: f64, sigma_min: f64, gyro_min: f64, margin: f64, k_h: f64, ek: &mut [i64], eo: &mut [i64], ep: &mut [i64], ea: &mut [f64], eb: &mut [f64], ec: &mut [f64], ef: &mut [i64], o_lost: &mut [i64], o_feas: &mut [i64]) -> i64 {
     let mut n: i64 = 0;
     let (mut d_k_tau, mut d_lambda, mut d_heads, mut d_sigma, mut d_grade, mut b0, mut b1, mut b2, mut b3, mut b4, mut b5, mut b6, mut b7, mut b8, mut b9) = crate::gen::sizedemand::sizing_knobs();
     let mut improve: f64 = (1.0 - improvement);
@@ -641,9 +663,9 @@ pub fn loop_converge(mode_ix: &mut [i64], act: &mut [i64], dump_rcs: &mut [i64],
                 k_lambda = rt::fmax(lambda_min, (lam / 3.0));
                 ldown = true;
                 n = crate::gen::looprules::loop_event(&mut (*ek), &mut (*eo), &mut (*ep), &mut (*ea), &mut (*eb), &mut (*ec), &mut (*ef), n, crate::gen::looprules::LOOPEVENT_MASS_LAMBDA, (-(1)), f, lam, k_lambda, vb, 0);
-            } else if ((((*fam_fmr)[(f) as usize] == 1) && (!closed_f)) && (sc[((crate::gen::looprules::PART_FMR as i64)) as usize] > scale_min)) {
+            } else if ((((*fam_fmr)[(f) as usize] == 1) && (!closed_f)) && (sc[((crate::gen::looprules::PART_FMR as i64)) as usize] > crate::gen::looprules::loop_scale_floor((crate::gen::looprules::PART_FMR as i64), scale_min, k_h))) {
                 let mut s0: f64 = sc[((crate::gen::looprules::PART_FMR as i64)) as usize];
-                sc[((crate::gen::looprules::PART_FMR as i64)) as usize] = rt::fmax(scale_min, (s0 * down));
+                sc[((crate::gen::looprules::PART_FMR as i64)) as usize] = rt::fmax(crate::gen::looprules::loop_scale_floor((crate::gen::looprules::PART_FMR as i64), scale_min, k_h), (s0 * down));
                 tried_dn = (tried_dn | (1 << (crate::gen::looprules::PART_FMR as i64)));
                 n = crate::gen::looprules::loop_event(&mut (*ek), &mut (*eo), &mut (*ep), &mut (*ea), &mut (*eb), &mut (*ec), &mut (*ef), n, crate::gen::looprules::LOOPEVENT_MASS_FMR, (-(1)), f, s0, sc[((crate::gen::looprules::PART_FMR as i64)) as usize], vb, 0);
             } else {
@@ -657,13 +679,14 @@ pub fn loop_converge(mode_ix: &mut [i64], act: &mut [i64], dump_rcs: &mut [i64],
         while p < __end43 {
             if (want[(p) as usize] != 0) {
                 let mut s: f64 = sc[(p) as usize];
+                let mut lo: f64 = crate::gen::looprules::loop_scale_floor(p, scale_min, k_h);
                 if (((frz >> p) & 1) == 1) {
                     n = crate::gen::looprules::loop_event(&mut (*ek), &mut (*eo), &mut (*ep), &mut (*ea), &mut (*eb), &mut (*ec), &mut (*ef), n, crate::gen::looprules::LOOPEVENT_FROZEN, (-(1)), p, s, 0.0, 0.0, 0);
                 } else if ((want[(p) as usize] == 1) && (s >= scale_max)) {
                     n = crate::gen::looprules::loop_event(&mut (*ek), &mut (*eo), &mut (*ep), &mut (*ea), &mut (*eb), &mut (*ec), &mut (*ef), n, crate::gen::looprules::LOOPEVENT_BOUND_UP, (-(1)), p, s, 0.0, 0.0, 0);
                 } else if ((want[(p) as usize] == 1) && (((tried_dn >> p) & 1) == 1)) {
                     n = crate::gen::looprules::loop_event(&mut (*ek), &mut (*eo), &mut (*ep), &mut (*ea), &mut (*eb), &mut (*ec), &mut (*ef), n, crate::gen::looprules::LOOPEVENT_CONFLICT_UP, (-(1)), p, s, 0.0, 0.0, 0);
-                } else if ((want[(p) as usize] == 2) && (s <= scale_min)) {
+                } else if ((want[(p) as usize] == 2) && (s <= lo)) {
                     n = crate::gen::looprules::loop_event(&mut (*ek), &mut (*eo), &mut (*ep), &mut (*ea), &mut (*eb), &mut (*ec), &mut (*ef), n, crate::gen::looprules::LOOPEVENT_BOUND_DOWN, (-(1)), p, s, 0.0, 0.0, 0);
                 } else if ((want[(p) as usize] == 2) && (((tried_up >> p) & 1) == 1)) {
                     n = crate::gen::looprules::loop_event(&mut (*ek), &mut (*eo), &mut (*ep), &mut (*ea), &mut (*eb), &mut (*ec), &mut (*ef), n, crate::gen::looprules::LOOPEVENT_CONFLICT_DOWN, (-(1)), p, s, 0.0, 0.0, 0);
@@ -671,7 +694,7 @@ pub fn loop_converge(mode_ix: &mut [i64], act: &mut [i64], dump_rcs: &mut [i64],
                     sc[(p) as usize] = rt::fmin(scale_max, (s * up));
                     n = crate::gen::looprules::loop_event(&mut (*ek), &mut (*eo), &mut (*ep), &mut (*ea), &mut (*eb), &mut (*ec), &mut (*ef), n, crate::gen::looprules::LOOPEVENT_AUTHORITY, (-(1)), p, s, sc[(p) as usize], 0.0, 1);
                 } else {
-                    sc[(p) as usize] = rt::fmax(scale_min, (s * down));
+                    sc[(p) as usize] = rt::fmax(lo, (s * down));
                     n = crate::gen::looprules::loop_event(&mut (*ek), &mut (*eo), &mut (*ep), &mut (*ea), &mut (*eb), &mut (*ec), &mut (*ef), n, crate::gen::looprules::LOOPEVENT_AUTHORITY, (-(1)), p, s, sc[(p) as usize], 0.0, 0);
                 }
             }

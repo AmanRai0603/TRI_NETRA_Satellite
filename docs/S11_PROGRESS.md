@@ -49,9 +49,10 @@ the sensors' duty by mode), unsigned.
 - The flight images were not resealed after S11.5-S11.6 (`flight-image` passed; confirm in S11.16).
 - `tools/tokens.py checked`: no agent has been marked yet.
 
-- The pipeline loop's fluid-loop mass lever (x0.75 from scale 1) is now refused by the sizing's k_h = 2 floor, which stops the
-  loop: the momentum parts need their own lower scale bound, apart from the coils'. It lives in `looprules.pc` (sealed vectors);
-  DR-design-003 notes it. Settle before the S11.16 pipeline re-fly.
+- The pipeline loop's fluid-loop mass lever (x0.75 from scale 1) was refused by the sizing's k_h = 2 floor: settled in S11.8b
+  (`design/revisions/S11.8b/looprules.pc`, DR-design-003): the momentum parts have their own lower bound, floor / k_h (derived
+  from the case's margin, never below the coils' 0.5), so the loop never proposes a scale the sizing refuses; at k_h = 2 it is 1
+  and the lever is closed, a case stating a larger margin opens it. The coils' x0.75 lever is unchanged.
 - S11.7 and S11.8's new tests were written with the fix and not watched failing on the old tree (the generated code was rebuilt
   in place); each asserts a value the old code could not give.
 - Step 1's single python-tests failure was a flaky browser click (a `tn-dialog` over the button in group.test.mjs): the suite

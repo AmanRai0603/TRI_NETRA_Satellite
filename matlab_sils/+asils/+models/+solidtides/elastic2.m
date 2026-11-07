@@ -12,23 +12,23 @@ function [d] = elastic2(r_moon, r_sun, k2, mu, re)
     d = asils.models.solidtides.Dcs5_zero();
     for b = (0):((2) - 1)
         if (b == 0)
-            h__476 = r_moon;
+            h__478 = r_moon;
         else
-            h__476 = r_sun;
+            h__478 = r_sun;
         end
-        rb = h__476;
+        rb = h__478;
         if (b == 0)
-            h__477 = k4.gm_moon;
+            h__479 = k4.gm_moon;
         else
-            h__477 = k4.gm_sun;
+            h__479 = k4.gm_sun;
         end
-        gmb = h__477;
+        gmb = h__479;
         [r, phi, lam] = asils.models.solidtides.body_angles(rb);
         p = asils.models.solidtides.norm_legendre5(sin(phi), 2);
         for m = (0):((3) - 1)
-            h__478 = ((re / r))^(3);
-            if ~isreal(h__478), h__478 = NaN; end
-            fac = ((((k2 / 5) * (gmb / mu)) * h__478) * p(3, (m) + 1));
+            h__480 = ((re / r))^(3);
+            if ~isreal(h__480), h__480 = NaN; end
+            fac = ((((k2 / 5) * (gmb / mu)) * h__480) * p(3, (m) + 1));
             d.dc(3, (m) + 1) = (d.dc(3, (m) + 1) + (fac * cos((m * lam))));
             d.ds(3, (m) + 1) = (d.ds(3, (m) + 1) + (fac * sin((m * lam))));
         end

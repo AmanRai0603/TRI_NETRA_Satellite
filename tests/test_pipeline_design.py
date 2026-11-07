@@ -277,6 +277,48 @@ class Converge(unittest.TestCase):
         self.assertTrue(any(c.startswith("mass lever st_heads undone") for c in ch))
 
 
+class MomentumPartsBound(unittest.TestCase):
+    """S11.8b: the momentum parts' lower authority bound is floor / k_h (looprules' loop_scale_floor), the coils' stays the registry's."""
+    FMR = {"families": {"fmr": {"role": "solution", "gaps": ["budget: mass_kg 1.7 > 1.6"], "simplicity": 2},
+                        "mtq": {"role": "benchmark", "gaps": [], "simplicity": 1}}}
+
+    def fluid_lever(self, k_h, scale):
+        key = ("nadir_pointing", "fmr+mtq")
+        knobs = {"fmr_lambda": B.LAMBDA_MIN, "gyro_grade": B.GYRO_MIN, "scale": {"fmr": scale}}
+        with mock.patch.object(D, "FAMILIES", [{"id": "fmr", "actuators": ["fmr", "mtq"]}]):
+            k, v, ch, bl = D.node_converge("ais_3u", {key: res("fmr+mtq", True)}, knobs, set(), {}, False, MODES, self.FMR, k_h)
+        return k["scale"]["fmr"], ch, bl
+
+    def test_the_bound_is_the_floor_over_the_margin_for_momentum_parts_only(self):
+        floor = D.call("sizedemand::momentum_margin_floor")[0]
+        for part, k_h, want in (("rw", 2.0, 1.0), ("fmr", 4.0, 0.5), ("cmg", 3.0, floor/3.0), ("vscmg", 2.5, floor/2.5)):
+            lo = D.call("looprules::loop_scale_floor", D.PARTS.index(part), B.SCALE_MIN, k_h)[0]
+            self.assertAlmostEqual(lo, max(B.SCALE_MIN, want), places=9, msg=part)
+            self.assertTrue(D.call("sizedemand::margin_keeps_floor", k_h*lo)[0], f"{part}: the sizing keeps k_h x bound")
+        for part in ("mtq", "mtqp", "rcs"):
+            self.assertEqual(D.call("looprules::loop_scale_floor", D.PARTS.index(part), B.SCALE_MIN, 3.0)[0], B.SCALE_MIN)
+
+    def test_the_fluid_loops_mass_lever_is_a_scale_the_sizing_accepts(self):
+        for k_h in (2.0, 2.2, 3.0, 5.0):
+            for s0 in (1.0, 0.9, 0.8):
+                if not D.call("sizedemand::margin_keeps_floor", k_h*s0)[0]:
+                    continue                                   # a start the sizing already refuses is not the loop's to move
+                s, ch, bl = self.fluid_lever(k_h, s0)
+                self.assertTrue(D.call("sizedemand::margin_keeps_floor", k_h*s)[0], f"k_h {k_h}, from {s0}: scale {s}")
+        s, ch, bl = self.fluid_lever(3.0, 1.0)
+        self.assertEqual((s, len(ch)), (B.DOWN, 1), "a margin above the floor leaves the x0.75 lever open")
+        s, ch, bl = self.fluid_lever(2.0, 1.0)
+        self.assertEqual((s, ch), (1.0, []), "at the floor margin the lever is closed, not proposed and refused")
+        self.assertTrue(any("no lever left" in b for b in bl))
+
+    def test_the_coils_lever_keeps_the_registrys_bound(self):
+        key = ("nadir_pointing", "mtq")
+        for k_h, s0, want in ((2.0, 1.0, B.DOWN), (2.0, 0.6, B.SCALE_MIN)):
+            k, v, ch, bl = D.node_converge("ais_3u", {key: res("mtq", failing=["power_mean"], slot="mtq_pointing")}, {"scale": {"mtqp": s0}},
+                                           set(), {}, False, MODES, None, k_h)
+            self.assertEqual(k["scale"]["mtqp"], want)
+
+
 class NodeKey(unittest.TestCase):
     def setUp(self):
         self.d = pathlib.Path(tempfile.mkdtemp())

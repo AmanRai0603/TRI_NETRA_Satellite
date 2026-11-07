@@ -8,9 +8,9 @@ function [c] = kpi_max(a, b)
     if isnan(a)
         c = b;
     else
-        h__639 = a;
-        h__640 = b;
-        if h__640 > h__639, h__639 = h__640; end
-        c = h__639;
+        h__641 = a;
+        h__642 = b;
+        if h__642 > h__641, h__641 = h__642; end
+        c = h__641;
     end
 end

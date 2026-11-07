@@ -22,40 +22,40 @@ function [gmlat, gmlong, ok] = geogm(xlat, xlong_in)
     rlat = (xlat * rfac);
     rlong = (xlong * rfac);
     slm = ((spl * sin(rlat)) + ((cpl * cos(rlat)) * cos((plongr - rlong))));
-    h__206 = (slm)^(2);
-    if ~isreal(h__206), h__206 = NaN; end
-    h__207 = (1 - h__206);
-    if h__207 < 0, h__207 = NaN; else, h__207 = sqrt(h__207); end
-    clm = h__207;
+    h__208 = (slm)^(2);
+    if ~isreal(h__208), h__208 = NaN; end
+    h__209 = (1 - h__208);
+    if h__209 < 0, h__209 = NaN; else, h__209 = sqrt(h__209); end
+    clm = h__209;
     phim1 = ((cos(rlat) * sin((rlong - plongr))) / clm);
     phim2 = (((spl * slm) - sin(rlat)) / (cpl * clm));
-    h__208 = asin(slm);
-    if ~isreal(h__208), h__208 = NaN; end
-    gmlat = (h__208 / rfac);
+    h__210 = asin(slm);
+    if ~isreal(h__210), h__210 = NaN; end
+    gmlat = (h__210 / rfac);
     gmlong = 0;
     ok = true;
     if ((phim1 >= 0) && (phim2 >= 0))
-        h__209 = asin(phim1);
-        if ~isreal(h__209), h__209 = NaN; end
-        gmlong = (h__209 / rfac);
+        h__211 = asin(phim1);
+        if ~isreal(h__211), h__211 = NaN; end
+        gmlong = (h__211 / rfac);
     elseif ((phim1 >= 0) && (phim2 < 0))
-        h__210 = asin(phim1);
-        if ~isreal(h__210), h__210 = NaN; end
-        h__211 = h__210;
-        if h__211 < 0, h__211 = -h__211; elseif h__211 == 0, h__211 = 0; end
-        gmlong = ((pi - h__211) / rfac);
-    elseif ((phim1 < 0) && (phim2 < 0))
         h__212 = asin(phim1);
         if ~isreal(h__212), h__212 = NaN; end
         h__213 = h__212;
         if h__213 < 0, h__213 = -h__213; elseif h__213 == 0, h__213 = 0; end
-        gmlong = ((pi + h__213) / rfac);
-    elseif ((phim1 < 0) && (phim2 >= 0))
+        gmlong = ((pi - h__213) / rfac);
+    elseif ((phim1 < 0) && (phim2 < 0))
         h__214 = asin(phim1);
         if ~isreal(h__214), h__214 = NaN; end
         h__215 = h__214;
         if h__215 < 0, h__215 = -h__215; elseif h__215 == 0, h__215 = 0; end
-        gmlong = (((2 * pi) - h__215) / rfac);
+        gmlong = ((pi + h__215) / rfac);
+    elseif ((phim1 < 0) && (phim2 >= 0))
+        h__216 = asin(phim1);
+        if ~isreal(h__216), h__216 = NaN; end
+        h__217 = h__216;
+        if h__217 < 0, h__217 = -h__217; elseif h__217 == 0, h__217 = 0; end
+        gmlong = (((2 * pi) - h__217) / rfac);
     else
         ok = false;
     end

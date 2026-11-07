@@ -153,9 +153,12 @@ def events(flat, n_events):
     return [(EVENTS[int(cols[0][i])], int(cols[1][i]), int(cols[2][i]), cols[3][i], cols[4][i], cols[5][i], int(cols[6][i])) for i in range(n_events)]
 
 
-def node_converge(case, res, knobs, variants_on, history, fine, modes, sel=None):
+def node_converge(case, res, knobs, variants_on, history, fine, modes, sel=None, k_h=None):
     """The knob changes the failures call for (design_loop_converge, design/looprules.pc, asked through the engine).
-    Returns (new knobs, new variants, changes, blocked)."""
+    k_h is the case's momentum margin (the sizing's demand), from which the loop derives the momentum parts' lower authority
+    bound (looprules' loop_scale_floor); where none is handed in, the sizing's floor. Returns (new knobs, new variants, changes, blocked)."""
+    if k_h is None:
+        k_h = call("sizedemand::momentum_margin_floor")[0]
     k = json.loads(json.dumps(knobs))
     v = set(variants_on)
     changes, blocked = [], []
@@ -226,7 +229,7 @@ def node_converge(case, res, knobs, variants_on, history, fine, modes, sel=None)
         Buf(["mass_kg" in " ".join(F[f]["gaps"]) for f in sol]), Buf(["power" in " ".join(F[f]["gaps"]) for f in sol]),
         Buf(["fmr" in f for f in sol]),
         Buf([sum(1 << j for j, f in enumerate(sol) if acts_of(f) is not None and usable(opt(key), acts_of(f))) for key in keys] + [0]),
-        1.0 - IMPROVE, SCALE_MIN, SCALE_MAX, UP, DOWN, LAMBDA_MIN, LAMBDA_MAX, FLOW_SIGMA_MIN, GYRO_MIN, TUNE["margin"],
+        1.0 - IMPROVE, SCALE_MIN, SCALE_MAX, UP, DOWN, LAMBDA_MIN, LAMBDA_MAX, FLOW_SIGMA_MIN, GYRO_MIN, TUNE["margin"], float(k_h),
         *[Buf([0] * ne) for _ in range(EVENT_BUFS)], Buf([0] * (no + 1)), Buf([0] * (no + 1)))
     # the method's outputs: the events' count, then every buffer it was handed, as it left them
     out = take(call("looprules::loop_converge", *args), 1, *["buf"] * sum(isinstance(a, Buf) for a in args))

@@ -236,6 +236,11 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             let r = crate::looprules::loop_part(x[0] as i64);
             out.push(r as f64);
         }
+        "looprules::loop_scale_floor" => {
+            if x.len() != 3 { return None; }
+            let r = crate::looprules::loop_scale_floor(x[0] as i64, x[1], x[2]);
+            out.push(r);
+        }
         "looprules::loop_round3" => {
             if x.len() != 1 { return None; }
             let r = crate::looprules::loop_round3(x[0]);
@@ -762,10 +767,8 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             let a88 = { let x = &x[at..]; x[0] };
             at += 1;
             if x.len() < at + 1 { return None; }
-            let n89 = x[at] as usize;
-            if x.len() < at + 1 + n89 { return None; }
-            let mut io89 = x[at + 1..at + 1 + n89].iter().map(|v| *v as i64).collect::<Vec<i64>>();
-            at += 1 + n89;
+            let a89 = { let x = &x[at..]; x[0] };
+            at += 1;
             if x.len() < at + 1 { return None; }
             let n90 = x[at] as usize;
             if x.len() < at + 1 + n90 { return None; }
@@ -779,7 +782,7 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             if x.len() < at + 1 { return None; }
             let n92 = x[at] as usize;
             if x.len() < at + 1 + n92 { return None; }
-            let mut io92 = x[at + 1..at + 1 + n92].to_vec();
+            let mut io92 = x[at + 1..at + 1 + n92].iter().map(|v| *v as i64).collect::<Vec<i64>>();
             at += 1 + n92;
             if x.len() < at + 1 { return None; }
             let n93 = x[at] as usize;
@@ -794,7 +797,7 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             if x.len() < at + 1 { return None; }
             let n95 = x[at] as usize;
             if x.len() < at + 1 + n95 { return None; }
-            let mut io95 = x[at + 1..at + 1 + n95].iter().map(|v| *v as i64).collect::<Vec<i64>>();
+            let mut io95 = x[at + 1..at + 1 + n95].to_vec();
             at += 1 + n95;
             if x.len() < at + 1 { return None; }
             let n96 = x[at] as usize;
@@ -806,8 +809,13 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             if x.len() < at + 1 + n97 { return None; }
             let mut io97 = x[at + 1..at + 1 + n97].iter().map(|v| *v as i64).collect::<Vec<i64>>();
             at += 1 + n97;
+            if x.len() < at + 1 { return None; }
+            let n98 = x[at] as usize;
+            if x.len() < at + 1 + n98 { return None; }
+            let mut io98 = x[at + 1..at + 1 + n98].iter().map(|v| *v as i64).collect::<Vec<i64>>();
+            at += 1 + n98;
             if x.len() != at { return None; }
-            let r = crate::looprules::loop_converge(&mut io0, &mut io1, &mut io2, &mut io3, &mut io4, &mut io5, &mut io6, &mut io7, &mut io8, &mut io9, &mut io10, &mut io11, &mut io12, &mut io13, &mut io14, &mut io15, &mut io16, &mut io17, &mut io18, &mut io19, &mut io20, &mut io21, a22, a23, &mut io24, &mut io25, &mut io26, &mut io27, &mut io28, &mut io29, a30, &mut io31, &mut io32, a33, a34, a35, a36, a37, a38, a39, a40, a41, a42, a43, a44, a45, a46, a47, a48, a49, a50, &mut io51, &mut io52, a53, a54, a55, a56, a57, a58, a59, a60, a61, &mut io62, &mut io63, a64, a65, a66, a67, a68, a69, a70, a71, a72, &mut io73, &mut io74, &mut io75, &mut io76, &mut io77, &mut io78, a79, a80, a81, a82, a83, a84, a85, a86, a87, a88, &mut io89, &mut io90, &mut io91, &mut io92, &mut io93, &mut io94, &mut io95, &mut io96, &mut io97);
+            let r = crate::looprules::loop_converge(&mut io0, &mut io1, &mut io2, &mut io3, &mut io4, &mut io5, &mut io6, &mut io7, &mut io8, &mut io9, &mut io10, &mut io11, &mut io12, &mut io13, &mut io14, &mut io15, &mut io16, &mut io17, &mut io18, &mut io19, &mut io20, &mut io21, a22, a23, &mut io24, &mut io25, &mut io26, &mut io27, &mut io28, &mut io29, a30, &mut io31, &mut io32, a33, a34, a35, a36, a37, a38, a39, a40, a41, a42, a43, a44, a45, a46, a47, a48, a49, a50, &mut io51, &mut io52, a53, a54, a55, a56, a57, a58, a59, a60, a61, &mut io62, &mut io63, a64, a65, a66, a67, a68, a69, a70, a71, a72, &mut io73, &mut io74, &mut io75, &mut io76, &mut io77, &mut io78, a79, a80, a81, a82, a83, a84, a85, a86, a87, a88, a89, &mut io90, &mut io91, &mut io92, &mut io93, &mut io94, &mut io95, &mut io96, &mut io97, &mut io98);
             out.push(r as f64);
             out.push(io0.len() as f64); for v in io0.iter() { let v = *v; out.push(v as f64); }
             out.push(io1.len() as f64); for v in io1.iter() { let v = *v; out.push(v as f64); }
@@ -849,15 +857,15 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             out.push(io76.len() as f64); for v in io76.iter() { let v = *v; out.push(v as f64); }
             out.push(io77.len() as f64); for v in io77.iter() { let v = *v; out.push(v as f64); }
             out.push(io78.len() as f64); for v in io78.iter() { let v = *v; out.push(v as f64); }
-            out.push(io89.len() as f64); for v in io89.iter() { let v = *v; out.push(v as f64); }
             out.push(io90.len() as f64); for v in io90.iter() { let v = *v; out.push(v as f64); }
             out.push(io91.len() as f64); for v in io91.iter() { let v = *v; out.push(v as f64); }
-            out.push(io92.len() as f64); for v in io92.iter() { let v = *v; out.push(v); }
+            out.push(io92.len() as f64); for v in io92.iter() { let v = *v; out.push(v as f64); }
             out.push(io93.len() as f64); for v in io93.iter() { let v = *v; out.push(v); }
             out.push(io94.len() as f64); for v in io94.iter() { let v = *v; out.push(v); }
-            out.push(io95.len() as f64); for v in io95.iter() { let v = *v; out.push(v as f64); }
+            out.push(io95.len() as f64); for v in io95.iter() { let v = *v; out.push(v); }
             out.push(io96.len() as f64); for v in io96.iter() { let v = *v; out.push(v as f64); }
             out.push(io97.len() as f64); for v in io97.iter() { let v = *v; out.push(v as f64); }
+            out.push(io98.len() as f64); for v in io98.iter() { let v = *v; out.push(v as f64); }
         }
         "looprules::loop_robust" => {
             let mut at: usize = 0;

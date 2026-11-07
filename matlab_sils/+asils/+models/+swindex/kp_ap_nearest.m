@@ -10,17 +10,17 @@ function [y] = kp_ap_nearest(to_ap, xi)
     D__KP_AP_KP = asils.models.kpap.KP_AP_KP();
     n = 28;
     if to_ap
-        h__496 = D__KP_AP_KP(1);
+        h__498 = D__KP_AP_KP(1);
     else
-        h__496 = D__KP_AP_AP(1);
+        h__498 = D__KP_AP_AP(1);
     end
-    x0 = h__496;
+    x0 = h__498;
     if to_ap
-        h__497 = D__KP_AP_KP(((n - 1)) + 1);
+        h__499 = D__KP_AP_KP(((n - 1)) + 1);
     else
-        h__497 = D__KP_AP_AP(((n - 1)) + 1);
+        h__499 = D__KP_AP_AP(((n - 1)) + 1);
     end
-    xn = h__497;
+    xn = h__499;
     if (~((xi >= x0) && (xi <= xn)))
         y = NaN;
     else
@@ -28,17 +28,17 @@ function [y] = kp_ap_nearest(to_ap, xi)
         stop = false;
         for i = (0):(((n - 1)) - 1)
             if to_ap
-                h__498 = D__KP_AP_KP((i) + 1);
+                h__500 = D__KP_AP_KP((i) + 1);
             else
-                h__498 = D__KP_AP_AP((i) + 1);
+                h__500 = D__KP_AP_AP((i) + 1);
             end
-            a = h__498;
+            a = h__500;
             if to_ap
-                h__499 = D__KP_AP_KP(((i + 1)) + 1);
+                h__501 = D__KP_AP_KP(((i + 1)) + 1);
             else
-                h__499 = D__KP_AP_AP(((i + 1)) + 1);
+                h__501 = D__KP_AP_AP(((i + 1)) + 1);
             end
-            b = h__499;
+            b = h__501;
             if (~stop)
                 if (((a + b) / 2) <= xi)
                     k = (i + 1);
@@ -47,15 +47,15 @@ function [y] = kp_ap_nearest(to_ap, xi)
                 end
             end
         end
-        h__500 = k;
-        h__501 = (n - 1);
-        if h__501 < h__500, h__500 = h__501; end
-        k = h__500;
+        h__502 = k;
+        h__503 = (n - 1);
+        if h__503 < h__502, h__502 = h__503; end
+        k = h__502;
         if to_ap
-            h__502 = D__KP_AP_AP((k) + 1);
+            h__504 = D__KP_AP_AP((k) + 1);
         else
-            h__502 = D__KP_AP_KP((k) + 1);
+            h__504 = D__KP_AP_KP((k) + 1);
         end
-        y = h__502;
+        y = h__504;
     end
 end

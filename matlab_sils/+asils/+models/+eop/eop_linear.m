@@ -30,11 +30,11 @@ function [dut1, xp, yp, dx, dy, dat, flag, mjd_t, xp_t, yp_t, dx_t, dy_t, ut_t, 
     flag = 0;
     n = numel(mjd_t);
     if ((mjd < mjd_t(1)) || (mjd > mjd_t(((n - 1)) + 1)))
-        h__243 = 1;
+        h__245 = 1;
     else
-        h__243 = 0;
+        h__245 = 0;
     end
-    flag = h__243;
+    flag = h__245;
     [t__442, t__443, t__444] = asils.models.eop.interp1_linear(mjd_t, xp_t, mjd, false, 0);
     ix = t__442;
     mjd_t = t__443;

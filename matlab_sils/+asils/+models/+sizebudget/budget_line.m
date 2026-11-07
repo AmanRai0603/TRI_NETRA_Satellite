@@ -34,11 +34,11 @@ function [n, m, p, pk, v] = budget_line(s, na, ns, nb, nn, mass, ps, pw, pm, pk_
         end
     end
     if isnan(mass)
-        h__110 = 0;
+        h__112 = 0;
     else
-        h__110 = mass;
+        h__112 = mass;
     end
-    mm = h__110;
+    mm = h__112;
     pp = 0;
     if (~isnan(ps))
         pp = ps;
@@ -52,11 +52,11 @@ function [n, m, p, pk, v] = budget_line(s, na, ns, nb, nn, mass, ps, pw, pm, pk_
         pkk = pk_part;
     end
     if isnan(vol)
-        h__111 = 0;
+        h__113 = 0;
     else
-        h__111 = vol;
+        h__113 = vol;
     end
-    vv = h__111;
+    vv = h__113;
     m = (n * mm);
     p = (n * pp);
     pk = (n * pkk);

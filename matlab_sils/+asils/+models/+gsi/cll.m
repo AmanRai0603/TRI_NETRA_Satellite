@@ -15,20 +15,20 @@ function [cp, ct] = cll(s, delta, sig_n, sig_t, tw, talt)
     c = cos(delta);
     sn = (s * c);
     e = (1 + erf(sn));
-    h__304 = (sn)^(2);
-    if ~isreal(h__304), h__304 = NaN; end
-    p = exp((-(h__304)));
-    h__305 = (tw / talt);
-    if h__305 < 0, h__305 = NaN; else, h__305 = sqrt(h__305); end
-    vr = h__305;
-    h__306 = pi;
-    if h__306 < 0, h__306 = NaN; else, h__306 = sqrt(h__306); end
-    sqpi = h__306;
-    h__307 = (s)^(2);
-    if ~isreal(h__307), h__307 = NaN; end
-    h__308 = (c)^(2);
-    if ~isreal(h__308), h__308 = NaN; end
-    ip = (((c / (sqpi * s)) * p) + (((1 / (2 * h__307)) + h__308) * e));
+    h__306 = (sn)^(2);
+    if ~isreal(h__306), h__306 = NaN; end
+    p = exp((-(h__306)));
+    h__307 = (tw / talt);
+    if h__307 < 0, h__307 = NaN; else, h__307 = sqrt(h__307); end
+    vr = h__307;
+    h__308 = pi;
+    if h__308 < 0, h__308 = NaN; else, h__308 = sqrt(h__308); end
+    sqpi = h__308;
+    h__309 = (s)^(2);
+    if ~isreal(h__309), h__309 = NaN; end
+    h__310 = (c)^(2);
+    if ~isreal(h__310), h__310 = NaN; end
+    ip = (((c / (sqpi * s)) * p) + (((1 / (2 * h__309)) + h__310) * e));
     dp = ((vr / (2 * s)) * (((sqpi * c) * e) + ((1 / s) * p)));
     st = ((sin(delta) / (sqpi * s)) * (p + ((sqpi * sn) * e)));
     cp = (((2 - sig_n) * ip) + (sig_n * dp));

@@ -50,8 +50,8 @@ function [nout, e, t, idx, sums, cnt, out] = kpi_ecss(k, los, e, bs, t, idx, ni,
                 if ((((cnt((bk) + 1) > 0) && isfinite(v(1))) && isfinite(v(2))) && isfinite(v(3)))
                     r = (1 / cnt((bk) + 1));
                     m = [(sums(((3 * bk)) + 1) * r); (sums((((3 * bk) + 1)) + 1) * r); (sums((((3 * bk) + 2)) + 1) * r)];
-                    h__632 = (v - m);
-                    out((nout) + 1) = (sqrt(h__632(1)*h__632(1) + h__632(2)*h__632(2) + h__632(3)*h__632(3)) * (180 / pi));
+                    h__634 = (v - m);
+                    out((nout) + 1) = (sqrt(h__634(1)*h__634(1) + h__634(2)*h__634(2) + h__634(3)*h__634(3)) * (180 / pi));
                     nout = (nout + 1);
                 end
             end
@@ -78,8 +78,8 @@ function [nout, e, t, idx, sums, cnt, out] = kpi_ecss(k, los, e, bs, t, idx, ni,
                     rb = (1 / cnt(((kb + s)) + 1));
                     ma = [(sums(((3 * kb)) + 1) * ra); (sums((((3 * kb) + 1)) + 1) * ra); (sums((((3 * kb) + 2)) + 1) * ra)];
                     mb = [(sums(((3 * (kb + s))) + 1) * rb); (sums((((3 * (kb + s)) + 1)) + 1) * rb); (sums((((3 * (kb + s)) + 2)) + 1) * rb)];
-                    h__633 = (mb - ma);
-                    out((nout) + 1) = (sqrt(h__633(1)*h__633(1) + h__633(2)*h__633(2) + h__633(3)*h__633(3)) * (180 / pi));
+                    h__635 = (mb - ma);
+                    out((nout) + 1) = (sqrt(h__635(1)*h__635(1) + h__635(2)*h__635(2) + h__635(3)*h__635(3)) * (180 / pi));
                     nout = (nout + 1);
                 end
             end

@@ -14,10 +14,10 @@ function [v, w, tmp] = kpi_stat_of(w, m, st, tmp)
         if (st == 0)
             acc = (-(1.7976931348623157e+308));
             for i = (0):((m) - 1)
-                h__647 = acc;
-                h__648 = w((i) + 1);
-                if h__648 > h__647, h__647 = h__648; end
-                acc = h__647;
+                h__649 = acc;
+                h__650 = w((i) + 1);
+                if h__650 > h__649, h__649 = h__650; end
+                acc = h__649;
             end
             v = acc;
         elseif (st == 1)
@@ -25,9 +25,9 @@ function [v, w, tmp] = kpi_stat_of(w, m, st, tmp)
             for i = (0):((m) - 1)
                 s = (s + (w((i) + 1) * w((i) + 1)));
             end
-            h__649 = (s / m);
-            if h__649 < 0, h__649 = NaN; else, h__649 = sqrt(h__649); end
-            v = h__649;
+            h__651 = (s / m);
+            if h__651 < 0, h__651 = NaN; else, h__651 = sqrt(h__651); end
+            v = h__651;
         elseif (st == 2)
             s2 = (-(0));
             for i = (0):((m) - 1)

@@ -21,14 +21,14 @@ function [nu] = srp_eclipse(r_sat, r_sun, model, re, rp, rsun, h_atm)
         if (ms < 0)
             nu = 1;
         else
-            h__493 = [(m(1) - (ms * s(1))); (m(2) - (ms * s(2))); (m(3) - (ms * s(3)))];
-            perp = sqrt(h__493(1)*h__493(1) + h__493(2)*h__493(2) + h__493(3)*h__493(3));
+            h__495 = [(m(1) - (ms * s(1))); (m(2) - (ms * s(2))); (m(3) - (ms * s(3)))];
+            perp = sqrt(h__495(1)*h__495(1) + h__495(2)*h__495(2) + h__495(3)*h__495(3));
             if (perp >= re)
-                h__494 = 1;
+                h__496 = 1;
             else
-                h__494 = 0;
+                h__496 = 0;
             end
-            nu = h__494;
+            nu = h__496;
         end
     elseif (model == 1)
         nu = asils.models.srp.frac_conical(r_sat, r_sun, re, rsun);

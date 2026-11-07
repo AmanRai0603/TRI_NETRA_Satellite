@@ -4391,3 +4391,19 @@ kind = "scenario"
 [[revision.case]]
 file = "design/revisions/S11.14/fault_bus_sun_stuck.toml"
 kind = "scenario"
+
+[[revision]]
+id = "S11.8b"
+at = "2026-11-07T18:00:00Z"
+by = "the developer"
+about = "the design loop's lower bound on the momentum parts' authority scale (docs/S11_PROGRESS.md; decision DR-design-003): the sizing refuses an authority scale that takes the momentum margin k_h x scale below its floor, which stopped the loop when its fluid-loop mass lever (x0.75 from scale 1) was refused; the momentum parts (cmg, fmr, rw, vscmg) now have their own lower bound, derived as the floor over the case's margin k_h and never below the registry's, apart from the coils' (mtq, mtqp keep 0.5). The loop takes the case's k_h as a new input"
+
+[[revision.method]]
+nodes = ["design_loop_converge", "design_loop_robustness", "design_loop_redundancy"]
+pseudocode = "design/revisions/S11.8b/looprules.pc"
+path = "design/looprules.pc"
+transcribes = "design/revisions/S7.15/looprules.pc as S7.15 left it, with a new function loop_scale_floor (the lowest authority scale asked of a part: the registry's for the coils and thrusters, floor/k_h for the momentum parts) and loop_converge taking the case's k_h"
+source = "DR-design-003 (design/decisions/DR-design-003.toml: the loop's lower bound for the momentum parts, a separate one from the coils', is the loop owner's to set); sizedemand's momentum_margin_floor and margin_keeps_floor"
+generate = ["adcs-design"]
+uses = ["design/sizedemand.pc"]
+why = "the loop never proposes an authority the sizing refuses by name"

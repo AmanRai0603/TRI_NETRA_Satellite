@@ -21,11 +21,11 @@ function [st, a] = jb2008_atm(alt_km, lat_deg, lon_deg, utc, has_tinf, tinf)
         avog16 = ((6.02214076e+23 * 1000) / 16);
         a.rho = rho;
         if has_tinf
-            h__172 = tinf;
+            h__174 = tinf;
         else
-            h__172 = 1000;
+            h__174 = 1000;
         end
-        a.t = h__172;
+        a.t = h__174;
         a.species = false;
         a.mmol = 16;
         a.n_o = (rho * avog16);

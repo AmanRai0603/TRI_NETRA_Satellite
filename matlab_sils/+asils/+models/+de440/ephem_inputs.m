@@ -26,7 +26,7 @@ function [e] = ephem_inputs(jd_tdb, rs, vs, rm, vm)
     e.earth_helio_pos = (-(rs));
     e.earth_helio_vel = (-(vs));
     e.sun_ra = atan2(rs(2), rs(1));
-    h__171 = asin((rs(3) / d));
-    if ~isreal(h__171), h__171 = NaN; end
-    e.sun_dec = h__171;
+    h__173 = asin((rs(3) / d));
+    if ~isreal(h__173), h__173 = NaN; end
+    e.sun_dec = h__173;
 end

@@ -11,9 +11,9 @@ function [nrm] = srp_array_normal(axis, s_hat_b)
     proj = [(s_hat_b(1) - (sa * ax(1))); (s_hat_b(2) - (sa * ax(2))); (s_hat_b(3) - (sa * ax(3)))];
     if (sqrt(proj(1)*proj(1) + proj(2)*proj(2) + proj(3)*proj(3)) < 1e-9)
         t = [1; 0; 0];
-        h__483 = ax(1);
-        if h__483 < 0, h__483 = -h__483; elseif h__483 == 0, h__483 = 0; end
-        if (h__483 > 0.9)
+        h__485 = ax(1);
+        if h__485 < 0, h__485 = -h__485; elseif h__485 == 0, h__485 = 0; end
+        if (h__485 > 0.9)
             t = [0; 1; 0];
         end
         ta = (t(1)*ax(1) + t(2)*ax(2) + t(3)*ax(3));

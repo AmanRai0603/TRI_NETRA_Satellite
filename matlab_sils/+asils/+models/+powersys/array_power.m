@@ -15,15 +15,15 @@ function [p] = array_power(area, eff, s, nu)
         if isnan(c)
             c = 0;
         end
-        h__103 = c;
-        h__104 = 0;
-        if h__104 > h__103, h__103 = h__104; end
-        lit = (lit + (area((f) + 1) * h__103));
+        h__105 = c;
+        h__106 = 0;
+        if h__106 > h__105, h__105 = h__106; end
+        lit = (lit + (area((f) + 1) * h__105));
     end
-    h__105 = nu;
-    h__106 = 0;
-    if h__106 > h__105, h__105 = h__106; end
-    h__106 = 1;
-    if h__106 < h__105, h__105 = h__106; end
-    p = (((1361 * h__105) * eff) * lit);
+    h__107 = nu;
+    h__108 = 0;
+    if h__108 > h__107, h__107 = h__108; end
+    h__108 = 1;
+    if h__108 < h__107, h__107 = h__108; end
+    p = (((1361 * h__107) * eff) * lit);
 end

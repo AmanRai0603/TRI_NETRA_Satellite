@@ -13,10 +13,10 @@ function [h] = fsw_rotor_targets(n, kind, hmax, h0, h_bias)
     t__512 = ((0):((8) - 1)).';
     for i = t__512(logical((t__512 < n))).'
         if (kind((i) + 1) == 0)
-            h__561 = h_bias;
-            h__562 = (0.25 * hmax((i) + 1));
-            if h__562 < h__561, h__561 = h__562; end
-            h((i) + 1) = h__561;
+            h__563 = h_bias;
+            h__564 = (0.25 * hmax((i) + 1));
+            if h__564 < h__563, h__563 = h__564; end
+            h((i) + 1) = h__563;
         elseif ((kind((i) + 1) == 2) || (kind((i) + 1) == 3))
             h((i) + 1) = h0((i) + 1);
         end
