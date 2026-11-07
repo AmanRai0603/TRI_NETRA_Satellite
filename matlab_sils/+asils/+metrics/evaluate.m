@@ -31,7 +31,7 @@ function M = evaluate(rec)
     for i = 1:numel(ms)
         m = ms{i};
         spec = asils.util.getf(m, 'window', WINDOWS{dw + 1});
-        idx = window_(P, t, mode, spec, WINDOWS);
+        idx = window_(P, t, mode, rec.nu(:), spec, WINDOWS);
         ni = numel(idx);
         stw = asils.util.getf(m, 'statistic', '');
         if isempty(stw), st = dst; else, st = opt_(STATS, stw, 5); end
@@ -112,14 +112,16 @@ function b = flag_(m, k, d)
     end
 end
 
-function idx = window_(P, t, mode, spec, WINDOWS)
+function idx = window_(P, t, mode, nu, spec, WINDOWS)
 % the samples a metric's window takes (kpistats' kpi_window): 0-based indices
     if strncmp(spec, 'after_s:', 8)
         w = 4; after = str2double(spec(9:end)); if ~isfinite(after), after = 0; end
+    elseif strncmp(spec, 'eclipse_s:', 10)
+        w = 5; after = str2double(spec(11:end)); if ~isfinite(after), after = 0; end
     else
         w = opt_(WINDOWS, spec, 0); after = 0;
     end
-    [ni, ~, ~, idx] = asils.models.kpistats.kpi_window(w, after, t, mode, numel(t), P.orbit.period_s, zeros(numel(t), 1));
+    [ni, ~, ~, idx] = asils.models.kpistats.kpi_window(w, after, t, mode, nu, numel(t), P.orbit.period_s, zeros(numel(t), 1));
     idx = idx(1:max(ni, 0));
 end
 

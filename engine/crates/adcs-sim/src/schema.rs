@@ -167,8 +167,9 @@ pub fn check_scenario(s: &Value, case: &Case) -> Result<(), Error> {
             }
         } else { bad.push(format!("metrics[{i}] ({id}): has no kind")); }
         if let Some(w) = m.get("window").and_then(Value::as_str) {
-            let ok = WINDOWS.contains(&w) || w.strip_prefix("after_s:").map(|x| x.parse::<f64>().map(f64::is_finite).unwrap_or(false)).unwrap_or(false);
-            if !ok { bad.push(format!("metrics[{i}] ({id}).window = {w:?}: one of {} or after_s:<seconds>", WINDOWS.join(", "))); }
+            let timed = |p: &str| w.strip_prefix(p).map(|x| x.parse::<f64>().map(f64::is_finite).unwrap_or(false)).unwrap_or(false);
+            let ok = WINDOWS.contains(&w) || timed("after_s:") || timed("eclipse_s:");
+            if !ok { bad.push(format!("metrics[{i}] ({id}).window = {w:?}: one of {}, after_s:<seconds> or eclipse_s:<half width, seconds>", WINDOWS.join(", "))); }
         }
         if let Some(r) = m.get("requirement").and_then(Value::as_str) {
             if !r.starts_with("req.") || !case.v.contains_key(r) {

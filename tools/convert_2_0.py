@@ -656,10 +656,13 @@ def convert(out, src=None):
 
     # ------------------------------------------------------------ the cases
     # a developer's revision may add a case of its own (`[[revision.case]]`: a file under design/revisions/, a scenario, campaign or
-    # trade of the 1.0.0 formats), after the converted ones, flown like them
+    # trade of the 1.0.0 formats), after the converted ones, flown like them; `replaces = true` takes the place of the converted one of the same name
     found = [(folder, kind, sorted((v1_root(folder) / folder).glob(pat)), v1_root(folder)) for folder, pat, kind in CASES]
     for r in revisions():
         for x in r.get("case", []):
+            if x.get("replaces"):         # a scenario, campaign or trade of the same name and kind, as converted, is this file instead (S11.10)
+                stem = pathlib.Path(x["file"]).stem
+                found = [(fo, k, [f for f in fs if not (k == x["kind"] and f.stem == stem)], b) for fo, k, fs, b in found]
             found.append((f"design/revisions/{r['id']}", x["kind"], [ROOT / x["file"]], ROOT))
     for folder, kind, files, base in found:
         for f in files:

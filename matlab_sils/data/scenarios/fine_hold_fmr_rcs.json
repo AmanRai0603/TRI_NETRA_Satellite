@@ -33,35 +33,35 @@
    "kind": "ape_los",
    "requirement": "req.ape",
    "statistic": "p99.73",
-   "window": "last_half_orbit"
+   "window": "last_orbit"
   },
   {
    "diagnostic": "the worst sample, beside the judged p99.73: req.ape is a 3-sigma requirement",
    "id": "ape_los_max",
    "kind": "ape_los",
    "statistic": "max",
-   "window": "last_half_orbit"
+   "window": "last_orbit"
   },
   {
    "diagnostic": "the three-axis error, beside the judged line of sight: req.ape is on the imager's line of sight",
    "id": "ape_3ax_p9973",
    "kind": "ape",
    "statistic": "p99.73",
-   "window": "last_half_orbit"
+   "window": "last_orbit"
   },
   {
    "id": "ake_los_p9973",
    "kind": "ake_los",
    "requirement": "req.ake",
    "statistic": "p99.73",
-   "window": "last_half_orbit"
+   "window": "last_orbit"
   },
   {
    "id": "rate_stability_p9973",
    "kind": "rate_stability",
    "requirement": "req.rks",
    "statistic": "p99.73",
-   "window": "last_half_orbit"
+   "window": "last_orbit"
   },
   {
    "channel": "ape_los",
@@ -88,7 +88,7 @@
  "schema": "adcs-scenario/1",
  "time": {
   "dt_s": 0.1,
-  "duration_s": 5740.0,
+  "duration_s": 11480.0,
   "record_dt_s": 0.1
  }
 }

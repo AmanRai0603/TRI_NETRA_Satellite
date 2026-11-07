@@ -4136,3 +4136,98 @@ source = "docs/S11_INVENTORY.md A5; DR-vv-002 (design/decisions/DR-vv-002.toml);
 generate = ["adcs-sim"]
 why = "about 4 % of Monte Carlo inertia draws and every edge corner of 10 % were impossible bodies (A5); the realisability test and the corner's clip are the design's, the engine and the twin call them"
 
+
+[[revision]]
+id = "S11.10"
+at = "2026-11-07T15:00:00Z"
+by = "the developer"
+about = "the verdicts (docs/S11_INVENTORY.md A7 and A1; decision DR-kpi-001): the judging windows, so that a run is judged over a whole orbit and over the eclipse's transitions, and a slew from the time it has settled, and (A1) one verdict of a closure with a stated confidence"
+
+[[revision.method]]
+node = "kpi_metric_statistics"
+pseudocode = "design/revisions/S11.10/kpistats.pc"
+path = "kpi/kpistats.pc"
+transcribes = "design/revisions/S7.14b/kpistats.pc as S7.14b left it, with the window 'eclipse' (the samples within a half width of each change of the shadow factor, the scenario's eclipse_s:<half width>), the shadow factor among kpi_window's inputs, and the finding that the window 'pointing' counts the Sun modes stated at the window"
+source = "docs/S11_INVENTORY.md A7; DR-kpi-001 (design/decisions/DR-kpi-001.toml); ECSS-E-ST-60-10C (the error of a requirement is judged over the whole of the orbit's conditions)"
+generate = ["adcs-sim"]
+why = "a fine-pointing verdict judged half of one orbit, so a star tracker blind in the other half was never scored (A7); the window words are the design's, the engine and the twin call them"
+
+[[revision.case]]
+file = "design/revisions/S11.10/fine_hold_cmg.toml"
+kind = "scenario"
+replaces = true
+
+[[revision.case]]
+file = "design/revisions/S11.10/fine_hold_fmr.toml"
+kind = "scenario"
+replaces = true
+
+[[revision.case]]
+file = "design/revisions/S11.10/fine_hold_fmr_rcs.toml"
+kind = "scenario"
+replaces = true
+
+[[revision.case]]
+file = "design/revisions/S11.10/fine_hold_img.toml"
+kind = "scenario"
+replaces = true
+
+[[revision.case]]
+file = "design/revisions/S11.10/fine_hold_img_lqr.toml"
+kind = "scenario"
+replaces = true
+
+[[revision.case]]
+file = "design/revisions/S11.10/fine_hold_img_smc.toml"
+kind = "scenario"
+replaces = true
+
+[[revision.case]]
+file = "design/revisions/S11.10/fine_hold_rw_rcs.toml"
+kind = "scenario"
+replaces = true
+
+[[revision.case]]
+file = "design/revisions/S11.10/fine_hold_vscmg.toml"
+kind = "scenario"
+replaces = true
+
+[[revision.case]]
+file = "design/revisions/S11.10/slew_cmg.toml"
+kind = "scenario"
+replaces = true
+
+[[revision.case]]
+file = "design/revisions/S11.10/slew_fmr.toml"
+kind = "scenario"
+replaces = true
+
+[[revision.case]]
+file = "design/revisions/S11.10/slew_fmr_rcs.toml"
+kind = "scenario"
+replaces = true
+
+[[revision.case]]
+file = "design/revisions/S11.10/slew_img.toml"
+kind = "scenario"
+replaces = true
+
+[[revision.case]]
+file = "design/revisions/S11.10/slew_img_lqr.toml"
+kind = "scenario"
+replaces = true
+
+[[revision.case]]
+file = "design/revisions/S11.10/slew_img_smc.toml"
+kind = "scenario"
+replaces = true
+
+[[revision.case]]
+file = "design/revisions/S11.10/slew_rw_rcs.toml"
+kind = "scenario"
+replaces = true
+
+[[revision.case]]
+file = "design/revisions/S11.10/slew_vscmg.toml"
+kind = "scenario"
+replaces = true

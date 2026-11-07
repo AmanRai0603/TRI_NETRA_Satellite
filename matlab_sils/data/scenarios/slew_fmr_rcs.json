@@ -44,7 +44,7 @@
    "kind": "ape_los",
    "requirement": "req.ape",
    "statistic": "p99.73",
-   "window": "after_s:320"
+   "window": "after_s:280"
   },
   {
    "diagnostic": "momentum used, for sizing: the case does not state the margin req.hsat",

@@ -578,7 +578,7 @@ end
             rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
             self.assertEqual(x["body"]["node"]["group_id"], "kpi", nid)
             self.assertEqual(self.beh(nid), "method", nid)
-            rev = "S11.8" if nid == "kpi_metric_evaluate" else "S7.14b"      # S11.8 put the sensors' power in the power kinds (Y1)
+            rev = {"kpi_metric_evaluate": "S11.8", "kpi_metric_statistics": "S11.10"}.get(nid, "S7.14b")      # S11.10: the eclipse window (A7); S11.8 put the sensors' power in the power kinds (Y1)
             self.assertTrue(rows[("code", "pseudocode")][1].startswith(path + f" (the developer's revision {rev}"), nid)
             self.assertTrue(rows[("code", "transcribes")][0], nid)
             self.assertEqual(rows[("code", "generate")][0], gen, nid)
@@ -593,7 +593,7 @@ end
         words = lambda name: re.findall(r'"([^"]+)"', re.search(rf"pub const {name}: \[&str; \d+\] = \[(.*?)\];", schema, re.S).group(1))
         gen = lambda mod, choice: [k.lower() for k, _v in sorted(re.findall(rf"pub const {choice}_(\w+): i64 = (\d+);", (src / "gen" / f"{mod}.rs").read_text(encoding="utf-8")), key=lambda x: int(x[1]))]
         self.assertEqual(gen("kpimetrics", "METRICKIND"), words("METRIC_KINDS") + ["none"])
-        self.assertEqual(gen("kpistats", "METRICWINDOW"), words("WINDOWS") + ["after_s"])
+        self.assertEqual(gen("kpistats", "METRICWINDOW"), words("WINDOWS") + ["after_s", "eclipse"])
         self.assertEqual(gen("kpistats", "METRICSTAT"), [w.replace(".", "") for w in words("STATISTICS")] + ["none"])
         self.assertEqual(gen("kpimetrics", "METRICCHANNEL"), words("CHANNELS"))
         units = re.findall(r'"([^"]+)"', re.search(r"const UNITS: \[&str; \d+\] = \[(.*?)\];", met).group(1))

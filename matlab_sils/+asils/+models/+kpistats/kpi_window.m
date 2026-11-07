@@ -1,11 +1,13 @@
-function [ni, t, mode, idx] = kpi_window(w, after, t, mode, n, per, idx)
-%KPI_WINDOW  The samples of the window w of a run of n samples at times t [s] in modes mode, its orbit's period per [s] (after_s:
-%   from the time after [s]): their indices, in order, in idx; how many.
+function [ni, t, mode, nu, idx] = kpi_window(w, after, t, mode, nu, n, per, idx)
+%KPI_WINDOW  The samples of the window w of a run of n samples at times t [s] in modes mode, with the shadow factor nu (1 sunlit),
+%   its orbit's period per [s] (after_s: from the time after [s]; eclipse: within after [s] of a change of nu < 1, entry
+%   or exit): their indices, in order, in idx; how many.
 %   length: 32
 %   w: MetricWindow (passed a choice, as its option's number)
 %   after: real[1] (passed a plain number)
 %   t: inout real[1][*] (passed a plain number)
 %   mode: inout int[*] (passed a whole number)
+%   nu: inout real[1][*] (passed a plain number)
 %   n: int (passed a whole number)
 %   per: real[1] (passed a plain number)
 %   idx: inout int[*] (passed a whole number)
@@ -17,20 +19,44 @@ function [ni, t, mode, idx] = kpi_window(w, after, t, mode, n, per, idx)
         te = t(((n - 1)) + 1);
     end
     ni = 0;
-    for j = (0):((n) - 1)
-        inw = true;
-        if (w == 1)
-            inw = (t((j) + 1) >= (te - per));
-        elseif (w == 2)
-            inw = (t((j) + 1) >= (te - (per / 2)));
-        elseif (w == 3)
-            inw = ((mode((j) + 1) + 1) > 1);
-        elseif (w == 4)
-            inw = (t((j) + 1) >= after);
+    if (w == 5)
+        j = ((0):((n) - 1)).';
+        if ~isempty(j)
+            idx((j) + 1) = 0;
         end
-        if inw
-            idx((ni) + 1) = j;
-            ni = (ni + 1);
+        for j = (1):((n) - 1)
+            now = (nu((j) + 1) < 1);
+            before = (nu(((j - 1)) + 1) < 1);
+            if ((now && (~before)) || (before && (~now)))
+                for i = (0):((n) - 1)
+                    if (((t((i) + 1) - t((j) + 1)) <= after) && ((t((j) + 1) - t((i) + 1)) <= after))
+                        idx((i) + 1) = 1;
+                    end
+                end
+            end
+        end
+        for j = (0):((n) - 1)
+            if (idx((j) + 1) == 1)
+                idx((ni) + 1) = j;
+                ni = (ni + 1);
+            end
+        end
+    else
+        for j = (0):((n) - 1)
+            inw = true;
+            if (w == 1)
+                inw = (t((j) + 1) >= (te - per));
+            elseif (w == 2)
+                inw = (t((j) + 1) >= (te - (per / 2)));
+            elseif (w == 3)
+                inw = ((mode((j) + 1) + 1) > 1);
+            elseif (w == 4)
+                inw = (t((j) + 1) >= after);
+            end
+            if inw
+                idx((ni) + 1) = j;
+                ni = (ni + 1);
+            end
         end
     end
 end

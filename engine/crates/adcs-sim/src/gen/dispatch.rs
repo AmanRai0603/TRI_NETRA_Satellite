@@ -1181,22 +1181,28 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             let mut io3 = x[at + 1..at + 1 + n3].iter().map(|v| *v as i64).collect::<Vec<i64>>();
             at += 1 + n3;
             if x.len() < at + 1 { return None; }
-            let a4 = { let x = &x[at..]; x[0] as i64 };
+            let n4 = x[at] as usize;
+            if x.len() < at + 1 + n4 { return None; }
+            let mut io4 = x[at + 1..at + 1 + n4].to_vec();
+            at += 1 + n4;
+            if x.len() < at + 1 { return None; }
+            let a5 = { let x = &x[at..]; x[0] as i64 };
             at += 1;
             if x.len() < at + 1 { return None; }
-            let a5 = { let x = &x[at..]; x[0] };
+            let a6 = { let x = &x[at..]; x[0] };
             at += 1;
             if x.len() < at + 1 { return None; }
-            let n6 = x[at] as usize;
-            if x.len() < at + 1 + n6 { return None; }
-            let mut io6 = x[at + 1..at + 1 + n6].iter().map(|v| *v as i64).collect::<Vec<i64>>();
-            at += 1 + n6;
+            let n7 = x[at] as usize;
+            if x.len() < at + 1 + n7 { return None; }
+            let mut io7 = x[at + 1..at + 1 + n7].iter().map(|v| *v as i64).collect::<Vec<i64>>();
+            at += 1 + n7;
             if x.len() != at { return None; }
-            let r = crate::kpistats::kpi_window(a0, a1, &mut io2, &mut io3, a4, a5, &mut io6);
+            let r = crate::kpistats::kpi_window(a0, a1, &mut io2, &mut io3, &mut io4, a5, a6, &mut io7);
             out.push(r as f64);
             out.push(io2.len() as f64); for v in io2.iter() { let v = *v; out.push(v); }
             out.push(io3.len() as f64); for v in io3.iter() { let v = *v; out.push(v as f64); }
-            out.push(io6.len() as f64); for v in io6.iter() { let v = *v; out.push(v as f64); }
+            out.push(io4.len() as f64); for v in io4.iter() { let v = *v; out.push(v); }
+            out.push(io7.len() as f64); for v in io7.iter() { let v = *v; out.push(v as f64); }
         }
         "kpistats::kpi_merge" => {
             let mut at: usize = 0;

@@ -179,16 +179,17 @@ fn stat(mut x: Vec<f64>, st: i64) -> f64 {
     crate::gen::kpistats::kpi_statistic(&mut x, n as i64, st, &mut w, &mut tmp)
 }
 
-/// The samples of a run a metric's window (the scenario's word; after_s:<seconds>) takes: kpi_metric_statistics's
-/// kpi_window over the times, the modes and the orbit's period.
-fn window(c: &Config, t: &mut [f64], mode: &mut [i64], spec: &str) -> Vec<usize> {
+/// The samples of a run a metric's window (the scenario's word; after_s:<seconds>, eclipse_s:<seconds>) takes:
+/// kpi_metric_statistics's kpi_window over the times, the modes, the shadow factor and the orbit's period.
+fn window(c: &Config, t: &mut [f64], mode: &mut [i64], nu: &mut [f64], spec: &str) -> Vec<usize> {
     use crate::gen::kpistats as ks;
-    let (w, after) = match spec.strip_prefix("after_s:") {
-        Some(x) => (ks::METRICWINDOW_AFTER_S, x.parse::<f64>().unwrap_or(0.0)),
-        None => (option(&crate::schema::WINDOWS, spec, ks::METRICWINDOW_ALL), 0.0),
+    let (w, after) = match (spec.strip_prefix("after_s:"), spec.strip_prefix("eclipse_s:")) {
+        (Some(x), _) => (ks::METRICWINDOW_AFTER_S, x.parse::<f64>().unwrap_or(0.0)),
+        (_, Some(x)) => (ks::METRICWINDOW_ECLIPSE, x.parse::<f64>().unwrap_or(0.0)),
+        _ => (option(&crate::schema::WINDOWS, spec, ks::METRICWINDOW_ALL), 0.0),
     };
     let mut idx = vec![0i64; t.len()];
-    let ni = ks::kpi_window(w, after, t, mode, t.len() as i64, c.period_s, &mut idx);
+    let ni = ks::kpi_window(w, after, t, mode, nu, t.len() as i64, c.period_s, &mut idx);
     idx[..ni.max(0) as usize].iter().map(|&j| j as usize).collect()
 }
 
@@ -205,6 +206,7 @@ pub fn evaluate(c: &Config, rec: &Record, d: &Derived) -> Vec<Value> {
     let col = |f: &dyn Fn(&crate::run::Row) -> f64| -> Vec<f64> { rec.rows.iter().map(f).collect() };
     let mut t = col(&|r| r.t);
     let mut mode: Vec<i64> = rec.rows.iter().map(|r| r.mode as i64).collect();
+    let mut nu = col(&|r| r.nu);
     let (mut prop, mut p_mtq, mut p_rw, mut p_rcs, mut p_sens) = (col(&|r| r.prop_kg), col(&|r| r.p_mtq), col(&|r| r.p_rw), col(&|r| r.p_rcs), col(&|r| r.p_sens));
     let mut h: Vec<f64> = rec.rows.iter().flat_map(|r| r.h_w[..rec.nr].iter().copied()).collect();
     // the channels, in MetricChannel's order
@@ -214,7 +216,7 @@ pub fn evaluate(c: &Config, rec: &Record, d: &Derived) -> Vec<Value> {
     let ps = PowerSystem::from(&c.case);
     for m in &ms {
         let spec = json::get(m, "window").and_then(|x| x.as_str()).unwrap_or(WINDOWS[dw as usize]);
-        let idx = window(c, &mut t, &mut mode, spec);
+        let idx = window(c, &mut t, &mut mode, &mut nu, spec);
         let mut ix = usize_ix(&idx);
         let ni = ix.len() as i64;
         let st = match json::get(m, "statistic").and_then(|x| x.as_str()) { Some(s) => option(&STATISTICS, s, ks::METRICSTAT_NONE), None => dst };
