@@ -83,6 +83,27 @@ The link also carries a timing trailer from the target's own counter (the SysTic
 target, `clock_gettime` on the POSIX target, the board's timer on a real OBC), so the same
 engine-side bookkeeping serves real OILS.
 
+## Bus faults (O11)
+
+The emulated buses can be made to fail. A scenario's `[[faults]]` takes a `bus_*` kind at a `device` of the device map
+(`fsw/devices/example_3u.toml`, one fault point per device, each listing the `bus_faults` its bus takes):
+
+| kind | what the bus does |
+|---|---|
+| `bus_nack` | the device does not answer (an I2C or SPI transfer fails, a UART or CAN stream is silent); on the output side the write fails with a bus status and the device keeps its last command |
+| `bus_crc` | a UART frame (star tracker, GNSS) carries a wrong CRC; the I2C, SPI and PWM carry none |
+| `bus_stuck` | the register, frame, telemetry or command stops changing: the last good one again, flagged good |
+| `bus_delay` | `value` seconds added to the answer: the command lands that much later (added to the soft-OILS latency and its deadline) |
+| `bus_brownout` | the supply drops for `value` seconds: no answer, and a load it drives (coils, rotors) gets no command |
+| `bus_can_error` | the CAN controller sees error frames: nothing is received or sent while it lasts |
+
+The fault acts on the bytes at the engine's bus (`busfault.rs`, the twin's `+asils/+faults/bus_*.m`), so it reaches the
+flight software on the in-process bus and, through the TICK, on the virtual OBC (the `present` byte's bits 4 and 5 make the
+OBC's PWM and CAN writes fail with a bus status). It is glue: nothing in it is a model of the spacecraft. Each case
+(`design/revisions/S11.14/fault_bus_<device>_<kind>.toml`) asks the metric `fault_raised` whether the flight software's fault word
+has the flag the driver should raise. Where no driver raises one the verdict fails and stays failing: that is the finding, held
+too by `fsw-rs/tests/bus_faults.rs` and the skipped list of `fsw/tests/test_fsw.c`.
+
 ## From soft OILS to OILS
 
 On a real OBC, the same flight software and the same link server run behind a board target.

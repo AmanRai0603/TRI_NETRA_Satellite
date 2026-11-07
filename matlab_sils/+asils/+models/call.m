@@ -2627,6 +2627,22 @@ function y = call(name, x)
             at = at + 1;
             [o1, io1] = asils.models.kpimetrics.kpi_schedule_replays(a1, a2);
             y = [double(o1); numel(io1); reshape(io1, [], 1)];
+        case 'kpimetrics::kpi_fault_raised'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            n2 = x(at + 1);
+            a2 = reshape(x(at + 2:at + 1 + n2), [], 1);
+            at = at + 1 + n2;
+            xa = x(at + 1:end);
+            a3 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a4 = xa(1);
+            at = at + 1;
+            [o1, io1, io2] = asils.models.kpimetrics.kpi_fault_raised(a1, a2, a3, a4);
+            y = [double(o1); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1)];
         case 'kpimetrics::kpi_propellant'
             at = 0;
             n1 = x(at + 1);

@@ -21,7 +21,9 @@
  *
  * present: bit0 magnetometer, bit1 gyro, bit2 Sun sensors, bit3 Earth sensor (an absent
  * device answers ADCS_E_NODEV, as on the bus). The OBC side implements adcs_hal.h from the
- * last TICK, so the flight software's drivers run unchanged.
+ * last TICK, so the flight software's drivers run unchanged. bit4: the PWM writes fail with
+ * ADCS_E_BUS (the word is not stored); bit5: the CAN sends fail likewise (a bus fault of the
+ * engine's rig, docs/S11_INVENTORY.md O11).
  *
  * Timing trailer (soft OILS): the ticks of the platform's free-running counter spent
  * inside adcs_fsw_step, and the counter's rate (0 when the platform has no counter).

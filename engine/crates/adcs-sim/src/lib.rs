@@ -13,6 +13,7 @@ pub mod product;
 pub mod lqr;
 pub mod config;
 pub mod run;
+pub mod busfault;
 pub mod metrics;
 pub mod rec;
 pub mod fsio;

@@ -207,6 +207,7 @@ pub fn evaluate(c: &Config, rec: &Record, d: &Derived) -> Vec<Value> {
     let mut t = col(&|r| r.t);
     let mut mode: Vec<i64> = rec.rows.iter().map(|r| r.mode as i64).collect();
     let mut nu = col(&|r| r.nu);
+    let mut faults: Vec<i64> = rec.rows.iter().map(|r| r.faults as i64).collect();
     let (mut prop, mut p_mtq, mut p_rw, mut p_rcs, mut p_sens) = (col(&|r| r.prop_kg), col(&|r| r.p_mtq), col(&|r| r.p_rw), col(&|r| r.p_rcs), col(&|r| r.p_sens));
     let mut h: Vec<f64> = rec.rows.iter().flat_map(|r| r.h_w[..rec.nr].iter().copied()).collect();
     // the channels, in MetricChannel's order
@@ -245,6 +246,7 @@ pub fn evaluate(c: &Config, rec: &Record, d: &Derived) -> Vec<Value> {
             km::METRICKIND_SPIN_RATE_ERROR => km::kpi_spin_error_stat(&mut spin, &mut ix, ni, c.spin_dps, st, &mut w, &mut tmp),
             km::METRICKIND_MODE_FRACTION => km::kpi_mode_fraction(&mut mode, &mut ix, ni, mode_named()),
             km::METRICKIND_FINE_LAW_FRACTION => km::kpi_ticks_ran_percent(rec.ledger.fine_ran as i64, rec.ledger.fine_ticks as i64),
+            km::METRICKIND_FAULT_RAISED => km::kpi_fault_raised(&mut faults, &mut ix, ni, json::f(m, "mask", 65535.0) as i64),
             km::METRICKIND_DATE_ERROR => rec.ledger.date_err_max_s,
             km::METRICKIND_SCHEDULE_REPLAYS => {
                 let mut cross: Vec<i64> = rec.ledger.sched_cross.iter().map(|&x| x as i64).collect();

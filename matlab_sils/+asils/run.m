@@ -47,6 +47,8 @@ function rec = run(scenarioId, caseFile, varargin)
     bus = asils.hal.bus();
     F = asils.fsw.init(P.blob, 0);
     faults = P.faults; fdone = false(1, numel(faults));
+    U_bf = asils.faults.bus_init(faults);          % the bus faults (O11): what the buses do to the bytes
+    held = struct('m', zeros(3, 1), 'hdot', zeros(8, 1), 'gdot', zeros(4, 1), 'rcs', zeros(3, 1));
     ledger = struct('fine_ticks', 0, 'fine_ran', 0, 'date_err_max_s', 0, 'sched_cross', zeros(P.fsw.n_sched, 1)); tau_prev = zeros(3, 1); t_prev = -Inf;
 
     [r, v, O] = asils.orbit.state(O, 0);
@@ -68,7 +70,7 @@ function rec = run(scenarioId, caseFile, varargin)
         'w_meas', Z(3), 'h_w', Z(max(nr,1)), 'cmd_r', Z(max(nr,1)), 'hdot', Z(max(nr,1)), 'delta', Z(max(ng,1)), 'm', Z(3), 'tau_dist', Z(12), 'tau_mtq', Z(3), ...
         'tau_rw', Z(3), 'tau_rcs', Z(3), 'tau_req', Z(3), 'mode', Z(1), 'P_mtq', Z(1), 'P_rw', Z(1), 'P_rcs', Z(1), 'P_sens', Z(1), ...
         'prop_kg', Z(1), 'r', Z(3), 'v', Z(3), 'rho', Z(1), 'nu', Z(1), 'B', Z(3), 'B_meas', Z(3), ...
-        'sun_ok', Z(1), 'st_ok', Z(1), 'ad_ok', Z(1), 'sun_eci', Z(3), 'sun_body', Z(3), 'n_failed', Z(1));
+        'sun_ok', Z(1), 'st_ok', Z(1), 'ad_ok', Z(1), 'sun_eci', Z(3), 'sun_body', Z(3), 'n_failed', Z(1), 'faults', Z(1));
     MT = asils.fsw.modes(); modes = MT.state;
     a = struct('m_b', zeros(3, 1), 'm_coil', zeros(3, 1), 'hdot', zeros(8, 1), 'gdot', zeros(4, 1), 'tau_rcs', zeros(3, 1), ...
                'p_mtq', 0, 'p_mex', 0, 'p_rcs', 0);
@@ -104,7 +106,9 @@ function rec = run(scenarioId, caseFile, varargin)
         [sky.b_b, sky.sb, sky.mb, sky.nb, sky.earth_ang] = asils.models.skyview.sky_view(rb, b_eci, sun_rel, moon_rel, r);
 
         %% sensors -> bytes; the flight software; bytes -> commands
+        mark = asils.faults.bus_mark(bus);
         [U, bus, z] = asils.devices.sense(U, dev, bus, x, sky, a.m_coil, nu, t, k, rt, r, v, P.jd0, dt, H.scale);
+        [U_bf, bus] = asils.faults.bus_sensors(U_bf, t, bus, mark);      % the bus faults: what the devices' bytes suffer before the flight software reads them
         % the time source the flight software reads: the clock since it booted (the run's time and its age at the start), the
         % faults' steps and each timestamp's jitter (the amplitude, signed, from the fault's time on)
         jit = 0;
@@ -121,6 +125,7 @@ function rec = run(scenarioId, caseFile, varargin)
         end
         [F, bus, H] = asils.hal.exchange(H, F, bus);
         cmd = asils.hal.commands(bus, p.m_max, tmax, gmax, dt, H.scale, nr, ng, p.nc);
+        [U_bf, cmd] = asils.faults.bus_actuators(U_bf, t, cmd);          % the bus faults on the output side
         bus.can_tx = zeros(0, 10); bus.can_rx = zeros(0, 10);
         mode = F.mode; ad_ok = F.ad_ok;
         last_mode = modes{mode + 1};
@@ -163,14 +168,28 @@ function rec = run(scenarioId, caseFile, varargin)
             if ng > 0, R_.delta(:,j) = x.d(1:ng); end
             R_.tau_rcs(:,j) = a.tau_rcs; R_.prop_kg(j) = prop;
             R_.m(:,j) = a.m_b; R_.tau_dist(:,j) = parts(:); R_.tau_mtq(:,j) = tau_mtq;
-            R_.mode(j) = mode + 1; R_.P_mtq(j) = pavg(1); R_.P_rw(j) = pavg(2); R_.P_rcs(j) = pavg(3);
+            R_.faults(j) = F.faults; R_.mode(j) = mode + 1; R_.P_mtq(j) = pavg(1); R_.P_rw(j) = pavg(2); R_.P_rcs(j) = pavg(3);
             R_.P_sens(j) = asils.models.sensorpower.sensor_power(mode, dev.sens_w);   % the sensors' steady power in the mode flown (sens_power)
             R_.r(:,j) = r; R_.v(:,j) = v; R_.rho(j) = rho; R_.nu(j) = nu; R_.B(:,j) = sky.b_b; R_.B_meas(:,j) = z.b_meas;
             R_.sun_ok(j) = z.sun_ok; R_.st_ok(j) = z.st_ok; R_.ad_ok(j) = ad_ok;
             R_.sun_eci(:,j) = unit_(sun_rel); R_.sun_body(:,j) = sky.sb;
         end
         if k == N, break, end
-        x = asils.plant.step(x, dt, B, tau_d + tau_mtq + a.tau_rcs, a.hdot, a.gdot);
+        delay = asils.faults.bus_delay(U_bf, t);
+        if delay > 0
+            % a bus delay: the previous actuation holds for it, then this tick's command acts (run.rs step_plant)
+            held_ext = (tau_d + asils.models.coiltorque.coil_torque(held.m, sky.b_b)) + held.rcs;
+            if delay >= dt
+                x = asils.plant.step(x, dt, B, held_ext, held.hdot, held.gdot);
+            else
+                x1 = x;
+                if delay > 0, x1 = asils.plant.step(x, delay, B, held_ext, held.hdot, held.gdot); end
+                x = asils.plant.step(x1, dt - delay, B, tau_d + tau_mtq + a.tau_rcs, a.hdot, a.gdot);
+            end
+        else
+            x = asils.plant.step(x, dt, B, tau_d + tau_mtq + a.tau_rcs, a.hdot, a.gdot);
+        end
+        held = struct('m', a.m_b, 'hdot', a.hdot, 'gdot', a.gdot, 'rcs', a.tau_rcs);
         H = asils.hal.pace(H, t);                  % real-time pacing for OILS / HILS
         if ~isempty(ckpt) && toc(tcp) > ckpt_every
             wall = wall0 + toc(tic_all); %#ok<NASGU>

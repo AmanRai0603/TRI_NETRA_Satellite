@@ -35,15 +35,16 @@ pub enum T {
 
 pub const ALGORITHM_SLOTS: [&str; 8] = ["detumble", "attitude", "pointing", "mtq_pointing", "sun_acquisition", "allocation", "thrusters",
     "sun_spin" /* the old name of sun_acquisition */];
-pub const METRIC_KINDS: [&str; 34] = ["time_to_rate", "ape", "ape_los", "ake", "ake_los", "rate_stability", "time_to_threshold",
+pub const METRIC_KINDS: [&str; 35] = ["time_to_rate", "ape", "ape_los", "ake", "ake_los", "rate_stability", "time_to_threshold",
     "wheel_momentum_peak", "time_to_mode", "sun_angle", "spin_rate_error", "mode_fraction", "propellant", "power_mean", "power_peak",
     "jitter", "rpe", "rpe_los", "mpe", "mpe_los", "pde", "pde_los", "rke", "rke_los", "mke", "mke_los", "kde", "kde_los",
-    "power_margin", "battery_dod", "soc_min", "fine_law_fraction", "date_error", "schedule_replays"];
+    "power_margin", "battery_dod", "soc_min", "fine_law_fraction", "date_error", "schedule_replays", "fault_raised"];
 pub const WINDOWS: [&str; 4] = ["all", "last_orbit", "last_half_orbit", "pointing"];
 pub const STATISTICS: [&str; 5] = ["max", "rms", "mean", "p95", "p99.73"];
 pub const CHANNELS: [&str; 10] = ["ape_3ax", "ape_los", "ake_3ax", "ake_los", "rate", "rks", "sun_angle", "sun_angle_geo", "spin_z", "rate_err"];
-pub const FAULTS: [&str; 12] = ["rotor_fail", "gimbal_stuck", "st_head_fail", "coil_fail", "gyro_bias_step", "gps_outage", "rcs_valve_fail", "mag_fail",
-    "gyro_fail", "fsw_reset", "clock_step", "clock_jitter"];
+pub const FAULTS: [&str; 18] = ["rotor_fail", "gimbal_stuck", "st_head_fail", "coil_fail", "gyro_bias_step", "gps_outage", "rcs_valve_fail", "mag_fail",
+    "gyro_fail", "fsw_reset", "clock_step", "clock_jitter",
+    "bus_nack", "bus_crc", "bus_stuck", "bus_delay", "bus_brownout", "bus_can_error"];
 /// Metric kinds the engine accepts in a file but does not compute yet: refused with the reason.
 pub const NOT_COMPUTED: [(&str, &str); 0] = [];
 
@@ -69,12 +70,13 @@ pub const SCENARIO: &[(&str, T)] = &[
     ("fsw.rw_damping", T::Num), ("fsw.rw_rate_hz", T::Num), ("fsw.spin_rate_dps", T::Num), ("fsw.ss_gain", T::Num),
     ("fsw.sun_acq_rate_deg_s", T::Num), ("fsw.sun_spin_dwell_out_s", T::Num), ("fsw.sun_spin_perp_out_dps", T::Num), ("fsw.wheel_bias_Nms", T::Num),
     ("faults", T::List), ("faults[].t_s", T::Num), ("faults[].kind", T::OneOf(&FAULTS)), ("faults[].index", T::Num), ("faults[].value", T::NumOrVec3), ("faults[].end_s", T::Num),
+    ("faults[].device", T::OneOf(&crate::busfault::DEVICES)),
     ("metrics", T::List), ("metrics[].id", T::Str), ("metrics[].kind", T::OneOf(&METRIC_KINDS)), ("metrics[].window", T::Str),
     ("metrics[].statistic", T::OneOf(&STATISTICS)), ("metrics[].channel", T::OneOf(&CHANNELS)), ("metrics[].mode", T::Mode),
     ("metrics[].from_s", T::Num), ("metrics[].hold_s", T::Num), ("metrics[].rate_threshold_deg_s", T::Num), ("metrics[].threshold_deg", T::Num),
     ("metrics[].requirement", T::Str), ("metrics[].limit", T::Num), ("metrics[].sense", T::OneOf(&["max", "min"])),
     ("metrics[].unit_min", T::Flag), ("metrics[].end_at_mode_exit", T::Flag), ("metrics[].diagnostic", T::Str),
-    ("metrics[].delta_s", T::Num), ("metrics[].separation_s", T::Num),
+    ("metrics[].mask", T::Num), ("metrics[].delta_s", T::Num), ("metrics[].separation_s", T::Num),
 ];
 
 /// The schedule entries the flight software holds (fsw/params/params.toml max_schedule).

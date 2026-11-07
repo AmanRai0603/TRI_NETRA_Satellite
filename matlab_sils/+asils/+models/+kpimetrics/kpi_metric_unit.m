@@ -21,7 +21,7 @@ function [u] = kpi_metric_unit(kind, unit_min)
         u = 5;
     elseif (kind == 32)
         u = 2;
-    elseif (kind == 33)
+    elseif ((kind == 33) || (kind == 34))
         u = 9;
     elseif (kind == 12)
         u = 6;

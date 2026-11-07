@@ -79,7 +79,8 @@ adcs_status_t adcs_hal_spi_xfer(uint8_t bus, uint8_t cs, const uint8_t *tx, uint
     cpy(rx, L.gyro, n > 13 ? 13 : n);
     return ADCS_OK;
 }
-adcs_status_t adcs_hal_can_send(uint8_t port, const adcs_can_frame_t *f) { (void)port; if (L.ntx < 32) L.tx[L.ntx++] = *f; return ADCS_OK; }
+/* present bit4 / bit5: the engine's bus fault on the output side (O11): the write fails with ADCS_E_BUS and the word does not go out */
+adcs_status_t adcs_hal_can_send(uint8_t port, const adcs_can_frame_t *f) { (void)port; if (L.present & 0x20u) return ADCS_E_BUS; if (L.ntx < 32) L.tx[L.ntx++] = *f; return ADCS_OK; }
 adcs_status_t adcs_hal_can_recv(uint8_t port, adcs_can_frame_t *f)
 {
     (void)port;
@@ -87,7 +88,7 @@ adcs_status_t adcs_hal_can_recv(uint8_t port, adcs_can_frame_t *f)
     *f = L.canq[L.can_i++];
     return ADCS_OK;
 }
-adcs_status_t adcs_hal_pwm_set(uint8_t ch, int16_t d) { if (ch >= 8) return ADCS_E_ARG; L.pwm[ch] = d; return ADCS_OK; }
+adcs_status_t adcs_hal_pwm_set(uint8_t ch, int16_t d) { if (ch >= 8) return ADCS_E_ARG; if (L.present & 0x10u) return ADCS_E_BUS; L.pwm[ch] = d; return ADCS_OK; }
 adcs_status_t adcs_hal_gpio_write(uint16_t pin, uint8_t l) { (void)pin; (void)l; return ADCS_OK; }
 adcs_status_t adcs_hal_gpio_read(uint16_t pin, uint8_t *l) { (void)pin; *l = 0; return ADCS_OK; }
 adcs_status_t adcs_hal_adc_read(uint8_t ch, uint16_t *raw) { (void)ch; *raw = 0; return ADCS_OK; }

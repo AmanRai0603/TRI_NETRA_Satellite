@@ -4285,3 +4285,109 @@ to = "method"
 content = [["relation", "why", "In free-molecular flow the drag force is 0.5 rho v^2 C_D A, and it acts at the centre of pressure; the torque is that force times the offset to the centre of mass. At worst the density is the high member of m3_3's DTM2020 bundle (F10.7 250 sfu), which m3_3 answers with."],
            ["spec", "why", "In free-molecular flow the drag force is 0.5 rho v^2 C_D A, and it acts at the centre of pressure; the torque is that force times the offset to the centre of mass. At worst the density is the high member of m3_3's DTM2020 bundle (F10.7 250 sfu), which m3_3 answers with."]]
 why = "gd_1 'worst' takes the high bundle (E6): its density input is m3_3's answer, now the high member"
+
+[[revision]]
+id = "S11.14"
+at = "2026-11-07T12:00:00Z"
+by = "the developer"
+about = "bus-level fault injection for soft OILS (docs/S11_INVENTORY.md O11): one scenario per fault point of the device map (fsw/devices/example_3u.toml; a device and the bus fault injected on it: NACK, CRC, stuck register, delay, brownout, CAN error frame), each asking whether the flight driver raises its fault flag, and a kind of metric that says so, kpi's fault_raised (design/revisions/S11.8/kpimetrics.pc, the file the design's kpimetrics is last transcribed from); the engine and the twin inject the fault at the emulated bus; the verdict of a fault no driver flags is a finding and stays failing"
+
+[[revision.case]]
+file = "design/revisions/S11.14/fault_bus_coils_brownout.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.14/fault_bus_coils_nack.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.14/fault_bus_coils_stuck.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.14/fault_bus_gnss_brownout.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.14/fault_bus_gnss_crc.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.14/fault_bus_gnss_nack.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.14/fault_bus_gnss_stuck.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.14/fault_bus_gyro_brownout.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.14/fault_bus_gyro_delay.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.14/fault_bus_gyro_nack.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.14/fault_bus_gyro_stuck.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.14/fault_bus_mag_brownout.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.14/fault_bus_mag_nack.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.14/fault_bus_mag_stuck.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.14/fault_bus_mex_brownout.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.14/fault_bus_mex_can_error.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.14/fault_bus_mex_nack.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.14/fault_bus_mex_stuck.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.14/fault_bus_st_brownout.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.14/fault_bus_st_crc.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.14/fault_bus_st_nack.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.14/fault_bus_st_stuck.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.14/fault_bus_sun_brownout.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.14/fault_bus_sun_nack.toml"
+kind = "scenario"
+
+[[revision.case]]
+file = "design/revisions/S11.14/fault_bus_sun_stuck.toml"
+kind = "scenario"

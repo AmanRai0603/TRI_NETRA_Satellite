@@ -80,7 +80,7 @@ pub struct Row {
     pub t: f64, pub q: Q, pub w: V3, pub q_est: Option<Q>, pub w_meas: V3, pub tau_req: V3,
     pub h_w: [f64; NR], pub tau_rw: V3, pub cmd_r: [f64; NR], pub n_failed: u32, pub delta: [f64; NG],
     pub tau_rcs: V3, pub prop_kg: f64, pub m: V3, pub tau_dist: [V3; 4], pub tau_mtq: V3,
-    pub mode: u8, pub p_mtq: f64, pub p_rw: f64, pub p_rcs: f64, pub p_sens: f64,
+    pub mode: u8, /** the flight software's fault word at this row */ pub faults: u16, pub p_mtq: f64, pub p_rw: f64, pub p_rcs: f64, pub p_sens: f64,
     pub r: V3, pub v: V3, pub rho: f64, pub nu: f64, pub b: V3, pub b_meas: V3,
     pub sun_ok: bool, pub st_ok: bool, pub ad_ok: bool, pub sun_eci: V3, pub sun_body: V3,
 }
@@ -191,6 +191,8 @@ struct Units {
     /// the tick faults: the gyro answering with its last sample, a warm reset due, the flight software's time source (its
     /// accumulated step [s], the amplitude [s] of the jitter on each timestamp and the stream it is drawn from)
     gyro_frozen: bool, reset: bool, clock_off_s: f64, jitter_s: f64, jit: Rng,
+    /// the bus faults (O11): what the device emulators' bytes and the flight software's words suffer on the buses
+    bf: crate::busfault::BusFaults,
     /// the device emulators' scaling (l3_oils_row_07's, from the drivers' conversions), made once
     scale: emu::Scale,
     /// the frame buffers of the image star-tracker model (model 2), built once per run
@@ -228,7 +230,7 @@ impl Units {
         let rcs = if d.rcs.fitted { Some(Rcs::new(d.rcs, &mut disp)) } else { None };
         let st_frame = st.as_mut().filter(|s| s.d.model == 2).map(StFrame::new);
         Units { gyro, mag, sun, st, mtq, es, css, mex, rcs, gps: Gps::new(d.gps, rs("gps")), tlm: rs("telemetry"),
-                gyro_frozen: false, reset: false, clock_off_s: 0.0, jitter_s: 0.0, jit: rs("clock_jitter"), scale: emu::scale(), st_frame }
+                gyro_frozen: false, reset: false, clock_off_s: 0.0, jitter_s: 0.0, jit: rs("clock_jitter"), bf: Default::default(), scale: emu::scale(), st_frame }
     }
 
     /// Inject every fault whose time has come (once each), clear the ones that end, and log both.
@@ -258,9 +260,12 @@ impl Units {
                 "fsw_reset" => self.reset = true,
                 "clock_step" => self.clock_off_s += f.value[0],
                 "clock_jitter" => self.jitter_s = f.value[0],
+                // the bus faults act through `bf`, from their time on (and until their end): the log has their start
+                k if crate::busfault::KINDS.contains(&k) => {}
                 other => return Err(Error::run(format!("unknown fault {other}"))),
             }
-            log.push((t, format!("FAULT injected: {} {}", f.kind, f.index)));
+            if f.device.is_empty() { log.push((t, format!("FAULT injected: {} {}", f.kind, f.index))); }
+            else { log.push((t, format!("FAULT injected: {} {}", f.kind, f.device))); }
         }
         Ok(())
     }
@@ -386,7 +391,7 @@ fn sense(u: &mut Units, c: &Config, bus: &mut Bus, x: &State, sky: &Sky, m_b: &V
 
 /// Soft OILS: when this tick's command reaches the actuators (the OBC's execution time plus the
 /// synchronous bus reads and the CAN frames it sent), counted into the statistics.
-fn oils_latency(st: &mut OilsStats, m: &OilsModel, fsw: &Fsw, bus: &Bus, dt: f64) -> f64 {
+fn oils_latency(st: &mut OilsStats, m: &OilsModel, fsw: &Fsw, bus: &Bus, dt: f64, delay: f64) -> f64 {
     let (exec, insn) = match fsw.obc_exec() {
         Some((_, Some(n))) => (n*m.cpi/m.cpu_hz, Some(n)),
         Some((s, None)) => (s, None),
@@ -396,8 +401,8 @@ fn oils_latency(st: &mut OilsStats, m: &OilsModel, fsw: &Fsw, bus: &Bus, dt: f64
     let i2c = [bus.mag.is_some(), bus.sun.is_some(), bus.es.is_some()].iter().filter(|x| **x).count() as f64;
     let io = i2c*10.0*9.0/m.i2c_hz + if bus.gyro.is_some() { 13.0*8.0/m.spi_hz } else { 0.0 }
         + bus.can_tx.len() as f64*130.0/m.can_bps;
-    let lat = match m.fixed_s { Some(f) => f, None => io + exec };
-    let worst = match m.fixed_s { Some(f) => f, None => io + exec*m.cpi_max/m.cpi + m.isr_s };
+    let lat = match m.fixed_s { Some(f) => f, None => io + exec } + delay;
+    let worst = match m.fixed_s { Some(f) => f, None => io + exec*m.cpi_max/m.cpi + m.isr_s } + delay;
     st.ticks += 1; st.exec_s.push(exec); st.io_s.push(io); st.lat_s.push(lat); st.worst_s.push(worst);
     if let Some(n) = insn { st.insn.push(n); }
     if lat >= dt { st.overruns += 1; }
@@ -441,7 +446,7 @@ fn row(k: &Tick, x: &State, geo: &Geometry, nr: usize, a: &Actuation, cmd: &Comm
     Row {
         t: k.t, q: x.q, w: x.w, q_est: if k.ad_ok { Some([dbg[3], dbg[4], dbg[5], dbg[6]]) } else { None }, w_meas: z.w_meas,
         tau_req: [dbg[17], dbg[18], dbg[19]], h_w: x.h, tau_rw, cmd_r: cmd.cmd_r, n_failed: k.faults.count_ones(), delta: x.d,
-        tau_rcs: a.tau_rcs, prop_kg: k.prop, m: a.m_b, tau_dist: k.parts, tau_mtq: k.tau_mtq, mode: k.mode, p_mtq: k.pavg[0], p_rw: k.pavg[1], p_rcs: k.pavg[2], p_sens: k.p_sens,
+        tau_rcs: a.tau_rcs, prop_kg: k.prop, m: a.m_b, tau_dist: k.parts, tau_mtq: k.tau_mtq, mode: k.mode, faults: k.faults, p_mtq: k.pavg[0], p_rw: k.pavg[1], p_rcs: k.pavg[2], p_sens: k.p_sens,
         r: k.r, v: k.v, rho: k.rho, nu: k.nu, b: sky.b_b, b_meas: z.b_meas, sun_ok: z.sun_meas.is_some(), st_ok: z.st_ok, ad_ok: k.ad_ok, sun_eci: unit(&k.sun_rel), sun_body: sky.sb,
     }
 }
@@ -451,7 +456,10 @@ fn row(k: &Tick, x: &State, geo: &Geometry, nr: usize, a: &Actuation, cmd: &Comm
 #[allow(clippy::too_many_arguments)]
 fn step_plant(x: &State, dt: f64, body: &Body, tau_d: &V3, tau_mtq: &V3, b_b: &V3, a: &Actuation, lat: Option<f64>, held: &mut Held) -> State {
     let tau_ext = add(&add(tau_d, tau_mtq), &a.tau_rcs);
-    let Some(lat) = lat else { return plant::step(x, dt, body, &tau_ext, &a.hdot, &a.gdot) };
+    let Some(lat) = lat else {
+        *held = Held { m: a.m_b, hdot: a.hdot, gdot: a.gdot, rcs: a.tau_rcs };      // what holds if a bus delay starts next tick
+        return plant::step(x, dt, body, &tau_ext, &a.hdot, &a.gdot);
+    };
     let held_ext = add(&add(tau_d, &coil_torque(&held.m, b_b)), &held.rcs);
     let x = if lat >= dt {
         plant::step(x, dt, body, &held_ext, &held.hdot, &held.gdot)
@@ -480,6 +488,7 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
 
     // ---- dispersed units (one draw per run) ----
     let mut u = Units::new(d, &rs);
+    u.bf = crate::busfault::BusFaults::new(&c.faults);
 
     // plant: TRUE (misaligned) rotor geometry; the software holds the nominal one
     let (nr, ng) = (d.mex.n, d.mex.ng);
@@ -538,7 +547,9 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
         let sky = Sky { b_b, sb, mb, nb, earth_ang };
 
         // ---- sensors -> bytes ----
+        let mark = crate::busfault::BusFaults::mark(&bus);
         let z = sense(&mut u, c, &mut bus, &x, &sky, &a.m_coil, nu, t, k, &rt, &r, &v);
+        u.bf.sensors(t, &mut bus, mark);      // the bus faults: what the devices' bytes suffer before the flight software reads them
 
         // ---- flight software ----
         // the time source it reads: the clock since it booted (the run's time and its age at the start), the faults' steps
@@ -559,10 +570,12 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
             return Err(Error::run(format!("flight software step returned {rc} at t = {t}{why}")));
         }
         // soft OILS: when does this command reach the actuators?
-        let lat = match (oils.as_mut(), o.oils.as_ref()) { (Some(st), Some(m)) => oils_latency(st, m, &fsw, &bus, dt), _ => 0.0 };
+        let delay = u.bf.delay_s(t);       // a bus delay (bus_delay): the answers come this much later
+        let lat = match (oils.as_mut(), o.oils.as_ref()) { (Some(st), Some(m)) => oils_latency(st, m, &fsw, &bus, dt, delay), _ => delay };
         let mut cmd = Commands::default();
         emu::decode_pwm(&bus.pwm, p.m_max, &u.scale, &mut cmd);     // the coils' limit the flight software allocates against
         for f in bus.can_tx.drain(..) { emu::decode_can(f.id, &f.data, &tmax, p.gim_rate_max, dt, &u.scale, &mut cmd); }
+        u.bf.commands(t, &mut cmd);      // the bus faults on the output side: a write that fails or sticks, a device without supply
         bus.can_rx.clear();
         let dbg = fsw.debug();
         let mode = dbg[1] as u8;
@@ -603,7 +616,7 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
             let el = wall.elapsed();
             if due > el { std::thread::sleep(due - el); }
         }
-        x = step_plant(&x, dt, &body, &tau_d, &tau_mtq, &sky.b_b, &a, oils.is_some().then_some(lat), &mut held);
+        x = step_plant(&x, dt, &body, &tau_d, &tau_mtq, &sky.b_b, &a, (oils.is_some() || delay > 0.0).then_some(lat), &mut held);
         if !o.quiet && last_print.elapsed().as_secs_f64() > 10.0 {
             last_print = std::time::Instant::now();
             eprintln!("  t = {:7.0} / {:.0} s  mode {:<13} |w| {:.3} deg/s  ({:.0} s wall)", t, c.duration_s,

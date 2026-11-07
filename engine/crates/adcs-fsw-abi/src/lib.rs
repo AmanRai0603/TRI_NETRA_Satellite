@@ -29,6 +29,9 @@ pub struct Bus {
     pub can_tx: Vec<CanFrame>,
     pub pwm: [i16; 8],
     pub tm: Vec<(u16, Vec<u8>)>,
+    /// Bus faults of the rig on the output and CAN side (O11): the PWM writes and the CAN sends fail with Status::Bus (the word is
+    /// not stored, not sent), and the CAN controller sees an error frame: nothing is received, a receive returns Status::Bus.
+    pub pwm_fail: bool, pub can_tx_fail: bool, pub can_error: bool,
 }
 
 impl Bus {
@@ -62,9 +65,16 @@ impl Hal for Bus {
         if bus != proto::GYRO_BUS || cs != proto::GYRO_CS { return Status::Arg; }
         match self.gyro { Some(g) => { let n = rx.len().min(13); rx[..n].copy_from_slice(&g[..n]); Status::Ok } None => Status::NoDev }
     }
-    fn can_send(&mut self, _: u8, f: &CanFrame) -> Status { self.can_tx.push(*f); Status::Ok }
-    fn can_recv(&mut self, _: u8) -> Result<CanFrame, Status> { self.can_rx.pop_front().ok_or(Status::Timeout) }
-    fn pwm_set(&mut self, ch: u8, d: i16) -> Status { if (ch as usize) < 8 { self.pwm[ch as usize] = d; Status::Ok } else { Status::Arg } }
+    fn can_send(&mut self, _: u8, f: &CanFrame) -> Status { if self.can_tx_fail { return Status::Bus; } self.can_tx.push(*f); Status::Ok }
+    fn can_recv(&mut self, _: u8) -> Result<CanFrame, Status> {
+        if self.can_error { return Err(Status::Bus); }
+        self.can_rx.pop_front().ok_or(Status::Timeout)
+    }
+    fn pwm_set(&mut self, ch: u8, d: i16) -> Status {
+        if (ch as usize) >= 8 { return Status::Arg; }
+        if self.pwm_fail { return Status::Bus; }
+        self.pwm[ch as usize] = d; Status::Ok
+    }
     fn tm_emit(&mut self, apid: u16, p: &[u8]) -> Status { self.tm.push((apid, p.to_vec())); Status::Ok }
 }
 

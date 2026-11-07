@@ -26,6 +26,8 @@ pub fn mode_index(name: &str) -> Result<u8, Error> {
 
 #[derive(Clone, Debug)]
 pub struct Fault { pub t_s: f64, pub kind: String, pub index: usize, pub value: [f64; 3],
+    /// the bus faults (busfault.rs): the device of the device map the fault is at; empty for the others
+    pub device: String,
     /// when the device answers again (a magnetometer or a GNSS receiver back from silence); None: for good
     pub end_s: Option<f64> }
 
@@ -430,7 +432,7 @@ fn sensor_params(p: &mut Params, k: &Knowns) -> Result<(), Error> {
 fn faults(s: &Value, dev: &Dev) -> Result<Vec<Fault>, Error> {
 
     let faults: Vec<Fault> = match s.get("faults") {
-        Some(Value::Array(a)) => a.iter().map(|f| Fault { t_s: json::f(f, "t_s", 0.0), kind: json::s(f, "kind", "").into(), index: json::f(f, "index", 0.0) as usize, value: get(f, "value").and_then(json::v3).unwrap_or([get(f, "value").and_then(|v| v.as_f64()).unwrap_or(0.0), 0.0, 0.0]),
+        Some(Value::Array(a)) => a.iter().map(|f| Fault { t_s: json::f(f, "t_s", 0.0), kind: json::s(f, "kind", "").into(), index: json::f(f, "index", 0.0) as usize, device: json::s(f, "device", "").into(), value: get(f, "value").and_then(json::v3).unwrap_or([get(f, "value").and_then(|v| v.as_f64()).unwrap_or(0.0), 0.0, 0.0]),
             end_s: get(f, "end_s").and_then(|v| v.as_f64()) }).collect(),
         _ => vec![],
     };
@@ -447,13 +449,50 @@ fn faults(s: &Value, dev: &Dev) -> Result<Vec<Fault>, Error> {
             "gyro_fail" => (dev.gyro.fitted as usize, "gyros"),
             // the flight software's own faults: its reset, and its time source (a step, a jitter)
             "fsw_reset" | "clock_step" | "clock_jitter" => (1, "flight software"),
+            // the bus faults (O11): at a device of the device map, on the bus it sits on
+            k if crate::busfault::KINDS.contains(&k) => {
+                let dn = f.device.as_str();
+                if !crate::busfault::DEVICES.contains(&dn) {
+                    return Err(Error::refused(format!("faults[{i}] {}: device = {dn:?}: one of the device map's {}", f.kind, crate::busfault::DEVICES.join(", "))));
+                }
+                if !crate::busfault::allowed(k, dn) {
+                    return Err(Error::refused(format!("faults[{i}] {k}: the {dn} is on {}, which has no such fault", crate::busfault::bus_of(dn).unwrap_or("?"))));
+                }
+                match dn {
+                    "magnetometer" => (dev.mag.fitted as usize, "magnetometers"),
+                    "sun_sensor_plus_x" => ((dev.sun.fitted || dev.css.fitted) as usize, "Sun sensors"),
+                    "earth_sensor" => (dev.es.fitted as usize, "Earth sensors"),
+                    "star_tracker" => (dev.st.fitted as usize, "star trackers"),
+                    "gyro" => (dev.gyro.fitted as usize, "gyros"),
+                    "gnss" => (dev.gps.fitted as usize, "GNSS receivers"),
+                    "coils" => (dev.mtq.fitted as usize, "magnetorquer coils"),
+                    _ => ((dev.mex.n > 0 || (dev.rcs.fitted && dev.rcs.nc > 0)) as usize, "momentum devices or thruster valves on the CAN"),
+                }
+            }
             k => return Err(Error::refused(format!("faults[{i}].kind = {k:?}: no such fault"))),
         };
         if units == 0 { return Err(Error::refused(format!("faults[{i}] {}: product {} has no {what}", f.kind, dev.id))); }
         if matches!(f.kind.as_str(), "rotor_fail" | "gimbal_stuck" | "st_head_fail" | "coil_fail" | "rcs_valve_fail") && !(1..=units).contains(&f.index) {
             return Err(Error::refused(format!("faults[{i}] {}: index {} — product {} has {what} 1 to {units}", f.kind, f.index, dev.id)));
         }
-        if let Some(e) = f.end_s {
+        if crate::busfault::KINDS.contains(&f.kind.as_str()) {
+            if f.index != 0 { return Err(Error::refused(format!("faults[{i}] {}: takes no index (the device names its place)", f.kind))); }
+            let x = raw.get("value").and_then(|v| v.as_f64());
+            match f.kind.as_str() {
+                "bus_delay" if !x.map(|a| a.is_finite() && a > 0.0).unwrap_or(false) =>
+                    return Err(Error::refused(format!("faults[{i}] bus_delay: value must be the added delay, a positive number of seconds"))),
+                "bus_brownout" if !x.map(|a| a.is_finite() && a > 0.0).unwrap_or(false) =>
+                    return Err(Error::refused(format!("faults[{i}] bus_brownout: value must be how long the supply is down, a positive number of seconds"))),
+                "bus_brownout" if f.end_s.is_some() => return Err(Error::refused(format!("faults[{i}] bus_brownout: the outage is its value; takes no end_s"))),
+                "bus_nack" | "bus_crc" | "bus_stuck" | "bus_can_error" if raw.get("value").is_some() =>
+                    return Err(Error::refused(format!("faults[{i}] {}: takes no value", f.kind))),
+                _ => {}
+            }
+            if let Some(e) = f.end_s { if !(e > f.t_s) { return Err(Error::refused(format!("faults[{i}] {}: end_s {e} s is not after t_s {} s", f.kind, f.t_s))); } }
+        } else if !f.device.is_empty() {
+            return Err(Error::refused(format!("faults[{i}] {}: device is for the bus faults ({})", f.kind, crate::busfault::KINDS.join(", "))));
+        }
+        if let Some(e) = f.end_s.filter(|_| !crate::busfault::KINDS.contains(&f.kind.as_str())) {
             if !matches!(f.kind.as_str(), "mag_fail" | "gps_outage") {
                 return Err(Error::refused(format!("faults[{i}] {}: end_s is for a device that can answer again (mag_fail, gps_outage)", f.kind)));
             }

@@ -1243,6 +1243,30 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             out.push(r);
             out.push(io0.len() as f64); for v in io0.iter() { let v = *v; out.push(v as f64); }
         }
+        "kpimetrics::kpi_fault_raised" => {
+            let mut at: usize = 0;
+            if x.len() < at + 1 { return None; }
+            let n0 = x[at] as usize;
+            if x.len() < at + 1 + n0 { return None; }
+            let mut io0 = x[at + 1..at + 1 + n0].iter().map(|v| *v as i64).collect::<Vec<i64>>();
+            at += 1 + n0;
+            if x.len() < at + 1 { return None; }
+            let n1 = x[at] as usize;
+            if x.len() < at + 1 + n1 { return None; }
+            let mut io1 = x[at + 1..at + 1 + n1].iter().map(|v| *v as i64).collect::<Vec<i64>>();
+            at += 1 + n1;
+            if x.len() < at + 1 { return None; }
+            let a2 = { let x = &x[at..]; x[0] as i64 };
+            at += 1;
+            if x.len() < at + 1 { return None; }
+            let a3 = { let x = &x[at..]; x[0] as i64 };
+            at += 1;
+            if x.len() != at { return None; }
+            let r = crate::kpimetrics::kpi_fault_raised(&mut io0, &mut io1, a2, a3);
+            out.push(r);
+            out.push(io0.len() as f64); for v in io0.iter() { let v = *v; out.push(v as f64); }
+            out.push(io1.len() as f64); for v in io1.iter() { let v = *v; out.push(v as f64); }
+        }
         "kpimetrics::kpi_propellant" => {
             let mut at: usize = 0;
             if x.len() < at + 1 { return None; }

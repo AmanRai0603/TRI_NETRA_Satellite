@@ -48,7 +48,7 @@ inverse of the flight drivers). The link carries that bus in two frames (`asils.
 | field | type |
 |---|---|
 | time | u64, ns |
-| present | u8: bit0 magnetometer, bit1 gyro, bit2 Sun sensor, bit3 Earth sensor |
+| present | u8: bit0 magnetometer, bit1 gyro, bit2 Sun sensor, bit3 Earth sensor; bit4 PWM writes fail (ADCS_E_BUS), bit5 CAN sends fail (a bus fault of the rig, O11) |
 | magnetometer registers | 7 bytes |
 | gyro SPI response | 13 bytes |
 | Sun sensor registers | 7 bytes |

@@ -35,6 +35,10 @@ function [U, done, log] = apply(faults, t, U, done, log)
             case 'fsw_reset',      U.reset = true;             % a warm reset: the run initialises the flight software again
             case 'clock_step',     U.clock_off = U.clock_off + f.value(1);
             case 'clock_jitter',   U.jitter = f.value(1);
+            case {'bus_nack', 'bus_crc', 'bus_stuck', 'bus_delay', 'bus_brownout', 'bus_can_error'}
+                % the bus faults act through asils.faults.bus_sensors and bus_actuators, from their time on (and until their end)
+                log(end+1) = struct('t', t, 'mode', sprintf('FAULT injected: %s %s', f.kind, f.device)); %#ok<AGROW>
+                continue
             otherwise, error('asils:faults:kind', 'unknown fault %s', f.kind);
         end
         log(end+1) = struct('t', t, 'mode', sprintf('FAULT injected: %s %d', f.kind, idx)); %#ok<AGROW>

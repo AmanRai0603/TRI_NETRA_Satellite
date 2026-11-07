@@ -326,7 +326,8 @@ impl Link {
     pub fn tick(&mut self, bus: &mut Bus, now_ns: u64) -> Result<i32, crate::FswError> {
         let mut p = Vec::with_capacity(160);
         p.extend_from_slice(&now_ns.to_le_bytes());
-        let present = bus.mag.is_some() as u8 | (bus.gyro.is_some() as u8) << 1 | (bus.sun.is_some() as u8) << 2 | (bus.es.is_some() as u8) << 3;
+        let present = bus.mag.is_some() as u8 | (bus.gyro.is_some() as u8) << 1 | (bus.sun.is_some() as u8) << 2 | (bus.es.is_some() as u8) << 3
+            | (bus.pwm_fail as u8) << 4 | (bus.can_tx_fail as u8) << 5;
         p.push(present);
         p.extend_from_slice(&bus.mag.unwrap_or([0; 7]));
         p.extend_from_slice(&bus.gyro.unwrap_or([0; 13]));

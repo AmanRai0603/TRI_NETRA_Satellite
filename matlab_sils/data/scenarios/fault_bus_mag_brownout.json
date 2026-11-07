@@ -1,0 +1,66 @@
+{
+ "case": "ais_img_3u",
+ "faults": [
+  {
+   "device": "magnetometer",
+   "kind": "bus_brownout",
+   "t_s": 10.0,
+   "value": 80.0
+  }
+ ],
+ "fsw": {
+  "guidance": {
+   "kind": "nadir"
+  },
+  "rw_bandwidth": 0.9,
+  "rw_damping": 2.0,
+  "rw_rate_hz": 10.0,
+  "start_mode": "nadir_fine"
+ },
+ "id": "fault_bus_mag_brownout",
+ "initial": {
+  "attitude": {
+   "angle_deg": 2.0,
+   "axis_body": [
+    0.577,
+    0.577,
+    0.577
+   ],
+   "kind": "error_from_target"
+  },
+  "rate": {
+   "kind": "lvlh"
+  }
+ },
+ "label": "3U imaging - bus fault brownout at the magnetometer, fine hold",
+ "metrics": [
+  {
+   "id": "fault_flag",
+   "kind": "fault_raised",
+   "limit": 1.0,
+   "mask": 256,
+   "sense": "min"
+  },
+  {
+   "diagnostic": "the knowledge error across the line of sight over the run, beside the flag",
+   "id": "ake_los_max",
+   "kind": "ake_los",
+   "statistic": "max",
+   "window": "all"
+  },
+  {
+   "diagnostic": "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)",
+   "id": "ape_los_max",
+   "kind": "ape_los",
+   "statistic": "max",
+   "window": "after_s:60"
+  }
+ ],
+ "product": "TRN-P-3U-IMG",
+ "schema": "adcs-scenario/1",
+ "time": {
+  "dt_s": 0.1,
+  "duration_s": 150.0,
+  "record_dt_s": 0.1
+ }
+}

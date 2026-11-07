@@ -29,6 +29,23 @@ BINDING = {
 KIND = {"magnetometer": "i2c", "sun_sensor_plus_x": "i2c", "earth_sensor": "i2c", "star_tracker": "uart", "gyro": "spi",
         "gnss": "uart", "coils": "pwm", "momentum_devices": "can"}
 
+# the bus faults the rig injects at each kind of bus (O11, S11.14): the engine's busfault.rs allowed(), the twin's the same. A CRC is for the
+# UART frames (an I2C or SPI register block and the PWM carry none), an error frame for CAN.
+BUS_FAULTS = {"i2c": ["nack", "stuck", "delay", "brownout"], "spi": ["nack", "stuck", "delay", "brownout"],
+              "pwm": ["nack", "stuck", "delay", "brownout"], "uart": ["nack", "crc", "stuck", "delay", "brownout"],
+              "can": ["nack", "stuck", "delay", "brownout", "can_error"]}
+
+# the bus faults the rig injects at each kind of bus (O11, S11.14): the engine's busfault.rs allowed(), the twin's the same. A CRC is for the
+# UART frames (an I2C or SPI register block and the PWM carry none), an error frame for CAN.
+BUS_FAULTS = {"i2c": ["nack", "stuck", "delay", "brownout"], "spi": ["nack", "stuck", "delay", "brownout"],
+              "pwm": ["nack", "stuck", "delay", "brownout"], "uart": ["nack", "crc", "stuck", "delay", "brownout"],
+              "can": ["nack", "stuck", "delay", "brownout", "can_error"]}
+
+
+def bus_faults_by_name(map_path=DEFAULT_MAP):
+    """(device name, the bus faults its bus takes) for each device of a map."""
+    return [(d["name"], BUS_FAULTS[KIND[d["name"]]]) for d in tomllib.loads(Path(map_path).read_text()).get("device", []) if d.get("name") in KIND]
+
 
 def header_numbers(path=HEADER):
     """Every integer `#define NAME 123u` / `0x1Eu` of the header."""
@@ -55,6 +72,14 @@ def problems(map_path=DEFAULT_MAP, header=HEADER):
                 out.append(f"{name}: {macro} is not defined in adcs_devices.h")
             elif hal.get(field) != nums[macro]:
                 out.append(f"{name}: {field} = {hal.get(field)!r}, adcs_devices.h {macro} = {nums[macro]:#x}")
+        if "bus_faults" in d and d["bus_faults"] != BUS_FAULTS.get(KIND[name]):
+            out.append(f"{name}: bus_faults {d['bus_faults']}, a {KIND[name]} device takes {BUS_FAULTS.get(KIND[name])}")
+        if "bus_faults" not in d:
+            out.append(f"{name}: no bus_faults (the faults the rig injects on its {KIND[name]} bus)")
+        if "bus_faults" not in d:
+            out.append(f"{name}: no bus_faults (the faults the rig injects on its {KIND[name]} bus)")
+        elif d["bus_faults"] != BUS_FAULTS.get(KIND[name]):
+            out.append(f"{name}: bus_faults {d['bus_faults']}, a {KIND[name]} device takes {BUS_FAULTS.get(KIND[name])}")
     present = {d.get("name") for d in devs}
     out += [f"{n}: in the header but not in the map" for n in BINDING if n not in present]
     return out

@@ -28,6 +28,7 @@ part = "SYN-MAG-1"
 hal = { kind = "i2c", bus = 0, addr7 = 0x1E }
 oils = { mode = "emulated", ieu_channel = "i2c-target-0" }
 hils = { mode = "real", stimulus = "helmholtz_cage" }
+bus_faults = ["nack", "stuck", "delay", "brownout"]
 
 [[device]]
 name = "sun_sensor_plus_x"
@@ -35,6 +36,7 @@ part = "SYN-SUN-1"
 hal = { kind = "i2c", bus = 1, addr7 = 0x60 }
 oils = { mode = "emulated", ieu_channel = "i2c-target-1" }
 hils = { mode = "real", stimulus = "sun_simulator" }
+bus_faults = ["nack", "stuck", "delay", "brownout"]
 
 [[device]]
 name = "earth_sensor"
@@ -42,6 +44,7 @@ part = "SYN-ES-1"
 hal = { kind = "i2c", bus = 1, addr7 = 0x30 }
 oils = { mode = "emulated", ieu_channel = "i2c-target-2" }
 hils = { mode = "real", stimulus = "earth_simulator" }
+bus_faults = ["nack", "stuck", "delay", "brownout"]
 
 [[device]]
 name = "star_tracker"
@@ -49,6 +52,7 @@ part = "SYN-ST-1"
 hal = { kind = "uart", port = 1, baud = 115200, framing = "rs422" }
 oils = { mode = "emulated", ieu_channel = "uart-1" }
 hils = { mode = "real", stimulus = "star_stimulator" }
+bus_faults = ["nack", "crc", "stuck", "delay", "brownout"]
 
 [[device]]
 name = "gyro"
@@ -56,6 +60,7 @@ part = "SYN-GYRO-1"
 hal = { kind = "spi", bus = 0, chip_select = 0 }
 oils = { mode = "emulated", ieu_channel = "spi-target-0" }
 hils = { mode = "real", stimulus = "air_bearing_motion" }
+bus_faults = ["nack", "stuck", "delay", "brownout"]
 
 [[device]]
 name = "gnss"
@@ -63,6 +68,7 @@ part = "none in this scenario"
 hal = { kind = "uart", port = 2, baud = 115200, framing = "ttl" }
 oils = { mode = "emulated", ieu_channel = "uart-2", protocol = "receiver output from the plant's truth orbit" }
 hils = { mode = "real", stimulus = "gnss_rf_simulator" }
+bus_faults = ["nack", "crc", "stuck", "delay", "brownout"]
 
 # The coils are PWM: channel = coil (body axis), duty Q15 of m_max. The header gives them no port number.
 [[device]]
@@ -71,6 +77,7 @@ part = "SYN-CT-1"
 hal = { kind = "pwm", channels = [0, 1, 2] }
 oils = { mode = "emulated", ieu_channel = "pwm-capture-0", load = "coil-equivalent RL" }
 hils = { mode = "real", stimulus = "none", measured_by = "helmholtz_cage reference magnetometer" }
+bus_faults = ["nack", "stuck", "delay", "brownout"]
 
 # The momentum devices share CAN port 0; the header gives the base identifier of each message class
 # (rotor command + i, gimbal command + j, rotor telemetry + i, valves).
@@ -80,7 +87,13 @@ part = "IDM-MFP-3U"
 hal = { kind = "can", port = 0, rotor_cmd = 0x100, gimbal_cmd = 0x140, rotor_tm = 0x200, valves = 0x300 }
 oils = { mode = "emulated", ieu_channel = "can-0" }
 hils = { mode = "real", stimulus = "air_bearing_motion" }
+bus_faults = ["nack", "stuck", "delay", "brownout", "can_error"]
 
+# Bus faults (O11, S11.14): each device's `bus_faults` are the faults the rig injects at the emulated bus the device sits on, the scenario's
+# fault kinds without their `bus_` (bus_nack, bus_crc, bus_stuck, bus_delay, bus_brownout, bus_can_error), `device` = the name above. A CRC
+# is for the UART frames (the I2C and SPI registers and the PWM carry none), an error frame for CAN. tools/device_map.py holds the lists to
+# the bus each device is on; tests/test_device_map.py holds a design case to every device and fault (design/revisions/S11.14/).
+#
 # Faults the rig may inject at this unit, and where. The same names as the scenario's fault kinds (campaigns/*.toml).
 [[fault_point]]
 kind = "sensor_dropout"

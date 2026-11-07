@@ -1,0 +1,46 @@
+# Imaging 3U: fine nadir hold with wheels + star tracker + MEKF; the gyro repeats its last good register, frame or command, flagged good from 10 s
+# A bus fault of the rig (O11, docs/S11_INVENTORY.md S11.14): the fault point is the device map's entry gyro (fsw/devices/example_3u.toml),
+# the fault is injected on its bus at the emulator and the case asks whether the flight driver raises its fault flag
+# (TS4's 'a bus error: fault raised'): fault_flag is 1 when the fault word has a flag of the mask (FAULT_GYRO_STALE or FAULT_GYRO_QUIET (bits 9, 10)) at any recorded sample, 0 when
+# it has none; the limit is 1. Expected verdict: met. The flight driver raises FAULT_GYRO_STALE or FAULT_GYRO_QUIET (bits 9, 10) (flown: the flag is set).
+schema = "adcs-scenario/1"
+id = "fault_bus_gyro_stuck"
+label = "3U imaging - bus fault stuck at the gyro, fine hold"
+case = "ais_img_3u"
+product = "TRN-P-3U-IMG"
+[time]
+duration_s = 150.0
+dt_s = 0.1
+record_dt_s = 0.1
+[initial]
+attitude = { kind = "error_from_target", angle_deg = 2.0, axis_body = [0.577, 0.577, 0.577] }
+rate = { kind = "lvlh" }
+[fsw]
+start_mode = "nadir_fine"
+guidance = { kind = "nadir" }
+rw_bandwidth = 0.9
+rw_damping = 2.0
+rw_rate_hz = 10.0
+[[metrics]]
+id = "fault_flag"
+kind = "fault_raised"
+mask = 1536
+limit = 1.0
+sense = "min"
+[[metrics]]
+id = "ake_los_max"
+kind = "ake_los"
+window = "all"
+statistic = "max"
+diagnostic = "the knowledge error across the line of sight over the run, beside the flag"
+[[metrics]]
+id = "ape_los_max"
+kind = "ape_los"
+window = "after_s:60"
+statistic = "max"
+diagnostic = "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)"
+
+[[faults]]
+kind = "bus_stuck"
+device = "gyro"
+t_s = 10.0

@@ -304,6 +304,781 @@
     }
    }
   },
+  "fault_bus_coils_brownout": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fault_flag": {
+     "kind": "fault_raised",
+     "value": 0.0,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ake_los_max": {
+     "kind": "ake_los",
+     "value": 0.024202593924205974,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.005778526232596504,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_bus_coils_nack": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fault_flag": {
+     "kind": "fault_raised",
+     "value": 0.0,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ake_los_max": {
+     "kind": "ake_los",
+     "value": 0.024202593924205974,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.005714272574838753,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_bus_coils_stuck": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fault_flag": {
+     "kind": "fault_raised",
+     "value": 0.0,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ake_los_max": {
+     "kind": "ake_los",
+     "value": 0.024202593924205974,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.005714272574838753,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_bus_gnss_brownout": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fault_flag": {
+     "kind": "fault_raised",
+     "value": 0.0,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ake_los_max": {
+     "kind": "ake_los",
+     "value": 0.024202593924205974,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.005599432462273965,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_bus_gnss_crc": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fault_flag": {
+     "kind": "fault_raised",
+     "value": 0.0,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ake_los_max": {
+     "kind": "ake_los",
+     "value": 0.024202593924205974,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.005599432462273965,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_bus_gnss_nack": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fault_flag": {
+     "kind": "fault_raised",
+     "value": 0.0,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ake_los_max": {
+     "kind": "ake_los",
+     "value": 0.024202593924205974,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.005599432462273965,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_bus_gnss_stuck": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fault_flag": {
+     "kind": "fault_raised",
+     "value": 0.0,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ake_los_max": {
+     "kind": "ake_los",
+     "value": 0.024202593924205974,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 8.816875064911198,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_bus_gyro_brownout": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fault_flag": {
+     "kind": "fault_raised",
+     "value": 1.0,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ake_los_max": {
+     "kind": "ake_los",
+     "value": 0.0358584140421548,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.027291902200707877,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_bus_gyro_delay": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fault_flag": {
+     "kind": "fault_raised",
+     "value": 0.0,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ake_los_max": {
+     "kind": "ake_los",
+     "value": 0.024202593924205974,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.005973372695367717,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_bus_gyro_nack": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fault_flag": {
+     "kind": "fault_raised",
+     "value": 1.0,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ake_los_max": {
+     "kind": "ake_los",
+     "value": 0.0358584140421548,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.027291902200707877,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_bus_gyro_stuck": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fault_flag": {
+     "kind": "fault_raised",
+     "value": 1.0,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ake_los_max": {
+     "kind": "ake_los",
+     "value": 0.0358584140421548,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.027291902200707877,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_bus_mag_brownout": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fault_flag": {
+     "kind": "fault_raised",
+     "value": 1.0,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ake_los_max": {
+     "kind": "ake_los",
+     "value": 0.024202593924205974,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.005764720504326141,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_bus_mag_nack": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fault_flag": {
+     "kind": "fault_raised",
+     "value": 1.0,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ake_los_max": {
+     "kind": "ake_los",
+     "value": 0.024202593924205974,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.005764720504326141,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_bus_mag_stuck": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fault_flag": {
+     "kind": "fault_raised",
+     "value": 0.0,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ake_los_max": {
+     "kind": "ake_los",
+     "value": 0.024202593924205974,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.005805859233198816,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_bus_mex_brownout": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fault_flag": {
+     "kind": "fault_raised",
+     "value": 1.0,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ake_los_max": {
+     "kind": "ake_los",
+     "value": 0.024202593924205974,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 5.920718512883662,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_bus_mex_can_error": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fault_flag": {
+     "kind": "fault_raised",
+     "value": 1.0,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ake_los_max": {
+     "kind": "ake_los",
+     "value": 0.024202593924205974,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 36.676562065235686,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_bus_mex_nack": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fault_flag": {
+     "kind": "fault_raised",
+     "value": 1.0,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ake_los_max": {
+     "kind": "ake_los",
+     "value": 0.024202593924205974,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 36.676562065235686,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_bus_mex_stuck": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fault_flag": {
+     "kind": "fault_raised",
+     "value": 1.0,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ake_los_max": {
+     "kind": "ake_los",
+     "value": 0.024202593924205974,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 36.676562065235686,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_bus_st_brownout": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fault_flag": {
+     "kind": "fault_raised",
+     "value": 0.0,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ake_los_max": {
+     "kind": "ake_los",
+     "value": 0.20073603859234596,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.20156610992535132,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_bus_st_crc": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fault_flag": {
+     "kind": "fault_raised",
+     "value": 0.0,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ake_los_max": {
+     "kind": "ake_los",
+     "value": 0.34184351972406124,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.34074234205000886,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_bus_st_nack": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fault_flag": {
+     "kind": "fault_raised",
+     "value": 0.0,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ake_los_max": {
+     "kind": "ake_los",
+     "value": 0.34184351972406124,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.34074234205000886,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_bus_st_stuck": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fault_flag": {
+     "kind": "fault_raised",
+     "value": 0.0,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ake_los_max": {
+     "kind": "ake_los",
+     "value": 177.57041027795606,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 178.17704136361687,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_bus_sun_brownout": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fault_flag": {
+     "kind": "fault_raised",
+     "value": 0.0,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ake_los_max": {
+     "kind": "ake_los",
+     "value": 0.024202593924205974,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.00573403661135093,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_bus_sun_nack": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fault_flag": {
+     "kind": "fault_raised",
+     "value": 0.0,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ake_los_max": {
+     "kind": "ake_los",
+     "value": 0.024202593924205974,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.00573403661135093,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_bus_sun_stuck": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "fault_flag": {
+     "kind": "fault_raised",
+     "value": 0.0,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ake_los_max": {
+     "kind": "ake_los",
+     "value": 0.024202593924205974,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.00573403661135093,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
   "fault_clock_jitter_1us": {
    "algorithms": {
     "allocation": "rotor_pinv",

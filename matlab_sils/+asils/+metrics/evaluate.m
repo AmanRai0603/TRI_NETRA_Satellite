@@ -9,7 +9,7 @@ function M = evaluate(rec)
     KINDS = {'time_to_rate', 'ape', 'ape_los', 'ake', 'ake_los', 'rate_stability', 'time_to_threshold', 'wheel_momentum_peak', ...
              'time_to_mode', 'sun_angle', 'spin_rate_error', 'mode_fraction', 'propellant', 'power_mean', 'power_peak', 'jitter', ...
              'rpe', 'rpe_los', 'mpe', 'mpe_los', 'pde', 'pde_los', 'rke', 'rke_los', 'mke', 'mke_los', 'kde', 'kde_los', ...
-             'power_margin', 'battery_dod', 'soc_min', 'fine_law_fraction', 'date_error', 'schedule_replays'};
+             'power_margin', 'battery_dod', 'soc_min', 'fine_law_fraction', 'date_error', 'schedule_replays', 'fault_raised'};
     WINDOWS = {'all', 'last_orbit', 'last_half_orbit', 'pointing'};
     STATS = {'max', 'rms', 'mean', 'p95', 'p99.73'};
     CHANNELS = {'ape_3ax', 'ape_los', 'ake_3ax', 'ake_los', 'rate', 'rks', 'sun_angle', 'sun_angle_geo', 'spin_z', 'rate_err'};
@@ -36,7 +36,7 @@ function M = evaluate(rec)
         stw = asils.util.getf(m, 'statistic', '');
         if isempty(stw), st = dst; else, st = opt_(STATS, stw, 5); end
         kind = asils.util.getf(m, 'kind', '');
-        k = opt_(KINDS, kind, 34);
+        k = opt_(KINDS, kind, 35);
         unit_min = flag_(m, 'unit_min', dunit_min);
         mode_named = opt_(MT.state, asils.util.getf(m, 'mode', ''), -1);
         switch k
@@ -64,6 +64,7 @@ function M = evaluate(rec)
             case 32, val = rec.ledger.date_err_max_s;
             case 33
                 val = asils.models.kpimetrics.kpi_schedule_replays(rec.ledger.sched_cross(:), numel(rec.ledger.sched_cross));
+            case 34, val = asils.models.kpimetrics.kpi_fault_raised(rec.faults(:), idx, ni, asils.util.getf(m, 'mask', 65535));
             case 15, val = stat_(jitter_(rec, idx + 1), st);
             case 28
                 lw = NaN; if ps, lw = C.power_load_w; end

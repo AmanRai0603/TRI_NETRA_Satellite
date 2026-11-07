@@ -353,7 +353,13 @@
         "gyro_fail",
         "fsw_reset",
         "clock_step",
-        "clock_jitter"
+        "clock_jitter",
+        "bus_nack",
+        "bus_crc",
+        "bus_stuck",
+        "bus_delay",
+        "bus_brownout",
+        "bus_can_error"
       ]
     },
     {
@@ -367,6 +373,20 @@
     {
       "path": "faults[].end_s",
       "type": "num"
+    },
+    {
+      "path": "faults[].device",
+      "type": "one_of",
+      "values": [
+        "magnetometer",
+        "sun_sensor_plus_x",
+        "earth_sensor",
+        "star_tracker",
+        "gyro",
+        "gnss",
+        "coils",
+        "momentum_devices"
+      ]
     },
     {
       "path": "metrics",
@@ -413,7 +433,8 @@
         "soc_min",
         "fine_law_fraction",
         "date_error",
-        "schedule_replays"
+        "schedule_replays",
+        "fault_raised"
       ]
     },
     {
@@ -508,6 +529,10 @@
     {
       "path": "metrics[].diagnostic",
       "type": "str"
+    },
+    {
+      "path": "metrics[].mask",
+      "type": "num"
     },
     {
       "path": "metrics[].delta_s",
