@@ -50,6 +50,23 @@ NOTES = [
 ]
 
 
+def _angle_deg(u, v):
+    """The angle between two vectors, in degrees (atan2 of cross and dot: no acos blow-up near 0)."""
+    cx = (u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0])
+    return math.degrees(math.atan2(math.sqrt(sum(c * c for c in cx)), sum(a * b for a, b in zip(u, v))))
+
+
+def direction_gaps(A, B):
+    """Max over the run of the angle [deg] between the engine and twin magnetic field, Sun and nadir
+    directions, from two channel tables. Nadir is the direction opposite the position vector."""
+    vec = lambda d, fmt: tuple(float(d[fmt.format(k)]) for k in "xyz")
+    worst = [0.0, 0.0, 0.0]
+    for x, y in zip(A, B):
+        for i, fmt in enumerate(("B_{}_T", "sun_{}", "r_{}_m")):
+            worst[i] = max(worst[i], _angle_deg(vec(x, fmt), vec(y, fmt)))
+    return tuple(worst)
+
+
 def twin_parity(_):
     """Engine (Rust) vs the MATLAB twin, same scenario, same case, same product.
     The twin of today flies the design's generated models and flight algorithms, loaded with the engine's blob, and
@@ -115,7 +132,7 @@ def twin_parity(_):
         L.append(f"| {r['scenario']} | {r['metric']} ({r['unit']}) | {fmt(r['matlab'])} | {fmt(r['engine'])} | {fmt(r['ratio'])} | "
                  f"{fmt(r['req'])} | {verdict(r['pass_matlab'])} | {verdict(r['pass_engine'])}{flag} |")
     L += ["", "## Truth environment: engine vs MATLAB twin, every recorded sample", "",
-          "| scenario | samples | max |r| difference [m] | max density ratio - 1 | max Sun-direction difference | max |B| ratio - 1 |", "|---|---:|---:|---:|---:|---:|"]
+          "| scenario | samples | max |r| difference [m] | max density ratio - 1 | max Sun-direction difference | max |B| ratio - 1 | max B angle [deg] | max Sun angle [deg] | max nadir angle [deg] |", "|---|---:|---:|---:|---:|---:|---:|---:|---:|"]
     import csv
     for s in scenarios([]):
         a, b = TWIN / s / "channels.csv", ENG / s / "channels.csv"
@@ -130,7 +147,8 @@ def twin_parity(_):
             wsun = max(wsun, sum((f(x, f"sun_{k}") - f(y, f"sun_{k}")) ** 2 for k in "xyz") ** 0.5)
             na = sum(f(x, f"B_{k}_T") ** 2 for k in "xyz") ** 0.5; nb = sum(f(y, f"B_{k}_T") ** 2 for k in "xyz") ** 0.5
             wb = max(wb, abs(na / nb - 1))
-        L.append(f"| {s} | {min(len(A), len(B))} | {wr:.3g} | {wrho:.3g} | {wsun:.3g} | {wb:.3g} |")
+        L.append(f"| {s} | {min(len(A), len(B))} | {wr:.3g} | {wrho:.3g} | {wsun:.3g} | {wb:.3g} | "
+                 + " | ".join(f"{g:.3g}" for g in direction_gaps(A, B)) + " |")
     L += ["", "Channels are filed with 9 significant digits, so differences below ~1e-8 relative are the",
           "file's rounding, not the models.", ""]
     L += ["", "## Distributions: MATLAB campaigns vs engine Monte Carlo", "",

@@ -256,3 +256,37 @@ class KeepInterp(unittest.TestCase):
             self.assertFalse((d / "channels.csv").exists())
             self.assertEqual((d / "interp.csv").read_text().splitlines()[0], "t_s,ape_los_deg,ake_los_deg")
             self.assertEqual(EC.interpretations([d], m), before)
+
+
+class DirectionGaps(unittest.TestCase):
+    """The parity tool's angle between engine and twin field, Sun and nadir directions."""
+
+    @staticmethod
+    def series(rot_deg):
+        """Rows in the equatorial plane; the twin's copy is turned about the pole by `rot_deg`."""
+        eng, twin = [], []
+        c, s = math.cos(math.radians(rot_deg)), math.sin(math.radians(rot_deg))
+        for i in range(12):
+            a = 0.5 * i
+            ex = {"r_x_m": 7e6 * math.cos(a), "r_y_m": 7e6 * math.sin(a), "r_z_m": 0.0,
+                  "sun_x": math.cos(a + 1), "sun_y": math.sin(a + 1), "sun_z": 0.0,
+                  "B_x_T": 3e-5 * math.cos(a + 2), "B_y_T": 3e-5 * math.sin(a + 2), "B_z_T": 0.0}
+            eng.append(ex)
+            tw = dict(ex)
+            for p in ("r_{}_m", "sun_{}", "B_{}_T"):
+                x, y = ex[p.format("x")], ex[p.format("y")]
+                tw[p.format("x")], tw[p.format("y")] = c * x - s * y, s * x + c * y
+            twin.append(tw)
+        return eng, twin
+
+    def test_precession_omitted_shows_in_all_three(self):
+        import engine_twin
+        got = engine_twin.direction_gaps(*self.series(0.2))
+        self.assertEqual(len(got), 3)
+        for g in got:
+            self.assertAlmostEqual(g, 0.2, places=6)
+
+    def test_identical_series_show_zero(self):
+        import engine_twin
+        eng, _twin = self.series(0.2)
+        self.assertEqual(engine_twin.direction_gaps(eng, [dict(r) for r in eng]), (0.0, 0.0, 0.0))
