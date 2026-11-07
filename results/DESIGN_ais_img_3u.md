@@ -4,14 +4,14 @@ Owner: Agastya. `tools/pipeline.py ais_img_3u` — sizing (Rust, adcs-design) ->
 C flight software) -> assess -> converge, repeated until nothing is left to change; then select, dispatch, Monte Carlo and
 soft OILS of the selected configuration. Flow: `docs/figures/flow_design_to_hils.svg`, method: `docs/DESIGN_LOOP.md`.
 
-**Selected: `mtq_fmr` — Magnetorquers + fluid momentum loop — closest (not feasible)**, converged after 8 iteration(s). Knowledge class: fine. Sensors: star_tracker, magnetometer, sun_sensors, gyro, gnss, earth_sensor.
+**Selected: `mtq_fmr` — Magnetorquers + fluid momentum loop — closest (not feasible)**, converged after 9 iteration(s). Knowledge class: fine. Sensors: star_tracker, magnetometer, sun_sensors, gyro, gnss, earth_sensor.
 
 Open requirement gaps of the selected family (what the case must relax, or the next design lever):
 
 - sun_referencing: power_mean (power)
 - nadir_pointing: ape_los_p9973 (performance), rate_stability_p9973 (performance), power_mean (power)
-- budget: mass_kg 8.02 > 1.85
-- budget: power_peak_W 5.03 > 4
+- budget: mass_kg 12 > 1.85
+- budget: power_peak_W 5.82 > 4
 
 ## Iterations
 
@@ -25,6 +25,7 @@ Open requirement gaps of the selected family (what the case must relax, or the n
 | 6 | mtqp x1, fmr x1.5, pump lambda 3 kg/W | 1/25 | mtq_fmr_rcs (closest (not feasible)) | sun_acquisition/fmr: fluid-loop flow sensor 2 -> 0.5 mm/s (1 sigma) | 27 |
 | 7 | mtqp x1, fmr x1.5, pump lambda 3 kg/W, flow sensor 0.5 mm/s | 2/25 | mtq_fmr (closest (not feasible)) | — | 26 |
 | 8 | mtqp x1, fmr x2.25, pump lambda 3 kg/W, flow sensor 0.5 mm/s | 2/25 | mtq_fmr (closest (not feasible)) | — | 26 |
+| 9 | mtqp x1, fmr x3.38, pump lambda 3 kg/W, flow sensor 0.5 mm/s | 2/25 | mtq_fmr (closest (not feasible)) | — | 26 |
 
 **Robustness (node `mc`) after iteration 5:** the Monte Carlo of `mtq_fmr_rcs` failed ape_los_p9973 (0 % of runs pass), ake_los_p9973 (0 % of runs pass), power_mean (0 % of runs pass). robustness (mtq_fmr_rcs): performance fails in dispersed runs -> fmr authority x1 -> x1.5 robustness (mtq_fmr_rcs): power fails in dispersed runs and no power lever is left robustness (mtq_fmr_rcs): knowledge fails in dispersed runs with the star tracker fitted
 
@@ -32,7 +33,7 @@ Open requirement gaps of the selected family (what the case must relax, or the n
 
 **Robustness (node `mc`) after iteration 8:** the Monte Carlo of `mtq_fmr` failed ape_los_p9973 (0 % of runs pass), ake_los_p9973 (0 % of runs pass), power_mean (0 % of runs pass). robustness (mtq_fmr): performance fails in dispersed runs -> fmr authority x2.25 -> x3.375 robustness (mtq_fmr): power fails in dispersed runs and no power lever is left robustness (mtq_fmr): knowledge fails in dispersed runs with the star tracker fitted
 
-**Robustness (node `mc`) after iteration 8:** the Monte Carlo of `mtq_fmr` failed ape_los_p9973 (0 % of runs pass), ake_los_p9973 (0 % of runs pass), power_mean (0 % of runs pass). robustness (mtq_fmr): performance fails in dispersed runs -> fmr authority x3.375 -> x4 robustness (mtq_fmr): power fails in dispersed runs and no power lever is left robustness (mtq_fmr): knowledge fails in dispersed runs with the star tracker fitted
+**Robustness (node `mc`) after iteration 9:** the Monte Carlo of `mtq_fmr` failed ape_los_p9973 (0 % of runs pass), ake_los_p9973 (0 % of runs pass), power_mean (0 % of runs pass). robustness (mtq_fmr): performance fails in dispersed runs -> fmr authority x3.375 -> x4 robustness (mtq_fmr): power fails in dispersed runs and no power lever is left robustness (mtq_fmr): knowledge fails in dispersed runs with the star tracker fitted
 
 Why the loop stopped (nothing left that a knob can change):
 
@@ -70,8 +71,8 @@ Selection rule (node `select`, docs/NODES.md): least mass_kg, then power_W, then
 | family | role | rank | feasible | mass [kg] | power [W] | volume [L] | momentum actuator | gaps |
 |---|---|---:|---|---:|---:|---:|---|---|
 | mtq | solution | — | no | 0.842 | 4.02 | 0.017 | coils only | sun_acquisition: sun_acquisition_time (performance), sun_angle_p95 (performance); sun_referencing: sun_ape_p9973 (performance); nadir_pointing: ape_los_p9973 (performance), rate_stability_p9973 (performance), power_mean (power); budget: power_peak_W 4.02 > 4; fault: gyro_bias_step: ake_los_p9973 |
-| mtq_fmr | solution | — | no | 8.015 | 4.98 | 0.536 | fluid loop (3 rings) | sun_referencing: power_mean (power); nadir_pointing: ape_los_p9973 (performance), rate_stability_p9973 (performance), power_mean (power); budget: mass_kg 8.02 > 1.85; budget: power_peak_W 5.03 > 4 |
-| mtq_fmr_rcs | solution | — | no | 8.481 | 5.03 | 1.378 | fluid loop (3 rings) | sun_referencing: power_mean (power); nadir_pointing: ape_los_p9973 (performance), rate_stability_p9973 (performance), power_mean (power); budget: mass_kg 8.48 > 1.85; budget: volume_L 1.38 > 1; budget: power_peak_W 5.08 > 4 |
+| mtq_fmr | solution | — | no | 11.996 | 5.76 | 0.536 | fluid loop (3 rings) | sun_referencing: power_mean (power); nadir_pointing: ape_los_p9973 (performance), rate_stability_p9973 (performance), power_mean (power); budget: mass_kg 12 > 1.85; budget: power_peak_W 5.82 > 4 |
+| mtq_fmr_rcs | solution | — | no | 12.462 | 5.81 | 1.378 | fluid loop (3 rings) | sun_referencing: power_mean (power); nadir_pointing: ape_los_p9973 (performance), rate_stability_p9973 (performance), power_mean (power); budget: mass_kg 12.5 > 1.85; budget: volume_L 1.38 > 1; budget: power_peak_W 5.87 > 4 |
 | mtq_rw | benchmark | — | no | 1.166 | 6.12 | 0.097 | CAT-CUBESPACE-CUBEWHEEL-CW0057 x3 | sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: power_peak_W 11.9 > 4 |
 | mtq_rw_rcs | benchmark | — | no | 1.632 | 6.17 | 0.939 | CAT-CUBESPACE-CUBEWHEEL-CW0057 x3 | sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: power_peak_W 12 > 4 |
 | mtq_cmg | benchmark | — | no | 2.021 | 7.81 | 0.808 | CAT-TENSOR-TECH-ADCS400 x4 | sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 2.02 > 1.85; budget: power_peak_W 7.81 > 4 |
@@ -85,7 +86,7 @@ Selection rule (node `select`, docs/NODES.md): least mass_kg, then power_W, then
 |---|---|---|---:|---|---|
 | detumble | mtq | yes | 56.37 detumble_time | attitude=mekf, detumble=bdot_gyro, mtq_pointing=mtq_pd, sun_acquisition=sunspin_l1l2 | — |
 | sun_acquisition | fmr | yes | 2.275 sun_acquisition_time | allocation=idmas_split, attitude=mekf, detumble=bdot_gyro, mtq_pointing=mtq_pd, pointing=pid, sun_acquisition=sunspin_l1l2 | — |
-| sun_referencing | fmr+mtq | no | 0.02018 sun_ape_p9973 | allocation=idmas_split, attitude=mekf, detumble=bdot_gyro, mtq_pointing=mtq_pd, pointing=pid, sun_acquisition=sunspin_l1l2 | power_mean |
+| sun_referencing | fmr+mtq | no | 0.04279 sun_ape_p9973 | allocation=idmas_split, attitude=mekf, detumble=bdot_gyro, mtq_pointing=mtq_pd, pointing=pid, sun_acquisition=sunspin_l1l2 | power_mean |
 | nadir_pointing | mtq | no | 30.96 ape_los_p9973 | attitude=mekf, detumble=bdot_gyro, mtq_pointing=mtq_celani2026, sun_acquisition=sunspin_l1l2 | ape_los_p9973, rate_stability_p9973, power_mean |
 
 ## Every solution family flown as the mission (node `family_missions`)
@@ -95,8 +96,8 @@ Detumble -> Sun acquisition -> nadir with each family's best methods from the lo
 | family | selected | feasible | mass [kg] | methods | detumble_time | ape_los_p9973 | ake_los_p9973 | power_mean | C = Rust | MC pass rates |
 |---|---|---|---:|---|---:|---:|---:|---:|---|---|
 | mtq | no | no | 0.842 | detumble=mtq, sun_acquisition=mtq, sun_referencing=mtq, nadir_pointing=mtq | 57.34 ✓ | 15.28 ✗ | 0.002629 ✓ | 2.871 ✗ | True | detumble_time 100 %; ape_los_p9973 0 %; ake_los_p9973 58 %; power_mean 0 % |
-| mtq_fmr | yes | no | 8.015 | detumble=mtq, sun_acquisition=fmr, sun_referencing=fmr+mtq, nadir_pointing=mtq | 75.28 ✓ | 19.56 ✗ | 0.01119 ✗ | 2.85 ✗ | True | detumble_time 100 %; ape_los_p9973 0 %; ake_los_p9973 0 %; power_mean 0 % |
-| mtq_fmr_rcs | no | no | 8.481 | detumble=mtq, sun_acquisition=fmr, sun_referencing=fmr+mtq, nadir_pointing=mtq | 75.28 ✓ | 19.56 ✗ | 0.01119 ✗ | 2.85 ✗ | True | detumble_time 100 %; ape_los_p9973 0 %; ake_los_p9973 0 %; power_mean 0 % |
+| mtq_fmr | yes | no | 11.996 | detumble=mtq, sun_acquisition=fmr, sun_referencing=fmr+mtq, nadir_pointing=mtq | 76.28 ✓ | 121.7 ✗ | 0.1505 ✗ | 2.828 ✗ | True | detumble_time 100 %; ape_los_p9973 0 %; ake_los_p9973 0 %; power_mean 0 % |
+| mtq_fmr_rcs | no | no | 12.462 | detumble=mtq, sun_acquisition=fmr, sun_referencing=fmr+mtq, nadir_pointing=mtq | 76.28 ✓ | 121.7 ✗ | 0.1505 ✗ | 2.828 ✗ | True | detumble_time 100 %; ape_los_p9973 0 %; ake_los_p9973 0 %; power_mean 0 % |
 
 ## Coils only: every law of the literature, each at its best gains (nodes `matrix` + `tune`)
 
@@ -147,11 +148,11 @@ The loop linearised about nadir with the gyroscopic and gravity-gradient terms, 
 | mode | option | algorithm | feasible | objective | failing (cause) |
 |---|---|---|---|---:|---|
 | detumble | mtq | default | yes | 56.37 | — |
-| detumble | rcs | default | no | 1.875 | power_peak (power) |
+| detumble | rcs | default | no | 25.18 | power_peak (power) |
 | nadir_pointing | cmg+mtq | default | no | 0.004446 | power_mean (power) |
 | nadir_pointing | cmg+rcs | default | no | 0.004444 | power_mean (power) |
-| nadir_pointing | fmr+mtq | pid@bw2.5 | no | 0.02876 | ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance), power_mean (power) |
-| nadir_pointing | fmr+rcs | pid@bw4 | no | 0.01867 | ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance), power_mean (power) |
+| nadir_pointing | fmr+mtq | pid@bw2.5 | no | 0.04203 | ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance), power_mean (power) |
+| nadir_pointing | fmr+rcs | pid@bw4 | no | 0.02687 | ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance), power_mean (power) |
 | nadir_pointing | mtq | mtq_celani2026@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=1 | no | 30.96 | ape_los_p9973 (performance), rate_stability_p9973 (performance), power_mean (power) |
 | nadir_pointing | rw+mtq | pid@bw2.5 | no | 0.004851 | power_mean (power) |
 | nadir_pointing | rw+rcs | pid@bw2.5 | no | 0.003697 | power_mean (power) |
@@ -164,8 +165,8 @@ The loop linearised about nadir with the gyroscopic and gravity-gradient terms, 
 | sun_acquisition | vscmg | default | no | 2.375 | power_mean (power) |
 | sun_referencing | cmg+mtq | default | no | 0.008198 | power_mean (power) |
 | sun_referencing | cmg+rcs | default | no | 0.008211 | power_mean (power) |
-| sun_referencing | fmr+mtq | pid@bw4 | no | 0.02018 | power_mean (power) |
-| sun_referencing | fmr+rcs | pid@bw4 | no | 0.02019 | power_mean (power) |
+| sun_referencing | fmr+mtq | pid@bw2.5 | no | 0.04279 | power_mean (power) |
+| sun_referencing | fmr+rcs | pid@bw2.5 | no | 0.04281 | power_mean (power) |
 | sun_referencing | mtq | mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.25 | no | 19.2 | sun_ape_p9973 (performance) |
 | sun_referencing | rw+mtq | default | no | 0.01089 | power_mean (power) |
 | sun_referencing | rw+rcs | default | no | 0.0109 | power_mean (power) |
@@ -176,11 +177,11 @@ The loop linearised about nadir with the gyroscopic and gravity-gradient terms, 
 
 | metric | req | mean ± std | [min, max] | pass rate |
 |---|---:|---|---|---:|
-| detumble_time (min) | 284 | 64.58 ± 10.7 | [40.74, 79.61] | 100 % |
-| ape_los_p9973 (deg) | 0.01 | 84.61 ± 43.4 | [24.79, 154.4] | 0 % |
-| ake_los_p9973 (deg) | 0.005 | 0.08326 ± 0.226 | [0.008668, 0.7987] | 0 % |
-| power_mean (W) | 2 | 2.844 ± 0.0188 | [2.823, 2.882] | 0 % |
-| power_peak (W) | — | 3.633 ± 0.00477 | [3.623, 3.639] | — |
+| detumble_time (min) | 284 | 67.11 ± 10.8 | [40.96, 81.19] | 100 % |
+| ape_los_p9973 (deg) | 0.01 | 73.84 ± 38.6 | [31.01, 153.7] | 0 % |
+| ake_los_p9973 (deg) | 0.005 | 0.1015 ± 0.222 | [0.01193, 0.7669] | 0 % |
+| power_mean (W) | 2 | 2.84 ± 0.0205 | [2.824, 2.885] | 0 % |
+| power_peak (W) | — | 3.637 ± 0.0036 | [3.629, 3.643] | — |
 | propellant (g) | — | 0 ± 0 | [0, 0] | — |
 
 ## SILS and soft OILS of the dispatched mission
@@ -190,17 +191,17 @@ C and Rust builds, with exact per-step instruction counts and the command latenc
 
 | metric | req | SILS | soft OILS (C on M4F) | soft OILS (Rust on M4F) |
 |---|---:|---:|---:|---:|
-| detumble_time | 284 | 75.28 ✓ | 76.47 ✓ | 76.47 ✓ |
-| ape_los_p9973 | 0.01 | 19.56 ✗ | 31.15 ✗ | 46.58 ✗ |
-| ake_los_p9973 | 0.005 | 0.01119 ✗ | 0.01952 ✗ | 0.02719 ✗ |
-| power_mean | 2 | 2.85 ✗ | 2.853 ✗ | 2.852 ✗ |
-| power_peak | — | 3.639  | 3.643  | 3.645  |
+| detumble_time | 284 | 76.28 ✓ | 78.19 ✓ | 78.19 ✓ |
+| ape_los_p9973 | 0.01 | 121.7 ✗ | 43.01 ✗ | 33.55 ✗ |
+| ake_los_p9973 | 0.005 | 0.1505 ✗ | 0.01461 ✗ | 0.01467 ✗ |
+| power_mean | 2 | 2.828 ✗ | 2.826 ✗ | 2.84 ✗ |
+| power_peak | — | 3.646  | 3.656  | 3.654  |
 | propellant | — | 0  | 0  | 0  |
 
 | OBC build | instructions/step mean / max | exec max [ms] | latency mean / max [ms] | CPU load max | overruns |
 |---|---:|---:|---:|---:|---:|
-| C (arm-none-eabi-gcc -O2) | 3.152e+05 / 1.053e+06 | 7.833 | 3.515 / 9.002 | 7.8 % | 0 |
-| Rust (thumbv7em-none-eabihf) | 4.088e+05 / 1.242e+06 | 9.238 | 4.211 / 10.407 | 9.2 % | 0 |
+| C (arm-none-eabi-gcc -O2) | 3.167e+05 / 1.05e+06 | 7.813 | 3.525 / 8.982 | 7.8 % | 0 |
+| Rust (thumbv7em-none-eabihf) | 4.037e+05 / 1.241e+06 | 9.235 | 4.173 / 10.404 | 9.2 % | 0 |
 
 Dispatch: `dist/dispatch/ais_img_3u/mtq_fmr/converged` (blob, sized products, BUILD.md). C = Rust flight software bitwise on the engine: True.
 

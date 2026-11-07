@@ -1,40 +1,300 @@
 {
- "design": "/home/user/TRI_NETRA_Satellite/build/end_to_end/Design/design.tndb",
+ "design": "/workspace/TRI_NETRA_Satellite/build/end_to_end/Design/design.tndb",
  "cases": {
   "ais_3u": {
    "steps": [
     {
      "what": "ais_3u: the design loop",
-     "exit": null,
-     "skipped": true
+     "command": "/usr/local/bin/python3 tools/pipeline.py ais_3u --jobs 4",
+     "exit": 0
     },
     {
      "what": "ais_3u: its campaigns",
-     "exit": null,
-     "skipped": true
+     "command": "/usr/local/bin/python3 tools/engine.py campaign edge_nadir_ais mc_detumble_ais mc_nadir_ais --jobs 4",
+     "exit": 0
     }
    ],
-   "numbers": 468,
+   "numbers": 484,
    "changed": [],
-   "runs_from_the_database": 48,
-   "runs_not": [],
-   "runs_not_count": 0
+   "runs_from_the_database": 45,
+   "runs_not": [
+    "matlab_sils/store/pipeline/ais_3u/soft_oils/oils_rs/manifest.json",
+    "matlab_sils/store/pipeline/ais_3u/soft_oils/oils/manifest.json",
+    "matlab_sils/store/pipeline/ais_3u/soft_oils/sils/manifest.json"
+   ],
+   "runs_not_count": 3
   },
   "ais_img_3u": {
    "steps": [
     {
      "what": "ais_img_3u: the design loop",
-     "exit": null,
-     "skipped": true
+     "command": "/usr/local/bin/python3 tools/pipeline.py ais_img_3u --jobs 4",
+     "exit": 0
     },
     {
      "what": "ais_img_3u: its campaigns",
-     "exit": null,
-     "skipped": true
+     "command": "/usr/local/bin/python3 tools/engine.py campaign edge_fine_img mc_agile_rw_rcs mc_fine_img mc_slew_cmg mc_slew_img --jobs 4",
+     "exit": 0
     }
    ],
-   "numbers": 555,
-   "changed": [],
+   "numbers": 562,
+   "changed": [
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr.budget.mass_kg",
+     "before": 8.015074185008947,
+     "after": 11.99557328644847
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr.budget.power_W",
+     "before": 4.979764408616867,
+     "after": 5.763282280603447
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr.modes.sun_acquisition.metrics.power_mean",
+     "before": 1.6395243760205616,
+     "after": 1.6409696633142599
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr.modes.sun_acquisition.metrics.power_peak",
+     "before": 2.52337591525296,
+     "after": 2.2637794018528057
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr.modes.sun_acquisition.metrics.sun_angle_p95",
+     "before": 0.4186339791031823,
+     "after": 0.5879705618417329
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr.modes.sun_referencing.metrics.ake_3ax_p9973",
+     "before": 0.008806474484843237,
+     "after": 0.012506681254206255
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr.modes.sun_referencing.metrics.ape_3ax_p9973",
+     "before": 0.020274859179592458,
+     "after": 0.042860175442351704
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr.modes.sun_referencing.metrics.momentum_peak",
+     "before": 0.001068560795147859,
+     "after": 0.00045187089728070573
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr.modes.sun_referencing.metrics.power_mean",
+     "before": 4.160364732880716,
+     "after": 4.009894807188986
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr.modes.sun_referencing.metrics.power_peak",
+     "before": 4.870113418613782,
+     "after": 5.602434349144837
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr.modes.sun_referencing.metrics.rate_stability_p9973",
+     "before": 0.03349010644246053,
+     "after": 0.04421994730262022
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr.modes.sun_referencing.metrics.sun_ape_p9973",
+     "before": 0.020180313702076826,
+     "after": 0.04279106332169133
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr.modes.sun_referencing.objective",
+     "before": 0.020180313702076826,
+     "after": 0.04279106332169133
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr.modes.sun_referencing.violation.power_mean",
+     "before": 1.0801823664403578,
+     "after": 1.004947403594493
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr.shortfall",
+     "before": 3127.813541,
+     "after": 3130.08753
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr_rcs.budget.mass_kg",
+     "before": 8.481181954025041,
+     "after": 12.461681055464563
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr_rcs.budget.power_W",
+     "before": 5.029764408616867,
+     "after": 5.813282280603446
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr_rcs.modes.sun_acquisition.metrics.power_mean",
+     "before": 1.6395243760205616,
+     "after": 1.6409696633142599
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr_rcs.modes.sun_acquisition.metrics.power_peak",
+     "before": 2.52337591525296,
+     "after": 2.2637794018528057
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr_rcs.modes.sun_acquisition.metrics.sun_angle_p95",
+     "before": 0.4186339791031823,
+     "after": 0.5879705618417329
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr_rcs.modes.sun_referencing.metrics.ake_3ax_p9973",
+     "before": 0.008806474484843237,
+     "after": 0.012506681254206255
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr_rcs.modes.sun_referencing.metrics.ape_3ax_p9973",
+     "before": 0.020274859179592458,
+     "after": 0.042860175442351704
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr_rcs.modes.sun_referencing.metrics.momentum_peak",
+     "before": 0.001068560795147859,
+     "after": 0.00045187089728070573
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr_rcs.modes.sun_referencing.metrics.power_mean",
+     "before": 4.160364732880716,
+     "after": 4.009894807188986
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr_rcs.modes.sun_referencing.metrics.power_peak",
+     "before": 4.870113418613782,
+     "after": 5.602434349144837
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr_rcs.modes.sun_referencing.metrics.rate_stability_p9973",
+     "before": 0.03349010644246053,
+     "after": 0.04421994730262022
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr_rcs.modes.sun_referencing.metrics.sun_ape_p9973",
+     "before": 0.020180313702076826,
+     "after": 0.04279106332169133
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr_rcs.modes.sun_referencing.objective",
+     "before": 0.020180313702076826,
+     "after": 0.04279106332169133
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr_rcs.modes.sun_referencing.violation.power_mean",
+     "before": 1.0801823664403578,
+     "after": 1.004947403594493
+    },
+    {
+     "name": "ais_img_3u.selection.families.mtq_fmr_rcs.shortfall",
+     "before": 3128.456333,
+     "after": 3130.730321
+    },
+    {
+     "name": "ais_img_3u.selection.iterations",
+     "before": 8,
+     "after": 9
+    },
+    {
+     "name": "mc:ake_los_p9973.max",
+     "before": 0.7987380601425521,
+     "after": 0.7668625784322405
+    },
+    {
+     "name": "mc:ake_los_p9973.mean",
+     "before": 0.08325573643772624,
+     "after": 0.10151455708046825
+    },
+    {
+     "name": "mc:ake_los_p9973.min",
+     "before": 0.008668178458561627,
+     "after": 0.011932864110640441
+    },
+    {
+     "name": "mc:ake_los_p9973.std",
+     "before": 0.22577380464199592,
+     "after": 0.2220673454586704
+    },
+    {
+     "name": "mc:ape_los_p9973.max",
+     "before": 154.35563072130466,
+     "after": 153.71954778836167
+    },
+    {
+     "name": "mc:ape_los_p9973.mean",
+     "before": 84.61252844422118,
+     "after": 73.83982559994429
+    },
+    {
+     "name": "mc:ape_los_p9973.min",
+     "before": 24.79371695724766,
+     "after": 31.013303970935183
+    },
+    {
+     "name": "mc:ape_los_p9973.std",
+     "before": 43.409034139390265,
+     "after": 38.60042342551431
+    },
+    {
+     "name": "mc:detumble_time.max",
+     "before": 79.60833333333333,
+     "after": 81.19166666666666
+    },
+    {
+     "name": "mc:detumble_time.mean",
+     "before": 64.57638888888889,
+     "after": 67.1111111111111
+    },
+    {
+     "name": "mc:detumble_time.min",
+     "before": 40.74166666666667,
+     "after": 40.958333333333336
+    },
+    {
+     "name": "mc:detumble_time.std",
+     "before": 10.677043859251986,
+     "after": 10.806266497865744
+    },
+    {
+     "name": "mc:power_mean.max",
+     "before": 2.881996273802978,
+     "after": 2.8849005030317154
+    },
+    {
+     "name": "mc:power_mean.mean",
+     "before": 2.8440332147939107,
+     "after": 2.8397890349378403
+    },
+    {
+     "name": "mc:power_mean.min",
+     "before": 2.8230018029014965,
+     "after": 2.823516586210489
+    },
+    {
+     "name": "mc:power_mean.std",
+     "before": 0.018832816729649364,
+     "after": 0.020450448793625935
+    },
+    {
+     "name": "mc:power_peak.max",
+     "before": 3.6393644219881396,
+     "after": 3.643397745112151
+    },
+    {
+     "name": "mc:power_peak.mean",
+     "before": 3.6331910806909593,
+     "after": 3.6370652266293155
+    },
+    {
+     "name": "mc:power_peak.min",
+     "before": 3.622726598125042,
+     "after": 3.629331216445786
+    },
+    {
+     "name": "mc:power_peak.std",
+     "before": 0.004770273192510608,
+     "after": 0.0036034744926141398
+    }
+   ],
    "runs_from_the_database": 50,
    "runs_not": [],
    "runs_not_count": 0
@@ -42,7 +302,7 @@
  },
  "evaluate": {
   "what": "every row and every closure",
-  "command": "/usr/local/bin/python3 tools/evaluate.py /home/user/TRI_NETRA_Satellite/build/end_to_end/Design ais_3u ais_img_3u",
+  "command": "/usr/local/bin/python3 tools/evaluate.py /workspace/TRI_NETRA_Satellite/build/end_to_end/Design ais_3u ais_img_3u",
   "exit": 0
  },
  "trace": {

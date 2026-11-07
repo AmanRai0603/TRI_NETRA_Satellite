@@ -11,37 +11,37 @@
     {
      "scenario": "fault_gyro_ais",
      "metric": "ape_los_last_orbit",
-     "value": 10.918155064822782,
+     "value": 11.566343939024454,
      "pass": 0,
-     "run": "2026-10-03T18:50:55Z"
+     "run": "2026-11-07T08:07:37Z"
     },
     {
      "scenario": "mission_ais",
      "metric": "ape_los_last_orbit",
-     "value": 11.501901673586454,
+     "value": 10.776010796950027,
      "pass": 0,
-     "run": "2026-10-03T18:51:03Z"
+     "run": "2026-11-07T08:07:50Z"
     },
     {
      "scenario": "nadir_hold_ais",
      "metric": "ape_los_last_orbit",
-     "value": 10.668629181550926,
+     "value": 10.612696276488737,
      "pass": 0,
-     "run": "2026-10-03T18:51:06Z"
+     "run": "2026-11-07T08:07:55Z"
     },
     {
      "scenario": "nadir_hold_ais_css",
      "metric": "ape_los_last_orbit",
-     "value": 9.706064604999048,
+     "value": 9.709416958725154,
      "pass": 1,
-     "run": "2026-10-03T18:51:07Z"
+     "run": "2026-11-07T08:07:56Z"
     },
     {
      "scenario": "safe_mode_ais",
      "metric": "ape_los_last_orbit",
-     "value": 12.295126389129983,
+     "value": 12.044261581738368,
      "pass": 0,
-     "run": "2026-10-03T18:51:08Z"
+     "run": "2026-11-07T08:07:56Z"
     }
    ],
    "design": null,
@@ -49,7 +49,7 @@
     {
      "mode": "nadir_pointing",
      "metric": "ape_los_p9973",
-     "value": 0.1487056076107227,
+     "value": 6.49089662645339,
      "pass": 1
     }
    ],
@@ -77,51 +77,51 @@
     {
      "scenario": "fault_clock_step_back",
      "metric": "ake_los_last_orbit",
-     "value": null,
-     "pass": null,
-     "run": null
+     "value": 1.1583121047297131,
+     "pass": 1,
+     "run": "2026-11-07T08:07:35Z"
     },
     {
      "scenario": "fault_clock_step_fwd",
      "metric": "ake_los_last_orbit",
-     "value": null,
-     "pass": null,
-     "run": null
+     "value": 1.158312108262547,
+     "pass": 1,
+     "run": "2026-11-07T08:07:36Z"
     },
     {
      "scenario": "fault_fsw_reset_day30",
      "metric": "ake_los_last_orbit",
-     "value": null,
-     "pass": null,
-     "run": null
+     "value": 1.0467047231192004,
+     "pass": 1,
+     "run": "2026-11-07T08:07:36Z"
     },
     {
      "scenario": "fault_gyro_ais",
      "metric": "ake_los_last_orbit",
-     "value": 1.0382992304791432,
+     "value": 1.0438294001686055,
      "pass": 1,
-     "run": "2026-10-03T18:50:55Z"
+     "run": "2026-11-07T08:07:37Z"
     },
     {
      "scenario": "mission_ais",
      "metric": "ake_los_last_orbit",
-     "value": 1.3160544273519241,
+     "value": 1.2863630309063974,
      "pass": 1,
-     "run": "2026-10-03T18:51:03Z"
+     "run": "2026-11-07T08:07:50Z"
     },
     {
      "scenario": "nadir_hold_ais",
      "metric": "ake_los_last_orbit",
-     "value": 1.6379604164162762,
+     "value": 1.6048381000516592,
      "pass": 1,
-     "run": "2026-10-03T18:51:06Z"
+     "run": "2026-11-07T08:07:55Z"
     },
     {
      "scenario": "nadir_hold_ais_css",
      "metric": "ake_los_last_orbit",
-     "value": 1.5687609453593554,
+     "value": 1.562754138306161,
      "pass": 1,
-     "run": "2026-10-03T18:51:07Z"
+     "run": "2026-11-07T08:07:56Z"
     }
    ],
    "design": null,
@@ -129,12 +129,22 @@
     {
      "mode": "nadir_pointing",
      "metric": "ake_los_p9973",
-     "value": 0.14602831847329792,
+     "value": 0.36574352117617936,
      "pass": 1
     }
    ],
    "profile": [],
-   "status": "not yet flown"
+   "status": "met",
+   "verdict": {
+    "answer": "pass",
+    "text": "pass",
+    "lower": 1.0,
+    "upper": 1.0,
+    "n": 7,
+    "k": 7,
+    "level": 0.0,
+    "confidence": 0.95
+   }
   },
   {
    "case": "ais_3u",
@@ -266,35 +276,35 @@
      "metric": "detumble_time",
      "value": 37.74,
      "pass": 1,
-     "run": "2026-10-03T18:50:53Z"
+     "run": "2026-11-07T08:07:33Z"
     },
     {
      "scenario": "detumble_ais_bangbang",
      "metric": "detumble_time",
      "value": 55.74,
      "pass": 1,
-     "run": "2026-10-03T18:50:53Z"
+     "run": "2026-11-07T08:07:33Z"
     },
     {
      "scenario": "detumble_ais_mag",
      "metric": "detumble_time",
      "value": 41.09,
      "pass": 1,
-     "run": "2026-10-03T18:50:53Z"
+     "run": "2026-11-07T08:07:33Z"
     },
     {
      "scenario": "fault_coil_ais",
      "metric": "detumble_time",
      "value": 82.19000000000001,
      "pass": 1,
-     "run": "2026-10-03T18:50:54Z"
+     "run": "2026-11-07T08:07:36Z"
     },
     {
      "scenario": "mission_ais",
      "metric": "detumble_time",
      "value": 37.74,
      "pass": 1,
-     "run": "2026-10-03T18:51:03Z"
+     "run": "2026-11-07T08:07:50Z"
     }
    ],
    "design": null,
@@ -302,7 +312,7 @@
     {
      "mode": "detumble",
      "metric": "detumble_time",
-     "value": 41.306666666666665,
+     "value": 50.74,
      "pass": 1
     }
    ],
@@ -332,7 +342,7 @@
      "metric": "sun_spin_entry",
      "value": 63.223333333333336,
      "pass": 1,
-     "run": "2026-10-03T18:51:09Z"
+     "run": "2026-11-07T08:07:58Z"
     }
    ],
    "design": null,
@@ -419,7 +429,7 @@
    "flight": [],
    "design": {
     "family": "mtq_fmr",
-    "value": 2.3188153385798076,
+    "value": 11.31946685617491,
     "pass": 0
    },
    "modes": [],
@@ -438,65 +448,65 @@
     {
      "scenario": "detumble_ais",
      "metric": "power_mean",
-     "value": 0.02192329232985533,
-     "pass": 1,
-     "run": "2026-10-03T18:50:53Z"
+     "value": 1.5219232923298602,
+     "pass": 0,
+     "run": "2026-11-07T08:07:33Z"
     },
     {
      "scenario": "detumble_ais_bangbang",
      "metric": "power_mean",
-     "value": 0.45558814696658373,
-     "pass": 1,
-     "run": "2026-10-03T18:50:53Z"
+     "value": 1.9555881469664376,
+     "pass": 0,
+     "run": "2026-11-07T08:07:33Z"
     },
     {
      "scenario": "detumble_ais_mag",
      "metric": "power_mean",
-     "value": 0.07734011413759496,
-     "pass": 1,
-     "run": "2026-10-03T18:50:53Z"
+     "value": 1.577340114137595,
+     "pass": 0,
+     "run": "2026-11-07T08:07:33Z"
     },
     {
      "scenario": "fault_coil_ais",
      "metric": "power_mean",
-     "value": 0.01818570313469999,
-     "pass": 1,
-     "run": "2026-10-03T18:50:54Z"
+     "value": 1.5181857031346975,
+     "pass": 0,
+     "run": "2026-11-07T08:07:36Z"
     },
     {
      "scenario": "fault_gyro_ais",
      "metric": "power_mean",
-     "value": 0.01084420430901046,
-     "pass": 1,
-     "run": "2026-10-03T18:50:55Z"
+     "value": 1.5108195510065716,
+     "pass": 0,
+     "run": "2026-11-07T08:07:37Z"
     },
     {
      "scenario": "nadir_hold_ais",
      "metric": "power_mean",
-     "value": 0.010596882533282304,
-     "pass": 1,
-     "run": "2026-10-03T18:51:06Z"
+     "value": 1.5106001783302687,
+     "pass": 0,
+     "run": "2026-11-07T08:07:55Z"
     },
     {
      "scenario": "nadir_hold_ais_css",
      "metric": "power_mean",
-     "value": 0.010984113333902592,
-     "pass": 1,
-     "run": "2026-10-03T18:51:07Z"
+     "value": 1.230992412190479,
+     "pass": 0,
+     "run": "2026-11-07T08:07:56Z"
     },
     {
      "scenario": "sun_mtq_ais",
      "metric": "power_mean",
-     "value": 0.011127525765301717,
-     "pass": 1,
-     "run": "2026-10-03T18:51:09Z"
+     "value": 1.5111282849621837,
+     "pass": 0,
+     "run": "2026-11-07T08:07:58Z"
     },
     {
      "scenario": "sun_spin_ais",
      "metric": "power_mean",
-     "value": 0.4641378108999595,
-     "pass": 1,
-     "run": "2026-10-03T18:51:09Z"
+     "value": 1.964137810899969,
+     "pass": 0,
+     "run": "2026-11-07T08:07:58Z"
     }
    ],
    "design": null,
@@ -504,31 +514,31 @@
     {
      "mode": "nadir_pointing",
      "metric": "power_mean",
-     "value": 0.2781240917999033,
-     "pass": 1
+     "value": 1.623909383640717,
+     "pass": 0
     },
     {
      "mode": "sun_acquisition",
      "metric": "power_mean",
-     "value": 0.18377855613211622,
-     "pass": 1
+     "value": 1.7015327232734458,
+     "pass": 0
     },
     {
      "mode": "sun_referencing",
      "metric": "power_mean",
-     "value": 0.23603156876151657,
-     "pass": 1
+     "value": 1.6117044819638449,
+     "pass": 0
     }
    ],
    "profile": [],
-   "status": "met",
+   "status": "not met (12 of 12)",
    "verdict": {
-    "answer": "pass",
-    "text": "pass",
-    "lower": 1.0,
-    "upper": 1.0,
+    "answer": "fail",
+    "text": "fail",
+    "lower": 0.0,
+    "upper": 0.0,
     "n": 9,
-    "k": 9,
+    "k": 0,
     "level": 0.0,
     "confidence": 0.95
    }
@@ -544,30 +554,30 @@
     {
      "scenario": "detumble_ais",
      "metric": "power_peak",
-     "value": 0.5476232337412641,
-     "pass": 1,
-     "run": "2026-10-03T18:50:53Z"
+     "value": 2.0476232337412643,
+     "pass": 0,
+     "run": "2026-11-07T08:07:33Z"
     },
     {
      "scenario": "detumble_ais_bangbang",
      "metric": "power_peak",
-     "value": 0.7169983520004882,
-     "pass": 1,
-     "run": "2026-10-03T18:50:53Z"
+     "value": 2.216998352000488,
+     "pass": 0,
+     "run": "2026-11-07T08:07:33Z"
     },
     {
      "scenario": "detumble_ais_mag",
      "metric": "power_peak",
-     "value": 0.6482654194769127,
-     "pass": 1,
-     "run": "2026-10-03T18:50:53Z"
+     "value": 2.1482654194769126,
+     "pass": 0,
+     "run": "2026-11-07T08:07:33Z"
     },
     {
      "scenario": "fault_coil_ais",
      "metric": "power_peak",
-     "value": 0.5476232337412641,
-     "pass": 1,
-     "run": "2026-10-03T18:50:54Z"
+     "value": 2.0476232337412643,
+     "pass": 0,
+     "run": "2026-11-07T08:07:36Z"
     }
    ],
    "design": null,
@@ -575,19 +585,19 @@
     {
      "mode": "detumble",
      "metric": "power_peak",
-     "value": 0.3615948201459356,
-     "pass": 1
+     "value": 1.7854230870557435,
+     "pass": 0
     }
    ],
    "profile": [],
-   "status": "met",
+   "status": "not met (5 of 5)",
    "verdict": {
-    "answer": "pass",
-    "text": "pass",
-    "lower": 1.0,
-    "upper": 1.0,
+    "answer": "fail",
+    "text": "fail",
+    "lower": 0.0,
+    "upper": 0.0,
     "n": 4,
-    "k": 4,
+    "k": 0,
     "level": 0.0,
     "confidence": 0.95
    }
@@ -634,247 +644,247 @@
     {
      "scenario": "agile_slew_cmg",
      "metric": "ape_los_on_target_p9973",
-     "value": 0.005506229902498288,
+     "value": 0.004501986730391352,
      "pass": 1,
-     "run": "2026-10-03T18:50:52Z"
+     "run": "2026-11-07T08:07:32Z"
     },
     {
      "scenario": "agile_slew_fmr_rcs",
      "metric": "ape_los_on_target_p9973",
-     "value": 0.006691616030785554,
+     "value": 0.006668274438431209,
      "pass": 1,
-     "run": "2026-10-03T18:50:52Z"
+     "run": "2026-11-07T08:07:32Z"
     },
     {
      "scenario": "agile_slew_img",
      "metric": "ape_los_on_target_p9973",
-     "value": 0.007962962674457466,
+     "value": 0.006680638634424929,
      "pass": 1,
-     "run": "2026-10-03T18:50:53Z"
+     "run": "2026-11-07T08:07:32Z"
     },
     {
      "scenario": "agile_slew_rw_rcs",
      "metric": "ape_los_on_target_p9973",
-     "value": 0.008166906672949035,
+     "value": 0.006558789456718461,
      "pass": 1,
-     "run": "2026-10-03T18:50:52Z"
+     "run": "2026-11-07T08:07:32Z"
     },
     {
      "scenario": "agile_slew_vscmg",
      "metric": "ape_los_on_target_p9973",
-     "value": 0.011646084670752,
-     "pass": 0,
-     "run": "2026-10-03T18:50:53Z"
+     "value": 0.00957475761171806,
+     "pass": 1,
+     "run": "2026-11-07T08:07:33Z"
     },
     {
      "scenario": "fault_clock_jitter_1us",
      "metric": "ape_los_p9973",
-     "value": null,
-     "pass": null,
-     "run": null
+     "value": 0.004615648469552475,
+     "pass": 1,
+     "run": "2026-11-07T08:07:35Z"
     },
     {
      "scenario": "fault_clock_jitter_5ms",
      "metric": "ape_los_p9973",
-     "value": null,
-     "pass": null,
-     "run": null
+     "value": 0.004632836682500168,
+     "pass": 1,
+     "run": "2026-11-07T08:07:35Z"
     },
     {
      "scenario": "fault_gimbal_cmg",
      "metric": "ape_los_p9973",
-     "value": 0.005704917870394455,
+     "value": 0.005019645312218343,
      "pass": 1,
-     "run": "2026-10-03T18:50:56Z"
+     "run": "2026-11-07T08:07:38Z"
     },
     {
      "scenario": "fault_gps_img",
      "metric": "ape_los_p9973",
-     "value": 0.011195902058714414,
+     "value": 0.010473270112387825,
      "pass": 0,
-     "run": "2026-10-03T18:50:56Z"
+     "run": "2026-11-07T08:07:38Z"
     },
     {
      "scenario": "fault_st_img",
      "metric": "ape_los_p9973",
-     "value": 0.006980034947293854,
+     "value": 0.005507555489227794,
      "pass": 1,
-     "run": "2026-10-03T18:50:57Z"
+     "run": "2026-11-07T08:07:40Z"
     },
     {
      "scenario": "fault_valve_rcs",
      "metric": "ape_los_p9973",
-     "value": 2.7485240528683623,
+     "value": 1.2213204325059592,
      "pass": 0,
-     "run": "2026-10-03T18:50:58Z"
+     "run": "2026-11-07T08:07:40Z"
     },
     {
      "scenario": "fault_wheel_img",
      "metric": "ape_los_p9973",
-     "value": 0.6800073401388947,
+     "value": 0.4722638507379407,
      "pass": 0,
-     "run": "2026-10-03T18:50:59Z"
+     "run": "2026-11-07T08:07:41Z"
     },
     {
      "scenario": "fine_hold_cmg",
      "metric": "ape_los_p9973",
-     "value": 0.005217901465699834,
+     "value": 0.004054851044060973,
      "pass": 1,
-     "run": "2026-10-03T18:50:59Z"
+     "run": "2026-11-07T08:07:44Z"
     },
     {
      "scenario": "fine_hold_fmr",
      "metric": "ape_los_p9973",
-     "value": 0.005961977239161324,
+     "value": 0.0049154433761112275,
      "pass": 1,
-     "run": "2026-10-03T18:51:00Z"
+     "run": "2026-11-07T08:07:45Z"
     },
     {
      "scenario": "fine_hold_fmr_rcs",
      "metric": "ape_los_p9973",
-     "value": 0.005961977239161324,
+     "value": 0.0049154433761112275,
      "pass": 1,
-     "run": "2026-10-03T18:51:00Z"
+     "run": "2026-11-07T08:07:45Z"
     },
     {
      "scenario": "fine_hold_img",
      "metric": "ape_los_p9973",
-     "value": 0.006872698614672029,
+     "value": 0.0052018575115159804,
      "pass": 1,
-     "run": "2026-10-03T18:51:01Z"
+     "run": "2026-11-07T08:07:46Z"
     },
     {
      "scenario": "fine_hold_img_lqr",
      "metric": "ape_los_p9973",
-     "value": 0.0042366786181092814,
+     "value": 0.004127704298343715,
      "pass": 1,
-     "run": "2026-10-03T18:51:01Z"
+     "run": "2026-11-07T08:07:49Z"
     },
     {
      "scenario": "fine_hold_img_smc",
      "metric": "ape_los_p9973",
-     "value": 0.019135399902392804,
+     "value": 0.010773858255432919,
      "pass": 0,
-     "run": "2026-10-03T18:51:03Z"
+     "run": "2026-11-07T08:07:50Z"
     },
     {
      "scenario": "fine_hold_rw_rcs",
      "metric": "ape_los_p9973",
-     "value": 0.006809842095918563,
+     "value": 0.005184915901033059,
      "pass": 1,
-     "run": "2026-10-03T18:51:03Z"
+     "run": "2026-11-07T08:07:51Z"
     },
     {
      "scenario": "fine_hold_vscmg",
      "metric": "ape_los_p9973",
-     "value": 0.00836937684281587,
+     "value": 0.006397532851524678,
      "pass": 1,
-     "run": "2026-10-03T18:51:04Z"
+     "run": "2026-11-07T08:07:52Z"
     },
     {
      "scenario": "mission_cmg",
      "metric": "ape_los_last_half_orbit_p9973",
-     "value": 0.005214474810386373,
+     "value": 0.004310214505809001,
      "pass": 1,
-     "run": "2026-10-03T18:51:05Z"
+     "run": "2026-11-07T08:07:53Z"
     },
     {
      "scenario": "mission_fmr",
      "metric": "ape_los_last_half_orbit_p9973",
-     "value": 0.005883743160414358,
+     "value": 0.004873926347472491,
      "pass": 1,
-     "run": "2026-10-03T18:51:05Z"
+     "run": "2026-11-07T08:07:53Z"
     },
     {
      "scenario": "mission_fmr_rcs",
      "metric": "ape_los_last_half_orbit_p9973",
-     "value": 0.005883743160414358,
+     "value": 0.004873926347472491,
      "pass": 1,
-     "run": "2026-10-03T18:51:05Z"
+     "run": "2026-11-07T08:07:54Z"
     },
     {
      "scenario": "mission_img",
      "metric": "ape_los_last_half_orbit_p9973",
-     "value": 0.007339627175564502,
+     "value": 0.005448684348636976,
      "pass": 1,
-     "run": "2026-10-03T18:51:07Z"
+     "run": "2026-11-07T08:07:55Z"
     },
     {
      "scenario": "mission_rw_rcs",
      "metric": "ape_los_last_half_orbit_p9973",
-     "value": 0.014886904471609062,
-     "pass": 0,
-     "run": "2026-10-03T18:51:08Z"
+     "value": 0.005363464080085006,
+     "pass": 1,
+     "run": "2026-11-07T08:07:57Z"
     },
     {
      "scenario": "mission_vscmg",
      "metric": "ape_los_last_half_orbit_p9973",
-     "value": 0.009744620504449427,
+     "value": 0.006915833364304232,
      "pass": 1,
-     "run": "2026-10-03T18:51:08Z"
+     "run": "2026-11-07T08:07:57Z"
     },
     {
      "scenario": "slew_cmg",
      "metric": "ape_los_on_target_p9973",
-     "value": 0.0036812971256004455,
+     "value": 0.003666005913984359,
      "pass": 1,
-     "run": "2026-10-03T18:51:07Z"
+     "run": "2026-11-07T08:07:56Z"
     },
     {
      "scenario": "slew_fmr",
      "metric": "ape_los_on_target_p9973",
-     "value": 0.006193293040951817,
+     "value": 0.006050906400064399,
      "pass": 1,
-     "run": "2026-10-03T18:51:08Z"
+     "run": "2026-11-07T08:07:56Z"
     },
     {
      "scenario": "slew_fmr_rcs",
      "metric": "ape_los_on_target_p9973",
-     "value": 0.006193293040951817,
+     "value": 0.006050906400064399,
      "pass": 1,
-     "run": "2026-10-03T18:51:08Z"
+     "run": "2026-11-07T08:07:57Z"
     },
     {
      "scenario": "slew_img",
      "metric": "ape_los_on_target_p9973",
-     "value": 0.007934166871821106,
+     "value": 0.006261416145712064,
      "pass": 1,
-     "run": "2026-10-03T18:51:08Z"
+     "run": "2026-11-07T08:07:57Z"
     },
     {
      "scenario": "slew_img_lqr",
      "metric": "ape_los_on_target_p9973",
-     "value": 0.0047102174424519085,
+     "value": 0.004690490763574098,
      "pass": 1,
-     "run": "2026-10-03T18:51:08Z"
+     "run": "2026-11-07T08:07:57Z"
     },
     {
      "scenario": "slew_img_smc",
      "metric": "ape_los_on_target_p9973",
-     "value": 0.017837471937538686,
+     "value": 0.010970524011422228,
      "pass": 0,
-     "run": "2026-10-03T18:51:08Z"
+     "run": "2026-11-07T08:07:57Z"
     },
     {
      "scenario": "slew_rw_rcs",
      "metric": "ape_los_on_target_p9973",
-     "value": 0.007921379577610054,
+     "value": 0.006262269417342344,
      "pass": 1,
-     "run": "2026-10-03T18:51:08Z"
+     "run": "2026-11-07T08:07:57Z"
     },
     {
      "scenario": "slew_vscmg",
      "metric": "ape_los_on_target_p9973",
-     "value": 0.01081680340935087,
-     "pass": 0,
-     "run": "2026-10-03T18:51:09Z"
+     "value": 0.007253681252846958,
+     "pass": 1,
+     "run": "2026-11-07T08:07:57Z"
     },
     {
      "scenario": "target_img",
      "metric": "ape_los_p9973",
-     "value": 0.012072315785867403,
+     "value": 0.01162914241745898,
      "pass": 0,
-     "run": "2026-10-03T18:51:12Z"
+     "run": "2026-11-07T08:08:00Z"
     }
    ],
    "design": null,
@@ -882,12 +892,22 @@
     {
      "mode": "nadir_pointing",
      "metric": "ape_los_p9973",
-     "value": 0.004032272332679532,
-     "pass": 1
+     "value": 30.961778715081334,
+     "pass": 0
     }
    ],
    "profile": [],
-   "status": "not yet flown"
+   "status": "not met (7 of 36)",
+   "verdict": {
+    "answer": "fail",
+    "text": "fail (R <= 0.9226 at 95 %)",
+    "lower": 0.6894358294963017,
+    "upper": 0.9226055799671646,
+    "n": 35,
+    "k": 29,
+    "level": 0.9973000000000001,
+    "confidence": 0.95
+   }
   },
   {
    "case": "ais_img_3u",
@@ -900,114 +920,114 @@
     {
      "scenario": "fault_clock_jitter_1us",
      "metric": "ake_los_p9973",
-     "value": null,
-     "pass": null,
-     "run": null
+     "value": 0.002289134805343484,
+     "pass": 1,
+     "run": "2026-11-07T08:07:35Z"
     },
     {
      "scenario": "fault_clock_jitter_5ms",
      "metric": "ake_los_p9973",
-     "value": null,
-     "pass": null,
-     "run": null
+     "value": 0.0022883757013213877,
+     "pass": 1,
+     "run": "2026-11-07T08:07:35Z"
     },
     {
      "scenario": "fault_gimbal_cmg",
      "metric": "ake_los_p9973",
-     "value": 0.002868412380909158,
+     "value": 0.0028531798293375517,
      "pass": 1,
-     "run": "2026-10-03T18:50:56Z"
+     "run": "2026-11-07T08:07:38Z"
     },
     {
      "scenario": "fault_gps_img",
      "metric": "ake_los_p9973",
-     "value": 0.0028393882780055357,
+     "value": 0.002830394203562202,
      "pass": 1,
-     "run": "2026-10-03T18:50:56Z"
+     "run": "2026-11-07T08:07:38Z"
     },
     {
      "scenario": "fault_st_img",
      "metric": "ake_los_p9973",
-     "value": 0.003055652182755497,
+     "value": 0.0030588922562279526,
      "pass": 1,
-     "run": "2026-10-03T18:50:57Z"
+     "run": "2026-11-07T08:07:40Z"
     },
     {
      "scenario": "fault_valve_rcs",
      "metric": "ake_los_p9973",
-     "value": 0.0027277711256880784,
+     "value": 0.0027472991277812174,
      "pass": 1,
-     "run": "2026-10-03T18:50:58Z"
+     "run": "2026-11-07T08:07:40Z"
     },
     {
      "scenario": "fault_wheel_img",
      "metric": "ake_los_p9973",
-     "value": 0.002982978579997313,
+     "value": 0.0029841186818188653,
      "pass": 1,
-     "run": "2026-10-03T18:50:59Z"
+     "run": "2026-11-07T08:07:41Z"
     },
     {
      "scenario": "fine_hold_cmg",
      "metric": "ake_los_p9973",
-     "value": 0.0028476312918719274,
+     "value": 0.002596709421158531,
      "pass": 1,
-     "run": "2026-10-03T18:50:59Z"
+     "run": "2026-11-07T08:07:44Z"
     },
     {
      "scenario": "fine_hold_fmr",
      "metric": "ake_los_p9973",
-     "value": 0.002868093820091756,
+     "value": 0.002590890603812391,
      "pass": 1,
-     "run": "2026-10-03T18:51:00Z"
+     "run": "2026-11-07T08:07:45Z"
     },
     {
      "scenario": "fine_hold_fmr_rcs",
      "metric": "ake_los_p9973",
-     "value": 0.002868093820091756,
+     "value": 0.002590890603812391,
      "pass": 1,
-     "run": "2026-10-03T18:51:00Z"
+     "run": "2026-11-07T08:07:45Z"
     },
     {
      "scenario": "fine_hold_img",
      "metric": "ake_los_p9973",
-     "value": 0.002841851342298204,
+     "value": 0.002604876407188162,
      "pass": 1,
-     "run": "2026-10-03T18:51:01Z"
+     "run": "2026-11-07T08:07:46Z"
     },
     {
      "scenario": "fine_hold_img_lqr",
      "metric": "ake_los_p9973",
-     "value": 0.0028572238890409423,
+     "value": 0.002638709108043389,
      "pass": 1,
-     "run": "2026-10-03T18:51:01Z"
+     "run": "2026-11-07T08:07:49Z"
     },
     {
      "scenario": "fine_hold_img_smc",
      "metric": "ake_los_p9973",
-     "value": 0.0027497116050227643,
+     "value": 0.0025921464967891238,
      "pass": 1,
-     "run": "2026-10-03T18:51:03Z"
+     "run": "2026-11-07T08:07:50Z"
     },
     {
      "scenario": "fine_hold_rw_rcs",
      "metric": "ake_los_p9973",
-     "value": 0.0028277257703111292,
+     "value": 0.0026063116931215294,
      "pass": 1,
-     "run": "2026-10-03T18:51:03Z"
+     "run": "2026-11-07T08:07:51Z"
     },
     {
      "scenario": "fine_hold_vscmg",
      "metric": "ake_los_p9973",
-     "value": 0.0028518102573415415,
+     "value": 0.0026346937365829015,
      "pass": 1,
-     "run": "2026-10-03T18:51:04Z"
+     "run": "2026-11-07T08:07:52Z"
     },
     {
      "scenario": "target_img",
      "metric": "ake_los_p9973",
-     "value": 0.01149205053705737,
+     "value": 0.011436750574903787,
      "pass": 0,
-     "run": "2026-10-03T18:51:12Z"
+     "run": "2026-11-07T08:08:00Z"
     }
    ],
    "design": null,
@@ -1015,12 +1035,22 @@
     {
      "mode": "nadir_pointing",
      "metric": "ake_los_p9973",
-     "value": 0.0034111888990225833,
+     "value": 0.0027796665916085084,
      "pass": 1
     }
    ],
    "profile": [],
-   "status": "not yet flown"
+   "status": "not met (1 of 17)",
+   "verdict": {
+    "answer": "fail",
+    "text": "fail (R <= 0.9968 at 95 %)",
+    "lower": 0.7360426027114315,
+    "upper": 0.9967993022898114,
+    "n": 16,
+    "k": 15,
+    "level": 0.9973000000000001,
+    "confidence": 0.95
+   }
   },
   {
    "case": "ais_img_3u",
@@ -1059,79 +1089,79 @@
     {
      "scenario": "fault_gimbal_cmg",
      "metric": "rate_stability_p9973",
-     "value": 0.0029871894406951665,
+     "value": 0.0032891253222244116,
      "pass": 1,
-     "run": "2026-10-03T18:50:56Z"
+     "run": "2026-11-07T08:07:38Z"
     },
     {
      "scenario": "fault_st_img",
      "metric": "rate_stability_p9973",
-     "value": 0.003483718210793635,
+     "value": 0.003552250330397096,
      "pass": 1,
-     "run": "2026-10-03T18:50:57Z"
+     "run": "2026-11-07T08:07:40Z"
     },
     {
      "scenario": "fault_wheel_img",
      "metric": "rate_stability_p9973",
-     "value": 0.03142886711997564,
+     "value": 0.04016387474431995,
      "pass": 0,
-     "run": "2026-10-03T18:50:59Z"
+     "run": "2026-11-07T08:07:41Z"
     },
     {
      "scenario": "fine_hold_cmg",
      "metric": "rate_stability_p9973",
-     "value": 0.002468584428508412,
+     "value": 0.0026733371783919393,
      "pass": 1,
-     "run": "2026-10-03T18:50:59Z"
+     "run": "2026-11-07T08:07:44Z"
     },
     {
      "scenario": "fine_hold_fmr",
      "metric": "rate_stability_p9973",
-     "value": 0.004811370410433045,
+     "value": 0.004980130040155819,
      "pass": 1,
-     "run": "2026-10-03T18:51:00Z"
+     "run": "2026-11-07T08:07:45Z"
     },
     {
      "scenario": "fine_hold_fmr_rcs",
      "metric": "rate_stability_p9973",
-     "value": 0.004811370410433045,
+     "value": 0.004980130040155819,
      "pass": 1,
-     "run": "2026-10-03T18:51:00Z"
+     "run": "2026-11-07T08:07:45Z"
     },
     {
      "scenario": "fine_hold_img",
      "metric": "rate_stability_p9973",
-     "value": 0.0034932579292065937,
+     "value": 0.00365365427876921,
      "pass": 1,
-     "run": "2026-10-03T18:51:01Z"
+     "run": "2026-11-07T08:07:46Z"
     },
     {
      "scenario": "fine_hold_img_lqr",
      "metric": "rate_stability_p9973",
-     "value": 0.006898274943426381,
+     "value": 0.0066618987243270205,
      "pass": 0,
-     "run": "2026-10-03T18:51:01Z"
+     "run": "2026-11-07T08:07:49Z"
     },
     {
      "scenario": "fine_hold_img_smc",
      "metric": "rate_stability_p9973",
-     "value": 0.0033901569865150646,
+     "value": 0.0034769326626164733,
      "pass": 1,
-     "run": "2026-10-03T18:51:03Z"
+     "run": "2026-11-07T08:07:50Z"
     },
     {
      "scenario": "fine_hold_rw_rcs",
      "metric": "rate_stability_p9973",
-     "value": 0.003533114784284647,
+     "value": 0.0036477307426626255,
      "pass": 1,
-     "run": "2026-10-03T18:51:03Z"
+     "run": "2026-11-07T08:07:51Z"
     },
     {
      "scenario": "fine_hold_vscmg",
      "metric": "rate_stability_p9973",
-     "value": 0.00473720147339445,
+     "value": 0.004649220405659617,
      "pass": 1,
-     "run": "2026-10-03T18:51:04Z"
+     "run": "2026-11-07T08:07:52Z"
     }
    ],
    "design": null,
@@ -1139,12 +1169,12 @@
     {
      "mode": "nadir_pointing",
      "metric": "rate_stability_p9973",
-     "value": 0.0043238258793035535,
-     "pass": 1
+     "value": 0.14077786989563487,
+     "pass": 0
     }
    ],
    "profile": [],
-   "status": "not met (2 of 12)",
+   "status": "not met (3 of 12)",
    "verdict": {
     "answer": "fail",
     "text": "fail (R <= 0.9667 at 95 %)",
@@ -1243,71 +1273,71 @@
     {
      "scenario": "slew_cmg",
      "metric": "settle_time_after_slew",
-     "value": 12.400000000000034,
+     "value": 5.699999999999989,
      "pass": 1,
-     "run": "2026-10-03T18:51:07Z"
+     "run": "2026-11-07T08:07:56Z"
     },
     {
      "scenario": "slew_fmr",
      "metric": "settle_time_after_slew",
-     "value": 12.900000000000034,
+     "value": 10.100000000000023,
      "pass": 1,
-     "run": "2026-10-03T18:51:08Z"
+     "run": "2026-11-07T08:07:56Z"
     },
     {
      "scenario": "slew_fmr_rcs",
      "metric": "settle_time_after_slew",
-     "value": 12.900000000000034,
+     "value": 10.100000000000023,
      "pass": 1,
-     "run": "2026-10-03T18:51:08Z"
+     "run": "2026-11-07T08:07:57Z"
     },
     {
      "scenario": "slew_img",
      "metric": "settle_time_after_slew",
-     "value": 12.100000000000023,
+     "value": 8.900000000000034,
      "pass": 1,
-     "run": "2026-10-03T18:51:08Z"
+     "run": "2026-11-07T08:07:57Z"
     },
     {
      "scenario": "slew_img_lqr",
      "metric": "settle_time_after_slew",
      "value": 0.0,
      "pass": 1,
-     "run": "2026-10-03T18:51:08Z"
+     "run": "2026-11-07T08:07:57Z"
     },
     {
      "scenario": "slew_img_smc",
      "metric": "settle_time_after_slew",
-     "value": null,
-     "pass": 0,
-     "run": "2026-10-03T18:51:08Z"
+     "value": 8.900000000000034,
+     "pass": 1,
+     "run": "2026-11-07T08:07:57Z"
     },
     {
      "scenario": "slew_rw_rcs",
      "metric": "settle_time_after_slew",
-     "value": 12.100000000000023,
+     "value": 8.900000000000034,
      "pass": 1,
-     "run": "2026-10-03T18:51:08Z"
+     "run": "2026-11-07T08:07:57Z"
     },
     {
      "scenario": "slew_vscmg",
      "metric": "settle_time_after_slew",
-     "value": 13.199999999999989,
+     "value": 9.0,
      "pass": 1,
-     "run": "2026-10-03T18:51:09Z"
+     "run": "2026-11-07T08:07:57Z"
     }
    ],
    "design": null,
    "modes": [],
    "profile": [],
-   "status": "not met (1 of 8)",
+   "status": "met",
    "verdict": {
-    "answer": "fail",
-    "text": "fail",
-    "lower": 0.875,
-    "upper": 0.875,
+    "answer": "pass",
+    "text": "pass",
+    "lower": 1.0,
+    "upper": 1.0,
     "n": 8,
-    "k": 7,
+    "k": 8,
     "level": 0.0,
     "confidence": 0.95
    }
@@ -1364,56 +1394,56 @@
      "metric": "detumble_time",
      "value": 47.575,
      "pass": 1,
-     "run": "2026-10-03T18:50:55Z"
+     "run": "2026-11-07T08:07:35Z"
     },
     {
      "scenario": "detumble_rcs",
      "metric": "detumble_time",
      "value": null,
      "pass": 0,
-     "run": "2026-10-03T18:50:53Z"
+     "run": "2026-11-07T08:07:33Z"
     },
     {
      "scenario": "mission_cmg",
      "metric": "detumble_time",
-     "value": 56.775,
+     "value": 56.791666666666664,
      "pass": 1,
-     "run": "2026-10-03T18:51:05Z"
+     "run": "2026-11-07T08:07:53Z"
     },
     {
      "scenario": "mission_fmr",
      "metric": "detumble_time",
-     "value": 61.125,
+     "value": 61.44166666666667,
      "pass": 1,
-     "run": "2026-10-03T18:51:05Z"
+     "run": "2026-11-07T08:07:53Z"
     },
     {
      "scenario": "mission_fmr_rcs",
      "metric": "detumble_time",
-     "value": 61.125,
+     "value": 61.44166666666667,
      "pass": 1,
-     "run": "2026-10-03T18:51:05Z"
+     "run": "2026-11-07T08:07:54Z"
     },
     {
      "scenario": "mission_img",
      "metric": "detumble_time",
-     "value": 49.84166666666667,
+     "value": 49.858333333333334,
      "pass": 1,
-     "run": "2026-10-03T18:51:07Z"
+     "run": "2026-11-07T08:07:55Z"
     },
     {
      "scenario": "mission_rw_rcs",
      "metric": "detumble_time",
-     "value": 49.825,
+     "value": 49.858333333333334,
      "pass": 1,
-     "run": "2026-10-03T18:51:08Z"
+     "run": "2026-11-07T08:07:57Z"
     },
     {
      "scenario": "mission_vscmg",
      "metric": "detumble_time",
      "value": 56.891666666666666,
      "pass": 1,
-     "run": "2026-10-03T18:51:08Z"
+     "run": "2026-11-07T08:07:57Z"
     }
    ],
    "design": null,
@@ -1421,7 +1451,7 @@
     {
      "mode": "detumble",
      "metric": "detumble_time",
-     "value": 58.59,
+     "value": 56.373333333333335,
      "pass": 1
     }
    ],
@@ -1451,7 +1481,7 @@
      "metric": "sun_acquisition_time",
      "value": 2.2083333333333335,
      "pass": 1,
-     "run": "2026-10-03T18:51:09Z"
+     "run": "2026-11-07T08:07:58Z"
     }
    ],
    "design": null,
@@ -1459,7 +1489,7 @@
     {
      "mode": "sun_acquisition",
      "metric": "sun_acquisition_time",
-     "value": 2.2916666666666665,
+     "value": 2.275,
      "pass": 1
     }
    ],
@@ -1538,12 +1568,12 @@
    "flight": [],
    "design": {
     "family": "mtq_fmr",
-    "value": 1.794485934193919,
-    "pass": 1
+    "value": 11.99557328644847,
+    "pass": 0
    },
    "modes": [],
    "profile": [],
-   "status": "met",
+   "status": "not met (1 of 1)",
    "verdict": null
   },
   {
@@ -1557,107 +1587,107 @@
     {
      "scenario": "fault_gimbal_cmg",
      "metric": "power_mean",
-     "value": 1.6100357949455288,
-     "pass": 1,
-     "run": "2026-10-03T18:50:56Z"
+     "value": 5.110063949853588,
+     "pass": 0,
+     "run": "2026-11-07T08:07:38Z"
     },
     {
      "scenario": "fault_gps_img",
      "metric": "power_mean",
-     "value": 1.5592197402484875,
-     "pass": 1,
-     "run": "2026-10-03T18:50:56Z"
+     "value": 5.059321548011998,
+     "pass": 0,
+     "run": "2026-11-07T08:07:38Z"
     },
     {
      "scenario": "fault_st_img",
      "metric": "power_mean",
-     "value": 1.5592203215119478,
-     "pass": 1,
-     "run": "2026-10-03T18:50:57Z"
+     "value": 5.059324188766196,
+     "pass": 0,
+     "run": "2026-11-07T08:07:40Z"
     },
     {
      "scenario": "fault_valve_rcs",
      "metric": "power_mean",
-     "value": 1.5129131523755033,
-     "pass": 1,
-     "run": "2026-10-03T18:50:58Z"
+     "value": 5.013014331861799,
+     "pass": 0,
+     "run": "2026-11-07T08:07:40Z"
     },
     {
      "scenario": "fault_wheel_img",
      "metric": "power_mean",
-     "value": 1.1380259126253365,
-     "pass": 1,
-     "run": "2026-10-03T18:50:59Z"
+     "value": 4.640765519141343,
+     "pass": 0,
+     "run": "2026-11-07T08:07:41Z"
     },
     {
      "scenario": "fine_hold_cmg",
      "metric": "power_mean",
-     "value": 1.610055876359756,
-     "pass": 1,
-     "run": "2026-10-03T18:50:59Z"
+     "value": 5.1100754991655375,
+     "pass": 0,
+     "run": "2026-11-07T08:07:44Z"
     },
     {
      "scenario": "fine_hold_fmr",
      "metric": "power_mean",
-     "value": 0.1012297024303643,
-     "pass": 1,
-     "run": "2026-10-03T18:51:00Z"
+     "value": 3.6012782855152783,
+     "pass": 0,
+     "run": "2026-11-07T08:07:45Z"
     },
     {
      "scenario": "fine_hold_fmr_rcs",
      "metric": "power_mean",
-     "value": 0.1012297024303643,
-     "pass": 1,
-     "run": "2026-10-03T18:51:00Z"
+     "value": 3.6012782855152783,
+     "pass": 0,
+     "run": "2026-11-07T08:07:45Z"
     },
     {
      "scenario": "fine_hold_img",
      "metric": "power_mean",
-     "value": 1.5592202806815467,
-     "pass": 1,
-     "run": "2026-10-03T18:51:01Z"
+     "value": 5.0649445109477975,
+     "pass": 0,
+     "run": "2026-11-07T08:07:46Z"
     },
     {
      "scenario": "fine_hold_img_lqr",
      "metric": "power_mean",
-     "value": 1.5596440948924053,
-     "pass": 1,
-     "run": "2026-10-03T18:51:01Z"
+     "value": 5.065522433859561,
+     "pass": 0,
+     "run": "2026-11-07T08:07:49Z"
     },
     {
      "scenario": "fine_hold_img_smc",
      "metric": "power_mean",
-     "value": 1.5592264001905014,
-     "pass": 1,
-     "run": "2026-10-03T18:51:03Z"
+     "value": 5.064935525325232,
+     "pass": 0,
+     "run": "2026-11-07T08:07:50Z"
     },
     {
      "scenario": "fine_hold_rw_rcs",
      "metric": "power_mean",
-     "value": 1.5320263680137451,
-     "pass": 1,
-     "run": "2026-10-03T18:51:03Z"
+     "value": 5.0373418362759494,
+     "pass": 0,
+     "run": "2026-11-07T08:07:51Z"
     },
     {
      "scenario": "fine_hold_vscmg",
      "metric": "power_mean",
-     "value": 2.0142026840849696,
+     "value": 5.514637510769088,
      "pass": 0,
-     "run": "2026-10-03T18:51:04Z"
+     "run": "2026-11-07T08:07:52Z"
     },
     {
      "scenario": "sun_fine_img",
      "metric": "power_mean",
-     "value": 1.5257310725637643,
-     "pass": 1,
-     "run": "2026-10-03T18:51:09Z"
+     "value": 5.025921027856286,
+     "pass": 0,
+     "run": "2026-11-07T08:07:58Z"
     },
     {
      "scenario": "target_img",
      "metric": "power_mean",
-     "value": 1.5643925203271642,
-     "pass": 1,
-     "run": "2026-10-03T18:51:12Z"
+     "value": 5.064444530939061,
+     "pass": 0,
+     "run": "2026-11-07T08:08:00Z"
     }
    ],
    "design": null,
@@ -1665,31 +1695,31 @@
     {
      "mode": "nadir_pointing",
      "metric": "power_mean",
-     "value": 0.30044354323788663,
-     "pass": 1
+     "value": 3.6188229341804368,
+     "pass": 0
     },
     {
      "mode": "sun_acquisition",
      "metric": "power_mean",
-     "value": 0.19480916299461862,
+     "value": 1.6409696633142599,
      "pass": 1
     },
     {
      "mode": "sun_referencing",
      "metric": "power_mean",
-     "value": 0.6781847154332382,
-     "pass": 1
+     "value": 4.009894807188986,
+     "pass": 0
     }
    ],
    "profile": [],
-   "status": "not met (1 of 18)",
+   "status": "not met (17 of 18)",
    "verdict": {
     "answer": "fail",
     "text": "fail",
-    "lower": 0.9333333333333333,
-    "upper": 0.9333333333333333,
+    "lower": 0.0,
+    "upper": 0.0,
     "n": 15,
-    "k": 14,
+    "k": 0,
     "level": 0.0,
     "confidence": 0.95
    }
@@ -1707,7 +1737,7 @@
     {
      "mode": "detumble",
      "metric": "power_peak",
-     "value": 0.3024658218934124,
+     "value": 1.9028841447842897,
      "pass": 1
     }
    ],
@@ -1725,7 +1755,7 @@
    "flight": [],
    "design": {
     "family": "mtq_fmr",
-    "value": 0.660235891936444,
+    "value": 0.5363128434823115,
     "pass": 1
    },
    "modes": [],
@@ -1804,6 +1834,256 @@
    "scenario": "detumble_rcs",
    "metric": "propellant",
    "why": "the propellant a thruster detumble costs: the case states no propellant budget (req.prop)"
+  },
+  {
+   "scenario": "fault_bus_coils_brownout",
+   "metric": "ake_los_max",
+   "why": "the knowledge error across the line of sight over the run, beside the flag"
+  },
+  {
+   "scenario": "fault_bus_coils_brownout",
+   "metric": "ape_los_max",
+   "why": "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)"
+  },
+  {
+   "scenario": "fault_bus_coils_nack",
+   "metric": "ake_los_max",
+   "why": "the knowledge error across the line of sight over the run, beside the flag"
+  },
+  {
+   "scenario": "fault_bus_coils_nack",
+   "metric": "ape_los_max",
+   "why": "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)"
+  },
+  {
+   "scenario": "fault_bus_coils_stuck",
+   "metric": "ake_los_max",
+   "why": "the knowledge error across the line of sight over the run, beside the flag"
+  },
+  {
+   "scenario": "fault_bus_coils_stuck",
+   "metric": "ape_los_max",
+   "why": "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)"
+  },
+  {
+   "scenario": "fault_bus_gnss_brownout",
+   "metric": "ake_los_max",
+   "why": "the knowledge error across the line of sight over the run, beside the flag"
+  },
+  {
+   "scenario": "fault_bus_gnss_brownout",
+   "metric": "ape_los_max",
+   "why": "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)"
+  },
+  {
+   "scenario": "fault_bus_gnss_crc",
+   "metric": "ake_los_max",
+   "why": "the knowledge error across the line of sight over the run, beside the flag"
+  },
+  {
+   "scenario": "fault_bus_gnss_crc",
+   "metric": "ape_los_max",
+   "why": "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)"
+  },
+  {
+   "scenario": "fault_bus_gnss_nack",
+   "metric": "ake_los_max",
+   "why": "the knowledge error across the line of sight over the run, beside the flag"
+  },
+  {
+   "scenario": "fault_bus_gnss_nack",
+   "metric": "ape_los_max",
+   "why": "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)"
+  },
+  {
+   "scenario": "fault_bus_gnss_stuck",
+   "metric": "ake_los_max",
+   "why": "the knowledge error across the line of sight over the run, beside the flag"
+  },
+  {
+   "scenario": "fault_bus_gnss_stuck",
+   "metric": "ape_los_max",
+   "why": "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)"
+  },
+  {
+   "scenario": "fault_bus_gyro_brownout",
+   "metric": "ake_los_max",
+   "why": "the knowledge error across the line of sight over the run, beside the flag"
+  },
+  {
+   "scenario": "fault_bus_gyro_brownout",
+   "metric": "ape_los_max",
+   "why": "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)"
+  },
+  {
+   "scenario": "fault_bus_gyro_delay",
+   "metric": "ake_los_max",
+   "why": "the knowledge error across the line of sight over the run, beside the flag"
+  },
+  {
+   "scenario": "fault_bus_gyro_delay",
+   "metric": "ape_los_max",
+   "why": "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)"
+  },
+  {
+   "scenario": "fault_bus_gyro_nack",
+   "metric": "ake_los_max",
+   "why": "the knowledge error across the line of sight over the run, beside the flag"
+  },
+  {
+   "scenario": "fault_bus_gyro_nack",
+   "metric": "ape_los_max",
+   "why": "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)"
+  },
+  {
+   "scenario": "fault_bus_gyro_stuck",
+   "metric": "ake_los_max",
+   "why": "the knowledge error across the line of sight over the run, beside the flag"
+  },
+  {
+   "scenario": "fault_bus_gyro_stuck",
+   "metric": "ape_los_max",
+   "why": "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)"
+  },
+  {
+   "scenario": "fault_bus_mag_brownout",
+   "metric": "ake_los_max",
+   "why": "the knowledge error across the line of sight over the run, beside the flag"
+  },
+  {
+   "scenario": "fault_bus_mag_brownout",
+   "metric": "ape_los_max",
+   "why": "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)"
+  },
+  {
+   "scenario": "fault_bus_mag_nack",
+   "metric": "ake_los_max",
+   "why": "the knowledge error across the line of sight over the run, beside the flag"
+  },
+  {
+   "scenario": "fault_bus_mag_nack",
+   "metric": "ape_los_max",
+   "why": "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)"
+  },
+  {
+   "scenario": "fault_bus_mag_stuck",
+   "metric": "ake_los_max",
+   "why": "the knowledge error across the line of sight over the run, beside the flag"
+  },
+  {
+   "scenario": "fault_bus_mag_stuck",
+   "metric": "ape_los_max",
+   "why": "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)"
+  },
+  {
+   "scenario": "fault_bus_mex_brownout",
+   "metric": "ake_los_max",
+   "why": "the knowledge error across the line of sight over the run, beside the flag"
+  },
+  {
+   "scenario": "fault_bus_mex_brownout",
+   "metric": "ape_los_max",
+   "why": "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)"
+  },
+  {
+   "scenario": "fault_bus_mex_can_error",
+   "metric": "ake_los_max",
+   "why": "the knowledge error across the line of sight over the run, beside the flag"
+  },
+  {
+   "scenario": "fault_bus_mex_can_error",
+   "metric": "ape_los_max",
+   "why": "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)"
+  },
+  {
+   "scenario": "fault_bus_mex_nack",
+   "metric": "ake_los_max",
+   "why": "the knowledge error across the line of sight over the run, beside the flag"
+  },
+  {
+   "scenario": "fault_bus_mex_nack",
+   "metric": "ape_los_max",
+   "why": "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)"
+  },
+  {
+   "scenario": "fault_bus_mex_stuck",
+   "metric": "ake_los_max",
+   "why": "the knowledge error across the line of sight over the run, beside the flag"
+  },
+  {
+   "scenario": "fault_bus_mex_stuck",
+   "metric": "ape_los_max",
+   "why": "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)"
+  },
+  {
+   "scenario": "fault_bus_st_brownout",
+   "metric": "ake_los_max",
+   "why": "the knowledge error across the line of sight over the run, beside the flag"
+  },
+  {
+   "scenario": "fault_bus_st_brownout",
+   "metric": "ape_los_max",
+   "why": "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)"
+  },
+  {
+   "scenario": "fault_bus_st_crc",
+   "metric": "ake_los_max",
+   "why": "the knowledge error across the line of sight over the run, beside the flag"
+  },
+  {
+   "scenario": "fault_bus_st_crc",
+   "metric": "ape_los_max",
+   "why": "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)"
+  },
+  {
+   "scenario": "fault_bus_st_nack",
+   "metric": "ake_los_max",
+   "why": "the knowledge error across the line of sight over the run, beside the flag"
+  },
+  {
+   "scenario": "fault_bus_st_nack",
+   "metric": "ape_los_max",
+   "why": "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)"
+  },
+  {
+   "scenario": "fault_bus_st_stuck",
+   "metric": "ake_los_max",
+   "why": "the knowledge error across the line of sight over the run, beside the flag"
+  },
+  {
+   "scenario": "fault_bus_st_stuck",
+   "metric": "ape_los_max",
+   "why": "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)"
+  },
+  {
+   "scenario": "fault_bus_sun_brownout",
+   "metric": "ake_los_max",
+   "why": "the knowledge error across the line of sight over the run, beside the flag"
+  },
+  {
+   "scenario": "fault_bus_sun_brownout",
+   "metric": "ape_los_max",
+   "why": "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)"
+  },
+  {
+   "scenario": "fault_bus_sun_nack",
+   "metric": "ake_los_max",
+   "why": "the knowledge error across the line of sight over the run, beside the flag"
+  },
+  {
+   "scenario": "fault_bus_sun_nack",
+   "metric": "ape_los_max",
+   "why": "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)"
+  },
+  {
+   "scenario": "fault_bus_sun_stuck",
+   "metric": "ake_los_max",
+   "why": "the knowledge error across the line of sight over the run, beside the flag"
+  },
+  {
+   "scenario": "fault_bus_sun_stuck",
+   "metric": "ape_los_max",
+   "why": "the performance error across the line of sight after 60 s (the 2 deg start settled): what the fault does to the pointing (a bus delay shows here)"
   },
   {
    "scenario": "fault_clock_step_back",
@@ -2167,8 +2447,8 @@
   }
  ],
  "counts": {
-  "metrics": 229,
-  "judged": 146,
-  "diagnostic": 83
+  "metrics": 304,
+  "judged": 171,
+  "diagnostic": 133
  }
 }
