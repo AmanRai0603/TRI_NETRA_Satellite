@@ -13,6 +13,12 @@ typedef struct {
     adcs_can_frame_t can_tx[32]; int n_can_tx;
     int16_t pwm[8];
     int gyro_silent;            /* the gyro's transfer fails (a gyro that has stopped answering) */
+    /* a bus fault of the rig (O11, S11.14) at one device of the device map, in force while bf_on: bf_dev 1 magnetometer, 2 Sun sensor,
+     * 3 Earth sensor, 4 star tracker, 5 gyro, 6 GNSS receiver, 7 coils, 8 CAN; bf_kind 1 NACK, 2 CRC wrong, 3 stuck, 4 supply drop, 5 CAN
+     * error frame. bf_last holds what each device last delivered (stuck repeats it); writes_failed counts the output writes refused */
+    int bf_dev, bf_kind, bf_on;
+    uint8_t bf_last[16][64]; size_t bf_len[16];
+    uint32_t writes_failed;
 } hal_stub_t;
 
 extern hal_stub_t HS;

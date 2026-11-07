@@ -705,6 +705,86 @@ static void tk_sensor_rejected_for_good(void)
     CHECK(c[1] > c60[1], "a magnetometer wrong for 60 s and a Sun sensor right never restarted the filter");
 }
 
+/* ---- bus faults at the HAL (docs/S11_INVENTORY.md O11, S11.14; fsw-rs/tests/bus_faults.rs holds the same) ----
+ * One test per fault point of the device map (fsw/devices/example_3u.toml) and per bus fault (a NACK, a CRC wrong, a register stuck, a
+ * supply drop, a CAN error frame, a write that fails): does the flight driver raise its fault flag? Where one does (the magnetometer's
+ * and the gyro's) the test runs in main; where the drivers raise none it is in the skipped list as a FINDING of S11.14 (ADCS_RUN_SKIPPED=1
+ * shows what each says today). The scene is the tick tests': exact sensors, a held attitude, 150 s with the fault in force from 10 s. */
+enum { BF_MAG = 1, BF_SUN, BF_ES, BF_ST, BF_GYRO, BF_GNSS, BF_COILS, BF_CAN };
+enum { BF_NACK = 1, BF_CRC, BF_STUCK, BF_BROWNOUT, BF_CANERR };
+
+/* the flight software's fault word after the run (HS.writes_failed counts the output writes the bus refused) */
+static unsigned bf_fly(int dev, int kind)
+{
+    static adcs_params_t p; static uint8_t blob[ADCS_PARAMS_BLOB_SIZE];
+    adcs_fsw_init_t in; adcs_fsw_state_t st; int k, i;
+    tk_scene_init(); hal_stub_reset();
+    tk_params(&p, ADCS_MODE_NADIR_MTQ, 1); p.has_es = 1; p.has_st = 1;
+    adcs_params_encode(&p, blob, sizeof blob);
+    in.abi_version = ADCS_FSW_ABI_VERSION; in.config_blob = blob; in.config_len = sizeof blob; in.start_ns = 0;
+    adcs_fsw_init(&in);
+    HS.bf_dev = dev; HS.bf_kind = kind;
+    for (k = 0; k < 1500; k++) {
+        double t = k*0.1;
+        HS.bf_on = t >= 10.0;
+        tk_feed(t, TK_JD0 + t/TK_DAY);
+        HS.es[0] = 1;
+        if (k % 10 == 0) tk_st_frame(TK_Q);
+        for (i = 0; i < 3; i++) {
+            adcs_can_frame_t f; memset(&f, 0, sizeof f); f.id = ADCS_CAN_ROTOR_TM + (uint32_t)i; f.dlc = 8;
+            if (HS.n_can_rx < 32) HS.can_rx[HS.n_can_rx++] = f;
+        }
+        HS.now_ns = (uint64_t)k*100000000ull;
+        adcs_fsw_step(HS.now_ns);
+        HS.n_can_tx = 0;
+    }
+    adcs_fsw_peek(&st);
+    return st.faults;
+}
+
+static void bf_expect(int dev, int kind, unsigned mask, const char *what)
+{
+    unsigned clean = bf_fly(0, 0), got;
+    CHECK((clean & mask) == 0, "%s: the scene raises a flag of %x by itself (word %x)", what, mask, clean);
+    got = bf_fly(dev, kind);
+    CHECK((got & mask) != 0, "%s: the flight software raised no fault flag of %x (word %x)", what, mask, got);
+}
+#define BF_ANY 0xFFFFu
+#define BF_MAG_STALE 0x100u
+#define BF_GYRO_FLAGS 0x600u
+static void bf_mag_nack(void) { bf_expect(BF_MAG, BF_NACK, BF_MAG_STALE, "magnetometer NACK"); }
+static void bf_mag_brownout(void) { bf_expect(BF_MAG, BF_BROWNOUT, BF_MAG_STALE, "magnetometer supply drop"); }
+static void bf_mag_stuck(void) { bf_expect(BF_MAG, BF_STUCK, BF_MAG_STALE, "magnetometer register stuck"); }
+static void bf_gyro_nack(void) { bf_expect(BF_GYRO, BF_NACK, BF_GYRO_FLAGS, "gyro NACK"); }
+static void bf_gyro_brownout(void) { bf_expect(BF_GYRO, BF_BROWNOUT, BF_GYRO_FLAGS, "gyro supply drop"); }
+static void bf_gyro_stuck(void) { bf_expect(BF_GYRO, BF_STUCK, BF_GYRO_FLAGS, "gyro register stuck"); }
+static void bf_sun_nack(void) { bf_expect(BF_SUN, BF_NACK, BF_ANY, "Sun sensor NACK"); }
+static void bf_sun_stuck(void) { bf_expect(BF_SUN, BF_STUCK, BF_ANY, "Sun sensor register stuck"); }
+static void bf_sun_brownout(void) { bf_expect(BF_SUN, BF_BROWNOUT, BF_ANY, "Sun sensor supply drop"); }
+static void bf_es_nack(void) { bf_expect(BF_ES, BF_NACK, BF_ANY, "Earth sensor NACK"); }
+static void bf_es_stuck(void) { bf_expect(BF_ES, BF_STUCK, BF_ANY, "Earth sensor register stuck"); }
+static void bf_es_brownout(void) { bf_expect(BF_ES, BF_BROWNOUT, BF_ANY, "Earth sensor supply drop"); }
+static void bf_st_nack(void) { bf_expect(BF_ST, BF_NACK, BF_ANY, "star tracker silent"); }
+static void bf_st_crc(void) { bf_expect(BF_ST, BF_CRC, BF_ANY, "star tracker CRC wrong"); }
+static void bf_st_stuck(void) { bf_expect(BF_ST, BF_STUCK, BF_ANY, "star tracker frame stuck"); }
+static void bf_st_brownout(void) { bf_expect(BF_ST, BF_BROWNOUT, BF_ANY, "star tracker supply drop"); }
+static void bf_gnss_nack(void) { bf_expect(BF_GNSS, BF_NACK, BF_ANY, "GNSS receiver silent"); }
+static void bf_gnss_crc(void) { bf_expect(BF_GNSS, BF_CRC, BF_ANY, "GNSS receiver CRC wrong"); }
+static void bf_gnss_stuck(void) { bf_expect(BF_GNSS, BF_STUCK, BF_ANY, "GNSS receiver frame stuck"); }
+static void bf_gnss_brownout(void) { bf_expect(BF_GNSS, BF_BROWNOUT, BF_ANY, "GNSS receiver supply drop"); }
+static void bf_can_nack(void) { bf_expect(BF_CAN, BF_NACK, 0x7u, "momentum devices silent"); }
+static void bf_can_error(void) { bf_expect(BF_CAN, BF_CANERR, 0x7u, "CAN error frame"); }
+static void bf_pwm_write_error(void) { bf_expect(BF_COILS, BF_NACK, BF_ANY, "PWM write error"); }
+static void bf_can_write_error(void) { bf_expect(BF_CAN, BF_NACK, BF_ANY, "CAN send error"); }
+
+/* the rig itself: no fault, no flag; a failing write is a status the driver gets */
+static void bf_rig(void)
+{
+    CHECK(bf_fly(0, 0) == 0, "the scene raises a flag with no fault");
+    bf_fly(BF_COILS, BF_NACK);
+    CHECK(HS.writes_failed > 1000, "the coils' writes failed %u times: the fault does not reach the HAL", (unsigned)HS.writes_failed);
+}
+
 /* The tick tests a fix has made pass: in main's run. A fix moves its tests here from the skipped list below. */
 static const struct { const char *name; void (*fn)(void); } ticks[] = {
     { "timestamps off by 1 us change no command (F3)", tk_jitter_1us },
@@ -723,6 +803,12 @@ static const struct { const char *name; void (*fn)(void); } ticks[] = {
     { "with no head configured none is ever selected (F4)", tk_no_head_none_selected },
     { "TRIAD is refused when the Sun and the field are 5 deg apart (G1)", tk_triad_refused_5deg },
     { "a sensor rejected for good restarts the filter while another is accepted (G1)", tk_sensor_rejected_for_good },
+    { "bus fault rig: no flag with no fault, a failing write reaches the HAL (O11)", bf_rig },
+    { "magnetometer NACK: fault raised (O11)", bf_mag_nack },
+    { "magnetometer supply drop: fault raised (O11)", bf_mag_brownout },
+    { "gyro NACK: fault raised (O11)", bf_gyro_nack },
+    { "gyro supply drop: fault raised (O11)", bf_gyro_brownout },
+    { "gyro register stuck: fault raised (O11)", bf_gyro_stuck },
 };
 
 static void t_ticks(void)
@@ -738,6 +824,26 @@ static void t_ticks(void)
 /* The skipped list: the tick tests no fix has made pass yet. The step that fixes one (named with it) moves it into main's run. */
 static const struct { const char *name; void (*fn)(void); const char *fixed_by; } skipped[] = {
     { NULL, NULL, NULL },       /* none: F2 (S11.5) was the last */
+    /* S11.14 (O11) findings: the bus faults no driver flags. The step that gives the driver its flag moves its test into ticks[] */
+    { "magnetometer register stuck: fault raised (O11)", bf_mag_stuck, "a driver flag for a repeated field (S11.14 finding)" },
+    { "Sun sensor NACK: fault raised (O11)", bf_sun_nack, "a driver flag for the Sun sensor (S11.14 finding)" },
+    { "Sun sensor register stuck: fault raised (O11)", bf_sun_stuck, "a driver flag for the Sun sensor (S11.14 finding)" },
+    { "Sun sensor supply drop: fault raised (O11)", bf_sun_brownout, "a driver flag for the Sun sensor (S11.14 finding)" },
+    { "Earth sensor NACK: fault raised (O11)", bf_es_nack, "a driver flag for the Earth sensor (S11.14 finding)" },
+    { "Earth sensor register stuck: fault raised (O11)", bf_es_stuck, "a driver flag for the Earth sensor (S11.14 finding)" },
+    { "Earth sensor supply drop: fault raised (O11)", bf_es_brownout, "a driver flag for the Earth sensor (S11.14 finding)" },
+    { "star tracker silent: fault raised (O11)", bf_st_nack, "a driver flag for the star tracker (S11.14 finding)" },
+    { "star tracker CRC wrong: fault raised (O11)", bf_st_crc, "a driver flag for the star tracker (S11.14 finding)" },
+    { "star tracker frame stuck: fault raised (O11)", bf_st_stuck, "a driver flag for the star tracker (S11.14 finding)" },
+    { "star tracker supply drop: fault raised (O11)", bf_st_brownout, "a driver flag for the star tracker (S11.14 finding)" },
+    { "GNSS receiver silent: fault raised (O11)", bf_gnss_nack, "a driver flag for the GNSS receiver (S11.14 finding)" },
+    { "GNSS receiver CRC wrong: fault raised (O11)", bf_gnss_crc, "a driver flag for the GNSS receiver (S11.14 finding)" },
+    { "GNSS receiver frame stuck: fault raised (O11)", bf_gnss_stuck, "a driver flag for the GNSS receiver (S11.14 finding)" },
+    { "GNSS receiver supply drop: fault raised (O11)", bf_gnss_brownout, "a driver flag for the GNSS receiver (S11.14 finding)" },
+    { "momentum devices silent: fault raised (O11)", bf_can_nack, "a rotor flag outside the momentum states (S11.14 finding)" },
+    { "CAN error frame: fault raised (O11)", bf_can_error, "a rotor flag outside the momentum states (S11.14 finding)" },
+    { "PWM write error: fault raised (TS4, O11)", bf_pwm_write_error, "a check of the write's status in the driver (S11.14 finding)" },
+    { "CAN send error: fault raised (O11)", bf_can_write_error, "a check of the send's status in the driver (S11.14 finding)" },
 };
 
 /* without ADCS_RUN_SKIPPED the list is named and not run; with it every test runs and says what it shows today, outside the count */
