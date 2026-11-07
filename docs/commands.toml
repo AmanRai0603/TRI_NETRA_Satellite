@@ -229,6 +229,18 @@ undo = "Delete the campaign folders it wrote; It writes generated files only: `g
 
 [[command]]
 tool = "engine.py"
+name = "twosample"
+usage = "python3 tools/engine.py twosample <campaign> [--draws 100] [--jobs N] [--duration-s S] [--out FILE]"
+what = "Fly the same dispersion draws on the engine and the twin and file a two-sample test per metric for the campaign ledger (S11.10, A2)."
+steps = ["draw the campaign's dispersions once (draws.json)", "fly every draw on the engine", "fly the same draws on the twin", "compare the two samples per metric and write the result"]
+reads = ["the campaign's definition", "the design (tests/regression/design.tndb)"]
+writes = ["results/engine_twosample.json"]
+runs = ["engine/target/release/adcs", "octave (matlab_sils/tools/run_draws.m)"]
+checks = "both sides flew every draw; fewer than 100 draws is labelled not a result"
+undo = "It writes a generated file only: `git checkout -- results/engine_twosample.json` puts back the committed one."
+
+[[command]]
+tool = "engine.py"
 name = "campaign-ledger"
 usage = "python3 tools/engine.py campaign-ledger"
 what = "Rewrite the engine-vs-twin campaign ledger from the stored summaries, without flying anything."

@@ -24,6 +24,7 @@
 | [`engine.py vobc`](#enginepy-vobc) | The flight software as a separate process and as Cortex-M4 firmware in QEMU, over adcs-link/1, compared with the in-process builds. |
 | [`engine.py dispatch`](#enginepy-dispatch) | The recommended solution's flight configuration for each case, and a mission check of it on the engine. |
 | [`engine.py campaign`](#enginepy-campaign) | Every Monte Carlo and edge campaign (or those named) on the engine, with the twin's draws: the same dispersions, bounds, run count and per-run seeds. |
+| [`engine.py twosample`](#enginepy-twosample) | Fly the same dispersion draws on the engine and the twin and file a two-sample test per metric for the campaign ledger (S11.10, A2). |
 | [`engine.py campaign-ledger`](#enginepy-campaign-ledger) | Rewrite the engine-vs-twin campaign ledger from the stored summaries, without flying anything. |
 | [`engine.py oils`](#enginepy-oils) | SILS and soft OILS side by side: the flight software as Cortex-M4F firmware, with exact instruction timing and command latency; every soft-OILS run judged on overruns and on its worst-case latency against the deadline; --cpi flies a CPI sweep. |
 | [`engine.py oils-ledger`](#enginepy-oils-ledger) | Rewrite the soft-OILS ledger from the stored runs, without flying anything. |
@@ -454,6 +455,26 @@ Every Monte Carlo and edge campaign (or those named) on the engine, with the twi
 - **Starts:** adcs run
 - **Checks:** each campaign's statistics against the twin's
 - **Undo:** Delete the campaign folders it wrote; It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it.
+- **Code:** `tools/engine.py`
+
+## engine.py twosample
+
+Fly the same dispersion draws on the engine and the twin and file a two-sample test per metric for the campaign ledger (S11.10, A2).
+
+    python3 tools/engine.py twosample <campaign> [--draws 100] [--jobs N] [--duration-s S] [--out FILE]
+
+**Steps**
+
+1. draw the campaign's dispersions once (draws.json)
+2. fly every draw on the engine
+3. fly the same draws on the twin
+4. compare the two samples per metric and write the result
+
+- **Reads:** the campaign's definition; `the design (tests/regression/design.tndb)`
+- **Writes:** `results/engine_twosample.json`
+- **Starts:** `engine/target/release/adcs`; `octave (matlab_sils/tools/run_draws.m)`
+- **Checks:** both sides flew every draw; fewer than 100 draws is labelled not a result
+- **Undo:** It writes a generated file only: `git checkout -- results/engine_twosample.json` puts back the committed one.
 - **Code:** `tools/engine.py`
 
 ## engine.py campaign-ledger
