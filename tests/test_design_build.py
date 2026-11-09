@@ -212,10 +212,23 @@ class DesignBuild(unittest.TestCase):
             self.assertEqual(sorted(c["id"] for c in answered), sorted(f"kpi_{k}_verified" for k in (
                 "absolute_pointing_error_ape", "absolute_knowledge_error_ake", "detumble_time", "adcs_orbit_average_power")))
             # A1 (S11.10): the verdict of the runs at the confidence the design states: ais_3u's selection is not feasible, so none
-            # of its closures passes; ais_img_3u's 12 runs do not show 99.73 % of the APE or the AKE
-            want = {"ais_3u": "fail", "ais_img_3u": "pass"}[case]
+            # of its closures passes. S11.16 (every stored result flown again with today's code): ais_img_3u's 12 runs meet the
+            # detumble limit in 12 of 12 and the APE, AKE and mean-power limits in none (0 of 12: the loop does not hold the
+            # pointing in dispersed runs), so those closures are 'fail' (before: APE and AKE 'not demonstrated', power 'pass',
+            # from the earlier runs). The rule: no run meets it -> fail; all meet it -> pass (or not demonstrated at 99.73 %)
+            stored = json.loads((ROOT / "matlab_sils" / "store" / "pipeline" / case / "mc" / "summary.json").read_text())
+            met = {s["id"]: sum(1 for v in s["values"] if v is not None and v <= s["req"]) for s in stored["stats"] if s["req"] is not None}
+            if case == "ais_img_3u":
+                self.assertEqual(met, {"detumble_time": 12, "ape_los_p9973": 0, "ake_los_p9973": 0, "power_mean": 0})
+            own = {"kpi_absolute_pointing_error_ape_verified": "ape_los_p9973", "kpi_absolute_knowledge_error_ake_verified": "ake_los_p9973",
+                   "kpi_detumble_time_verified": "detumble_time", "kpi_adcs_orbit_average_power_verified": "power_mean"}
+            # and the re-flown selection of ais_img_3u is itself 'closest (not feasible)' (before: feasible), so its closures,
+            # detumble included (12 of 12), are 'fail' by the rule that a selection marked infeasible never passes
+            sel = json.loads((ROOT / "matlab_sils" / "store" / "pipeline" / case / "selection.json").read_text())
+            feasible = sel["families"][sel["selected"]]["feasible"]
             for c in answered:
-                self.assertEqual(c["answer"], "not demonstrated" if case == "ais_img_3u" and c["id"].endswith(("ape_verified", "ake_verified")) else want, c["id"])
+                want = "fail" if not feasible or met[own[c["id"]]] == 0 else "pass"
+                self.assertEqual(c["answer"], want, c["id"])
                 self.assertIn(c["verdict"], ("whole", "part", "fails"), c["id"])
                 self.assertTrue(any("Monte Carlo" in x for x in c["range_from"]), c["id"])
             for c in h["closures"]:

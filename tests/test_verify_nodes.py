@@ -102,6 +102,20 @@ class Verifier(unittest.TestCase):
         save(self.dir / "mc" / "summary.json", m)
         self.assertCaught("mc", "Monte Carlo ran every run")
 
+    def test_a_monte_carlo_verdict_that_is_not_its_runs_is_caught(self):
+        m = load(self.dir / "mc" / "summary.json")
+        x = next(x for x in m["stats"] if x["pass"] is False)
+        x["pass"] = True
+        save(self.dir / "mc" / "summary.json", m)
+        self.assertCaught("mc", "every run's verdict is its value")
+
+    def test_a_requirement_the_runs_do_not_meet_is_a_finding_not_a_defect(self):
+        # the stored runs fail some requirement honestly (S11.16): the node still verifies, the finding is named
+        C = V.Check()
+        V.verify_case(C, CASE, self.cat)
+        row = next(r for r in C.rows if r["node"] == "mc" and r["check"].startswith("requirements the runs do not meet"))
+        self.assertTrue(row["ok"])
+
     def test_a_wheel_that_is_not_the_lightest_meeting_the_need_is_caught(self):
         p = self.dir / f"iter_{self.it}" / "sized" / "sizing.json"
         z = load(p)
@@ -165,6 +179,15 @@ class Verifier(unittest.TestCase):
             f["feasible"] = not f["gaps"]
             if "shortfall" in f:                    # as select wrote it then: no single fault counted
                 f["shortfall"] = 0.0 if f["feasible"] else round(shortfall(f, None), 6)
+        # the pick is the rule's on what select then counted (S11.16: the stored pick counted the faults, and without them
+        # the closest family is another; the oracle is the rule, not the stored name)
+        import pipeline_verify as PV
+        pick = PV.select_pick(CASE, sel["families"], None)
+        sel.update({"selected": pick["selected"], "status": pick["status"], "benchmark": pick["benchmark"],
+                    "benchmark_status": pick["benchmark_status"]})
+        for f in sel["families"].values():
+            f.pop("fault_gaps", None)
+            f.pop("fault_over", None)
         save(self.dir / "selection.json", sel)
         (self.dir / "faults.json").unlink(missing_ok=True)
         V.NOTES.clear()

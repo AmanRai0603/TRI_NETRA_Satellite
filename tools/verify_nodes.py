@@ -196,8 +196,26 @@ def verify_case(C, case, cat):
     mc = jl(PIPE / case / "mc" / "summary.json")
     C("mc", case, f"Monte Carlo ran every run ({P['mc']['runs']})", mc and mc["runs"] == P["mc"]["runs"], mc and f"{mc['runs']} runs")
     if mc:
-        bad = [s["id"] for s in mc["stats"] if s["pass"] is False]
-        C("mc", case, "every requirement metric passes in every run", not bad, ", ".join(bad) or "all pass")
+        # The check is of the recomputation, not of the outcome: each run's verdict is its value against the stated limit, each
+        # metric's pass rate and pass follow from the runs. A requirement the runs do not meet is the design's finding
+        # (the health map's closures, the loop's robust list); it is named in the detail and does not fail the node.
+        wrong = []
+        for s in mc["stats"]:
+            per = [next(m for m in r["metrics"] if m["id"] == s["id"]) for r in mc["per_run"]]
+            if s["req"] is None:
+                if any(m["pass"] is not None for m in per) or s["pass"] is not None:
+                    wrong.append(s["id"])
+                continue
+            want = [1 if (m["value"] is not None and m["value"] <= m["req"]) else 0 for m in per]
+            judged = [m["pass"] for m in per]
+            if want != judged or s["pass"] != all(judged) or abs(s["pass_rate"] - sum(judged) / len(judged)) > 1e-12 \
+                    or s["values"] != [m["value"] for m in per]:
+                wrong.append(s["id"])
+        C("mc", case, "every run's verdict is its value against the stated limit; each metric's pass and pass rate follow from the runs", not wrong,
+          ", ".join(wrong) or "recomputed")
+        unmet = [f"{s['id']} ({100 * s['pass_rate']:.0f} % of runs)" for s in mc["stats"] if s["pass"] is False]
+        C("mc", case, "requirements the runs do not meet (a finding of the design, not a defect of the node)", True,
+          ", ".join(unmet) or "none: every requirement metric passes in every run")
     # family_missions
     fm = jl(PIPE / case / "families.json")
     sol = [f for f in F if F[f]["role"] == "solution"]
