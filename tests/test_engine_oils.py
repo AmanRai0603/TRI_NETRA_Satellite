@@ -30,5 +30,39 @@ class PairVerdict(unittest.TestCase):
         self.assertFalse(O.pair_verdict(None, 3.0, 0.0, 1, 0)[0])
 
 
+class LedgerNamesWhatItRejects(unittest.TestCase):
+    """S11.16: the tool's exit said "each marked FAIL above" with no FAIL line, because a rejected pair was only
+    in the page. Each rejected pair now prints a [FAIL] line, as many as the count it returns."""
+
+    def test_every_rejected_pair_prints_a_fail_line_and_is_counted(self):
+        import contextlib
+        import io
+        import json
+        import pathlib
+        import tempfile
+        with tempfile.TemporaryDirectory() as t:
+            t = pathlib.Path(t)
+            m = lambda v: {"metrics": [{"id": "ape", "unit": "deg", "req": 10.0, "value": v, "pass": int(v <= 10.0)},
+                                       {"id": "ake", "unit": "deg", "req": 5.0, "value": 1.0, "pass": 1}],
+                           "dt_s": 0.1, "oils": {"overruns": 0}}
+            for way, v in (("sils", 10.0), ("oils", 12.0)):
+                d = t / "soft_oils" / "sc" / way
+                d.mkdir(parents=True)
+                (d / "manifest.json").write_text(json.dumps(m(v)))
+            saved = O.ENG, O.OUT
+            O.ENG, O.OUT = t, t / "results"
+            try:
+                out = io.StringIO()
+                with contextlib.redirect_stdout(out):
+                    failed = O.oils_ledger()
+            finally:
+                O.ENG, O.OUT = saved
+        fails = [x for x in out.getvalue().splitlines() if x.startswith("[FAIL]")]
+        self.assertEqual(failed, 1)
+        self.assertEqual(len(fails), 1)
+        self.assertIn("sc ape", fails[0])
+        self.assertIn("differs by", fails[0])
+
+
 if __name__ == "__main__":
     unittest.main()

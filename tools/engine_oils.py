@@ -167,6 +167,10 @@ def oils_ledger(scen=None, fsw="qemu", announce=False):
     write_text(OUT / "soft_oils.json", json.dumps({"metrics": rows, "timing": tim}, indent=1))
     write_text(OUT / "SOFT_OILS.md", "\n".join(L) + "\n")
     print(f"soft OILS verdict agreement {agree}/{len(judged)}, accepted {accepted}/{len(judged)}; wrote results/SOFT_OILS.md")
+    # every rejected pair is named, so the failure count the caller prints ("each marked FAIL above") has its lines
+    for r in judged:
+        if not r["accepted"]:
+            print(f"[FAIL] {r['scenario']} {r['metric']}: SILS {fmt(r['sils'])}, soft OILS {fmt(r['oils'])}: {r['why']}")
     bad = [t['scenario'] for t in tim if (t.get('time_base') or '').startswith('qemu without')]
     for b in bad:
         print(f"[FAIL] {b}: flown without the instruction-count plugin (fsw/build/insn_count.so); its timing is not the exact count")
