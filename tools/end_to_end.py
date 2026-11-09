@@ -8,8 +8,10 @@ name, and the traceability, every engine run reading its inputs from the databas
 
     python3 tools/end_to_end.py [CASE ...] [--design DIR] [--no-loop] [--no-campaigns]
 
-DIR is a design folder (default build/end_to_end/Design, seeded and carried over when it does not
-exist). The run is refused when the database's engine inputs are not the data folder's own bytes
+DIR is a design folder (default build/end_to_end/Design: the regression copy of the design,
+tests/regression/design.tndb, put there when it does not exist, so that the evaluation this writes is
+the one the parity gate compares with; S11.16 found one written from a seeded, carried-over design of node
+files, which holds 712 rows per case where the design gives 1251). The run is refused when the database's engine inputs are not the data folder's own bytes
 (tools/design_inputs.py differences): then the two could give different numbers.
 
 What it writes: results/END_TO_END.md and end_to_end.json (what ran, from where, and every number
@@ -109,10 +111,9 @@ def main(argv=None):
     cases = a.cases or ["ais_3u", "ais_img_3u"]
     d = pathlib.Path(a.design)
     if not (d / "design.tndb").exists():
-        import carry_over
-        import seed_design
-        seed_design.seed(d, sync=False)
-        carry_over.carry(d)
+        import shutil
+        d.mkdir(parents=True, exist_ok=True)
+        shutil.copy(ROOT / "tests" / "regression" / "design.tndb", d / "design.tndb")
     db = d / "design.tndb"
     diff = design_inputs.differences(db)
     if diff:
