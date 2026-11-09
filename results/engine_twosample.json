@@ -1,0 +1,73 @@
+{
+ "schema": "adcs-twosample/1",
+ "owner": "Agastya",
+ "campaign": "mc_nadir_ais",
+ "scenario": "nadir_hold_ais",
+ "case": "ais_3u",
+ "test": "Mann-Whitney U",
+ "draws": 100,
+ "complete": true,
+ "alpha": 0.05,
+ "metrics": [
+  {
+   "id": "ape_3axis_last_orbit",
+   "n1": 100,
+   "n2": 100,
+   "u": 4997.0,
+   "z": 0.006108472217815261,
+   "p": 0.99512617463719,
+   "median_engine": 179.96063141257324,
+   "median_twin": 179.96063141261888
+  },
+  {
+   "id": "ape_los_last_orbit",
+   "n1": 100,
+   "n2": 100,
+   "u": 4996.0,
+   "z": 0.008551861104941366,
+   "p": 0.9931766852280953,
+   "median_engine": 72.37170671542924,
+   "median_twin": 72.37170671395862
+  },
+  {
+   "id": "ake_los_last_orbit",
+   "n1": 100,
+   "n2": 100,
+   "u": 5000.0,
+   "z": 0.0,
+   "p": 1.0,
+   "median_engine": 1.6374270159464113,
+   "median_twin": 1.637420414773279
+  },
+  {
+   "id": "power_mean",
+   "n1": 100,
+   "n2": 100,
+   "u": 4998.5,
+   "z": 0.0024434741069021227,
+   "p": 0.9980503916754255,
+   "median_engine": 1.5105177389653706,
+   "median_twin": 1.5105177389653706
+  },
+  {
+   "id": "power_margin_last_orbit",
+   "n1": 100,
+   "n2": 100,
+   "u": 4995.5,
+   "z": 0.00977355921368144,
+   "p": 0.9922019521476273,
+   "median_engine": 6.031740801497238,
+   "median_twin": 6.031740801080931
+  },
+  {
+   "id": "battery_dod_last_orbit",
+   "n1": 100,
+   "n2": 100,
+   "u": 4999.5,
+   "z": 0.0,
+   "p": 1.0,
+   "median_engine": 0.04533645440370493,
+   "median_twin": 0.045336454403782644
+  }
+ ]
+}
