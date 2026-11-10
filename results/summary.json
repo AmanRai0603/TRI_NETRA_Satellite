@@ -9,7 +9,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 58.25666666666667,
+     "value": 37.74,
      "unit": "min",
      "req": 284,
      "req_key": "req.detumble",
@@ -18,23 +18,23 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.02455017050857238,
+     "value": 1.5219232880766556,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
-     "pass": 1
+     "pass": 0
     },
     {
      "id": "power_peak",
      "kind": "power_peak",
-     "value": 0.363907470703125,
+     "value": 2.0476232337412643,
      "unit": "W",
      "req": 1.5,
      "req_key": "req.ppk",
-     "pass": 1
+     "pass": 0
     }
    ],
-   "wall_s": 496.02754306793213,
+   "wall_s": 1676.3357338905334,
    "duration_s": 17220,
    "mode_log": [
     {
@@ -43,12 +43,12 @@
     }
    ],
    "figures": [
-    "detumble_ais_1_attitude.png",
-    "detumble_ais_2_disturbances.png",
-    "detumble_ais_3_actuators.png",
-    "detumble_ais_4_environment.png",
-    "detumble_ais_5_groundtrack.png",
-    "detumble_ais_6_modes.png"
+    "detumble_ais_1_attitude.svg",
+    "detumble_ais_2_disturbances.svg",
+    "detumble_ais_3_actuators.svg",
+    "detumble_ais_4_environment.svg",
+    "detumble_ais_5_groundtrack.svg",
+    "detumble_ais_6_modes.svg"
    ]
   },
   "nadir_hold_ais": {
@@ -59,7 +59,7 @@
     {
      "id": "ape_3axis_last_orbit",
      "kind": "ape",
-     "value": 49.93332045239301,
+     "value": 141.22857267447424,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -68,16 +68,16 @@
     {
      "id": "ape_los_last_orbit",
      "kind": "ape_los",
-     "value": 7.2484288392594065,
+     "value": 10.612696269336887,
      "unit": "deg",
      "req": 10,
      "req_key": "req.ape",
-     "pass": 1
+     "pass": 0
     },
     {
      "id": "ake_los_last_orbit",
      "kind": "ake_los",
-     "value": 3.863572749542529,
+     "value": 1.604838100148418,
      "unit": "deg",
      "req": 5,
      "req_key": "req.ake",
@@ -86,14 +86,32 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.01080065146035819,
+     "value": 1.5106001783302687,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
+     "pass": 0
+    },
+    {
+     "id": "power_margin_last_orbit",
+     "kind": "power_margin",
+     "value": 4.948792862229892,
+     "unit": "W",
+     "req": 0,
+     "req_key": "scenario",
      "pass": 1
+    },
+    {
+     "id": "battery_dod_last_orbit",
+     "kind": "battery_dod",
+     "value": 4.715924861411858,
+     "unit": "%",
+     "req": null,
+     "req_key": "",
+     "pass": null
     }
    ],
-   "wall_s": 569.4380128383636,
+   "wall_s": 1735.0648288726807,
    "duration_s": 17220,
    "mode_log": [
     {
@@ -102,12 +120,12 @@
     }
    ],
    "figures": [
-    "nadir_hold_ais_1_attitude.png",
-    "nadir_hold_ais_2_disturbances.png",
-    "nadir_hold_ais_3_actuators.png",
-    "nadir_hold_ais_4_environment.png",
-    "nadir_hold_ais_5_groundtrack.png",
-    "nadir_hold_ais_6_modes.png"
+    "nadir_hold_ais_1_attitude.svg",
+    "nadir_hold_ais_2_disturbances.svg",
+    "nadir_hold_ais_3_actuators.svg",
+    "nadir_hold_ais_4_environment.svg",
+    "nadir_hold_ais_5_groundtrack.svg",
+    "nadir_hold_ais_6_modes.svg"
    ]
   },
   "nadir_hold_ais_css": {
@@ -118,7 +136,7 @@
     {
      "id": "ape_3axis_last_orbit",
      "kind": "ape",
-     "value": 179.93705848443003,
+     "value": 179.98900754008204,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -127,32 +145,32 @@
     {
      "id": "ape_los_last_orbit",
      "kind": "ape_los",
-     "value": 36.56429111543798,
+     "value": 9.70941695870275,
      "unit": "deg",
      "req": 10,
      "req_key": "req.ape",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "ake_los_last_orbit",
      "kind": "ake_los",
-     "value": 41.555159338531766,
+     "value": 1.5627541384652364,
      "unit": "deg",
      "req": 5,
      "req_key": "req.ake",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.010714231548350292,
+     "value": 1.230992412190479,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
-     "pass": 1
+     "pass": 0
     }
    ],
-   "wall_s": 550.4637899398804,
+   "wall_s": 1775.877389907837,
    "duration_s": 17220,
    "mode_log": [
     {
@@ -161,9 +179,9 @@
     }
    ],
    "figures": [
-    "nadir_hold_ais_css_1_attitude.png",
-    "nadir_hold_ais_css_2_disturbances.png",
-    "nadir_hold_ais_css_3_actuators.png"
+    "nadir_hold_ais_css_1_attitude.svg",
+    "nadir_hold_ais_css_2_disturbances.svg",
+    "nadir_hold_ais_css_3_actuators.svg"
    ]
   },
   "sun_spin_ais": {
@@ -174,34 +192,34 @@
     {
      "id": "sun_spin_entry",
      "kind": "time_to_mode",
-     "value": 40.440000000000005,
+     "value": 63.440000000000005,
      "unit": "min",
      "req": 95,
-     "req_key": "scenario",
+     "req_key": "req.sunacq",
      "pass": 1
     },
     {
      "id": "sun_angle_last_orbit",
      "kind": "sun_angle",
-     "value": 6.50275913917671,
+     "value": 110.85255003368825,
      "unit": "deg",
      "req": 20,
      "req_key": "scenario",
-     "pass": 1
+     "pass": 0
     },
     {
      "id": "spin_rate_error_last_orbit",
      "kind": "spin_rate_error",
-     "value": 0.04568075655051495,
+     "value": 1.393503366382601,
      "unit": "deg/s",
      "req": 0.5,
      "req_key": "scenario",
-     "pass": 1
+     "pass": 0
     },
     {
      "id": "sun_spin_share_last_orbit",
      "kind": "mode_fraction",
-     "value": 78.81163965847708,
+     "value": 0.7318348144276007,
      "unit": "%",
      "req": 90,
      "req_key": "scenario",
@@ -210,14 +228,14 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.20619345495575098,
+     "value": 1.9716146642231993,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
-     "pass": 1
+     "pass": 0
     }
    ],
-   "wall_s": 500.98096203804016,
+   "wall_s": 1520.2249228954315,
    "duration_s": 17220,
    "mode_log": [
     {
@@ -225,54 +243,58 @@
      "mode": "detumble"
     },
     {
-     "t": 855.4000000000001,
+     "t": 662.6,
      "mode": "spinup"
     },
     {
-     "t": 2426,
+     "t": 3805.8,
      "mode": "sun_spin"
     },
     {
-     "t": 2541.8,
+     "t": 3845.2000000000003,
      "mode": "spinup"
     },
     {
-     "t": 3695.2000000000003,
+     "t": 4067.4,
      "mode": "sun_spin"
     },
     {
-     "t": 3743.8,
+     "t": 4111.400000000001,
      "mode": "spinup"
     },
     {
-     "t": 4072.6000000000004,
+     "t": 8414.4,
      "mode": "sun_spin"
     },
     {
-     "t": 6902.8,
+     "t": 8455.4,
      "mode": "spinup"
     },
     {
-     "t": 7920.400000000001,
+     "t": 9346,
      "mode": "sun_spin"
     },
     {
-     "t": 12391.2,
+     "t": 9384,
      "mode": "spinup"
     },
     {
-     "t": 13606.800000000001,
+     "t": 14137.2,
      "mode": "sun_spin"
+    },
+    {
+     "t": 14179.2,
+     "mode": "spinup"
     }
    ],
    "figures": [
-    "sun_spin_ais_1_attitude.png",
-    "sun_spin_ais_2_disturbances.png",
-    "sun_spin_ais_3_actuators.png",
-    "sun_spin_ais_7_sunspin.png",
-    "sun_spin_ais_4_environment.png",
-    "sun_spin_ais_5_groundtrack.png",
-    "sun_spin_ais_6_modes.png"
+    "sun_spin_ais_1_attitude.svg",
+    "sun_spin_ais_2_disturbances.svg",
+    "sun_spin_ais_3_actuators.svg",
+    "sun_spin_ais_7_sunspin.svg",
+    "sun_spin_ais_4_environment.svg",
+    "sun_spin_ais_5_groundtrack.svg",
+    "sun_spin_ais_6_modes.svg"
    ]
   },
   "mission_ais": {
@@ -283,7 +305,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 58.25666666666667,
+     "value": 37.74,
      "unit": "min",
      "req": 284,
      "req_key": "req.detumble",
@@ -292,16 +314,16 @@
     {
      "id": "ape_los_last_orbit",
      "kind": "ape_los",
-     "value": 9.113536600442313,
+     "value": 10.776443207900677,
      "unit": "deg",
      "req": 10,
      "req_key": "req.ape",
-     "pass": 1
+     "pass": 0
     },
     {
      "id": "ape_3axis_last_orbit",
      "kind": "ape",
-     "value": 77.1337938320774,
+     "value": 140.23320758528547,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -310,14 +332,32 @@
     {
      "id": "ake_los_last_orbit",
      "kind": "ake_los",
-     "value": 4.045744084618963,
+     "value": 1.2864209554127353,
      "unit": "deg",
      "req": 5,
      "req_key": "req.ake",
      "pass": 1
+    },
+    {
+     "id": "power_margin_last_orbit",
+     "kind": "power_margin",
+     "value": 4.951451831915288,
+     "unit": "W",
+     "req": 0,
+     "req_key": "scenario",
+     "pass": 1
+    },
+    {
+     "id": "battery_dod_last_orbit",
+     "kind": "battery_dod",
+     "value": 4.714273218775677,
+     "unit": "%",
+     "req": null,
+     "req_key": "",
+     "pass": null
     }
    ],
-   "wall_s": 905.6205930709839,
+   "wall_s": 2834.518625020981,
    "duration_s": 28700,
    "mode_log": [
     {
@@ -325,17 +365,17 @@
      "mode": "detumble"
     },
     {
-     "t": 5010.8,
+     "t": 3299,
      "mode": "nadir_mtq"
     }
    ],
    "figures": [
-    "mission_ais_1_attitude.png",
-    "mission_ais_2_disturbances.png",
-    "mission_ais_3_actuators.png",
-    "mission_ais_4_environment.png",
-    "mission_ais_5_groundtrack.png",
-    "mission_ais_6_modes.png"
+    "mission_ais_1_attitude.svg",
+    "mission_ais_2_disturbances.svg",
+    "mission_ais_3_actuators.svg",
+    "mission_ais_4_environment.svg",
+    "mission_ais_5_groundtrack.svg",
+    "mission_ais_6_modes.svg"
    ]
   },
   "fault_coil_ais": {
@@ -346,7 +386,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 128.34,
+     "value": 82.19000000000001,
      "unit": "min",
      "req": 284,
      "req_key": "req.detumble",
@@ -355,23 +395,23 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.02199375426157996,
+     "value": 1.5181857031346975,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
-     "pass": 1
+     "pass": 0
     },
     {
      "id": "power_peak",
      "kind": "power_peak",
-     "value": 0.31628540039062497,
+     "value": 2.0476232337412643,
      "unit": "W",
      "req": 1.5,
      "req_key": "req.ppk",
-     "pass": 1
+     "pass": 0
     }
    ],
-   "wall_s": 533.3220629692078,
+   "wall_s": 1656.9968709945679,
    "duration_s": 17220,
    "mode_log": [
     {
@@ -381,12 +421,16 @@
     {
      "t": 60,
      "mode": "FAULT injected: coil_fail 1"
+    },
+    {
+     "t": 60,
+     "mode": "detumble"
     }
    ],
    "figures": [
-    "fault_coil_ais_1_attitude.png",
-    "fault_coil_ais_2_disturbances.png",
-    "fault_coil_ais_3_actuators.png"
+    "fault_coil_ais_1_attitude.svg",
+    "fault_coil_ais_2_disturbances.svg",
+    "fault_coil_ais_3_actuators.svg"
    ]
   },
   "fault_gyro_ais": {
@@ -397,7 +441,7 @@
     {
      "id": "ape_3axis_last_orbit",
      "kind": "ape",
-     "value": 179.99428013445777,
+     "value": 142.21146628008665,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -406,7 +450,7 @@
     {
      "id": "ape_los_last_orbit",
      "kind": "ape_los",
-     "value": 56.78921750727072,
+     "value": 11.566343939284764,
      "unit": "deg",
      "req": 10,
      "req_key": "req.ape",
@@ -415,23 +459,23 @@
     {
      "id": "ake_los_last_orbit",
      "kind": "ake_los",
-     "value": 42.58781910428527,
+     "value": 1.04382940015813,
      "unit": "deg",
      "req": 5,
      "req_key": "req.ake",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.010768278549581524,
+     "value": 1.5108195510065716,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
-     "pass": 1
+     "pass": 0
     }
    ],
-   "wall_s": 579.2471899986267,
+   "wall_s": 1769.797521829605,
    "duration_s": 17220,
    "mode_log": [
     {
@@ -441,12 +485,16 @@
     {
      "t": 6000,
      "mode": "FAULT injected: gyro_bias_step 0"
+    },
+    {
+     "t": 6000,
+     "mode": "nadir_mtq"
     }
    ],
    "figures": [
-    "fault_gyro_ais_1_attitude.png",
-    "fault_gyro_ais_2_disturbances.png",
-    "fault_gyro_ais_3_actuators.png"
+    "fault_gyro_ais_1_attitude.svg",
+    "fault_gyro_ais_2_disturbances.svg",
+    "fault_gyro_ais_3_actuators.svg"
    ]
   },
   "detumble_img": {
@@ -457,14 +505,14 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 21.975,
+     "value": 47.575,
      "unit": "min",
      "req": 284,
      "req_key": "req.detumble",
      "pass": 1
     }
    ],
-   "wall_s": 971.630609035492,
+   "wall_s": 5181.597779989243,
    "duration_s": 17220,
    "mode_log": [
     {
@@ -473,12 +521,12 @@
     }
    ],
    "figures": [
-    "detumble_img_1_attitude.png",
-    "detumble_img_2_disturbances.png",
-    "detumble_img_3_actuators.png",
-    "detumble_img_4_environment.png",
-    "detumble_img_5_groundtrack.png",
-    "detumble_img_6_modes.png"
+    "detumble_img_1_attitude.svg",
+    "detumble_img_2_disturbances.svg",
+    "detumble_img_3_actuators.svg",
+    "detumble_img_4_environment.svg",
+    "detumble_img_5_groundtrack.svg",
+    "detumble_img_6_modes.svg"
    ]
   },
   "fine_hold_img": {
@@ -489,7 +537,7 @@
     {
      "id": "ape_los_p9973",
      "kind": "ape_los",
-     "value": 0.009166008505534255,
+     "value": 0.005202179307082111,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -498,7 +546,7 @@
     {
      "id": "ape_los_max",
      "kind": "ape_los",
-     "value": 0.010924857468998192,
+     "value": 0.005977329360310587,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -507,7 +555,7 @@
     {
      "id": "ape_3ax_p9973",
      "kind": "ape",
-     "value": 0.00959540290245215,
+     "value": 0.006157341666465767,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -516,7 +564,7 @@
     {
      "id": "ake_los_p9973",
      "kind": "ake_los",
-     "value": 0.0033331261920540377,
+     "value": 0.00260285495134926,
      "unit": "deg",
      "req": 0.005,
      "req_key": "req.ake",
@@ -525,7 +573,7 @@
     {
      "id": "rate_stability_p9973",
      "kind": "rate_stability",
-     "value": 0.0036700407696835767,
+     "value": 0.00365096111865814,
      "unit": "deg/s",
      "req": 0.005,
      "req_key": "req.rks",
@@ -534,7 +582,7 @@
     {
      "id": "time_to_0p01_deg",
      "kind": "time_to_threshold",
-     "value": 83.5,
+     "value": 42.7,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -543,7 +591,7 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.003256767272330742,
+     "value": 0.002615361405485405,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -552,15 +600,60 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 1.5572084379521545,
+     "value": 5.0649444943305335,
      "unit": "W",
      "req": 2,
      "req_key": "req.pavg",
-     "pass": 1
+     "pass": 0
+    },
+    {
+     "id": "rpe_los_10s_p9973",
+     "kind": "rpe_los",
+     "value": 0.0038769229902048488,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "pde_los_10s_60s_max",
+     "kind": "pde_los",
+     "value": 0.005467140704710271,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "rke_los_10s_p9973",
+     "kind": "rke_los",
+     "value": 0.0018335691296012433,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "power_margin_last_orbit",
+     "kind": "power_margin",
+     "value": -1.8659857583100958,
+     "unit": "W",
+     "req": 0,
+     "req_key": "scenario",
+     "pass": 0
+    },
+    {
+     "id": "battery_dod_last_orbit",
+     "kind": "battery_dod",
+     "value": 26.77259822000896,
+     "unit": "%",
+     "req": null,
+     "req_key": "",
+     "pass": null
     }
    ],
-   "wall_s": 389.71645307540894,
-   "duration_s": 5740,
+   "wall_s": 4854.762903928757,
+   "duration_s": 11480,
    "mode_log": [
     {
      "t": 0,
@@ -568,12 +661,12 @@
     }
    ],
    "figures": [
-    "fine_hold_img_1_attitude.png",
-    "fine_hold_img_2_disturbances.png",
-    "fine_hold_img_3_actuators.png",
-    "fine_hold_img_4_environment.png",
-    "fine_hold_img_5_groundtrack.png",
-    "fine_hold_img_6_modes.png"
+    "fine_hold_img_1_attitude.svg",
+    "fine_hold_img_2_disturbances.svg",
+    "fine_hold_img_3_actuators.svg",
+    "fine_hold_img_4_environment.svg",
+    "fine_hold_img_5_groundtrack.svg",
+    "fine_hold_img_6_modes.svg"
    ]
   },
   "slew_img": {
@@ -584,7 +677,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 12.600000000000023,
+     "value": 8.900000000000034,
      "unit": "s",
      "req": 20,
      "req_key": "req.settle",
@@ -593,7 +686,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.009893840675525643,
+     "value": 0.006261416145712064,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -602,14 +695,14 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.0033383376503035396,
+     "value": 0.002759030578402754,
      "unit": "N m s",
      "req": null,
      "req_key": "",
      "pass": null
     }
    ],
-   "wall_s": 45.909926891326904,
+   "wall_s": 311.70366191864014,
    "duration_s": 600,
    "mode_log": [
     {
@@ -618,12 +711,12 @@
     }
    ],
    "figures": [
-    "slew_img_1_attitude.png",
-    "slew_img_2_disturbances.png",
-    "slew_img_3_actuators.png",
-    "slew_img_4_environment.png",
-    "slew_img_5_groundtrack.png",
-    "slew_img_6_modes.png"
+    "slew_img_1_attitude.svg",
+    "slew_img_2_disturbances.svg",
+    "slew_img_3_actuators.svg",
+    "slew_img_4_environment.svg",
+    "slew_img_5_groundtrack.svg",
+    "slew_img_6_modes.svg"
    ]
   },
   "agile_slew_img": {
@@ -634,7 +727,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 51.80000000000001,
+     "value": 37.20000000000002,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -643,7 +736,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.009879696665701352,
+     "value": 0.006680638634424929,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -652,14 +745,14 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.006920054725925468,
+     "value": 0.007235810384612466,
      "unit": "N m s",
      "req": null,
      "req_key": "",
      "pass": null
     }
    ],
-   "wall_s": 47.56780004501343,
+   "wall_s": 294.33997082710266,
    "duration_s": 600,
    "mode_log": [
     {
@@ -668,9 +761,9 @@
     }
    ],
    "figures": [
-    "agile_slew_img_1_attitude.png",
-    "agile_slew_img_2_disturbances.png",
-    "agile_slew_img_3_actuators.png"
+    "agile_slew_img_1_attitude.svg",
+    "agile_slew_img_2_disturbances.svg",
+    "agile_slew_img_3_actuators.svg"
    ]
   },
   "mission_img": {
@@ -681,7 +774,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 23.675,
+     "value": 49.858333333333334,
      "unit": "min",
      "req": 284,
      "req_key": "req.detumble",
@@ -690,14 +783,32 @@
     {
      "id": "ape_los_last_half_orbit_p9973",
      "kind": "ape_los",
-     "value": 0.007627071269811129,
+     "value": 0.005448211546718674,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
      "pass": 1
+    },
+    {
+     "id": "power_margin_last_orbit",
+     "kind": "power_margin",
+     "value": -1.865735251902661,
+     "unit": "W",
+     "req": 0,
+     "req_key": "scenario",
+     "pass": 0
+    },
+    {
+     "id": "battery_dod_last_orbit",
+     "kind": "battery_dod",
+     "value": 32.59854864663924,
+     "unit": "%",
+     "req": null,
+     "req_key": "",
+     "pass": null
     }
    ],
-   "wall_s": 1235.396849155426,
+   "wall_s": 7347.9534640312195,
    "duration_s": 17220,
    "mode_log": [
     {
@@ -705,17 +816,17 @@
      "mode": "detumble"
     },
     {
-     "t": 1378,
+     "t": 2914.5,
      "mode": "nadir_fine"
     }
    ],
    "figures": [
-    "mission_img_1_attitude.png",
-    "mission_img_2_disturbances.png",
-    "mission_img_3_actuators.png",
-    "mission_img_4_environment.png",
-    "mission_img_5_groundtrack.png",
-    "mission_img_6_modes.png"
+    "mission_img_1_attitude.svg",
+    "mission_img_2_disturbances.svg",
+    "mission_img_3_actuators.svg",
+    "mission_img_4_environment.svg",
+    "mission_img_5_groundtrack.svg",
+    "mission_img_6_modes.svg"
    ]
   },
   "fault_wheel_img": {
@@ -726,7 +837,7 @@
     {
      "id": "ape_los_p9973",
      "kind": "ape_los",
-     "value": 15.834071884764585,
+     "value": 0.4723914648138202,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -735,7 +846,7 @@
     {
      "id": "ape_los_max",
      "kind": "ape_los",
-     "value": 15.870191978841307,
+     "value": 0.49086961785125105,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -744,7 +855,7 @@
     {
      "id": "ape_3ax_p9973",
      "kind": "ape",
-     "value": 15.834071946375513,
+     "value": 0.4724089491315027,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -753,7 +864,7 @@
     {
      "id": "ake_los_p9973",
      "kind": "ake_los",
-     "value": 0.0036485982565832007,
+     "value": 0.002979754301072421,
      "unit": "deg",
      "req": 0.005,
      "req_key": "req.ake",
@@ -762,7 +873,7 @@
     {
      "id": "rate_stability_p9973",
      "kind": "rate_stability",
-     "value": 0.3826983981962098,
+     "value": 0.04021088358019624,
      "unit": "deg/s",
      "req": 0.005,
      "req_key": "req.rks",
@@ -771,7 +882,7 @@
     {
      "id": "time_to_0p01_deg",
      "kind": "time_to_threshold",
-     "value": 83.5,
+     "value": 42.7,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -780,7 +891,7 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.003674758260242864,
+     "value": 0.002595717805279762,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -789,14 +900,14 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 1.1907937149274128,
+     "value": 4.640772096106697,
      "unit": "W",
      "req": 2,
      "req_key": "req.pavg",
-     "pass": 1
+     "pass": 0
     }
    ],
-   "wall_s": 414.3348820209503,
+   "wall_s": 2519.9724428653717,
    "duration_s": 5740,
    "mode_log": [
     {
@@ -808,14 +919,14 @@
      "mode": "FAULT injected: rotor_fail 1"
     },
     {
-     "t": 1211.7,
-     "mode": "FDIR: rotor 1 isolated"
+     "t": 1200,
+     "mode": "nadir_fine"
     }
    ],
    "figures": [
-    "fault_wheel_img_1_attitude.png",
-    "fault_wheel_img_2_disturbances.png",
-    "fault_wheel_img_3_actuators.png"
+    "fault_wheel_img_1_attitude.svg",
+    "fault_wheel_img_2_disturbances.svg",
+    "fault_wheel_img_3_actuators.svg"
    ]
   },
   "fault_st_img": {
@@ -826,16 +937,16 @@
     {
      "id": "ape_los_p9973",
      "kind": "ape_los",
-     "value": 0.18425753045740917,
+     "value": 0.005510084331198055,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "ape_los_max",
      "kind": "ape_los",
-     "value": 0.18917101157196248,
+     "value": 0.0069151771649290485,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -844,7 +955,7 @@
     {
      "id": "ape_3ax_p9973",
      "kind": "ape",
-     "value": 0.18579874815385622,
+     "value": 0.007402879233143261,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -853,16 +964,16 @@
     {
      "id": "ake_los_p9973",
      "kind": "ake_los",
-     "value": 0.18474702064878892,
+     "value": 0.003061792999137323,
      "unit": "deg",
      "req": 0.005,
      "req_key": "req.ake",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "rate_stability_p9973",
      "kind": "rate_stability",
-     "value": 0.0040821295910020445,
+     "value": 0.0035554878463766853,
      "unit": "deg/s",
      "req": 0.005,
      "req_key": "req.rks",
@@ -871,7 +982,7 @@
     {
      "id": "time_to_0p01_deg",
      "kind": "time_to_threshold",
-     "value": 83.5,
+     "value": 42.7,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -880,7 +991,7 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.0032568486930182813,
+     "value": 0.0026153549709070963,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -889,14 +1000,14 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 1.5572130951267216,
+     "value": 5.05932420116116,
      "unit": "W",
      "req": 2,
      "req_key": "req.pavg",
-     "pass": 1
+     "pass": 0
     }
    ],
-   "wall_s": 388.5329067707062,
+   "wall_s": 2408.897055864334,
    "duration_s": 5740,
    "mode_log": [
     {
@@ -906,12 +1017,16 @@
     {
      "t": 1200,
      "mode": "FAULT injected: st_head_fail 2"
+    },
+    {
+     "t": 1200,
+     "mode": "nadir_fine"
     }
    ],
    "figures": [
-    "fault_st_img_1_attitude.png",
-    "fault_st_img_2_disturbances.png",
-    "fault_st_img_3_actuators.png"
+    "fault_st_img_1_attitude.svg",
+    "fault_st_img_2_disturbances.svg",
+    "fault_st_img_3_actuators.svg"
    ]
   },
   "fine_hold_fmr": {
@@ -922,7 +1037,7 @@
     {
      "id": "ape_los_p9973",
      "kind": "ape_los",
-     "value": 0.00603292951574543,
+     "value": 0.004903827669025721,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -931,7 +1046,7 @@
     {
      "id": "ape_los_max",
      "kind": "ape_los",
-     "value": 0.007836066252184623,
+     "value": 0.006288441322878893,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -940,7 +1055,7 @@
     {
      "id": "ape_3ax_p9973",
      "kind": "ape",
-     "value": 0.007028014079554227,
+     "value": 0.006063986810595738,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -949,7 +1064,7 @@
     {
      "id": "ake_los_p9973",
      "kind": "ake_los",
-     "value": 0.0033213614275627314,
+     "value": 0.0025852743927783266,
      "unit": "deg",
      "req": 0.005,
      "req_key": "req.ake",
@@ -958,7 +1073,7 @@
     {
      "id": "rate_stability_p9973",
      "kind": "rate_stability",
-     "value": 0.00465410757830101,
+     "value": 0.004962283503573934,
      "unit": "deg/s",
      "req": 0.005,
      "req_key": "req.rks",
@@ -967,7 +1082,7 @@
     {
      "id": "time_to_0p01_deg",
      "kind": "time_to_threshold",
-     "value": 84.30000000000001,
+     "value": 43.6,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -976,7 +1091,7 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.00016236690596763747,
+     "value": 0.0002841242285440845,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -985,15 +1100,15 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 4.348422003296978,
+     "value": 3.6010454649140593,
      "unit": "W",
      "req": 2,
      "req_key": "req.pavg",
      "pass": 0
     }
    ],
-   "wall_s": 658.9512960910797,
-   "duration_s": 5740,
+   "wall_s": 5026.4040949344635,
+   "duration_s": 11480,
    "mode_log": [
     {
      "t": 0,
@@ -1001,9 +1116,9 @@
     }
    ],
    "figures": [
-    "fine_hold_fmr_1_attitude.png",
-    "fine_hold_fmr_2_disturbances.png",
-    "fine_hold_fmr_3_actuators.png"
+    "fine_hold_fmr_1_attitude.svg",
+    "fine_hold_fmr_2_disturbances.svg",
+    "fine_hold_fmr_3_actuators.svg"
    ]
   },
   "slew_fmr": {
@@ -1014,7 +1129,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 14,
+     "value": 10.100000000000023,
      "unit": "s",
      "req": 20,
      "req_key": "req.settle",
@@ -1023,7 +1138,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.008052660245847734,
+     "value": 0.006050906400064399,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -1032,14 +1147,14 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.00011202724306451886,
+     "value": 0.00010570112340879342,
      "unit": "N m s",
      "req": null,
      "req_key": "",
      "pass": null
     }
    ],
-   "wall_s": 78.75554490089417,
+   "wall_s": 309.93692111968994,
    "duration_s": 600,
    "mode_log": [
     {
@@ -1048,9 +1163,9 @@
     }
    ],
    "figures": [
-    "slew_fmr_1_attitude.png",
-    "slew_fmr_2_disturbances.png",
-    "slew_fmr_3_actuators.png"
+    "slew_fmr_1_attitude.svg",
+    "slew_fmr_2_disturbances.svg",
+    "slew_fmr_3_actuators.svg"
    ]
   },
   "mission_fmr": {
@@ -1061,7 +1176,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 24.475,
+     "value": 61.44166666666667,
      "unit": "min",
      "req": 284,
      "req_key": "req.detumble",
@@ -1070,14 +1185,14 @@
     {
      "id": "ape_los_last_half_orbit_p9973",
      "kind": "ape_los",
-     "value": 0.006388460280472044,
+     "value": 0.004847849611680336,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
      "pass": 1
     }
    ],
-   "wall_s": 1622.2781040668488,
+   "wall_s": 6954.670253038406,
    "duration_s": 17220,
    "mode_log": [
     {
@@ -1085,17 +1200,17 @@
      "mode": "detumble"
     },
     {
-     "t": 1411.4,
+     "t": 3314,
      "mode": "nadir_fine"
     }
    ],
    "figures": [
-    "mission_fmr_1_attitude.png",
-    "mission_fmr_2_disturbances.png",
-    "mission_fmr_3_actuators.png",
-    "mission_fmr_4_environment.png",
-    "mission_fmr_5_groundtrack.png",
-    "mission_fmr_6_modes.png"
+    "mission_fmr_1_attitude.svg",
+    "mission_fmr_2_disturbances.svg",
+    "mission_fmr_3_actuators.svg",
+    "mission_fmr_4_environment.svg",
+    "mission_fmr_5_groundtrack.svg",
+    "mission_fmr_6_modes.svg"
    ]
   },
   "fine_hold_fmr_rcs": {
@@ -1106,7 +1221,7 @@
     {
      "id": "ape_los_p9973",
      "kind": "ape_los",
-     "value": 0.006160034370312438,
+     "value": 0.004903827669025721,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -1115,7 +1230,7 @@
     {
      "id": "ape_los_max",
      "kind": "ape_los",
-     "value": 0.006973045717786635,
+     "value": 0.006288441322878893,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -1124,7 +1239,7 @@
     {
      "id": "ape_3ax_p9973",
      "kind": "ape",
-     "value": 0.006877888579606446,
+     "value": 0.006063986810595738,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -1133,7 +1248,7 @@
     {
      "id": "ake_los_p9973",
      "kind": "ake_los",
-     "value": 0.0034800530184713775,
+     "value": 0.0025852743927783266,
      "unit": "deg",
      "req": 0.005,
      "req_key": "req.ake",
@@ -1142,7 +1257,7 @@
     {
      "id": "rate_stability_p9973",
      "kind": "rate_stability",
-     "value": 0.004643436735126702,
+     "value": 0.004962283503573934,
      "unit": "deg/s",
      "req": 0.005,
      "req_key": "req.rks",
@@ -1151,7 +1266,7 @@
     {
      "id": "time_to_0p01_deg",
      "kind": "time_to_threshold",
-     "value": 88.2,
+     "value": 43.6,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -1160,7 +1275,7 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.00016301644726447092,
+     "value": 0.0002841242285440845,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -1169,15 +1284,15 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 4.366967824664844,
+     "value": 3.6010454649140593,
      "unit": "W",
      "req": 2,
      "req_key": "req.pavg",
      "pass": 0
     }
    ],
-   "wall_s": 523.1565821170807,
-   "duration_s": 5740,
+   "wall_s": 5066.36912894249,
+   "duration_s": 11480,
    "mode_log": [
     {
      "t": 0,
@@ -1185,9 +1300,9 @@
     }
    ],
    "figures": [
-    "fine_hold_fmr_rcs_1_attitude.png",
-    "fine_hold_fmr_rcs_2_disturbances.png",
-    "fine_hold_fmr_rcs_3_actuators.png"
+    "fine_hold_fmr_rcs_1_attitude.svg",
+    "fine_hold_fmr_rcs_2_disturbances.svg",
+    "fine_hold_fmr_rcs_3_actuators.svg"
    ]
   },
   "slew_fmr_rcs": {
@@ -1198,7 +1313,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 12.900000000000034,
+     "value": 10.100000000000023,
      "unit": "s",
      "req": 20,
      "req_key": "req.settle",
@@ -1207,7 +1322,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.007078166329372722,
+     "value": 0.006050906400064399,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -1216,14 +1331,14 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.00011182048732812648,
+     "value": 0.00010570112340879342,
      "unit": "N m s",
      "req": null,
      "req_key": "",
      "pass": null
     }
    ],
-   "wall_s": 55.8882110118866,
+   "wall_s": 316.39654779434204,
    "duration_s": 600,
    "mode_log": [
     {
@@ -1232,9 +1347,9 @@
     }
    ],
    "figures": [
-    "slew_fmr_rcs_1_attitude.png",
-    "slew_fmr_rcs_2_disturbances.png",
-    "slew_fmr_rcs_3_actuators.png"
+    "slew_fmr_rcs_1_attitude.svg",
+    "slew_fmr_rcs_2_disturbances.svg",
+    "slew_fmr_rcs_3_actuators.svg"
    ]
   },
   "agile_slew_fmr_rcs": {
@@ -1245,7 +1360,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 39.900000000000006,
+     "value": 26.400000000000006,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -1254,7 +1369,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.007225077734476367,
+     "value": 0.006668274438431209,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -1263,14 +1378,14 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.0009451876427477859,
+     "value": 0.0010165331274092251,
      "unit": "N m s",
      "req": null,
      "req_key": "",
      "pass": null
     }
    ],
-   "wall_s": 50.83361101150513,
+   "wall_s": 303.43990993499756,
    "duration_s": 600,
    "mode_log": [
     {
@@ -1279,9 +1394,9 @@
     }
    ],
    "figures": [
-    "agile_slew_fmr_rcs_1_attitude.png",
-    "agile_slew_fmr_rcs_2_disturbances.png",
-    "agile_slew_fmr_rcs_3_actuators.png"
+    "agile_slew_fmr_rcs_1_attitude.svg",
+    "agile_slew_fmr_rcs_2_disturbances.svg",
+    "agile_slew_fmr_rcs_3_actuators.svg"
    ]
   },
   "mission_fmr_rcs": {
@@ -1292,7 +1407,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 64.125,
+     "value": 61.44166666666667,
      "unit": "min",
      "req": 284,
      "req_key": "req.detumble",
@@ -1301,14 +1416,14 @@
     {
      "id": "ape_los_last_half_orbit_p9973",
      "kind": "ape_los",
-     "value": 0.006252813433310592,
+     "value": 0.004847849611680336,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
      "pass": 1
     }
    ],
-   "wall_s": 1619.4550411701202,
+   "wall_s": 7153.4545929431915,
    "duration_s": 17220,
    "mode_log": [
     {
@@ -1316,17 +1431,17 @@
      "mode": "detumble"
     },
     {
-     "t": 3793.2000000000003,
+     "t": 3314,
      "mode": "nadir_fine"
     }
    ],
    "figures": [
-    "mission_fmr_rcs_1_attitude.png",
-    "mission_fmr_rcs_2_disturbances.png",
-    "mission_fmr_rcs_3_actuators.png",
-    "mission_fmr_rcs_4_environment.png",
-    "mission_fmr_rcs_5_groundtrack.png",
-    "mission_fmr_rcs_6_modes.png"
+    "mission_fmr_rcs_1_attitude.svg",
+    "mission_fmr_rcs_2_disturbances.svg",
+    "mission_fmr_rcs_3_actuators.svg",
+    "mission_fmr_rcs_4_environment.svg",
+    "mission_fmr_rcs_5_groundtrack.svg",
+    "mission_fmr_rcs_6_modes.svg"
    ]
   },
   "fine_hold_rw_rcs": {
@@ -1337,7 +1452,7 @@
     {
      "id": "ape_los_p9973",
      "kind": "ape_los",
-     "value": 0.008375133573049651,
+     "value": 0.005186424807797125,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -1346,7 +1461,7 @@
     {
      "id": "ape_los_max",
      "kind": "ape_los",
-     "value": 0.009925551806824372,
+     "value": 0.005998636607843416,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -1355,7 +1470,7 @@
     {
      "id": "ape_3ax_p9973",
      "kind": "ape",
-     "value": 0.008487583636785232,
+     "value": 0.006169928388406382,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -1364,7 +1479,7 @@
     {
      "id": "ake_los_p9973",
      "kind": "ake_los",
-     "value": 0.0034386011043511847,
+     "value": 0.0026068656774257586,
      "unit": "deg",
      "req": 0.005,
      "req_key": "req.ake",
@@ -1373,7 +1488,7 @@
     {
      "id": "rate_stability_p9973",
      "kind": "rate_stability",
-     "value": 0.0036042922017832796,
+     "value": 0.003647685608548237,
      "unit": "deg/s",
      "req": 0.005,
      "req_key": "req.rks",
@@ -1382,7 +1497,7 @@
     {
      "id": "time_to_0p01_deg",
      "kind": "time_to_threshold",
-     "value": 87.2,
+     "value": 42.7,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -1391,7 +1506,7 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.002802646524888059,
+     "value": 0.0028211119925005217,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -1400,15 +1515,15 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 1.5100855484708615,
+     "value": 5.037341859330066,
      "unit": "W",
      "req": 2,
      "req_key": "req.pavg",
-     "pass": 1
+     "pass": 0
     }
    ],
-   "wall_s": 394.2328910827637,
-   "duration_s": 5740,
+   "wall_s": 5130.576856136322,
+   "duration_s": 11480,
    "mode_log": [
     {
      "t": 0,
@@ -1416,9 +1531,9 @@
     }
    ],
    "figures": [
-    "fine_hold_rw_rcs_1_attitude.png",
-    "fine_hold_rw_rcs_2_disturbances.png",
-    "fine_hold_rw_rcs_3_actuators.png"
+    "fine_hold_rw_rcs_1_attitude.svg",
+    "fine_hold_rw_rcs_2_disturbances.svg",
+    "fine_hold_rw_rcs_3_actuators.svg"
    ]
   },
   "slew_rw_rcs": {
@@ -1429,7 +1544,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 11.199999999999989,
+     "value": 8.900000000000034,
      "unit": "s",
      "req": 20,
      "req_key": "req.settle",
@@ -1438,7 +1553,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.007829084510809332,
+     "value": 0.006262269475542446,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -1447,14 +1562,14 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.0034193980108853704,
+     "value": 0.0027954958713652302,
      "unit": "N m s",
      "req": null,
      "req_key": "",
      "pass": null
     }
    ],
-   "wall_s": 46.26804995536804,
+   "wall_s": 319.3770840167999,
    "duration_s": 600,
    "mode_log": [
     {
@@ -1463,9 +1578,9 @@
     }
    ],
    "figures": [
-    "slew_rw_rcs_1_attitude.png",
-    "slew_rw_rcs_2_disturbances.png",
-    "slew_rw_rcs_3_actuators.png"
+    "slew_rw_rcs_1_attitude.svg",
+    "slew_rw_rcs_2_disturbances.svg",
+    "slew_rw_rcs_3_actuators.svg"
    ]
   },
   "agile_slew_rw_rcs": {
@@ -1476,7 +1591,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 39.5,
+     "value": 24.5,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -1485,7 +1600,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.008113682421798288,
+     "value": 0.006558789456718461,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -1494,14 +1609,14 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.0033627741269587194,
+     "value": 0.0035648871947207192,
      "unit": "N m s",
      "req": null,
      "req_key": "",
      "pass": null
     }
    ],
-   "wall_s": 54.53016495704651,
+   "wall_s": 300.2691879272461,
    "duration_s": 600,
    "mode_log": [
     {
@@ -1510,9 +1625,9 @@
     }
    ],
    "figures": [
-    "agile_slew_rw_rcs_1_attitude.png",
-    "agile_slew_rw_rcs_2_disturbances.png",
-    "agile_slew_rw_rcs_3_actuators.png"
+    "agile_slew_rw_rcs_1_attitude.svg",
+    "agile_slew_rw_rcs_2_disturbances.svg",
+    "agile_slew_rw_rcs_3_actuators.svg"
    ]
   },
   "mission_rw_rcs": {
@@ -1523,7 +1638,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 24.258333333333333,
+     "value": 49.858333333333334,
      "unit": "min",
      "req": 284,
      "req_key": "req.detumble",
@@ -1532,14 +1647,14 @@
     {
      "id": "ape_los_last_half_orbit_p9973",
      "kind": "ape_los",
-     "value": 0.007672929647481026,
+     "value": 0.0053699249873322644,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
      "pass": 1
     }
    ],
-   "wall_s": 1262.6471700668335,
+   "wall_s": 7521.0397119522095,
    "duration_s": 17220,
    "mode_log": [
     {
@@ -1547,17 +1662,17 @@
      "mode": "detumble"
     },
     {
-     "t": 1407.8000000000002,
+     "t": 2914.5,
      "mode": "nadir_fine"
     }
    ],
    "figures": [
-    "mission_rw_rcs_1_attitude.png",
-    "mission_rw_rcs_2_disturbances.png",
-    "mission_rw_rcs_3_actuators.png",
-    "mission_rw_rcs_4_environment.png",
-    "mission_rw_rcs_5_groundtrack.png",
-    "mission_rw_rcs_6_modes.png"
+    "mission_rw_rcs_1_attitude.svg",
+    "mission_rw_rcs_2_disturbances.svg",
+    "mission_rw_rcs_3_actuators.svg",
+    "mission_rw_rcs_4_environment.svg",
+    "mission_rw_rcs_5_groundtrack.svg",
+    "mission_rw_rcs_6_modes.svg"
    ]
   },
   "fine_hold_cmg": {
@@ -1568,7 +1683,7 @@
     {
      "id": "ape_los_p9973",
      "kind": "ape_los",
-     "value": 0.005523152850647309,
+     "value": 0.004074001190818933,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -1577,7 +1692,7 @@
     {
      "id": "ape_los_max",
      "kind": "ape_los",
-     "value": 0.006413984962130652,
+     "value": 0.004799566598699519,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -1586,7 +1701,7 @@
     {
      "id": "ape_3ax_p9973",
      "kind": "ape",
-     "value": 0.006145768956612303,
+     "value": 0.005819350233774219,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -1595,7 +1710,7 @@
     {
      "id": "ake_los_p9973",
      "kind": "ake_los",
-     "value": 0.0034099247014481187,
+     "value": 0.002596810335430818,
      "unit": "deg",
      "req": 0.005,
      "req_key": "req.ake",
@@ -1604,7 +1719,7 @@
     {
      "id": "rate_stability_p9973",
      "kind": "rate_stability",
-     "value": 0.002424524566174475,
+     "value": 0.0026733371783804858,
      "unit": "deg/s",
      "req": 0.005,
      "req_key": "req.rks",
@@ -1613,7 +1728,7 @@
     {
      "id": "time_to_0p01_deg",
      "kind": "time_to_threshold",
-     "value": 83.5,
+     "value": 42.5,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -1631,15 +1746,15 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 1.6098528884943926,
+     "value": 5.1100754871230745,
      "unit": "W",
      "req": 2,
      "req_key": "req.pavg",
-     "pass": 1
+     "pass": 0
     }
    ],
-   "wall_s": 468.44412994384766,
-   "duration_s": 5740,
+   "wall_s": 4898.240481138229,
+   "duration_s": 11480,
    "mode_log": [
     {
      "t": 0,
@@ -1647,9 +1762,9 @@
     }
    ],
    "figures": [
-    "fine_hold_cmg_1_attitude.png",
-    "fine_hold_cmg_2_disturbances.png",
-    "fine_hold_cmg_3_actuators.png"
+    "fine_hold_cmg_1_attitude.svg",
+    "fine_hold_cmg_2_disturbances.svg",
+    "fine_hold_cmg_3_actuators.svg"
    ]
   },
   "slew_cmg": {
@@ -1660,7 +1775,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 11.400000000000034,
+     "value": 5.699999999999989,
      "unit": "s",
      "req": 20,
      "req_key": "req.settle",
@@ -1669,7 +1784,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.004542425720625455,
+     "value": 0.003666005913984359,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -1685,7 +1800,7 @@
      "pass": null
     }
    ],
-   "wall_s": 54.34743690490723,
+   "wall_s": 288.7611508369446,
    "duration_s": 600,
    "mode_log": [
     {
@@ -1694,9 +1809,9 @@
     }
    ],
    "figures": [
-    "slew_cmg_1_attitude.png",
-    "slew_cmg_2_disturbances.png",
-    "slew_cmg_3_actuators.png"
+    "slew_cmg_1_attitude.svg",
+    "slew_cmg_2_disturbances.svg",
+    "slew_cmg_3_actuators.svg"
    ]
   },
   "agile_slew_cmg": {
@@ -1707,7 +1822,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 38.70000000000002,
+     "value": 24.5,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -1716,7 +1831,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.005492148222782869,
+     "value": 0.004501986730391352,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -1732,7 +1847,7 @@
      "pass": null
     }
    ],
-   "wall_s": 55.428386926651,
+   "wall_s": 287.3506729602814,
    "duration_s": 600,
    "mode_log": [
     {
@@ -1741,9 +1856,9 @@
     }
    ],
    "figures": [
-    "agile_slew_cmg_1_attitude.png",
-    "agile_slew_cmg_2_disturbances.png",
-    "agile_slew_cmg_3_actuators.png"
+    "agile_slew_cmg_1_attitude.svg",
+    "agile_slew_cmg_2_disturbances.svg",
+    "agile_slew_cmg_3_actuators.svg"
    ]
   },
   "mission_cmg": {
@@ -1754,7 +1869,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 59.458333333333336,
+     "value": 56.791666666666664,
      "unit": "min",
      "req": 284,
      "req_key": "req.detumble",
@@ -1763,14 +1878,14 @@
     {
      "id": "ape_los_last_half_orbit_p9973",
      "kind": "ape_los",
-     "value": 0.005659207494260749,
+     "value": 0.004288973275772828,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
      "pass": 1
     }
    ],
-   "wall_s": 1420.6372439861298,
+   "wall_s": 6767.77268910408,
    "duration_s": 17220,
    "mode_log": [
     {
@@ -1778,17 +1893,17 @@
      "mode": "detumble"
     },
     {
-     "t": 3516.5,
+     "t": 3315.2000000000003,
      "mode": "nadir_fine"
     }
    ],
    "figures": [
-    "mission_cmg_1_attitude.png",
-    "mission_cmg_2_disturbances.png",
-    "mission_cmg_3_actuators.png",
-    "mission_cmg_4_environment.png",
-    "mission_cmg_5_groundtrack.png",
-    "mission_cmg_6_modes.png"
+    "mission_cmg_1_attitude.svg",
+    "mission_cmg_2_disturbances.svg",
+    "mission_cmg_3_actuators.svg",
+    "mission_cmg_4_environment.svg",
+    "mission_cmg_5_groundtrack.svg",
+    "mission_cmg_6_modes.svg"
    ]
   },
   "fault_gimbal_cmg": {
@@ -1799,7 +1914,7 @@
     {
      "id": "ape_los_p9973",
      "kind": "ape_los",
-     "value": 0.006361828317053155,
+     "value": 0.005019645239610679,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -1808,7 +1923,7 @@
     {
      "id": "ape_los_max",
      "kind": "ape_los",
-     "value": 0.0073521244187336075,
+     "value": 0.005653014615352239,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -1817,7 +1932,7 @@
     {
      "id": "ape_3ax_p9973",
      "kind": "ape",
-     "value": 0.00668934109183948,
+     "value": 0.00668306786793033,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -1826,7 +1941,7 @@
     {
      "id": "ake_los_p9973",
      "kind": "ake_los",
-     "value": 0.003430368909254262,
+     "value": 0.0028531799570773834,
      "unit": "deg",
      "req": 0.005,
      "req_key": "req.ake",
@@ -1835,7 +1950,7 @@
     {
      "id": "rate_stability_p9973",
      "kind": "rate_stability",
-     "value": 0.0029508118757482545,
+     "value": 0.003289125322198878,
      "unit": "deg/s",
      "req": 0.005,
      "req_key": "req.rks",
@@ -1844,7 +1959,7 @@
     {
      "id": "time_to_0p01_deg",
      "kind": "time_to_threshold",
-     "value": 83.5,
+     "value": 42.5,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -1862,14 +1977,14 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 1.6098324684433705,
+     "value": 5.110063949853588,
      "unit": "W",
      "req": 2,
      "req_key": "req.pavg",
-     "pass": 1
+     "pass": 0
     }
    ],
-   "wall_s": 464.55497193336487,
+   "wall_s": 2543.5515129566193,
    "duration_s": 5740,
    "mode_log": [
     {
@@ -1879,12 +1994,16 @@
     {
      "t": 1200,
      "mode": "FAULT injected: gimbal_stuck 1"
+    },
+    {
+     "t": 1200,
+     "mode": "nadir_fine"
     }
    ],
    "figures": [
-    "fault_gimbal_cmg_1_attitude.png",
-    "fault_gimbal_cmg_2_disturbances.png",
-    "fault_gimbal_cmg_3_actuators.png"
+    "fault_gimbal_cmg_1_attitude.svg",
+    "fault_gimbal_cmg_2_disturbances.svg",
+    "fault_gimbal_cmg_3_actuators.svg"
    ]
   },
   "fine_hold_vscmg": {
@@ -1895,7 +2014,7 @@
     {
      "id": "ape_los_p9973",
      "kind": "ape_los",
-     "value": 0.009129105781604186,
+     "value": 0.006404967902911905,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -1904,7 +2023,7 @@
     {
      "id": "ape_los_max",
      "kind": "ape_los",
-     "value": 0.010355817039760051,
+     "value": 0.008854618539474701,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -1913,7 +2032,7 @@
     {
      "id": "ape_3ax_p9973",
      "kind": "ape",
-     "value": 0.009207657096371013,
+     "value": 0.0068486433176634404,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -1922,7 +2041,7 @@
     {
      "id": "ake_los_p9973",
      "kind": "ake_los",
-     "value": 0.00355785825812482,
+     "value": 0.0026302506120184574,
      "unit": "deg",
      "req": 0.005,
      "req_key": "req.ake",
@@ -1931,7 +2050,7 @@
     {
      "id": "rate_stability_p9973",
      "kind": "rate_stability",
-     "value": 0.004557086755770034,
+     "value": 0.004645856905956283,
      "unit": "deg/s",
      "req": 0.005,
      "req_key": "req.rks",
@@ -1940,7 +2059,7 @@
     {
      "id": "time_to_0p01_deg",
      "kind": "time_to_threshold",
-     "value": 89.30000000000001,
+     "value": 40.900000000000006,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -1949,7 +2068,7 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.004200910331586307,
+     "value": 0.004488844734354511,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -1958,15 +2077,15 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 2.0145844571681404,
+     "value": 5.514639060004154,
      "unit": "W",
      "req": 2,
      "req_key": "req.pavg",
      "pass": 0
     }
    ],
-   "wall_s": 475.56675696372986,
-   "duration_s": 5740,
+   "wall_s": 4987.371327161789,
+   "duration_s": 11480,
    "mode_log": [
     {
      "t": 0,
@@ -1974,9 +2093,9 @@
     }
    ],
    "figures": [
-    "fine_hold_vscmg_1_attitude.png",
-    "fine_hold_vscmg_2_disturbances.png",
-    "fine_hold_vscmg_3_actuators.png"
+    "fine_hold_vscmg_1_attitude.svg",
+    "fine_hold_vscmg_2_disturbances.svg",
+    "fine_hold_vscmg_3_actuators.svg"
    ]
   },
   "slew_vscmg": {
@@ -1987,7 +2106,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 14.400000000000034,
+     "value": 9,
      "unit": "s",
      "req": 20,
      "req_key": "req.settle",
@@ -1996,23 +2115,23 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.010272801930334453,
+     "value": 0.007253681202601475,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.0040509197348247775,
+     "value": 0.004124198185984917,
      "unit": "N m s",
      "req": null,
      "req_key": "",
      "pass": null
     }
    ],
-   "wall_s": 55.96863889694214,
+   "wall_s": 334.5662589073181,
    "duration_s": 600,
    "mode_log": [
     {
@@ -2021,9 +2140,9 @@
     }
    ],
    "figures": [
-    "slew_vscmg_1_attitude.png",
-    "slew_vscmg_2_disturbances.png",
-    "slew_vscmg_3_actuators.png"
+    "slew_vscmg_1_attitude.svg",
+    "slew_vscmg_2_disturbances.svg",
+    "slew_vscmg_3_actuators.svg"
    ]
   },
   "agile_slew_vscmg": {
@@ -2034,7 +2153,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 51.60000000000002,
+     "value": 41.30000000000001,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -2043,23 +2162,23 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.010065815802804863,
+     "value": 0.00957475761171806,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.0080869413838314,
+     "value": 0.008099454426044492,
      "unit": "N m s",
      "req": null,
      "req_key": "",
      "pass": null
     }
    ],
-   "wall_s": 60.52176880836487,
+   "wall_s": 291.41832184791565,
    "duration_s": 600,
    "mode_log": [
     {
@@ -2068,9 +2187,9 @@
     }
    ],
    "figures": [
-    "agile_slew_vscmg_1_attitude.png",
-    "agile_slew_vscmg_2_disturbances.png",
-    "agile_slew_vscmg_3_actuators.png"
+    "agile_slew_vscmg_1_attitude.svg",
+    "agile_slew_vscmg_2_disturbances.svg",
+    "agile_slew_vscmg_3_actuators.svg"
    ]
   },
   "mission_vscmg": {
@@ -2081,7 +2200,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 59.541666666666664,
+     "value": 56.891666666666666,
      "unit": "min",
      "req": 284,
      "req_key": "req.detumble",
@@ -2090,14 +2209,14 @@
     {
      "id": "ape_los_last_half_orbit_p9973",
      "kind": "ape_los",
-     "value": 0.011108323890360422,
+     "value": 0.006873278535057285,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
-     "pass": 0
+     "pass": 1
     }
    ],
-   "wall_s": 1461.0418908596039,
+   "wall_s": 7311.731202125549,
    "duration_s": 17220,
    "mode_log": [
     {
@@ -2105,17 +2224,17 @@
      "mode": "detumble"
     },
     {
-     "t": 3526.1000000000004,
+     "t": 3315.2000000000003,
      "mode": "nadir_fine"
     }
    ],
    "figures": [
-    "mission_vscmg_1_attitude.png",
-    "mission_vscmg_2_disturbances.png",
-    "mission_vscmg_3_actuators.png",
-    "mission_vscmg_4_environment.png",
-    "mission_vscmg_5_groundtrack.png",
-    "mission_vscmg_6_modes.png"
+    "mission_vscmg_1_attitude.svg",
+    "mission_vscmg_2_disturbances.svg",
+    "mission_vscmg_3_actuators.svg",
+    "mission_vscmg_4_environment.svg",
+    "mission_vscmg_5_groundtrack.svg",
+    "mission_vscmg_6_modes.svg"
    ]
   }
  },
@@ -2134,37 +2253,37 @@
       "unit": "min",
       "req": 284,
       "values": [
-       49.07333333333334,
-       47.77333333333333,
-       51.57333333333334,
-       70.65666666666668,
-       38.806666666666665,
-       75.24000000000001,
-       61.806666666666665,
-       31.15666666666667,
-       56.690000000000005,
-       53.20666666666667,
-       33.940000000000005,
-       41.223333333333336,
-       55.17333333333333,
-       54.75666666666667,
-       43.32333333333334,
-       55.34,
-       23.540000000000003,
-       40.056666666666665,
-       51.32333333333334,
-       40.45666666666667,
-       42.49,
-       55.67333333333333,
-       37.190000000000005,
-       53.473333333333336
+       59.09,
+       44.25666666666667,
+       54.123333333333335,
+       59.70666666666667,
+       72.17333333333335,
+       68.62333333333335,
+       70.77333333333334,
+       55.24,
+       74.85666666666667,
+       42.056666666666665,
+       58.09,
+       69.64000000000001,
+       63.49,
+       32.64,
+       58.806666666666665,
+       36.17333333333333,
+       50.99,
+       55.52333333333333,
+       31.173333333333336,
+       65.12333333333333,
+       74.19000000000001,
+       51.10666666666667,
+       55.623333333333335,
+       55.873333333333335
       ],
-      "mean": 48.49763888888889,
-      "std": 11.990370511540743,
-      "min": 23.540000000000003,
-      "max": 75.24000000000001,
+      "mean": 56.63930555555556,
+      "std": 12.541647026000962,
+      "min": 31.173333333333336,
+      "max": 74.85666666666667,
       "level": 95,
-      "pct": 70.65666666666668,
+      "pct": 74.19000000000001,
       "n_valid": 24,
       "pass_rate": 1,
       "pass": true
@@ -2174,88 +2293,88 @@
       "unit": "W",
       "req": 0.5,
       "values": [
-       0.02737361751463693,
-       0.015298352347424476,
-       0.014688752919225294,
-       0.03261273147108538,
-       0.018671279161631135,
-       0.031656164005340215,
-       0.01680761667714584,
-       0.014265443888101838,
-       0.026009255143348464,
-       0.03549603225233525,
-       0.015723708217312747,
-       0.018635614024835843,
-       0.021917131960719143,
-       0.0318036926923423,
-       0.033379437975139634,
-       0.02283214799349207,
-       0.011430147329010959,
-       0.019649642892503125,
-       0.016119089398210877,
-       0.01999218073780859,
-       0.02781724118924767,
-       0.026472305126404545,
-       0.019137418700597784,
-       0.026298897022798435
+       1.5238293046495157,
+       1.520008010785777,
+       1.5167579513336813,
+       1.5348704781259979,
+       1.5472563832389126,
+       1.523005515915567,
+       1.5304869777671606,
+       1.5230705676416492,
+       1.525168558201544,
+       1.5286738072137185,
+       1.530531706331014,
+       1.5402242693538313,
+       1.52781110771113,
+       1.5256621608895795,
+       1.5314966439328588,
+       1.5197751882069779,
+       1.5250345620843921,
+       1.522020203484539,
+       1.5177107472896771,
+       1.5389097486972614,
+       1.533068135455197,
+       1.5163719188197415,
+       1.517911150905948,
+       1.5276064560291964
       ],
-      "mean": 0.022670329193362437,
-      "std": 0.007014905054450818,
-      "min": 0.011430147329010959,
-      "max": 0.03549603225233525,
+      "mean": 1.5269692314193695,
+      "std": 0.007905862931555168,
+      "min": 1.5163719188197415,
+      "max": 1.5472563832389126,
       "level": 95,
-      "pct": 0.033379437975139634,
+      "pct": 1.5402242693538313,
       "n_valid": 24,
-      "pass_rate": 1,
-      "pass": true
+      "pass_rate": 0,
+      "pass": false
      },
      {
       "id": "power_peak",
       "unit": "W",
       "req": 1.5,
       "values": [
-       0.6297802734375,
-       0.20595336914062495,
-       0.170496826171875,
-       0.6299853515625,
-       0.412825927734375,
-       0.46389404296875,
-       0.4674060058593749,
-       0.216060791015625,
-       0.347955322265625,
-       0.6140478515625,
-       0.31411743164062494,
-       0.47622436523437506,
-       0.40027221679687497,
-       0.44609252929687504,
-       0.62511474609375,
-       0.28193481445312496,
-       0.132366943359375,
-       0.256494140625,
-       0.20218505859375,
-       0.553326416015625,
-       0.6380273437499999,
-       0.33191162109374994,
-       0.1265185546875,
-       0.422684326171875
+       2.0466096682638018,
+       1.8660861537522506,
+       1.6734685659352397,
+       2.0154463637195956,
+       1.9455020142216255,
+       1.8197507705923641,
+       1.9291714377269815,
+       1.6689546494949186,
+       1.8037627948850978,
+       1.791041245765557,
+       1.800853343302713,
+       2.09621578112125,
+       2.124347819452498,
+       1.9023789483321634,
+       1.9586013214514604,
+       1.8134929044465469,
+       1.7104298532059694,
+       1.7226812646870326,
+       1.7022606738486892,
+       2.07412695699942,
+       1.8492722098452712,
+       1.8354013641773737,
+       1.6763380535294656,
+       1.842290963469344
       ],
-      "mean": 0.3902365112304687,
-      "std": 0.16891816359539924,
-      "min": 0.1265185546875,
-      "max": 0.6380273437499999,
+      "mean": 1.8611868800927764,
+      "std": 0.1385480296433704,
+      "min": 1.6689546494949186,
+      "max": 2.124347819452498,
       "level": 95,
-      "pct": 0.6299853515625,
+      "pct": 2.09621578112125,
       "n_valid": 24,
-      "pass_rate": 1,
-      "pass": true
+      "pass_rate": 0,
+      "pass": false
      }
     ]
    },
    "figures": [
-    "mc_detumble_ais_detumble_time.png",
-    "mc_detumble_ais_power_mean.png",
-    "mc_detumble_ais_power_peak.png",
-    "mc_detumble_ais_scatter.png"
+    "mc_detumble_ais_detumble_time.svg",
+    "mc_detumble_ais_power_mean.svg",
+    "mc_detumble_ais_power_peak.svg",
+    "mc_detumble_ais_scatter.svg"
    ]
   },
   "mc_nadir_ais": {
@@ -2272,37 +2391,37 @@
       "unit": "deg",
       "req": null,
       "values": [
-       179.99810709043396,
-       104.72752438226577,
-       150.66225811582314,
-       125.53117634182134,
-       164.38001196662654,
-       179.9895493212236,
-       179.99913515621017,
-       179.9239322837925,
-       179.98111398316976,
-       179.97692089733079,
-       179.9739305544885,
-       179.99639910579748,
-       143.3821744275334,
-       128.41789615757622,
-       179.99969390218274,
-       179.9849739747903,
-       77.32559221544999,
-       106.19304335632005,
-       172.17701041428734,
-       179.96554864050702,
-       179.97416621281712,
-       179.8842749421675,
-       179.9895193754577,
-       179.89079038595892
+       179.97563143032696,
+       179.9655771659095,
+       179.99618008600075,
+       179.9810423188899,
+       179.9939840371275,
+       179.99638748467297,
+       179.99782303734088,
+       179.96951859423956,
+       179.93106408460304,
+       179.97597236177282,
+       179.999052241652,
+       179.99855580736616,
+       179.9847703303275,
+       179.9781723905976,
+       179.98164404502265,
+       179.99198360047808,
+       179.9543080221802,
+       158.74848019830566,
+       179.99050063055878,
+       179.95141828924466,
+       179.82085578485862,
+       179.99801919368747,
+       179.9388805661242,
+       179.9007854932096
       ],
-      "mean": 161.346864300168,
-      "std": 30.530990494405494,
-      "min": 77.32559221544999,
-      "max": 179.99969390218274,
+      "mean": 179.0841919664374,
+      "std": 4.331672942893386,
+      "min": 158.74848019830566,
+      "max": 179.999052241652,
       "level": 95,
-      "pct": 179.99913515621017,
+      "pct": 179.99855580736616,
       "n_valid": 24,
       "pass_rate": null,
       "pass": null
@@ -2312,37 +2431,37 @@
       "unit": "deg",
       "req": 10,
       "values": [
-       161.61808099124218,
-       44.03158808570415,
-       71.80101618831452,
-       69.83432944778711,
-       40.18931518334162,
-       169.2822609728473,
-       94.32400503376186,
-       89.3222764353467,
-       163.85544157501516,
-       149.1130350638893,
-       70.02311646716251,
-       152.36711348684375,
-       53.71737679907047,
-       77.05077771829086,
-       132.2911087087076,
-       121.42174999532384,
-       20.986681245230944,
-       17.144967271153607,
-       51.37304551047464,
-       83.61854624793632,
-       130.82956522170647,
-       103.23349269218544,
-       45.62446066421164,
-       93.66886583674314
+       151.82310877331534,
+       49.70218613068991,
+       105.46407787092964,
+       118.22128911288186,
+       43.06385064900474,
+       155.3331981666959,
+       110.42217962344982,
+       98.53518582817571,
+       155.49956906218677,
+       154.6779952890552,
+       89.88932126981642,
+       108.20873207742216,
+       54.36182389027941,
+       105.76659185526339,
+       158.82388045408243,
+       163.76773595589637,
+       22.99707657904913,
+       16.5940187546369,
+       46.08292938097647,
+       102.64564362999126,
+       145.5609605872027,
+       140.59663338130312,
+       40.3460732522664,
+       103.17722044792949
       ],
-      "mean": 91.94675903509545,
-      "std": 46.43885831294705,
-      "min": 17.144967271153607,
-      "max": 169.2822609728473,
+      "mean": 101.73172008427086,
+      "std": 47.04043342581868,
+      "min": 16.5940187546369,
+      "max": 163.76773595589637,
       "level": 95,
-      "pct": 163.85544157501516,
+      "pct": 158.82388045408243,
       "n_valid": 24,
       "pass_rate": 0,
       "pass": false
@@ -2352,39 +2471,39 @@
       "unit": "deg",
       "req": 5,
       "values": [
-       2.41309218594788,
-       3.6849899678935745,
-       1.3064002063502442,
-       2.2365070295161398,
-       1.954965155120643,
-       2.272058610430994,
-       2.8498873784289067,
-       1.027649028983281,
-       1.1115233767373494,
-       1.8846153196044098,
-       3.034692827715135,
-       1.0115840180626041,
-       2.3308785003849994,
-       1.5318687281957029,
-       3.0945310774503527,
-       1.9097489681986655,
-       2.3454278905419645,
-       0.8270637141155118,
-       1.7863396009997048,
-       1.4455516980021663,
-       1.7919187932828557,
-       2.485832392140542,
-       5.180388157832831,
-       0.5506204455212796
+       2.5214650927375573,
+       2.3231945646520282,
+       1.7496914542167217,
+       2.364000405933081,
+       0.8815870442226624,
+       2.0500858566970934,
+       1.1936649939448256,
+       1.302334568573926,
+       1.3963617820716852,
+       0.45616923442850255,
+       0.7190108075597951,
+       2.1369277644960865,
+       1.0733017380849121,
+       1.2355907808692157,
+       0.7643377436114797,
+       1.5431708819386396,
+       1.363577705877375,
+       0.6196220598435911,
+       3.0759215456166054,
+       1.2403876698021319,
+       0.7054085739407264,
+       1.0555308459844153,
+       1.739189279001244,
+       1.2702398017058343
       ],
-      "mean": 2.0861722946440726,
-      "std": 1.0181088787854984,
-      "min": 0.5506204455212796,
-      "max": 5.180388157832831,
+      "mean": 1.449198841492089,
+      "std": 0.6750333514046386,
+      "min": 0.45616923442850255,
+      "max": 3.0759215456166054,
       "level": 95,
-      "pct": 3.6849899678935745,
+      "pct": 2.5214650927375573,
       "n_valid": 24,
-      "pass_rate": 0.9583333333333334,
+      "pass_rate": 1,
       "pass": true
      },
      {
@@ -2392,49 +2511,131 @@
       "unit": "W",
       "req": 0.5,
       "values": [
-       0.014409369156446061,
-       0.013075437284120257,
-       0.011487071583281572,
-       0.012044138991866942,
-       0.009217289430465287,
-       0.01603059208981826,
-       0.013486824125355252,
-       0.012579213011068544,
-       0.016934228502866164,
-       0.013871716892311278,
-       0.008159117807069866,
-       0.014358802318946725,
-       0.005911245792130773,
-       0.011501786366809841,
-       0.013059885838899629,
-       0.012926518520238638,
-       0.0065879612452435215,
-       0.007112329312083601,
-       0.009728905663092834,
-       0.012537075627837511,
-       0.013258662048132504,
-       0.011771297330235804,
-       0.008761096054248609,
-       0.010722061368545014
+       1.514130837961801,
+       1.5130435020977613,
+       1.512468602323007,
+       1.5100724874408897,
+       1.5097929529938672,
+       1.5157428684754495,
+       1.5144727751530116,
+       1.5107413957600009,
+       1.515719011382274,
+       1.5144029870052935,
+       1.5097472672636492,
+       1.5136465906841607,
+       1.5061427334101125,
+       1.5114541677299052,
+       1.5147765615518523,
+       1.5134186011942057,
+       1.506533150433869,
+       1.5064661244146027,
+       1.5109322854761518,
+       1.5125445924466723,
+       1.5142946104631148,
+       1.512009276550323,
+       1.5085229823236095,
+       1.511298151152495
       ],
-      "mean": 0.011647192765046438,
-      "std": 0.002878932246041487,
-      "min": 0.005911245792130773,
-      "max": 0.016934228502866164,
+      "mean": 1.5117656048203367,
+      "std": 0.002846336832390408,
+      "min": 1.5061427334101125,
+      "max": 1.5157428684754495,
       "level": 95,
-      "pct": 0.01603059208981826,
+      "pct": 1.515719011382274,
       "n_valid": 24,
-      "pass_rate": 1,
-      "pass": true
+      "pass_rate": 0,
+      "pass": false
+     },
+     {
+      "id": "power_margin_last_orbit",
+      "unit": "W",
+      "req": 0,
+      "values": [
+       8.052891161766569,
+       4.261173054667699,
+       4.413037321231922,
+       5.225975317186442,
+       8.622646819067175,
+       8.61659043373249,
+       7.044389813297986,
+       4.449472642009143,
+       5.1496778374722965,
+       8.052365764183108,
+       6.665469446782523,
+       7.167641064337606,
+       8.951073842528755,
+       8.694326655760623,
+       4.816672721984057,
+       5.343021897461043,
+       8.283953239616412,
+       8.000860174319707,
+       8.293771972741666,
+       6.739420369218624,
+       7.825563474335742,
+       4.263203403564789,
+       7.890566112231379,
+       6.982109088686361
+      ],
+      "mean": 6.82524473450767,
+      "std": 1.6377078900890163,
+      "min": 4.261173054667699,
+      "max": 8.951073842528755,
+      "level": 95,
+      "pct": 8.694326655760623,
+      "n_valid": 24,
+      "pass_rate": 0,
+      "pass": false
+     },
+     {
+      "id": "battery_dod_last_orbit",
+      "unit": "%",
+      "req": null,
+      "values": [
+       0,
+       4.548115030307587,
+       3.8641100812423668,
+       0.3886289531778164,
+       0,
+       0,
+       0,
+       0.425812025402883,
+       4.580295985652882,
+       0,
+       1.6966377296030677,
+       0.2210914011207099,
+       0,
+       0,
+       0.9581534009200809,
+       0.193622188311926,
+       0,
+       0,
+       0,
+       0.19559600545809852,
+       0,
+       0.2846745742624335,
+       0,
+       0.1126284231612873
+      ],
+      "mean": 0.7278902416092142,
+      "std": 1.4480476642754776,
+      "min": 0,
+      "max": 4.580295985652882,
+      "level": 95,
+      "pct": 4.548115030307587,
+      "n_valid": 24,
+      "pass_rate": null,
+      "pass": null
      }
     ]
    },
    "figures": [
-    "mc_nadir_ais_ape_3axis_last_orbit.png",
-    "mc_nadir_ais_ape_los_last_orbit.png",
-    "mc_nadir_ais_ake_los_last_orbit.png",
-    "mc_nadir_ais_power_mean.png",
-    "mc_nadir_ais_scatter.png"
+    "mc_nadir_ais_ape_3axis_last_orbit.svg",
+    "mc_nadir_ais_ape_los_last_orbit.svg",
+    "mc_nadir_ais_ake_los_last_orbit.svg",
+    "mc_nadir_ais_power_mean.svg",
+    "mc_nadir_ais_power_margin_last_orbit.svg",
+    "mc_nadir_ais_battery_dod_last_orbit.svg",
+    "mc_nadir_ais_scatter.svg"
    ]
   },
   "edge_nadir_ais": {
@@ -2451,30 +2652,30 @@
       "unit": "deg",
       "req": null,
       "values": [
-       179.99835868298825,
-       179.9970545607297,
-       179.999920521601,
-       179.96270782524647,
-       139.42487418961343,
-       179.9432498770758,
-       113.75496927451216,
-       179.9889118811017,
-       114.89144040180476,
-       179.99093385393377,
-       179.99086016146063,
-       179.95803316993806,
-       179.99221758252668,
-       179.96187442688372,
-       167.92919852200916,
-       179.98360768837125,
-       179.9824803855782
+       179.99070217559725,
+       179.9886564998521,
+       179.97417970913764,
+       126.5589794907318,
+       121.15545158788103,
+       179.91923208520757,
+       146.51427562664128,
+       179.98156714667198,
+       179.9851234037626,
+       179.9630929812114,
+       179.94727347416676,
+       179.9750520636045,
+       120.7052853384243,
+       179.95773202426136,
+       161.99155990923683,
+       179.9593135725924,
+       179.98094503220253
       ],
-      "mean": 169.1618054709044,
-      "std": 22.94375274841322,
-      "min": 113.75496927451216,
-      "max": 179.999920521601,
+      "mean": 166.8557895365402,
+      "std": 22.83501472109223,
+      "min": 120.7052853384243,
+      "max": 179.99070217559725,
       "level": 95,
-      "pct": 179.999920521601,
+      "pct": 179.99070217559725,
       "n_valid": 17,
       "pass_rate": null,
       "pass": null
@@ -2484,32 +2685,32 @@
       "unit": "deg",
       "req": 10,
       "values": [
-       10.69103359531203,
-       6.1599594761339445,
-       59.14829444567269,
-       97.40413217737989,
-       9.226809540711963,
-       10.625202868011696,
-       5.0180536702515885,
-       22.792639035783658,
-       10.78568973102875,
-       11.023415222227824,
-       7.04815106977761,
-       9.973975860432637,
-       12.02948681750479,
-       10.359284706331577,
-       6.383711063919729,
-       7.453101955186391,
-       80.563054127916
+       11.933494358435798,
+       5.738587951578097,
+       59.567485633067875,
+       70.47017049812635,
+       8.489152584222916,
+       10.681886272237655,
+       9.984257533225682,
+       20.700301359391624,
+       9.85354341304372,
+       13.983594635465732,
+       5.718821861631492,
+       12.298240893022248,
+       11.794750631222316,
+       10.251007319252459,
+       8.651157421374373,
+       14.741414404682228,
+       80.15305669005242
       ],
-      "mean": 22.157999727269576,
-      "std": 28.240228352800575,
-      "min": 5.0180536702515885,
-      "max": 97.40413217737989,
+      "mean": 21.471230791766647,
+      "std": 23.72266974666114,
+      "min": 5.718821861631492,
+      "max": 80.15305669005242,
       "level": 95,
-      "pct": 97.40413217737989,
+      "pct": 80.15305669005242,
       "n_valid": 17,
-      "pass_rate": 0.4117647058823529,
+      "pass_rate": 0.35294117647058826,
       "pass": false
      },
      {
@@ -2517,75 +2718,143 @@
       "unit": "deg",
       "req": 5,
       "values": [
-       1.5686912997241838,
-       4.686843590221732,
-       1.3188015535600646,
-       0.9206853203949614,
-       2.3071178229527423,
-       3.5294766818059387,
-       3.586580327255866,
-       1.4494338294765527,
-       1.0408319922787406,
-       4.165713465133812,
-       4.066419870484773,
-       1.1117071805051828,
-       2.3844646564942096,
-       1.65448106240023,
-       5.153272946362373,
-       2.3491641304787954,
-       2.5200440765597545
+       2.555899246967555,
+       3.1219206081683373,
+       1.690474344363802,
+       1.6272045186193331,
+       0.8133921832986603,
+       2.5901745519083055,
+       1.4504492817939278,
+       3.835763244945401,
+       1.7884116713631026,
+       0.45429487792789797,
+       0.735095166901554,
+       2.977339558592711,
+       0.6963383794380723,
+       1.8207095045751855,
+       1.5787815892912023,
+       3.086149268880741,
+       1.9629945547206609
       ],
-      "mean": 2.5772782238876424,
-      "std": 1.3669079292104247,
-      "min": 0.9206853203949614,
-      "max": 5.153272946362373,
+      "mean": 1.9285525030444968,
+      "std": 0.9754310791998606,
+      "min": 0.45429487792789797,
+      "max": 3.835763244945401,
       "level": 95,
-      "pct": 5.153272946362373,
+      "pct": 3.835763244945401,
       "n_valid": 17,
-      "pass_rate": 0.9411764705882353,
-      "pass": false
+      "pass_rate": 1,
+      "pass": true
      },
      {
       "id": "power_mean",
       "unit": "W",
       "req": 0.5,
       "values": [
-       0.010772318165950812,
-       0.010753170319440834,
-       0.006316328165828323,
-       0.013282627955970674,
-       0.010523003188692204,
-       0.010635946137742486,
-       0.010577911863384365,
-       0.010664299176696831,
-       0.010639056745757922,
-       0.010647307576104024,
-       0.010701363959510535,
-       0.010731303242687699,
-       0.010742491479638926,
-       0.010866921541738803,
-       0.01093192119214629,
-       0.010495731462409327,
-       0.013266970612282051
+       1.510665226225444,
+       1.5108819453223643,
+       1.5064488780237248,
+       1.512738645976108,
+       1.5105778192126949,
+       1.5106760387571163,
+       1.5105397094731978,
+       1.510673253319115,
+       1.5107150314360966,
+       1.510725124350565,
+       1.5105726941525668,
+       1.5107069383731597,
+       1.510557069034563,
+       1.510851188908863,
+       1.5108366502681472,
+       1.5104721315768865,
+       1.513388398782964
       ],
-      "mean": 0.010738157222704828,
-      "std": 0.001428361255913486,
-      "min": 0.006316328165828323,
-      "max": 0.013282627955970674,
+      "mean": 1.510707455481975,
+      "std": 0.0013615680150856654,
+      "min": 1.5064488780237248,
+      "max": 1.513388398782964,
       "level": 95,
-      "pct": 0.013282627955970674,
+      "pct": 1.513388398782964,
       "n_valid": 17,
-      "pass_rate": 1,
-      "pass": true
+      "pass_rate": 0,
+      "pass": false
+     },
+     {
+      "id": "power_margin_last_orbit",
+      "unit": "W",
+      "req": 0,
+      "values": [
+       5.011482565233514,
+       5.2275741681643755,
+       4.394476298751142,
+       4.109451600643024,
+       5.424077481136037,
+       5.650707462615162,
+       4.234089548217914,
+       5.0831693114212,
+       5.051742731399733,
+       5.238852380724151,
+       5.470807069018742,
+       5.259863882535779,
+       5.190341128810687,
+       5.128792773821076,
+       4.933178851030197,
+       5.350767365701885,
+       5.196027313081346
+      ],
+      "mean": 5.056200113665057,
+      "std": 0.42737750955730053,
+      "min": 4.109451600643024,
+      "max": 5.650707462615162,
+      "level": 95,
+      "pct": 5.650707462615162,
+      "n_valid": 17,
+      "pass_rate": 0,
+      "pass": false
+     },
+     {
+      "id": "battery_dod_last_orbit",
+      "unit": "%",
+      "req": null,
+      "values": [
+       4.713793829629697,
+       4.71412729369759,
+       4.719169488763752,
+       4.788669423010772,
+       4.712676866755638,
+       4.713196790904073,
+       4.715840082571843,
+       4.717595655736096,
+       4.716125446606201,
+       4.713782293228497,
+       4.71486386063884,
+       4.713050941683072,
+       4.713452165798371,
+       4.715917671548697,
+       4.7135336919365445,
+       4.713391914208421,
+       4.7142380012838
+      ],
+      "mean": 4.719025024588347,
+      "std": 0.0180322350776572,
+      "min": 4.712676866755638,
+      "max": 4.788669423010772,
+      "level": 95,
+      "pct": 4.788669423010772,
+      "n_valid": 17,
+      "pass_rate": null,
+      "pass": null
      }
     ]
    },
    "figures": [
-    "edge_nadir_ais_ape_3axis_last_orbit.png",
-    "edge_nadir_ais_ape_los_last_orbit.png",
-    "edge_nadir_ais_ake_los_last_orbit.png",
-    "edge_nadir_ais_power_mean.png",
-    "edge_nadir_ais_scatter.png"
+    "edge_nadir_ais_ape_3axis_last_orbit.svg",
+    "edge_nadir_ais_ape_los_last_orbit.svg",
+    "edge_nadir_ais_ake_los_last_orbit.svg",
+    "edge_nadir_ais_power_mean.svg",
+    "edge_nadir_ais_power_margin_last_orbit.svg",
+    "edge_nadir_ais_battery_dod_last_orbit.svg",
+    "edge_nadir_ais_scatter.svg"
    ]
   },
   "mc_fine_img": {
@@ -2602,39 +2871,39 @@
       "unit": "deg",
       "req": 0.01,
       "values": [
-       0.015555459331543809,
-       0.019414158406764696,
-       0.0200661127343787,
-       0.010681751370786322,
-       0.009176658825564449,
-       0.011046055680766689,
-       0.007152273266683942,
-       0.007152923052120195,
-       0.011912278985427535,
-       0.019311262148559948,
-       0.008416549848357208,
-       0.014239972001357248,
-       0.01379329717698727,
-       0.010866457688168364,
-       0.0102661460448552,
-       0.018227236405705304,
-       0.009592508301481164,
-       0.014828571056828872,
-       0.007407708682718066,
-       0.017040176809020473,
-       0.008260932392629412,
-       0.017157887970765284,
-       0.01864547397964734,
-       0.015309287886440967
+       0.004800110504658197,
+       0.004943458382547777,
+       0.004832332441549085,
+       0.005515305066728935,
+       0.0047889013184072154,
+       0.005179364610756289,
+       0.00511943509774148,
+       0.005357284454678508,
+       0.005005577832486338,
+       0.0051563106466120424,
+       0.03413231207937659,
+       0.004783701055473051,
+       0.004876428689809717,
+       0.005152333534235817,
+       0.005193114331568634,
+       0.005102145168397343,
+       0.005248961703512708,
+       0.005280052658257078,
+       0.0049054116715565935,
+       0.0050626509577118214,
+       0.0053182409550784505,
+       0.005479422684558218,
+       0.005176050736901359,
+       0.005161081325149019
       ],
-      "mean": 0.013146714168648268,
-      "std": 0.0043355049641685675,
-      "min": 0.007152273266683942,
-      "max": 0.0200661127343787,
+      "mean": 0.00631541616282301,
+      "std": 0.005928626903019055,
+      "min": 0.004783701055473051,
+      "max": 0.03413231207937659,
       "level": 99.73,
-      "pct": 0.0200661127343787,
+      "pct": 0.03413231207937659,
       "n_valid": 24,
-      "pass_rate": 0.2916666666666667,
+      "pass_rate": 0.9583333333333334,
       "pass": false
      },
      {
@@ -2642,37 +2911,37 @@
       "unit": "deg",
       "req": null,
       "values": [
-       0.01713801047169383,
-       0.020725128785971353,
-       0.02348680467388809,
-       0.013265816917417314,
-       0.011151808856812218,
-       0.01328062328122384,
-       0.00906094566166576,
-       0.008501410009225406,
-       0.014753464851968288,
-       0.02172971361113283,
-       0.011843412946454478,
-       0.017547379354005892,
-       0.01527836677817084,
-       0.012494236892400064,
-       0.01627927746659064,
-       0.021074211583100855,
-       0.01628539881125703,
-       0.017303784580113897,
-       0.011336135916345462,
-       0.020239925279734908,
-       0.010198050890981674,
-       0.020516395887911116,
-       0.02099004113298904,
-       0.019260376397719558
+       0.005754221247477132,
+       0.006310897635245821,
+       0.006099108614568189,
+       0.0067449010766702415,
+       0.007045922241763773,
+       0.006491462139655483,
+       0.006338393817619233,
+       0.006985641508064241,
+       0.0064772224610849805,
+       0.006500811394251638,
+       0.03605012344642685,
+       0.006870223592694757,
+       0.007082096503947027,
+       0.006121669572153578,
+       0.007374336469704744,
+       0.006289793798414474,
+       0.006817117450627628,
+       0.006502393734229856,
+       0.007654941183625265,
+       0.007119739763751172,
+       0.007459648963400727,
+       0.007103188169197164,
+       0.006350704753713871,
+       0.007109528027925605
       ],
-      "mean": 0.015989196709948934,
-      "std": 0.00440463753064898,
-      "min": 0.008501410009225406,
-      "max": 0.02348680467388809,
+      "mean": 0.007943920315258894,
+      "std": 0.006005324001766077,
+      "min": 0.005754221247477132,
+      "max": 0.03605012344642685,
       "level": 95,
-      "pct": 0.02172971361113283,
+      "pct": 0.007654941183625265,
       "n_valid": 24,
       "pass_rate": null,
       "pass": null
@@ -2682,37 +2951,37 @@
       "unit": "deg",
       "req": null,
       "values": [
-       0.01591070394719063,
-       0.019565125111326267,
-       0.02023878576208961,
-       0.010682474958313825,
-       0.009279858644259016,
-       0.011101463473001444,
-       0.007504094931074427,
-       0.007551106015890001,
-       0.012438527550270532,
-       0.019331271352734474,
-       0.009086619984941627,
-       0.014348713156706161,
-       0.01401615053659544,
-       0.011151599185859562,
-       0.010478582083497404,
-       0.01829001405504725,
-       0.010220308897848945,
-       0.014951682610661007,
-       0.007845572019122733,
-       0.017356471544346705,
-       0.008317411156770678,
-       0.017181654141356,
-       0.01874056010933529,
-       0.015421031952239239
+       0.0059812020581425235,
+       0.005996032077165298,
+       0.0058949130177869645,
+       0.0064843637993050336,
+       0.005803954252573719,
+       0.006363003782536188,
+       0.006018431565091686,
+       0.006868645014381819,
+       0.005568694741298694,
+       0.005969929179280716,
+       0.045280112472242576,
+       0.005587046207825548,
+       0.006629335920944045,
+       0.005628853440808939,
+       0.0055149545528248465,
+       0.005953712518345716,
+       0.0060215521622514236,
+       0.006192835005493439,
+       0.005916976114573468,
+       0.006280183914254957,
+       0.006361880103922612,
+       0.006066818690689371,
+       0.006129090146995459,
+       0.006102238660202672
       ],
-      "mean": 0.013375407632519926,
-      "std": 0.004247437871319655,
-      "min": 0.007504094931074427,
-      "max": 0.02023878576208961,
+      "mean": 0.007692281641622403,
+      "std": 0.008012981325277538,
+      "min": 0.0055149545528248465,
+      "max": 0.045280112472242576,
       "level": 95,
-      "pct": 0.019565125111326267,
+      "pct": 0.006868645014381819,
       "n_valid": 24,
       "pass_rate": null,
       "pass": null
@@ -2722,79 +2991,79 @@
       "unit": "deg",
       "req": 0.005,
       "values": [
-       0.002032805648242702,
-       0.0020330539517683017,
-       0.002718961044262773,
-       0.0022439562383543693,
-       0.002248976889626838,
-       0.0026171347352065637,
-       0.002759767020247117,
-       0.003117321084838741,
-       0.0033174863414632675,
-       0.0035564475933695283,
-       0.003116680085410344,
-       0.003051038578946029,
-       0.003886896113837713,
-       0.0020001314594869667,
-       0.0029783117512678344,
-       0.003121846074376081,
-       0.0031528354540669773,
-       0.0040796332590764236,
-       0.0031990847261728897,
-       0.0023229662209914297,
-       0.003526600280284854,
-       0.0027968737246963334,
-       0.003520012348930277,
-       0.002064523716352412
+       0.0025351419336102723,
+       0.0029575610086702364,
+       0.0026943513666486986,
+       0.002747486441436199,
+       0.0026031233654013534,
+       0.003009417070904467,
+       0.002848310830961229,
+       0.003988740017457,
+       0.0022358062775713165,
+       0.0026162703388840597,
+       0.03408555890831565,
+       0.0024274518977438304,
+       0.00240888342139547,
+       0.002345962585922637,
+       0.0023077406901094665,
+       0.002551719475881003,
+       0.0024834329430861025,
+       0.002546613872049302,
+       0.002438873574938355,
+       0.0024170544540305684,
+       0.003191365919174373,
+       0.0025978153342461553,
+       0.0033013836114497317,
+       0.00291534985517134
       ],
-      "mean": 0.0028943060142198654,
-      "std": 0.0006048494369837583,
-      "min": 0.0020001314594869667,
-      "max": 0.0040796332590764236,
+      "mean": 0.0040106422997941175,
+      "std": 0.006417610257099994,
+      "min": 0.0022358062775713165,
+      "max": 0.03408555890831565,
       "level": 99.73,
-      "pct": 0.0040796332590764236,
+      "pct": 0.03408555890831565,
       "n_valid": 24,
-      "pass_rate": 1,
-      "pass": true
+      "pass_rate": 0.9583333333333334,
+      "pass": false
      },
      {
       "id": "rate_stability_p9973",
       "unit": "deg/s",
       "req": 0.005,
       "values": [
-       0.003683508209595235,
-       0.0037820985976872532,
-       0.003919523557470457,
-       0.0037278167305621643,
-       0.003739013875028397,
-       0.003747937740700816,
-       0.00375078031338163,
-       0.003689863260423967,
-       0.0037345512093590496,
-       0.0038584412003669693,
-       0.0036485824636699367,
-       0.003691672497680697,
-       0.0036298556771633046,
-       0.0036075218233763843,
-       0.003737615314992862,
-       0.00377808890062881,
-       0.003906806300912862,
-       0.003726837037758786,
-       0.0035594340741264257,
-       0.00396229872234288,
-       0.003723896201017543,
-       0.003688521431083331,
-       0.0037199449480493758,
-       0.003704230608257917
+       0.0036408203819673795,
+       0.0036668705529484904,
+       0.0035846635453831498,
+       0.003836790998193312,
+       0.003764135650548056,
+       0.003779154061374265,
+       0.00382503475381732,
+       0.0038637566599534733,
+       0.003663323753757944,
+       0.0036711210135271636,
+       0.0040590601938954385,
+       0.003723957556796697,
+       0.003769959997774098,
+       0.0037703769215938158,
+       0.0037758318756276905,
+       0.003722374477635064,
+       0.003821050616439372,
+       0.0038472158564433465,
+       0.003963216374225097,
+       0.003753225739192749,
+       0.003797116532305424,
+       0.0038203249715810248,
+       0.0036906555070340533,
+       0.0037733724674571317
       ],
-      "mean": 0.0037382850289848775,
-      "std": 9.56585587787143e-05,
-      "min": 0.0035594340741264257,
-      "max": 0.00396229872234288,
+      "mean": 0.003774308769144649,
+      "std": 0.00010268516620498536,
+      "min": 0.0035846635453831498,
+      "max": 0.0040590601938954385,
       "level": 99.73,
-      "pct": 0.00396229872234288,
+      "pct": 0.0040590601938954385,
       "n_valid": 24,
-      "pass_rate": 1.0,
+      "pass_rate": 1,
       "pass": true
      },
      {
@@ -2802,37 +3071,37 @@
       "unit": "s",
       "req": null,
       "values": [
-       80.30000000000001,
-       68.5,
-       71.60000000000001,
-       59,
-       65.8,
-       67.9,
-       82.5,
-       65.10000000000001,
-       76.60000000000001,
-       34.9,
-       84.30000000000001,
-       70.7,
-       68.10000000000001,
-       72.5,
-       64.9,
-       76.7,
-       59.300000000000004,
-       62.7,
-       63.5,
-       72.7,
-       63.5,
-       86.60000000000001,
-       84.80000000000001,
-       61.300000000000004
+       27.900000000000002,
+       46.900000000000006,
+       46.300000000000004,
+       26.900000000000002,
+       44.2,
+       46.1,
+       40.300000000000004,
+       41.5,
+       41.800000000000004,
+       22.3,
+       45.5,
+       45.800000000000004,
+       44.6,
+       46.6,
+       41.7,
+       41.800000000000004,
+       27.5,
+       39.400000000000006,
+       40.2,
+       45.400000000000006,
+       27.900000000000002,
+       43.800000000000004,
+       45.7,
+       26.900000000000002
       ],
-      "mean": 69.32499999999999,
-      "std": 11.061969712173484,
-      "min": 34.9,
-      "max": 86.60000000000001,
+      "mean": 39.458333333333336,
+      "std": 7.960495760543009,
+      "min": 22.3,
+      "max": 46.900000000000006,
       "level": 95,
-      "pct": 84.80000000000001,
+      "pct": 46.6,
       "n_valid": 24,
       "pass_rate": null,
       "pass": null
@@ -2842,37 +3111,37 @@
       "unit": "N m s",
       "req": null,
       "values": [
-       0.0034001017753207286,
-       0.002980375729519886,
-       0.0031867940845892277,
-       0.003123872119167719,
-       0.0029776201952683265,
-       0.0033550070180716775,
-       0.0030709579475687995,
-       0.003568272325717318,
-       0.0033211781784965944,
-       0.0028164663122011227,
-       0.0029097534781555995,
-       0.003286149243108223,
-       0.0029924494266725106,
-       0.0033436917479503017,
-       0.0028523732187191605,
-       0.0029042936497514897,
-       0.003230470265765158,
-       0.002837496773145247,
-       0.002767545779546941,
-       0.002869663520928882,
-       0.002925098953497942,
-       0.0029813525562835453,
-       0.0031655428672831714,
-       0.002930787752707328
+       0.0025027778228499005,
+       0.003122515863133057,
+       0.0029433450038567717,
+       0.002565201491784914,
+       0.0024548585100746543,
+       0.0025439079044249414,
+       0.002794608706053953,
+       0.0025844188773501177,
+       0.0027881423269953028,
+       0.0032368335029401515,
+       0.0028854824899898733,
+       0.0025632407183233904,
+       0.002630683233844408,
+       0.0027240311309902603,
+       0.003105869171331509,
+       0.0031745417316201368,
+       0.003014225039276566,
+       0.0033585522501481456,
+       0.0032843716165320215,
+       0.0026960801049225407,
+       0.003054609269150463,
+       0.0028698113870582807,
+       0.0028855672699245236,
+       0.0027647457587315887
       ],
-      "mean": 0.0030748881216432038,
-      "std": 0.00021822445341153514,
-      "min": 0.002767545779546941,
-      "max": 0.003568272325717318,
+      "mean": 0.002856184215887811,
+      "std": 0.000266020699234386,
+      "min": 0.0024548585100746543,
+      "max": 0.0033585522501481456,
       "level": 95,
-      "pct": 0.0034001017753207286,
+      "pct": 0.0032843716165320215,
       "n_valid": 24,
       "pass_rate": null,
       "pass": null
@@ -2882,53 +3151,258 @@
       "unit": "W",
       "req": 2,
       "values": [
-       1.554034248101855,
-       1.5557602548579594,
-       1.5606301599218728,
-       1.5558906925144982,
-       1.5571215456911893,
-       1.5559188691381411,
-       1.5594426918856097,
-       1.5554184007681466,
-       1.562707061424432,
-       1.5590307087368522,
-       1.5597249011225054,
-       1.5560905173864035,
-       1.5573381739223744,
-       1.5585827840062618,
-       1.5605535214412294,
-       1.557032576060673,
-       1.5599015868230155,
-       1.5582889006184075,
-       1.5598647156661898,
-       1.5555036531493083,
-       1.556302597866278,
-       1.5584622935693195,
-       1.5587503040707387,
-       1.558863651618306
+       5.069514105029286,
+       5.060384678061465,
+       5.067074796039298,
+       5.0728058112557255,
+       5.067827474142599,
+       5.0642851093346115,
+       5.071214747338482,
+       5.070979479634752,
+       5.071570058005973,
+       5.059793213360514,
+       5.062177028189957,
+       5.0731255019925445,
+       5.069324414958756,
+       5.072440362856384,
+       5.059930327559277,
+       5.060446969587008,
+       5.070542037601705,
+       5.0579952492373055,
+       5.0572105870852715,
+       5.057445333654119,
+       5.06389248814201,
+       5.0658314038013845,
+       5.0657158092530885,
+       5.0660895164231565
       ],
-      "mean": 1.5579672837650653,
-      "std": 0.0021040339560029313,
-      "min": 1.554034248101855,
-      "max": 1.562707061424432,
+      "mean": 5.065734020939362,
+      "std": 0.005286456166280814,
+      "min": 5.0572105870852715,
+      "max": 5.0731255019925445,
       "level": 95,
-      "pct": 1.5606301599218728,
+      "pct": 5.0728058112557255,
+      "n_valid": 24,
+      "pass_rate": 0,
+      "pass": false
+     },
+     {
+      "id": "rpe_los_10s_p9973",
+      "unit": "deg",
+      "req": null,
+      "values": [
+       0.003805625115574195,
+       0.003865626197636542,
+       0.0038670146443026627,
+       0.003877968505704728,
+       0.0038627643926592305,
+       0.003982601250371078,
+       0.0040236168471599314,
+       0.0038779445914107775,
+       0.0037406237389048247,
+       0.0037854021894428323,
+       0.004689643029451392,
+       0.003817785563799773,
+       0.0038827959111470216,
+       0.003924941113361286,
+       0.003943710198984158,
+       0.0038877569488993246,
+       0.003877377735156789,
+       0.004132444588168833,
+       0.003996213979178617,
+       0.0038598146913891157,
+       0.004026482002335483,
+       0.00403193047746329,
+       0.0038892099022721396,
+       0.00403960413737939
+      ],
+      "mean": 0.003945370739673058,
+      "std": 0.00018373718794238242,
+      "min": 0.0037406237389048247,
+      "max": 0.004689643029451392,
+      "level": 95,
+      "pct": 0.004132444588168833,
+      "n_valid": 24,
+      "pass_rate": null,
+      "pass": null
+     },
+     {
+      "id": "pde_los_10s_60s_max",
+      "unit": "deg",
+      "req": null,
+      "values": [
+       0.004638654620911239,
+       0.004091368517028976,
+       0.004474093400722754,
+       0.005145390243279773,
+       0.00535874434430694,
+       0.005522883075478241,
+       0.004688508035802702,
+       0.004856189106193159,
+       0.005463305529802435,
+       0.004395669842052833,
+       0.0376389190135244,
+       0.005443350101011282,
+       0.0048943628877849855,
+       0.005834194371026252,
+       0.0051189282190653345,
+       0.004928641359101634,
+       0.004186627762263036,
+       0.0054573454316964075,
+       0.0045562676818799,
+       0.004749193695376297,
+       0.0049267811938289875,
+       0.004876739572974192,
+       0.004706820865250193,
+       0.004792235612076027
+      ],
+      "mean": 0.0062810506034349164,
+      "std": 0.006693505895053821,
+      "min": 0.004091368517028976,
+      "max": 0.0376389190135244,
+      "level": 95,
+      "pct": 0.005834194371026252,
+      "n_valid": 24,
+      "pass_rate": null,
+      "pass": null
+     },
+     {
+      "id": "rke_los_10s_p9973",
+      "unit": "deg",
+      "req": null,
+      "values": [
+       0.0017578612539530837,
+       0.0017769680454377296,
+       0.001739129073182325,
+       0.0018417965089664572,
+       0.001742579022582078,
+       0.0017975022517697872,
+       0.0018269425617850994,
+       0.0017542670282699887,
+       0.0017306834809272258,
+       0.0018013229934105996,
+       0.0028119195498832387,
+       0.0017385415022338824,
+       0.0017497596935645914,
+       0.0017882629706356444,
+       0.0018172343335829998,
+       0.0017318889617577542,
+       0.0017644474240199538,
+       0.0018387705355417383,
+       0.0017572932288309636,
+       0.0017474294806449657,
+       0.0017363361591551428,
+       0.0017625530209000313,
+       0.001751370293427682,
+       0.0016980372535732166
+      ],
+      "mean": 0.0018109540261681744,
+      "std": 0.00021636658840218414,
+      "min": 0.0016980372535732166,
+      "max": 0.0028119195498832387,
+      "level": 95,
+      "pct": 0.0018417965089664572,
+      "n_valid": 24,
+      "pass_rate": null,
+      "pass": null
+     },
+     {
+      "id": "power_margin_last_orbit",
+      "unit": "W",
+      "req": 0,
+      "values": [
+       -1.2231859575181043,
+       -1.6481929219966645,
+       -1.293473111201518,
+       -1.0527496041940851,
+       -1.8074733032782575,
+       -1.7932144656314837,
+       -2.1680393647141516,
+       -0.8940278765922448,
+       -2.3895866035995263,
+       -1.286024294423122,
+       -1.823175624036818,
+       -1.0860152484095016,
+       -1.1815949676944926,
+       -2.1918452106303508,
+       -1.3488945187742003,
+       -1.3288769660864348,
+       -1.524810930547062,
+       -1.6131959600717671,
+       -1.701465325952548,
+       -2.1313933016322664,
+       -1.8254976006055494,
+       -1.6931605129580984,
+       -1.8996186000209008,
+       -1.1619737617456454
+      ],
+      "mean": -1.5861452513464496,
+      "std": 0.4049786421711565,
+      "min": -2.3895866035995263,
+      "max": -0.8940278765922448,
+      "level": 95,
+      "pct": -1.0527496041940851,
       "n_valid": 24,
       "pass_rate": 1,
       "pass": true
+     },
+     {
+      "id": "battery_dod_last_orbit",
+      "unit": "%",
+      "req": null,
+      "values": [
+       17.973314691669472,
+       24.988958514093774,
+       21.923091242191706,
+       14.913815080382353,
+       25.183112145880038,
+       21.314174565445565,
+       28.03179665587986,
+       18.6617170652264,
+       31.021057144432497,
+       17.724475952831618,
+       25.680738201503107,
+       20.213111968190244,
+       21.045785261439164,
+       24.93043617696654,
+       21.895253932531656,
+       17.661214368645194,
+       23.84452267386554,
+       20.739811717749078,
+       24.490939065527726,
+       28.867388397599548,
+       26.376763902766797,
+       20.64216537154958,
+       27.031846308707074,
+       20.824710395689337
+      ],
+      "mean": 22.749175033365166,
+      "std": 4.015286221831412,
+      "min": 14.913815080382353,
+      "max": 31.021057144432497,
+      "level": 95,
+      "pct": 28.867388397599548,
+      "n_valid": 24,
+      "pass_rate": null,
+      "pass": null
      }
     ]
    },
    "figures": [
-    "mc_fine_img_ape_los_p9973.png",
-    "mc_fine_img_ape_los_max.png",
-    "mc_fine_img_ape_3ax_p9973.png",
-    "mc_fine_img_ake_los_p9973.png",
-    "mc_fine_img_rate_stability_p9973.png",
-    "mc_fine_img_time_to_0p01_deg.png",
-    "mc_fine_img_wheel_momentum_peak.png",
-    "mc_fine_img_power_mean.png",
-    "mc_fine_img_scatter.png"
+    "mc_fine_img_ape_los_p9973.svg",
+    "mc_fine_img_ape_los_max.svg",
+    "mc_fine_img_ape_3ax_p9973.svg",
+    "mc_fine_img_ake_los_p9973.svg",
+    "mc_fine_img_rate_stability_p9973.svg",
+    "mc_fine_img_time_to_0p01_deg.svg",
+    "mc_fine_img_wheel_momentum_peak.svg",
+    "mc_fine_img_power_mean.svg",
+    "mc_fine_img_rpe_los_10s_p9973.svg",
+    "mc_fine_img_pde_los_10s_60s_max.svg",
+    "mc_fine_img_rke_los_10s_p9973.svg",
+    "mc_fine_img_power_margin_last_orbit.svg",
+    "mc_fine_img_battery_dod_last_orbit.svg",
+    "mc_fine_img_scatter.svg"
    ]
   },
   "edge_fine_img": {
@@ -2945,59 +3419,59 @@
       "unit": "deg",
       "req": 0.01,
       "values": [
-       0.0154872465227079,
-       0.019900945369898875,
-       0.020382410395014365,
-       0.009262548392518687,
-       0.010336910559926348,
-       0.012734565131848914,
-       0.007503482652103164,
-       0.0065938222756124765,
-       0.00839046093955514,
-       0.02034589754807098,
-       0.008339895488707217,
-       0.0121512804663755,
-       0.012867444262978577,
-       0.012864161140699538,
-       0.008180458919267088
+       0.004759997498015679,
+       0.004860545891965056,
+       0.004945992971753301,
+       0.005387937729032584,
+       0.004744217729466064,
+       0.00505026113981479,
+       0.005100430473287566,
+       0.005484491788781812,
+       0.004853005618972283,
+       0.004966230602846228,
+       0.00506529334146404,
+       0.004811204869889042,
+       0.004978595719608783,
+       0.005063644334458353,
+       0.0052282949694893895
       ],
-      "mean": 0.012356102004352316,
-      "std": 0.004746300642939963,
-      "min": 0.0065938222756124765,
-      "max": 0.020382410395014365,
+      "mean": 0.005020009645256331,
+      "std": 0.00021654865937407205,
+      "min": 0.004744217729466064,
+      "max": 0.005484491788781812,
       "level": 99.73,
-      "pct": 0.020382410395014365,
+      "pct": 0.005484491788781812,
       "n_valid": 15,
-      "pass_rate": 0.4,
-      "pass": false
+      "pass_rate": 1,
+      "pass": true
      },
      {
       "id": "ape_los_max",
       "unit": "deg",
       "req": null,
       "values": [
-       0.01764323583666539,
-       0.0224058415074633,
-       0.023675976925125415,
-       0.012216539815967663,
-       0.013040441970550865,
-       0.015583833519536114,
-       0.010103362222574309,
-       0.007742248028667274,
-       0.010775326993859137,
-       0.023357470076779196,
-       0.011477050727428497,
-       0.014725052656187463,
-       0.016105418021559757,
-       0.014956657575672288,
-       0.009335077351704026
+       0.005993643387564205,
+       0.007014240410760986,
+       0.007016260507093589,
+       0.006635004820179194,
+       0.007093163172816007,
+       0.006543460589004661,
+       0.007059158811180049,
+       0.007192130164041844,
+       0.006607659723585598,
+       0.007541751602877971,
+       0.006920990301590766,
+       0.0068900437843803205,
+       0.007144643655499133,
+       0.00602387672801647,
+       0.007237025046047932
       ],
-      "mean": 0.01487623554864938,
-      "std": 0.005063549799959698,
-      "min": 0.007742248028667274,
-      "max": 0.023675976925125415,
+      "mean": 0.006860870180309249,
+      "std": 0.00043171460279709466,
+      "min": 0.005993643387564205,
+      "max": 0.007541751602877971,
       "level": 95,
-      "pct": 0.023675976925125415,
+      "pct": 0.007541751602877971,
       "n_valid": 15,
       "pass_rate": null,
       "pass": null
@@ -3007,28 +3481,28 @@
       "unit": "deg",
       "req": null,
       "values": [
-       0.015520587665119179,
-       0.019999928748773075,
-       0.02055363159822206,
-       0.009327068478876717,
-       0.010480070641967395,
-       0.01280593373061128,
-       0.00871549032955435,
-       0.007054179398549671,
-       0.008696008111799367,
-       0.02048724445197757,
-       0.008345445543787989,
-       0.012182882656735162,
-       0.013315179200126434,
-       0.012952448918525789,
-       0.008256561677552269
+       0.005671329856986945,
+       0.005996191816224849,
+       0.006539732253290369,
+       0.00595430873602015,
+       0.005746717878451086,
+       0.005889727904600684,
+       0.005851904333146111,
+       0.006593529758162895,
+       0.005834091152075234,
+       0.005724941863454198,
+       0.00640868978362926,
+       0.006314268850969092,
+       0.006909451023177827,
+       0.005707040982279124,
+       0.0057657763615551845
       ],
-      "mean": 0.012579510743478555,
-      "std": 0.004651136757355009,
-      "min": 0.007054179398549671,
-      "max": 0.02055363159822206,
+      "mean": 0.006060513503601535,
+      "std": 0.00039040202771295246,
+      "min": 0.005671329856986945,
+      "max": 0.006909451023177827,
       "level": 95,
-      "pct": 0.02055363159822206,
+      "pct": 0.006909451023177827,
       "n_valid": 15,
       "pass_rate": null,
       "pass": null
@@ -3038,28 +3512,28 @@
       "unit": "deg",
       "req": 0.005,
       "values": [
-       0.0032189416682774433,
-       0.002792362613019764,
-       0.0028159840299178413,
-       0.0028452372802142464,
-       0.004003468531687116,
-       0.0035351258442990214,
-       0.003245675063162594,
-       0.0033973893425269016,
-       0.0035788879614739675,
-       0.003194134834747908,
-       0.002813964242398759,
-       0.00341585628010484,
-       0.004166393000502703,
-       0.0035016355960098347,
-       0.0030726173643845366
+       0.002348003572009362,
+       0.0026888243851240505,
+       0.002742178342597321,
+       0.002667167963979736,
+       0.002357991279318113,
+       0.0025311337592529583,
+       0.0028134695619412755,
+       0.004082661484489207,
+       0.0023696760940882015,
+       0.0025496713139163373,
+       0.002916668848261831,
+       0.0026583703670423828,
+       0.002455940256600111,
+       0.002315430036215475,
+       0.0022877205387928415
       ],
-      "mean": 0.0033065115768484976,
-      "std": 0.00041823905868128346,
-      "min": 0.002792362613019764,
-      "max": 0.004166393000502703,
+      "mean": 0.0026523271869086135,
+      "std": 0.0004408377864162282,
+      "min": 0.0022877205387928415,
+      "max": 0.004082661484489207,
       "level": 99.73,
-      "pct": 0.004166393000502703,
+      "pct": 0.004082661484489207,
       "n_valid": 15,
       "pass_rate": 1,
       "pass": true
@@ -3069,30 +3543,30 @@
       "unit": "deg/s",
       "req": 0.005,
       "values": [
-       0.0038084132099386846,
-       0.0036978006557324542,
-       0.003841682006228976,
-       0.0035686856735206015,
-       0.0036087004571027682,
-       0.0037130217707804073,
-       0.0035928428609604567,
-       0.003704761777679441,
-       0.003687500810115272,
-       0.003893128063271951,
-       0.003676822749438126,
-       0.0035664676146147886,
-       0.0038515182194086626,
-       0.0035956327564157313,
-       0.0035222187437237464
+       0.003745169457824464,
+       0.0036955996704244767,
+       0.0036973298092720028,
+       0.0038040833604880363,
+       0.0037619888349744923,
+       0.003743253457425981,
+       0.0037533479465167944,
+       0.0037770000493297933,
+       0.0035901934259139567,
+       0.0037185166183145244,
+       0.003712211346432119,
+       0.003725542588768416,
+       0.0037937235995314828,
+       0.003663633137598833,
+       0.0036254525645941595
       ],
-      "mean": 0.0036886131579288045,
-      "std": 0.00011601118503918697,
-      "min": 0.0035222187437237464,
-      "max": 0.003893128063271951,
+      "mean": 0.003720469724493969,
+      "std": 5.974310133301973e-05,
+      "min": 0.0035901934259139567,
+      "max": 0.0038040833604880363,
       "level": 99.73,
-      "pct": 0.003893128063271951,
+      "pct": 0.0038040833604880363,
       "n_valid": 15,
-      "pass_rate": 1.0,
+      "pass_rate": 1,
       "pass": true
      },
      {
@@ -3100,28 +3574,28 @@
       "unit": "s",
       "req": null,
       "values": [
-       66.9,
-       67.3,
-       66.60000000000001,
-       88.7,
-       67.4,
-       67.8,
-       66.4,
-       86.2,
-       66.10000000000001,
-       83.2,
-       68.9,
-       67.9,
-       57.400000000000006,
-       86.80000000000001,
-       67.3
+       44.400000000000006,
+       44.2,
+       43.900000000000006,
+       43.900000000000006,
+       44.300000000000004,
+       45.300000000000004,
+       46.1,
+       43.7,
+       44.900000000000006,
+       45,
+       46.5,
+       44.300000000000004,
+       26.900000000000002,
+       44.900000000000006,
+       44.2
       ],
-      "mean": 71.66000000000001,
-      "std": 9.51380951189225,
-      "min": 57.400000000000006,
-      "max": 88.7,
+      "mean": 43.5,
+      "std": 4.6610850974547,
+      "min": 26.900000000000002,
+      "max": 46.5,
       "level": 95,
-      "pct": 88.7,
+      "pct": 46.5,
       "n_valid": 15,
       "pass_rate": null,
       "pass": null
@@ -3131,28 +3605,28 @@
       "unit": "N m s",
       "req": null,
       "values": [
-       0.003275401921802741,
-       0.003284751786406322,
-       0.003442833416611283,
-       0.0036511446119665077,
-       0.0032722993902323623,
-       0.003288087123606338,
-       0.003311998805277049,
-       0.003281113651123278,
-       0.00330369070453631,
-       0.003286348028169598,
-       0.003272983349749416,
-       0.0033076501372468485,
-       0.0032842932120027086,
-       0.003255288693859423,
-       0.0036389599596849936
+       0.002662321632109073,
+       0.0027082728423712724,
+       0.0028912636961725977,
+       0.003188558014461433,
+       0.002659393775923834,
+       0.0027107119062934172,
+       0.0026615182482555644,
+       0.0026936406398330617,
+       0.002634530381644346,
+       0.0026513327527066923,
+       0.002668505952703979,
+       0.002706760163732258,
+       0.0026515430880131178,
+       0.002609147819355223,
+       0.0031011016630157523
       ],
-      "mean": 0.003343789652818345,
-      "std": 0.000129646904365572,
-      "min": 0.003255288693859423,
-      "max": 0.0036511446119665077,
+      "mean": 0.002746573505106108,
+      "std": 0.0001745779487207941,
+      "min": 0.002609147819355223,
+      "max": 0.003188558014461433,
       "level": 95,
-      "pct": 0.0036511446119665077,
+      "pct": 0.003188558014461433,
       "n_valid": 15,
       "pass_rate": null,
       "pass": null
@@ -3162,44 +3636,204 @@
       "unit": "W",
       "req": 2,
       "values": [
-       1.5572752937304102,
-       1.556738722747774,
-       1.5567526466220711,
-       1.5642713546809506,
-       1.5572882831562271,
-       1.5566639091827223,
-       1.5566920363451981,
-       1.5564459936598216,
-       1.5571927592040669,
-       1.5568408160135652,
-       1.5567380194603295,
-       1.556737270133947,
-       1.5562233893569999,
-       1.5565732015793994,
-       1.560884508117425
+       5.064971325418185,
+       5.065267486013415,
+       5.065662197418543,
+       5.068833279085489,
+       5.06572586744517,
+       5.064729400534757,
+       5.064648209062138,
+       5.065655131983561,
+       5.0653360251664745,
+       5.064979922644697,
+       5.065618076722439,
+       5.065443558379601,
+       5.064694361446319,
+       5.064121435453483,
+       5.066569855646954
       ],
-      "mean": 1.557554546932727,
-      "std": 0.002157009671306743,
-      "min": 1.5562233893569999,
-      "max": 1.5642713546809506,
+      "mean": 5.0654837421614145,
+      "std": 0.0010977147173176713,
+      "min": 5.064121435453483,
+      "max": 5.068833279085489,
       "level": 95,
-      "pct": 1.5642713546809506,
+      "pct": 5.068833279085489,
+      "n_valid": 15,
+      "pass_rate": 0,
+      "pass": false
+     },
+     {
+      "id": "rpe_los_10s_p9973",
+      "unit": "deg",
+      "req": null,
+      "values": [
+       0.003874841447436028,
+       0.0037814094354207905,
+       0.0037242785593434797,
+       0.003919863858627642,
+       0.003879697449128559,
+       0.004064569994691207,
+       0.0040030185224655115,
+       0.004047854614913002,
+       0.0037655373142909546,
+       0.004115113093834237,
+       0.003912688736179696,
+       0.0037241445098418324,
+       0.003972415587285425,
+       0.003956852469835036,
+       0.003929632984373211
+      ],
+      "mean": 0.003911461238511107,
+      "std": 0.00012211309195826823,
+      "min": 0.0037241445098418324,
+      "max": 0.004115113093834237,
+      "level": 95,
+      "pct": 0.004115113093834237,
+      "n_valid": 15,
+      "pass_rate": null,
+      "pass": null
+     },
+     {
+      "id": "pde_los_10s_60s_max",
+      "unit": "deg",
+      "req": null,
+      "values": [
+       0.004183347025078406,
+       0.0042378814506381386,
+       0.0045714675274438794,
+       0.004428079618362963,
+       0.005936074044152596,
+       0.005235203479065031,
+       0.004026242111400624,
+       0.0053904060313993895,
+       0.005072103383437416,
+       0.004977119128766852,
+       0.00468597963387113,
+       0.004620562464027302,
+       0.004592264707944444,
+       0.005834969040602889,
+       0.004952700293498978
+      ],
+      "mean": 0.004849626662646002,
+      "std": 0.0005710539718152271,
+      "min": 0.004026242111400624,
+      "max": 0.005936074044152596,
+      "level": 95,
+      "pct": 0.005936074044152596,
+      "n_valid": 15,
+      "pass_rate": null,
+      "pass": null
+     },
+     {
+      "id": "rke_los_10s_p9973",
+      "unit": "deg",
+      "req": null,
+      "values": [
+       0.0016747067583460615,
+       0.001760771394615081,
+       0.0017610801419020276,
+       0.0017897504726177855,
+       0.0017671324402549974,
+       0.0017656069272516991,
+       0.0017322358016943927,
+       0.001775454956993604,
+       0.001738427360660332,
+       0.0017201542793427455,
+       0.0017487577476478279,
+       0.0017628457918513563,
+       0.0017300786950110187,
+       0.0017995849266793653,
+       0.0017739421844821708
+      ],
+      "mean": 0.0017533686586233643,
+      "std": 3.0981984713697736e-05,
+      "min": 0.0016747067583460615,
+      "max": 0.0017995849266793653,
+      "level": 95,
+      "pct": 0.0017995849266793653,
+      "n_valid": 15,
+      "pass_rate": null,
+      "pass": null
+     },
+     {
+      "id": "power_margin_last_orbit",
+      "unit": "W",
+      "req": 0,
+      "values": [
+       -1.8659555576877527,
+       -1.866128937381048,
+       -1.8663094643378513,
+       -1.8685420818549923,
+       -1.866545723396821,
+       -1.8655055256318147,
+       -1.8656445476576626,
+       -1.8667046521461923,
+       -1.8662013733711147,
+       -1.8658833510892237,
+       -1.8664979776135477,
+       -1.8665330157416362,
+       -1.86579381165312,
+       -1.865372887642155,
+       -1.8659066970519678
+      ],
+      "mean": -1.8662350402837935,
+      "std": 0.0007532701985747917,
+      "min": -1.8685420818549923,
+      "max": -1.865372887642155,
+      "level": 95,
+      "pct": -1.865372887642155,
       "n_valid": 15,
       "pass_rate": 1,
       "pass": true
+     },
+     {
+      "id": "battery_dod_last_orbit",
+      "unit": "%",
+      "req": null,
+      "values": [
+       26.773722551066626,
+       26.776787473875473,
+       26.770852818971804,
+       26.8048942334427,
+       26.77782394426661,
+       26.77114198939178,
+       26.771658886831794,
+       26.778563690463265,
+       26.776810717699085,
+       26.774640212631773,
+       26.780004263083303,
+       26.772910537259776,
+       26.77220234813288,
+       26.766988247049262,
+       26.7804706963922
+      ],
+      "mean": 26.77663150737056,
+      "std": 0.008690084830865466,
+      "min": 26.766988247049262,
+      "max": 26.8048942334427,
+      "level": 95,
+      "pct": 26.8048942334427,
+      "n_valid": 15,
+      "pass_rate": null,
+      "pass": null
      }
     ]
    },
    "figures": [
-    "edge_fine_img_ape_los_p9973.png",
-    "edge_fine_img_ape_los_max.png",
-    "edge_fine_img_ape_3ax_p9973.png",
-    "edge_fine_img_ake_los_p9973.png",
-    "edge_fine_img_rate_stability_p9973.png",
-    "edge_fine_img_time_to_0p01_deg.png",
-    "edge_fine_img_wheel_momentum_peak.png",
-    "edge_fine_img_power_mean.png",
-    "edge_fine_img_scatter.png"
+    "edge_fine_img_ape_los_p9973.svg",
+    "edge_fine_img_ape_los_max.svg",
+    "edge_fine_img_ape_3ax_p9973.svg",
+    "edge_fine_img_ake_los_p9973.svg",
+    "edge_fine_img_rate_stability_p9973.svg",
+    "edge_fine_img_time_to_0p01_deg.svg",
+    "edge_fine_img_wheel_momentum_peak.svg",
+    "edge_fine_img_power_mean.svg",
+    "edge_fine_img_rpe_los_10s_p9973.svg",
+    "edge_fine_img_pde_los_10s_60s_max.svg",
+    "edge_fine_img_rke_los_10s_p9973.svg",
+    "edge_fine_img_power_margin_last_orbit.svg",
+    "edge_fine_img_battery_dod_last_orbit.svg",
+    "edge_fine_img_scatter.svg"
    ]
   },
   "mc_slew_img": {
@@ -3216,53 +3850,53 @@
       "unit": "s",
       "req": 20,
       "values": [
-       12.800000000000011,
-       11.800000000000011,
-       12.600000000000023,
-       14.400000000000034,
-       12.600000000000023,
-       14.100000000000023,
-       12,
-       13.900000000000034,
-       14.300000000000011,
-       13.5,
-       11.800000000000011,
-       12.300000000000011,
-       14.5,
-       13.900000000000034,
-       12.5,
-       11.100000000000023,
-       11.600000000000023,
-       14.300000000000011,
-       11.400000000000034,
-       13.800000000000011,
-       13.300000000000011,
-       12.300000000000011,
-       12.800000000000011,
-       13.300000000000011,
-       12.800000000000011,
-       13.400000000000034,
-       12,
-       11.800000000000011,
-       12.699999999999989,
-       12.100000000000023,
-       13.300000000000011,
-       12.900000000000034,
-       13.100000000000023,
-       14.900000000000034,
-       13.699999999999989,
-       12.600000000000023,
-       14.100000000000023,
-       14.199999999999989,
-       13.400000000000034,
-       13.300000000000011
+       6.5,
+       8.199999999999989,
+       9.5,
+       7.600000000000023,
+       8.199999999999989,
+       6.600000000000023,
+       5.400000000000034,
+       5.600000000000023,
+       6.100000000000023,
+       6.900000000000034,
+       5.300000000000011,
+       7.800000000000011,
+       9.100000000000023,
+       6.600000000000023,
+       5.300000000000011,
+       4.800000000000011,
+       5.900000000000034,
+       7.5,
+       7.5,
+       8.5,
+       5.199999999999989,
+       4.300000000000011,
+       7.199999999999989,
+       7.900000000000034,
+       9.199999999999989,
+       7.100000000000023,
+       6.5,
+       8.100000000000023,
+       5.400000000000034,
+       4.600000000000023,
+       8.699999999999989,
+       6.199999999999989,
+       8.600000000000023,
+       7.100000000000023,
+       8.800000000000011,
+       6.300000000000011,
+       5.600000000000023,
+       5.699999999999989,
+       3.900000000000034,
+       9.900000000000034
       ],
-      "mean": 13.030000000000015,
-      "std": 0.959487042442672,
-      "min": 11.100000000000023,
-      "max": 14.900000000000034,
+      "mean": 6.880000000000012,
+      "std": 1.5355947649205084,
+      "min": 3.900000000000034,
+      "max": 9.900000000000034,
       "level": 95,
-      "pct": 14.400000000000034,
+      "pct": 9.199999999999989,
       "n_valid": 40,
       "pass_rate": 1,
       "pass": true
@@ -3272,55 +3906,55 @@
       "unit": "deg",
       "req": 0.01,
       "values": [
-       0.00786198815258464,
-       0.007932115697412322,
-       0.006359548309769429,
-       0.009486728384752962,
-       0.009591526771511821,
-       0.010089919937845063,
-       0.008550677086293404,
-       0.008038485638986119,
-       0.009372904338183451,
-       0.007363041592923382,
-       0.0077895320121109494,
-       0.008058855382273696,
-       0.00600992259067851,
-       0.006742644713309271,
-       0.00783755288767786,
-       0.007949490919686416,
-       0.0065208595316375425,
-       0.007955551215216166,
-       0.007724629211333086,
-       0.009248468501763621,
-       0.006963371948666292,
-       0.009289125237757804,
-       0.007034704993663575,
-       0.008105816391919898,
-       0.011137434625933388,
-       0.007156693516485885,
-       0.007791171280776356,
-       0.0070751058425418956,
-       0.008521991172195442,
-       0.009422310104026511,
-       0.006655168916886913,
-       0.008227961750544733,
-       0.008304877319187288,
-       0.00880946391525814,
-       0.010088686343651542,
-       0.008459398168560273,
-       0.008819710546490854,
-       0.00790299864044068,
-       0.006631313611412668,
-       0.009136818873402416
+       0.005909666015641552,
+       0.007559486112809868,
+       0.007950529711559401,
+       0.0062647854261306014,
+       0.0057246125291051135,
+       0.0059671709114948015,
+       0.0059307398500411486,
+       0.00914585037808463,
+       0.0065946621054618,
+       0.006569157365093529,
+       0.005652274163174906,
+       0.005681648727388324,
+       0.00644364476354703,
+       0.005730949926924695,
+       0.006007139364748079,
+       0.006450587784527065,
+       0.005303021317142289,
+       0.0063063562599247405,
+       0.005559438078376955,
+       0.005923353086801138,
+       0.005692228956550465,
+       0.005373679139412319,
+       0.006434395233512234,
+       0.005638265053761018,
+       0.005328363434226462,
+       0.007457397874902662,
+       0.005723848228192858,
+       0.0052157760893588555,
+       0.006309139372485983,
+       0.006587771786920443,
+       0.007428854105985509,
+       0.005365543113996808,
+       0.005408908134104788,
+       0.011454578567945555,
+       0.005896613573080593,
+       0.006029871865327584,
+       0.005410967551856125,
+       0.006348128698554563,
+       0.0060186228671327046,
+       0.005651668782413725
       ],
-      "mean": 0.008150464151893806,
-      "std": 0.0011481968379974245,
-      "min": 0.00600992259067851,
-      "max": 0.011137434625933388,
+      "mean": 0.006286242407692473,
+      "std": 0.0011638641162506794,
+      "min": 0.0052157760893588555,
+      "max": 0.011454578567945555,
       "level": 99.73,
-      "pct": 0.011137434625933388,
+      "pct": 0.011454578567945555,
       "n_valid": 40,
-      "pass_rate": 0.925,
+      "pass_rate": 0.975,
       "pass": false
      },
      {
@@ -3328,53 +3962,53 @@
       "unit": "N m s",
       "req": null,
       "values": [
-       0.003704095014591107,
-       0.003055769063501751,
-       0.003554958166225563,
-       0.003667928038114322,
-       0.0034693256456257977,
-       0.0036840039261138696,
-       0.003574872504242339,
-       0.0034795133659827346,
-       0.003216107138115564,
-       0.003021417845363275,
-       0.0030791401016638615,
-       0.003096434589084856,
-       0.0037320424642273533,
-       0.0037466297388104738,
-       0.00362735993189941,
-       0.00363139572634593,
-       0.003366966139202637,
-       0.0036663262216158005,
-       0.0037700899111334355,
-       0.003680065065832808,
-       0.003072935005789329,
-       0.003504296076350131,
-       0.0030954731178849137,
-       0.0029524376133797272,
-       0.003693684394326918,
-       0.0036065090620488647,
-       0.003780518785691877,
-       0.0037617286550931358,
-       0.003094606155656524,
-       0.0036869503578581147,
-       0.003600307784843087,
-       0.003701669856504636,
-       0.003616695667112521,
-       0.003157154760627925,
-       0.003587964958880608,
-       0.0036446469007286506,
-       0.0030723056222346757,
-       0.0034698349510390663,
-       0.0031891703590762937,
-       0.00386824413747427
+       0.002495149930644525,
+       0.0027717879445265914,
+       0.0024282912449274103,
+       0.002635158232717323,
+       0.0023523081909902644,
+       0.002730673971858236,
+       0.002445724529048197,
+       0.002481068893390299,
+       0.0025997297904359912,
+       0.002655970063466889,
+       0.0027052887651058564,
+       0.002605749350636677,
+       0.002586898454800996,
+       0.002655081257520658,
+       0.002284799131140091,
+       0.0025353156415758938,
+       0.00250948976391411,
+       0.0025353606126528724,
+       0.002649165842245459,
+       0.0023525214910516926,
+       0.0026637844827020743,
+       0.002630745874967826,
+       0.002708894678888826,
+       0.002655257143009136,
+       0.0023801106317220457,
+       0.002338495210913604,
+       0.0027167515342919075,
+       0.0026569510270260583,
+       0.00284706301789897,
+       0.0024233334392327285,
+       0.0026051409199308847,
+       0.002336282114809612,
+       0.0026392860020340455,
+       0.0025799886520930255,
+       0.002298299553780993,
+       0.0025729028829491883,
+       0.002582693984584681,
+       0.0027055909031301387,
+       0.0025734886112849017,
+       0.002755402828059924
       ],
-      "mean": 0.003474539370507354,
-      "std": 0.0002727562890878525,
-      "min": 0.0029524376133797272,
-      "max": 0.00386824413747427,
+      "mean": 0.0025671499148990154,
+      "std": 0.00014203840226713875,
+      "min": 0.002284799131140091,
+      "max": 0.00284706301789897,
       "level": 95,
-      "pct": 0.0037700899111334355,
+      "pct": 0.002755402828059924,
       "n_valid": 40,
       "pass_rate": null,
       "pass": null
@@ -3382,10 +4016,10 @@
     ]
    },
    "figures": [
-    "mc_slew_img_settle_time_after_slew.png",
-    "mc_slew_img_ape_los_on_target_p9973.png",
-    "mc_slew_img_wheel_momentum_peak.png",
-    "mc_slew_img_scatter.png"
+    "mc_slew_img_settle_time_after_slew.svg",
+    "mc_slew_img_ape_los_on_target_p9973.svg",
+    "mc_slew_img_wheel_momentum_peak.svg",
+    "mc_slew_img_scatter.svg"
    ]
   },
   "mc_slew_cmg": {
@@ -3402,33 +4036,33 @@
       "unit": "s",
       "req": 20,
       "values": [
-       14.300000000000011,
-       13.800000000000011,
-       13.800000000000011,
-       13.5,
-       12.800000000000011,
-       13,
-       12.900000000000034,
-       12.900000000000034,
-       13.100000000000023,
-       13.100000000000023,
-       12.400000000000034,
-       12.800000000000011,
-       12.800000000000011,
-       13.400000000000034,
-       13.400000000000034,
-       13.199999999999989,
-       13.199999999999989,
-       13,
-       12.600000000000023,
-       12.699999999999989
+       6.800000000000011,
+       6.800000000000011,
+       8.699999999999989,
+       6.400000000000034,
+       7.5,
+       6.600000000000023,
+       5.900000000000034,
+       5.900000000000034,
+       5.199999999999989,
+       5,
+       6,
+       7.5,
+       8,
+       6.100000000000023,
+       5.199999999999989,
+       5.100000000000023,
+       6.900000000000034,
+       6.400000000000034,
+       5.900000000000034,
+       6.5
       ],
-      "mean": 13.135000000000014,
-      "std": 0.4602916695451155,
-      "min": 12.400000000000034,
-      "max": 14.300000000000011,
+      "mean": 6.420000000000013,
+      "std": 0.9844047092425661,
+      "min": 5,
+      "max": 8.699999999999989,
       "level": 95,
-      "pct": 13.800000000000011,
+      "pct": 8,
       "n_valid": 20,
       "pass_rate": 1,
       "pass": true
@@ -3438,33 +4072,33 @@
       "unit": "deg",
       "req": 0.01,
       "values": [
-       0.002885872884441348,
-       0.004165908523167665,
-       0.004001112614095786,
-       0.003518500536402395,
-       0.003227737989600814,
-       0.0035762518455229905,
-       0.004057440303966911,
-       0.004419301133229235,
-       0.003914879698818392,
-       0.004324339077527894,
-       0.004481585552306949,
-       0.0036776641475126967,
-       0.005956509268326826,
-       0.004133136828662657,
-       0.004192004694822349,
-       0.0033793711230824196,
-       0.003689963079687714,
-       0.0038933699663804373,
-       0.0037824727988660656,
-       0.0033431892229922495
+       0.0030253764008279947,
+       0.0033441171565974682,
+       0.0037790552348001354,
+       0.0035485250591205894,
+       0.0032172576850383115,
+       0.0030292618088378948,
+       0.003665155498457328,
+       0.003910412949003298,
+       0.0037620965847805247,
+       0.003053785187944796,
+       0.003122470022266173,
+       0.004267759548572098,
+       0.00300480331297787,
+       0.0036683279663619916,
+       0.00329914177966457,
+       0.003294884955119754,
+       0.0033388077900240944,
+       0.003775790760756238,
+       0.0027463707284743196,
+       0.003764815938645616
       ],
-      "mean": 0.003931030564470689,
-      "std": 0.0006350612793096191,
-      "min": 0.002885872884441348,
-      "max": 0.005956509268326826,
+      "mean": 0.003430910818413553,
+      "std": 0.00038576405417124136,
+      "min": 0.0027463707284743196,
+      "max": 0.004267759548572098,
       "level": 99.73,
-      "pct": 0.005956509268326826,
+      "pct": 0.004267759548572098,
       "n_valid": 20,
       "pass_rate": 1,
       "pass": true
@@ -3508,10 +4142,10 @@
     ]
    },
    "figures": [
-    "mc_slew_cmg_settle_time_after_slew.png",
-    "mc_slew_cmg_ape_los_on_target_p9973.png",
-    "mc_slew_cmg_wheel_momentum_peak.png",
-    "mc_slew_cmg_scatter.png"
+    "mc_slew_cmg_settle_time_after_slew.svg",
+    "mc_slew_cmg_ape_los_on_target_p9973.svg",
+    "mc_slew_cmg_wheel_momentum_peak.svg",
+    "mc_slew_cmg_scatter.svg"
    ]
   },
   "mc_agile_rw_rcs": {
@@ -3528,33 +4162,33 @@
       "unit": "s",
       "req": null,
       "values": [
-       42.60000000000002,
-       40.5,
-       39.60000000000002,
-       37.80000000000001,
-       37.900000000000006,
-       38.10000000000002,
-       42.400000000000034,
-       38.70000000000002,
-       36.20000000000002,
-       38.900000000000006,
-       40.70000000000002,
-       40.10000000000002,
-       38.70000000000002,
-       39.400000000000006,
-       40.30000000000001,
-       36.900000000000006,
-       38.20000000000002,
-       37.400000000000006,
-       29.600000000000023,
-       39.10000000000002
+       23.400000000000006,
+       23.30000000000001,
+       24.400000000000006,
+       24.400000000000006,
+       23.900000000000006,
+       24.5,
+       23.600000000000023,
+       135.10000000000002,
+       24.80000000000001,
+       24.400000000000006,
+       23.200000000000017,
+       23.5,
+       24.900000000000006,
+       23.80000000000001,
+       25.30000000000001,
+       24.600000000000023,
+       23.600000000000023,
+       23.900000000000006,
+       23.5,
+       23.200000000000017
       ],
-      "mean": 38.65500000000002,
-      "std": 2.696679244435353,
-      "min": 29.600000000000023,
-      "max": 42.60000000000002,
+      "mean": 29.56500000000001,
+      "std": 24.84802809077614,
+      "min": 23.200000000000017,
+      "max": 135.10000000000002,
       "level": 95,
-      "pct": 42.400000000000034,
+      "pct": 25.30000000000001,
       "n_valid": 20,
       "pass_rate": null,
       "pass": null
@@ -3564,69 +4198,69 @@
       "unit": "deg",
       "req": 0.01,
       "values": [
-       0.007249884313318129,
-       0.008676899558953484,
-       0.008883023977563268,
-       0.007846605761420756,
-       0.008122805483484732,
-       0.008275209738942723,
-       0.0097700975448546,
-       0.008368577970921068,
-       0.007485053282431914,
-       0.008253029135294057,
-       0.00832872309606695,
-       0.008600898939855607,
-       0.007631775608556518,
-       0.009531013805910182,
-       0.0074055348228266905,
-       0.009200231070198642,
-       0.008470825031006317,
-       0.00890480724156493,
-       0.007334570786321002,
-       0.00840648095205724
+       0.005565908607948157,
+       0.006063754990430516,
+       0.007640882252230783,
+       0.006506002968045795,
+       0.006325551042605424,
+       0.006049563414776003,
+       0.006131778079376672,
+       0.11144889219977443,
+       0.006985396393095883,
+       0.006083589026645185,
+       0.006412660611848676,
+       0.005718239999682895,
+       0.007917043074024924,
+       0.006278250155357232,
+       0.006265206786004419,
+       0.005800326844168746,
+       0.0061201412498964195,
+       0.006953380351695187,
+       0.005616390283246975,
+       0.005854724753098884
       ],
-      "mean": 0.00833730240607744,
-      "std": 0.0007118851708875846,
-      "min": 0.007249884313318129,
-      "max": 0.0097700975448546,
+      "mean": 0.011586884154197657,
+      "std": 0.023513324548880842,
+      "min": 0.005565908607948157,
+      "max": 0.11144889219977443,
       "level": 99.73,
-      "pct": 0.0097700975448546,
+      "pct": 0.11144889219977443,
       "n_valid": 20,
-      "pass_rate": 1,
-      "pass": true
+      "pass_rate": 0.95,
+      "pass": false
      },
      {
       "id": "wheel_momentum_peak",
       "unit": "N m s",
       "req": null,
       "values": [
-       0.0033533376650381743,
-       0.0034608353505211223,
-       0.0033596864642858287,
-       0.003397542908725917,
-       0.003374897668549898,
-       0.0033409505276676232,
-       0.0034371033308030906,
-       0.0033276692836587286,
-       0.003372181704125066,
-       0.0034042344166576905,
-       0.0034063178776280456,
-       0.003344732947645279,
-       0.0034396287788750193,
-       0.0033266389332219787,
-       0.003404449061145636,
-       0.003419134089598057,
-       0.003328548674410548,
-       0.003395748840979625,
-       0.003470619859474035,
-       0.0034593784033100866
+       0.0035222589975034244,
+       0.00352019017145498,
+       0.003505236534966183,
+       0.003566267441057417,
+       0.003449632045777423,
+       0.0035977799494158694,
+       0.0036467751884629957,
+       0.0035478653919167025,
+       0.0034970363983676364,
+       0.0036198818553224254,
+       0.00350635463925298,
+       0.0035054990894230298,
+       0.0035897751714858,
+       0.003575564567870411,
+       0.003602704597587508,
+       0.003540328948583794,
+       0.003516050223384894,
+       0.0034787184821951965,
+       0.0036032331756708945,
+       0.0035681966354399242
       ],
-      "mean": 0.0033911818393160724,
-      "std": 4.6758257075556306e-05,
-      "min": 0.0033266389332219787,
-      "max": 0.003470619859474035,
+      "mean": 0.0035479674752569752,
+      "std": 5.21384382397798e-05,
+      "min": 0.003449632045777423,
+      "max": 0.0036467751884629957,
       "level": 95,
-      "pct": 0.0034608353505211223,
+      "pct": 0.0036198818553224254,
       "n_valid": 20,
       "pass_rate": null,
       "pass": null
@@ -3634,10 +4268,10 @@
     ]
    },
    "figures": [
-    "mc_agile_rw_rcs_settle_time_after_slew.png",
-    "mc_agile_rw_rcs_ape_los_on_target_p9973.png",
-    "mc_agile_rw_rcs_wheel_momentum_peak.png",
-    "mc_agile_rw_rcs_scatter.png"
+    "mc_agile_rw_rcs_settle_time_after_slew.svg",
+    "mc_agile_rw_rcs_ape_los_on_target_p9973.svg",
+    "mc_agile_rw_rcs_wheel_momentum_peak.svg",
+    "mc_agile_rw_rcs_scatter.svg"
    ]
   }
  },
@@ -3973,7 +4607,7 @@
      "errors": []
     }
    ],
-   "figure": "trade_detumble_ais.png"
+   "figure": "trade_detumble_ais.svg"
   },
   {
    "id": "trade_mtq_pointing_ais",
@@ -4366,7 +5000,7 @@
      "errors": []
     }
    ],
-   "figure": "trade_mtq_pointing_ais.png"
+   "figure": "trade_mtq_pointing_ais.svg"
   },
   {
    "id": "trade_sun_spin_ais",
@@ -4679,7 +5313,7 @@
      "errors": []
     }
    ],
-   "figure": "trade_sun_spin_ais.png"
+   "figure": "trade_sun_spin_ais.svg"
   },
   {
    "id": "trade_sun_sensor_ais",
@@ -4890,7 +5524,7 @@
      "errors": []
     }
    ],
-   "figure": "trade_sun_sensor_ais.png"
+   "figure": "trade_sun_sensor_ais.svg"
   },
   {
    "id": "trade_pointing_img",
@@ -5320,7 +5954,7 @@
      "errors": []
     }
    ],
-   "figure": "trade_pointing_img.png"
+   "figure": "trade_pointing_img.svg"
   },
   {
    "id": "trade_slew_img",
@@ -5555,7 +6189,7 @@
      "errors": []
     }
    ],
-   "figure": "trade_slew_img.png"
+   "figure": "trade_slew_img.svg"
   },
   {
    "id": "trade_pointing_cmg",
@@ -5985,7 +6619,7 @@
      "errors": []
     }
    ],
-   "figure": "trade_pointing_cmg.png"
+   "figure": "trade_pointing_cmg.svg"
   },
   {
    "id": "trade_pointing_vscmg",
@@ -6415,7 +7049,7 @@
      "errors": []
     }
    ],
-   "figure": "trade_pointing_vscmg.png"
+   "figure": "trade_pointing_vscmg.svg"
   },
   {
    "id": "trade_pointing_fmr",
@@ -6845,7 +7479,7 @@
      "errors": []
     }
    ],
-   "figure": "trade_pointing_fmr.png"
+   "figure": "trade_pointing_fmr.svg"
   },
   {
    "id": "trade_allocation_fmr",
@@ -7141,7 +7775,7 @@
      "errors": []
     }
    ],
-   "figure": "trade_allocation_fmr.png"
+   "figure": "trade_allocation_fmr.svg"
   },
   {
    "id": "trade_hardware_fine",
@@ -7973,7 +8607,7 @@
      "errors": []
     }
    ],
-   "figure": "trade_hardware_fine.png"
+   "figure": "trade_hardware_fine.svg"
   },
   {
    "id": "trade_hardware_agile",
@@ -8346,7 +8980,7 @@
      "errors": []
     }
    ],
-   "figure": "trade_hardware_agile.png"
+   "figure": "trade_hardware_agile.svg"
   }
  ],
  "solutions": {
