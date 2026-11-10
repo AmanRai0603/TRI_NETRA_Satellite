@@ -84,5 +84,5 @@ the sensors' duty by mode), unsigned.
 
 ## Steps left, in order
 
-S11.17 counts and tables · S11.18 the phase review and
+S11.17 done (89a1aff7, 625eebf7; ledgers and twin parity unchanged on regeneration; zip 1 packed under build/s1117/drive); S11.18 written:
 `docs/S11_REPORT.md`, ending with `python3 tools/tokens.py ledger --stage S11`.

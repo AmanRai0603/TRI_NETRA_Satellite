@@ -53,3 +53,4 @@ aee1b16f414efcc5b,2026-11-07,S11,code,standard,standard,106470,85,117.2,,code: S
 af2c8ad2eae275add,2026-11-07,S11,code,standard,standard,217162,33,69.5,,code: S11.10 verdicts A7 A1
 af9bdecb955abe27b,2026-11-07,S11,code,standard,standard,183805,130,71.9,,"code: pre-S11.16 loop lever, srp, guard"
 a3e2e15883b8c9f81,2026-11-09,S11,code,standard,standard,164320,139,272.0,,code: S11.16 gate failures triage and fix
+a6489f33b8de9d8f5,2026-11-10,S11,run,light,light,0,0,0.0,,run: S11.17 counts and tables
