@@ -4,37 +4,40 @@
   {
    "check": "inputs",
    "what": "every engine input file and every case line, byte for byte",
-   "total": 167,
+   "total": 199,
    "differ": []
   },
   {
    "check": "layout",
    "what": "the parameter table from its nodes, and the C and Rust it writes",
-   "total": 152,
+   "total": 156,
    "differ": []
   },
   {
    "check": "blobs",
    "what": "every scenario's parameter blob (adcs-fswcfg/1)",
-   "total": 48,
+   "total": 80,
    "differ": []
   },
   {
    "check": "runs",
    "what": "every stored scenario run, flown again from the design: inputs and metrics",
-   "total": 48,
+   "total": 80,
    "differ": []
   },
   {
    "check": "campaigns",
-   "what": "every run of the 8 stored campaigns, its dispersions drawn again: draws and metrics",
+   "what": "every run of the 8 stored campaigns, its dispersions drawn again: draws and metrics (4516 bit-exact, 0 within tolerance (fingerprint differs), 0 differ)",
    "total": 4516,
-   "differ": []
+   "differ": [],
+   "bit_exact": 4516,
+   "within_tolerance": 0,
+   "largest_relative_difference": 0.0
   },
   {
    "check": "evaluate",
    "what": "every row and closure of results/evaluation.json (a node of the dissolved group `case` names its new group)",
-   "total": 2520,
+   "total": 2578,
    "differ": []
   },
   {
