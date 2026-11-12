@@ -168,7 +168,7 @@ def _matches(m, nid, kind, content):
 
 DECISION_REQUIRED = ["schema", "id", "decisions", "title", "group", "parent", "owner_team", "status", "context", "current", "choice",
                      "rationale", "consequences", "signature", "option"]
-DECISION_SCALARS = ["status", "owner_team", "owner_question", "context", "current", "choice", "rationale", "consequences", "method", "revisit_when"]
+DECISION_SCALARS = ["status", "owner_team", "owner_question", "owner_question_stage", "owner_question_s12", "context", "current", "choice", "rationale", "consequences", "method", "revisit_when"]
 DECISION_LISTS = ["decisions", "items", "drivers", "standard", "sets"]
 
 

@@ -4423,3 +4423,57 @@ source = "the translators' check (tools/translators.py): the failing vector re-d
 generate = ["adcs-pop"]
 uses = ["env/de440.pc", "env/gravity.pc", "env/thirdbody.pc"]
 why = "an ill-conditioned subtraction in the shadow's area states the tolerance its translations are held to, rather than loosening the global limit"
+
+[[revision]]
+id = "S12.1"
+at = "2026-11-12T00:00:00Z"
+by = "the developer"
+about = "the 24 owner decisions of docs/S12_INVENTORY.md section 5, each on its stated default, carried from design/decisions/DR-*.toml as nodes of kind decision (16 new records; DR-gdn-002 and DR-design-003 amended, their text in the regression copy changing); unsigned: the developer's proposals, which each owner signs or overrides in the ownership stage"
+
+[[revision.decision]]
+file = "design/decisions/DR-design-004.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-design-005.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-env-001.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-env-002.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-env-003.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-env-004.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-env-005.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-env-006.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-env-007.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-env-008.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-env-009.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-env-010.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-env-011.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-nav-001.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-vv-004.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-vv-005.toml"

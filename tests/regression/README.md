@@ -49,7 +49,7 @@ the sliding modes' one slope, the analysis row gc_0, gc_1 stated as flown), the 
 plausibility, TRIAD's refusal and covariance; fsw_param_st_norm_tol and fsw_param_triad_sin_min stated) and the rotor allocation's
 limits (fsw_steplaws), their pseudocode under `design/revisions/S11.6/`: a method a node already
 has is replaced by the revision's, and the flight algorithms' vectors are written again (`tools/pcode.py gen`) and then
-carried into the node's cases by a second conversion: 11.8 MB, 11,808,768 bytes):
+carried into the node's cases by a second conversion; and again on 12 Nov 2026 with S12.1, sixteen new decision records and two amended (the 24 owner decisions of `docs/S12_INVENTORY.md` section 5, unsigned), text only: 11.8 MB, 11,808,768 bytes):
 
     python3 tools/convert_2_0.py --out DRIVE
     python3 tools/design_build.py DRIVE --out tests/regression/design.tndb
