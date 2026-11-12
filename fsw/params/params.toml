@@ -10,9 +10,7 @@
 # (in magnitude); min / max (inclusive); positive (> 0); mode = "valid" (a
 # controller state) or "or_none" (also 255); max_field (at most another field's value); diag_positive
 # (a matrix's diagonal > 0); upto = "<count>" (arrays: only the first <count> entries); when =
-# "<count>" (only when that count is above 0); span = "<stated node>" (between the first and the last of the design's stated
-# list under that node: env_epoch_span for the date, S12.4 E14; its limits are written into the generated checks from
-# matlab_sils/data/stated.json, not here); unit = "required" | "or_zero" (an axis or a
+# "<count>" (only when that count is above 0); unit = "required" | "or_zero" (an axis or a
 # quaternion of unit length, rows of a matrix each; or_zero also takes all zeros: unset). A blob
 # that breaks one is refused at init.
 # Values come from asils.config (MATLAB twin) / adcs_sim::config (Rust engine).
@@ -29,7 +27,6 @@ name = "jd0"
 type = "f64"
 doc = "Julian date of tick 0 (UTC ~ TT for the onboard models)"
 positive = true
-span = "env_epoch_span"
 [[field]]
 name = "dt"
 type = "f64"

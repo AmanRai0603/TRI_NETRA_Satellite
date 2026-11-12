@@ -42,8 +42,6 @@ function P = config(scenarioId, caseFile, opts)
     %% the set-up: env_case_orbit (the epoch, its seconds rounded; the mean motion and period), dyn_truth_plant, s1_4
     [P.epoch_utc, P.jd0] = asils.models.caseorbit.mission_epoch(v.mission_epoch);
     P.epoch_utc = reshape(P.epoch_utc, 1, 6);
-    P.epoch_span = st.list('env_epoch_span', 2);
-    check_epoch_span_('mission.epoch', v.mission_epoch, P.jd0, P.epoch_span);
     [n, period_s] = asils.models.caseorbit.case_mean_motion(v.orbit_alt*1e3);
     P.orbit = struct('alt_km', v.orbit_alt, 'inc_deg', v.orbit_inc, 'ecc', v.orbit_ecc, 'ltan_h', v.orbit_ltan, 'argp_deg', 0, ...
         'u0_deg', asils.util.getf(ini, 'arg_lat_deg', st.get('env_start_arg_lat_default')), 'step_s', st.get('env_orbit_step'), ...
@@ -123,7 +121,6 @@ function P = apply_engine_(P, eng)
             case 'engine.epoch_days'
                 % env_case_orbit: the epoch moved, its seconds rounded (the blob's jd0 moved with it: `adcs params`)
                 [e, P.jd0] = asils.models.caseorbit.shifted_epoch(P.jd0, x); P.epoch_utc = reshape(e, 1, 6);
-                check_epoch_span_(k, x, P.jd0, P.epoch_span);
             case 'engine.ltan_h', P.orbit.ltan_h = x;
             case 'engine.alt_km'
                 P.orbit.alt_km = x; P.orbit.period_s = asils.models.caseorbit.dispersed_period(1e3*x);
@@ -203,11 +200,4 @@ function b = class_box_(C)
         error('asils:case:class', 'case %s: meta.class = "%s" is no class in catalogue/classes.toml (%s)', C.id, C.class, strjoin(ids, ', '));
     end
     b = reshape(L{k}.box_m, 3, 1);
-end
-
-function check_epoch_span_(what, shown, jd, span)
-% env_epoch_span (E14, DR-env-002): the dates the design's EOP, leap-second and field data cover; an epoch outside them is refused
-% by name (the engine's config.rs check_epoch_span says the same).
-    if jd >= span(1) && jd <= span(2), return, end
-    error('asils:config:refused', '%s = %g (UTC Julian date %.4f) is outside env_epoch_span, Julian dates %.1f to %.1f: the design''s EOP, leap-second and field data do not cover it', what, shown, jd, span(1), span(2));
 end

@@ -72,7 +72,7 @@ def check_definition(P):
     return bad
 
 
-RULE_KEYS = ("min", "max", "positive", "mode", "upto", "when", "max_field", "diag_positive", "unit", "span")
+RULE_KEYS = ("min", "max", "positive", "mode", "upto", "when", "max_field", "diag_positive", "unit")
 
 # Every real parameter, whatever its own rules: finite, no larger than BIG and, when not zero, no
 # smaller than TINY. Values outside are valid IEEE numbers but no physical setting; products and
@@ -81,16 +81,6 @@ BIG, TINY = "1e15", "1e-30"
 # An axis or a quaternion (rule `unit`): its squared length within 2e-3 of 1 (or exactly 0 with
 # unit = "or_zero", for an axis a configuration leaves unset).
 UNIT_LO, UNIT_HI = "0.998", "1.002"
-
-
-def span_of(node):
-    """The first and last of a stated list node of the design (the rule `span`: env_epoch_span, S12.4 E14), from
-    matlab_sils/data/stated.json, which tools/from_design.py writes from the design: the limits are the design's and are
-    written into the generated checks, not kept in params.toml."""
-    v = json.loads((ROOT / "matlab_sils" / "data" / "stated.json").read_text())["value"].get(node)
-    if not (isinstance(v, list) and len(v) == 2 and all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in v) and v[0] < v[1]):
-        raise SystemExit(f"gen_fsw_params: span = {node!r}: the design states no list of two numbers (first < last) under that node (matlab_sils/data/stated.json)")
-    return float(v[0]), float(v[1])
 
 
 def rules(f):
@@ -107,9 +97,6 @@ def rules(f):
         out.append((f"{{x}} > {f['max']}", f"{{x}} > {f['max']}{'.0' if num and isinstance(f['max'], int) else ''}"))
     if f.get("positive"):
         out.append(("!({x} > 0.0)", "!({x} > 0.0)"))
-    if "span" in f:
-        lo, hi = span_of(f["span"])
-        out.append((f"{{x}} < {lo!r} || {{x}} > {hi!r}", f"{{x}} < {lo!r} || {{x}} > {hi!r}"))
     if f.get("mode") == "valid":
         out.append((f"{{x}} >= {len(MODES)}", f"{{x}} >= {len(MODES)}"))
     if f.get("mode") == "or_none":
