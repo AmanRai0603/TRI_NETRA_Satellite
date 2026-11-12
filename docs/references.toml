@@ -130,3 +130,12 @@ reference = "EISPACK (Smith et al. 1976, Matrix Eigensystem Routines - EISPACK G
 test = "tests/test_eig.py, tests/test_floquet.py"
 status = "checked"
 note = "132 random matrices of order 1 to 10 (a third badly scaled, a quarter triangular) within 1e-12 of dgeev relative to the largest; a diagonal, a rotation, a companion matrix and a Jordan block's neighbour exactly or within 1e-15; the 14 Floquet monodromy matrices within 6.6e-14 of dgeev. The translations are held to the interpreter bit for bit (selftest::eigen, tools/translators.py)"
+
+[[ref]]
+id = "integrators"
+what = "the six orbit integrators (RK4, Dormand-Prince 5(4) and 8(7), Luther RK6, Nystrom 4, Gauss-Jackson 8) and the cubic Hermite dense output"
+where = "engine/crates/adcs-pop/src/integ.rs"
+reference = "closed-form Kepler motion (Vallado, Fundamentals of Astrodynamics and Applications, 4th ed., Algorithm 2) and the J2 acceleration (Vallado Eq. 8-30); the order of a Runge-Kutta method (Hairer, Norsett, Wanner, Solving ODEs I, Section II.3); the Hermite error bound (Burden and Faires, Section 3.4)"
+test = "engine/crates/adcs-pop/tests/integ.rs"
+status = "checked"
+note = "RK78 within 1 mm of the closed form over one period (2e-6 m measured); RK4 error ratio 16 per halving; orders 5, 6, 8 measured; Gauss-Jackson 8 against RK78 on a J2 day 2 mm; energy drift 2e-13 (RK78) and 5e-12 (GJ8) over ten orbits; a B8 coefficient changed by 1e-6 fails four of the tests"
