@@ -356,12 +356,23 @@ pub fn gauss_jackson8<F: FnMut(f64, &Y) -> Y>(mut f: F, t0: f64, tf: f64, y0: Y,
     s
 }
 
+/// The node interval of a dense-output query: the last node `i` with `t[i] <= tq` (0 when none),
+/// at most `n - 2`, and the number of node comparisons it took. `t` ascends.
+pub fn hermite_bracket(t: &[f64], tq: f64) -> (usize, usize) {
+    let n = t.len();
+    // binary search for the count of nodes with t[k] <= tq (a NaN query counts none)
+    let (mut lo, mut hi, mut probes) = (0, n, 0);
+    while lo < hi {
+        let mid = lo + (hi - lo)/2;
+        probes += 1;
+        if t[mid] <= tq { lo = mid + 1; } else { hi = mid; }
+    }
+    (lo.saturating_sub(1).min(n - 2), probes)
+}
+
 /// integ.hermite: cubic Hermite dense output between nodes.
 pub fn hermite(s: &Sol, tq: f64) -> Y {
-    let n = s.t.len();
-    let mut i = 0;
-    for k in 0..n { if s.t[k] <= tq { i = k; } }
-    let i = i.min(n - 2);
+    let (i, _) = hermite_bracket(&s.t, tq);
     let h = s.t[i + 1] - s.t[i];
     let u = (tq - s.t[i])/h;
     let (u2, u3) = (u*u, u*u*u);

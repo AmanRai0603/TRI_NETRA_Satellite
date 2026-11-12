@@ -182,3 +182,73 @@ fn hermite_dense_output_matches_closed_form_between_nodes() {
     assert!(e60 < bound, "hermite {e60} vs bound {bound}");
     assert!((e60/e30 - 16.0).abs() < 2.0, "hermite is cubic: ratio {}", e60/e30);
 }
+
+// ---- P8b: hermite finds its interval by a search, not a scan ----
+
+/// The old hermite: every node scanned per query (the reference the search must equal).
+fn hermite_linear(s: &integ::Sol, tq: f64) -> [f64; 6] {
+    let n = s.t.len();
+    let mut i = 0;
+    for k in 0..n { if s.t[k] <= tq { i = k; } }
+    let i = i.min(n - 2);
+    let h = s.t[i + 1] - s.t[i];
+    let u = (tq - s.t[i])/h;
+    let (u2, u3) = (u*u, u*u*u);
+    let (h00, h10, h01, h11) = (2.0*u3 - 3.0*u2 + 1.0, u3 - 2.0*u2 + u, -2.0*u3 + 3.0*u2, u3 - u2);
+    let mut o = [0.0; 6];
+    for c in 0..6 { o[c] = h00*s.y[i][c] + h10*h*s.d[i][c] + h01*s.y[i + 1][c] + h11*h*s.d[i + 1][c]; }
+    o
+}
+
+fn lcg(state: &mut u64) -> f64 {
+    *state = state.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+    (*state >> 11) as f64/(1u64 << 53) as f64
+}
+
+fn synthetic(n: usize, uneven: bool) -> integ::Sol {
+    let mut st = 12345u64;
+    let mut s = integ::Sol::default();
+    let mut t = 0.0;
+    for k in 0..n {
+        s.t.push(t);
+        let q = k as f64;
+        s.y.push([q.sin(), q.cos(), 0.1*q, 1.0, -q, 2.0]);
+        s.d.push([q.cos(), -q.sin(), 0.1, 0.0, -1.0, 0.5]);
+        t += if uneven { 0.5 + lcg(&mut st) } else { 60.0 };
+    }
+    s
+}
+
+#[test]
+fn hermite_bracket_probes_are_logarithmic() {
+    let n = 100_000;
+    let s = synthetic(n, true);
+    let t_end = s.t[n - 1];
+    let bound = (2.0*(n as f64).log2()).ceil() as usize;
+    let mut st = 7u64;
+    let mut worst = 0;
+    for q in 0..2000 {
+        let tq = if q == 0 { -5.0 } else if q == 1 { t_end + 5.0 } else { lcg(&mut st)*t_end };
+        let (_, probes) = integ::hermite_bracket(&s.t, tq);
+        worst = worst.max(probes);
+    }
+    eprintln!("hermite_bracket: n {n}, worst probes {worst}, bound {bound}");
+    assert!(worst <= bound, "{worst} probes per query for {n} nodes (bound {bound})");
+}
+
+#[test]
+fn hermite_equals_the_linear_scan_bit_for_bit() {
+    for (n, uneven) in [(2usize, false), (3, true), (50, true), (1000, false), (4097, true)] {
+        let s = synthetic(n, uneven);
+        let mut st = 99u64;
+        let mut qs: Vec<f64> = vec![s.t[0] - 3.0, s.t[0], s.t[n - 1], s.t[n - 1] + 3.0, f64::NAN];
+        qs.extend(s.t.iter().copied());
+        qs.extend(s.t.iter().map(|&x| f64::from_bits(x.to_bits() + 1)));
+        qs.extend(s.t.iter().skip(1).map(|&x| f64::from_bits(x.to_bits() - 1)));
+        for _ in 0..3000 { qs.push(s.t[0] + lcg(&mut st)*(s.t[n - 1] - s.t[0])); }
+        for tq in qs {
+            let (a, b) = (integ::hermite(&s, tq), hermite_linear(&s, tq));
+            for c in 0..6 { assert_eq!(a[c].to_bits(), b[c].to_bits(), "n {n} tq {tq} comp {c}: {} vs {}", a[c], b[c]); }
+        }
+    }
+}
