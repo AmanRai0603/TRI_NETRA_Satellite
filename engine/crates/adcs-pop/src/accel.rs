@@ -139,10 +139,6 @@ impl World {
         Ok(World { epoch, build, frame, omega_eci, grav, eph, sc, sw_manual, forces })
     }
 
-    fn srp_sc(&self) -> srp::Spacecraft {
-        srp::Spacecraft { mass: self.sc.mass, aref: self.sc.aref, cd: self.sc.cd, cr: self.sc.cr, r_bi: self.sc.r_bi, facets: self.sc.srp_facets.clone() }
-    }
-
     /// The context of op.accel at t (time scales, ephemeris inputs, ECI->ECEF).
     pub fn context(&self, t: f64, r: &V3, v: &V3) -> Ctx {
         let utc = time::addsec(self.epoch, t);
@@ -162,7 +158,7 @@ impl World {
         let ctx = self.context(t, r, v);
         let mut p = Parts { gravity: self.grav.accel_eci(r, &ctx.c), ..Default::default() };
         let mut info = None;
-        let f = self.forces.clone();
+        let f = &self.forces;
         if let (Some(model), Some(e)) = (f.thirdbody, ctx.e.as_ref()) {
             p.thirdbody = thirdbody::force(&thirdbody::ThirdBodyInput::new(*r, e, model));
         }
@@ -179,17 +175,19 @@ impl World {
             info = Some(i);
         }
         if let (Some((model, ecl, cr)), Some(e)) = (f.srp, ctx.e.as_ref()) {
-            let sc = self.srp_sc();
+            let sc = srp_sc_take(&mut self.sc);
             let mut inp = srp::SrpInput::new(*r, e, &sc, model, ecl);
             inp.cr = cr;
             p.srp = srp::force(&inp);
+            srp_sc_return(&mut self.sc, sc);
         }
         if let (Some((name, cr_aom, cr, nrings, nseg)), Some(e)) = (f.erp.as_ref(), ctx.e.as_ref()) {
-            let sc = self.srp_sc();
             let model = erp::Model::from_name(name).ok_or_else(|| crate::PopError::Unsupported(format!("unknown erp model {name}")))?;
+            let sc = srp_sc_take(&mut self.sc);
             let mut inp = erp::ErpInput::new(*r, e, ctx.times.doy, &sc, model);
             inp.cr_aom = *cr_aom; inp.cr = *cr; inp.nrings = *nrings; inp.nseg = *nseg;
             p.erp = erp::force(&inp);
+            srp_sc_return(&mut self.sc, sc);
         }
         if let Some(terms) = f.relativity.as_ref() {
             let inp = relativity::RelativityInput::new(*r, *v, ctx.e.as_ref(), terms, self.grav.field.gm);
@@ -212,6 +210,13 @@ impl World {
         Ok((a, p, ctx, info))
     }
 }
+
+/// The spacecraft as SRP and ERP take it. The facets are moved out of the world's `Sc` for the
+/// call (no clone per evaluation) and put back with [`srp_sc_return`] before the next use.
+fn srp_sc_take(sc: &mut Sc) -> srp::Spacecraft {
+    srp::Spacecraft { mass: sc.mass, aref: sc.aref, cd: sc.cd, cr: sc.cr, r_bi: sc.r_bi, facets: std::mem::take(&mut sc.srp_facets) }
+}
+fn srp_sc_return(sc: &mut Sc, s: srp::Spacecraft) { sc.srp_facets = s.facets; }
 
 /// op.coe2rv: classical elements -> ECI position/velocity (closed orbits).
 pub fn coe2rv(a: f64, e: f64, inc: f64, raan: f64, argp: f64, nu: f64, mu: f64) -> (V3, V3) {

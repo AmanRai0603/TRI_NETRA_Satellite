@@ -98,13 +98,12 @@ impl<'a> Model<'a> {
     /// Parse the MATLAB name (case-insensitive; `ceres` without a grid);
     /// `None` = `forces:erp:model unknown model`.
     pub fn from_name(name: &str) -> Option<Model<'a>> {
-        match name.to_ascii_lowercase().as_str() {
-            "knocke" => Some(Model::Knocke),
-            "simple" => Some(Model::Simple),
-            "ceres" => Some(Model::Ceres(None)),
-            "boxwing" => Some(Model::Boxwing),
-            _ => None,
-        }
+        let is = |m: &str| name.eq_ignore_ascii_case(m);
+        if is("knocke") { Some(Model::Knocke) }
+        else if is("simple") { Some(Model::Simple) }
+        else if is("ceres") { Some(Model::Ceres(None)) }
+        else if is("boxwing") { Some(Model::Boxwing) }
+        else { None }
     }
 }
 
