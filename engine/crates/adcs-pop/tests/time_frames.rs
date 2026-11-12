@@ -190,8 +190,8 @@ fn cio_builds_without_eop_behave_like_matlab_offline() {
     let opt = FrameOpt::default();
     for b in [Build::A, Build::B, Build::C] {
         assert_eq!(frames::try_eci2ecef([2027., 1., 1., 6., 0., 0.], b, &opt).err(), Some(frames::FrameError::NoEop));
-        // buildWorld/earthRateECI falls back to [0;0;omega] when the build fails
-        assert_eq!(frames::earth_rate_eci([2027., 1., 1., 6., 0., 0.], b, &opt), [0.0, 0.0, frames::omega_earth()]);
+        // P8c: the Earth rate of a build that fails is the build's error, never [0;0;omega]
+        assert_eq!(frames::earth_rate_eci([2027., 1., 1., 6., 0., 0.], b, &opt), Err(frames::FrameError::NoEop));
         assert_eq!(frames::omega_earth(), 7.2921150e-5);     // the value the hand-written constant held
     }
 }
@@ -247,7 +247,7 @@ fn earth_rate_matches_matlab() {
     for c in cases {
         let build = Build::parse(c["build"].as_str().unwrap()).unwrap();
         let opt = FrameOpt { dut1: f(&c["dut1"]), eop: if build == Build::Gmst { None } else { Some(eop().clone()) }, ..Default::default() };
-        let w = frames::earth_rate_eci(u6(&c["epoch"]), build, &opt);
+        let w = frames::earth_rate_eci(u6(&c["epoch"]), build, &opt).unwrap();
         let m = arr(&c["w"]);
         for k in 0..3 {
             let d = (w[k] - m[k]).abs();
@@ -280,4 +280,15 @@ fn hot_path_timing() {
     }
     let tc = t1.elapsed() / n;
     eprintln!("per step: addsec+convert_utc+gmst {tg:?}, addsec+build C {tc:?} ({acc})");
+}
+
+/// P8c: a world on build A (or B, C) with no EOP is refused with the frame's error; it is not flown on [0, 0, omega].
+#[test]
+fn world_on_a_cio_build_without_eop_is_refused() {
+    use adcs_pop::accel::{Forces, Sc, World};
+    for b in [Build::A, Build::B, Build::C] {
+        let sc = Sc { mass: 12.0, aref: 0.07, cd: Some(2.2), cr: Some(1.3), r_bi: adcs_pop::la::I3, srp_facets: vec![], drag_facets: None };
+        let r = World::new([2027., 1., 1., 6., 0., 0.], b, FrameOpt::default(), adcs_pop::gravity::Field::default_field(), Forces::sils(1.3), sc, None, None);
+        assert_eq!(r.err(), Some(adcs_pop::PopError::Frame(frames::FrameError::NoEop)), "{b:?}");
+    }
 }

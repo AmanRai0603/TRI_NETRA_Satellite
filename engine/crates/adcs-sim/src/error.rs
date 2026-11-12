@@ -42,6 +42,7 @@ impl From<adcs_pop::PopError> for Error {
             adcs_pop::PopError::Data(m) => Error { kind: Kind::Io, msg: m },
             adcs_pop::PopError::Unsupported(m) => Error::refused(m),
             adcs_pop::PopError::Run(m) => Error::run(m),
+            adcs_pop::PopError::Frame(e) => Error::refused(e.to_string()),
         }
     }
 }

@@ -12,16 +12,22 @@ pub enum PopError {
     Unsupported(String),
     /// the propagation failed (a model refused its inputs, a non-finite state)
     Run(String),
+    /// the Earth frame could not be built (a build with no EOP loaded): the frame's own error, not a fallback frame
+    Frame(crate::frames::FrameError),
 }
 
 impl PopError {
-    pub fn message(&self) -> &str { match self { PopError::Data(m) | PopError::Unsupported(m) | PopError::Run(m) => m } }
+    pub fn message(&self) -> &str { match self { PopError::Data(m) | PopError::Unsupported(m) | PopError::Run(m) => m, PopError::Frame(_) => "the Earth frame cannot be built (see its error)" } }
 }
 
 impl fmt::Display for PopError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { f.write_str(self.message()) }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self { PopError::Frame(e) => write!(f, "{e}"), _ => f.write_str(self.message()) }
+    }
 }
 
 impl std::error::Error for PopError {}
+
+impl From<crate::frames::FrameError> for PopError { fn from(e: crate::frames::FrameError) -> Self { PopError::Frame(e) } }
 
 pub type PopResult<T> = Result<T, PopError>;

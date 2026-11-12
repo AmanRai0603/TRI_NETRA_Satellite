@@ -127,7 +127,7 @@ impl World {
     /// op.buildWorld: the frame build ('gmst' with dUT1 = 0 when no EOP), the true Earth
     /// rate, the gravity field, the DE440 kernel (when a force needs it).
     pub fn new(epoch: [f64; 6], build: Build, frame: FrameOpt, field: Field, forces: Forces, sc: Sc, sw_manual: Option<ManualIndices>, kernel: Option<std::path::PathBuf>) -> Result<World, crate::PopError> {
-        let omega_eci = frames::earth_rate_eci(epoch, build, &frame);
+        let omega_eci = frames::earth_rate_eci(epoch, build, &frame)?;
         let grav = Gravity::new(field, forces.gravity)?;
         let eph = if forces.need_ephem() {
             Some(match kernel { Some(p) => Ephem::open(p), None => Ephem::open_default() }.map_err(|e| crate::PopError::Data(format!("DE440 kernel: {e:?}")))?)

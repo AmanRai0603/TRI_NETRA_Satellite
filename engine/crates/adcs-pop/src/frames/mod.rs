@@ -50,7 +50,7 @@ impl Build {
 }
 
 /// Errors where MATLAB's builds `error(...)`.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum FrameError {
     /// Build A/B/C with no EOP loaded (MATLAB: "could not obtain <file>" when the
     /// cache is empty and the download fails).
@@ -197,20 +197,19 @@ pub fn omega_earth() -> f64 {
 /// `earthRateECI(epoch, build, fopt)` (local function of `op.buildWorld`): the true
 /// Earth angular-velocity vector in ECI (rad/s), from a +-15 s central difference of
 /// `Ct` (`[omega]x = Cdot*C0`). As MATLAB: the gmst build's GMST comes from
-/// `convertUTC(...,0)` (dUT1 = 0), and any frame error falls back to `[0,0,omega]`.
-pub fn earth_rate_eci(epoch: [f64; 6], build: Build, opt: &FrameOpt) -> V3 {
+/// `convertUTC(...,0)` (dUT1 = 0). A frame error is the caller's: it is returned, never replaced by `[0,0,omega]`, which
+/// would fly a build-A run on an Earth rate that ignores the CIP (P8c).
+pub fn earth_rate_eci(epoch: [f64; 6], build: Build, opt: &FrameOpt) -> Result<V3, FrameError> {
     let d = 15.0;
     let up = crate::time::addsec(epoch, d);
     let um = crate::time::addsec(epoch, -d);
     let tp = convert_utc(up[0], up[1], up[2], up[3], up[4], up[5], 0.0);
     let tm = convert_utc(um[0], um[1], um[2], um[3], um[4], um[5], 0.0);
     let t0 = convert_utc(epoch[0], epoch[1], epoch[2], epoch[3], epoch[4], epoch[5], 0.0);
-    let r = (|| -> Result<V3, FrameError> {
+    {
         let (_, ctp, _) = eci2ecef_impl(up, build, opt, Some(tp.gmst_rad))?;
         let (_, ctm, _) = eci2ecef_impl(um, build, opt, Some(tm.gmst_rad))?;
         let (c0, _, _) = eci2ecef_impl(epoch, build, opt, Some(t0.gmst_rad))?;
         Ok(crate::gen::earthframes::earth_rate_from(ctp, ctm, c0, d))
-    })();
-    // MATLAB warns ('op:buildWorld:earthRate') and falls back
-    r.unwrap_or([0.0, 0.0, omega_earth()])
+    }
 }
