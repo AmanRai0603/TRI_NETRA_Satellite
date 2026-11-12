@@ -4477,3 +4477,31 @@ file = "design/decisions/DR-vv-004.toml"
 
 [[revision.decision]]
 file = "design/decisions/DR-vv-005.toml"
+
+[[revision]]
+id = "S12.2"
+at = "2026-11-12T11:00:00Z"
+by = "the developer"
+about = "published data into the design (docs/S12_INVENTORY.md S12.2; decisions DR-env-001, DR-env-002, DR-env-004), each read by its reader (tools/readers.py) from a file committed in the repository: IGRF-14 (igrf14coeffs.txt of the PyPI package pyIGRF14 1.0.4, checked equal to IGRF14.shc of ppigrf 2.1.0), the IERS finals2000A.all and Leap_Second.dat (the PyPI package astropy-iers-data 0.2026.11.9.0.35.9), and CelesTrak's SW-All.txt (the PyPI package spaceweather 0.4.2); nothing reads them yet (the field, the Earth frame and the dated indices switch over in S12.6, S12.4 and S12.9); unsigned: the developer's transcription"
+
+[[revision.node]]
+id = "env_igrf14_coefficients"
+group = "env"
+parent = "m3"
+label = "IGRF-14 coefficients"
+behaviour = "lookup"
+question = "The IGRF-14 Gauss coefficients [nT] to degree 13: every epoch from 1900.0 to 2025.0, the 2025-30 secular variation and the 2030.0 epoch it defines (IAGA V-MOD)"
+why = "the IGRF-14 table (DR-env-001), read by its reader from the IAGA file, beside env_igrf13_coefficients, which the flight software and the engine still fly until S12.6"
+
+[[revision.data]]
+node = "env_igrf14_coefficients"
+module = "igrf14coeffs"
+path = "env/igrf14coeffs.pc"
+reader = "igrf14"
+file = "matlab_sils/data/igrf14coeffs.txt"
+publication = "IAGA Working Group V-MOD, International Geomagnetic Reference Field: the 14th generation (International Association of Geomagnetism and Aeronomy, 2024, IGRF-14, Zenodo, https://doi.org/10.5281/zenodo.14012302, as the documentation of ppigrf 2.1.0 cites it; its journal article is listed there as in progress and is not cited here); the file igrf14coeffs.txt as shipped in the PyPI package pyIGRF14 1.0.4 (MIT licence), whose header reads '14th Generation International Geomagnetic Reference Field Schmidt semi-normalised spherical harmonic coefficients, degree n=1,13'; the file states no date of its own (not stated in the file); its last epoch is 2025.0 with the 2025-30 secular variation; checked coefficient by coefficient against IGRF14.shc of ppigrf 2.1.0 (tests/test_igrf14.py)"
+about = ["IGRF-14 Gauss coefficients [nT] (the numbers in nT, as plain numbers), degree 13, 195 an epoch (g(1,0), g(1,1), h(1,1), g(2,0), ...):",
+         "IGRF14_YEAR and IGRF14_GH: the 26 epochs of the file, 1900.0 to 2025.0 (DGRF to 2015.0 and 2020.0, IGRF 2025.0), then 2030.0, which is",
+         "2025.0 plus five years of the 2025-30 secular variation, the model's own definition of its predictive epoch (ppigrf's .shc holds it as a column);",
+         "IGRF14_SV: the secular variation 2025-30 [nT/yr], as the file gives it (degrees 1 to 8; 0.0 above)."]
+why = "IGRF-14 as a data table of its node, read by its reader from the IAGA file; nothing flies it until S12.6"

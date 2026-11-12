@@ -11,6 +11,8 @@ publication, and tools/convert_2_0.py runs it. Nothing here is a value: every nu
 Readers (each returns {table name: (type, rows)}: a 1-D table a list of numbers, a 2-D one a list of rows):
   igrf13        IAGA's igrf13coeffs.txt: the IGRF-13 epochs and Gauss coefficients [nT] (gen_fsw_params.igrf_table,
                 as the flight software's and the engine's tables have always been made)
+  igrf14        IAGA's igrf14coeffs.txt: the IGRF-14 epochs 1900.0 to 2025.0, the 2025-30 secular variation and the 2030.0
+                epoch it defines (2025.0 + 5 x SV), Gauss coefficients [nT] to degree 13
   matlab_matrix the numeric matrices a MATLAB file assigns (`NAME = [...]`), e.g. the Octave POP's leapTable.m and
                 its IERS tidal-EOP tables, and the numbers it assigns (`F.mu = 3.986004415e14;`)
   matlab_cell   the rows of a cell array a MATLAB file assigns (`L = {...};`), each row's numbers in order (the Octave
@@ -61,6 +63,36 @@ def igrf13(path):
         raise SystemExit("readers: igrf13: " + "; ".join(bad))
     return {"IGRF_YEAR": ("real[1][{n}]", [e["year"] for e in d["epochs"]]),
             "IGRF_GH": ("real[1][195][{n}]", [e["gh"] for e in d["epochs"]])}
+
+
+def igrf14(path):
+    """IAGA igrf14coeffs.txt (the IGRF-14 file, as pyIGRF14 ships it) -> IGRF14_YEAR (27 epochs), IGRF14_GH (27 x 195, nT) and
+    IGRF14_SV (195, nT/yr): every DGRF/IGRF epoch the file gives, 1900.0 to 2025.0 (26 columns), then 2030.0 = 2025.0 + 5 x
+    the 2025-30 secular variation (the model's own definition of its predictive epoch, which ppigrf's IGRF14.shc also
+    holds as a column). Decimal arithmetic, so the sum is exact to the file's precision. Coefficients in file order:
+    g10 g11 h11 g20 g21 h21 g22 h22 ... to degree 13 (195)."""
+    from decimal import Decimal
+    lines = pathlib.Path(path).read_text(encoding="ascii").splitlines()
+    head = next((ln.split() for ln in lines if ln.startswith("g/h")), None)
+    if head is None:
+        raise SystemExit(f"readers: igrf14: {path}: no 'g/h n m <years>' header")
+    cols = head[3:]
+    if cols[0] != "1900.0" or cols[-1] != "2025-30" or cols[-2] != "2025.0":
+        raise SystemExit(f"readers: igrf14: {path}: the columns are {cols[:1]}..{cols[-2:]}, not 1900.0 to 2025.0 and the 2025-30 secular variation")
+    rows = [ln.split() for ln in lines if ln[:2] in ("g ", "h ")]
+    want = [(c, n, m) for n in range(1, 14) for m in range(n + 1) for c in (("g",) if m == 0 else ("g", "h"))]
+    got = [(r[0], int(r[1]), int(r[2])) for r in rows]
+    if got != want:
+        raise SystemExit(f"readers: igrf14: {path}: {len(got)} rows, not g/h n m in order to degree 13")
+    if any(len(r) != 3 + len(cols) for r in rows):
+        raise SystemExit(f"readers: igrf14: {path}: a row does not hold {len(cols)} values")
+    years = [float(y) for y in cols[:-1]]
+    gh = [[float(r[3 + j]) for r in rows] for j in range(len(years))]
+    sv = [Decimal(r[-1]) for r in rows]
+    last = [float(Decimal(r[-2]) + 5 * s) for r, s in zip(rows, sv)]
+    return {"IGRF14_YEAR": ("real[1][{n}]", years + [2030.0]),
+            "IGRF14_GH": ("real[1][195][{n}]", gh + [last]),
+            "IGRF14_SV": ("real[1][195]", [float(s) for s in sv])}
 
 
 _MAT = re.compile(r"\b([A-Za-z_]\w*)\s*=\s*\[([^\]]*)\]", re.S)
@@ -305,7 +337,7 @@ def de440_slice(path, span_jd_tdb):
     return {"DE440_SEGMENTS": ("real[1][9][{n}]", rows), **out}
 
 
-READERS = {"igrf13": igrf13, "matlab_matrix": matlab_matrix, "xys06": xys06, "text_table": text_table,
+READERS = {"igrf13": igrf13, "igrf14": igrf14, "matlab_matrix": matlab_matrix, "xys06": xys06, "text_table": text_table,
            "solfsmy": solfsmy, "dtcfile": dtcfile, "de440_slice": de440_slice, "matlab_cell": matlab_cell, "fes_bin": fes_bin}
 
 
