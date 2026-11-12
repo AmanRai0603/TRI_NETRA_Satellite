@@ -16,7 +16,7 @@
 > counted, and five drivers raise no fault flag for a bus fault. These are the design's findings, not run errors.
 > The gates hold: `tools/check_all.py` 25 of 25, the parity gate equal in every part, the golden table bit-exact.
 >
-> **Kind:** report · **For:** the owner · **Status:** complete; S12 waits on your word. Nothing in S11 is signed.
+> **Kind:** report · **For:** the owner · **Status:** complete; S12 started on the owner's word (12 Nov 2026). The 11 commits of §6 are left as they are (no answer: the default). Nothing in S11 is signed.
 
 ## 1 · The four tests
 
