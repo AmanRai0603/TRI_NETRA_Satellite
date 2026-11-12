@@ -4618,3 +4618,19 @@ behaviour = "stated"
 question = "Which Earth-orientation build does the truth orbit's gravity, drag and field take, 0 the GMST-only rotation (IAU 1982 GMST about the pole of J2000, no precession), 1 build A (the IAU 2006/2000A CIO chain with the EOP of env_eop_snapshot, linear interpolation), 2 build B, 3 build C?"
 content = [["value", "number", "1"], ["value", "source", "DR-env-002 (the developer's proposal S12.1, unsigned): truth on IAU 2006/2000A build A with EOP, linear interpolation; build A is the one with published vectors (ERFA c2t06a, IERS TN36). Builds B and C need the EOP 20 C04 series, which the snapshot does not hold: the engine refuses them by name. 0 keeps the loop's former GMST-only frame, whose field is then given the precession in front of it as before"]]
 why = "the Earth frame's build as a stated node (DR-env-002), not a constant in the loop; the engine and the twin read it by name"
+
+[[revision]]
+id = "S12.4c"
+at = "2026-11-12T14:00:00Z"
+by = "the developer"
+about = "E14 of docs/S12_INVENTORY.md (S12.4; decision DR-env-002): the epoch span the design's data is valid for, a stated env node, env_epoch_span: 2025.0 to 2030.0 intersected with the EOP file's expiry; the engine refuses a mission epoch outside it by name (adcs-sim config.rs, the twin's config.m) and the flight parameter rule for jd0 (fsw/params/params.toml, span = \"env_epoch_span\", written into the C and Rust checks by tools/gen_fsw_params.py) refuses a blob whose date is outside it; unsigned: the developer's proposal. The leap-second file's expiry (28 June 2027, earlier) does not limit the span: past it a run warns and records (S12.4a), because the sizing's season survey (the case's epoch plus 0, 91.3, 182.6 and 273.9 days, 2027-10-01 at the last) would otherwise be refused; the owner confirms this reading of DR-env-002's 'files' expiry' or chooses the earlier end"
+
+[[revision.node]]
+id = "env_epoch_span"
+group = "env"
+parent = "m3"
+label = "Valid epoch span of the design's data"
+behaviour = "stated"
+question = "Between which UTC Julian dates [first, last] are the design's EOP snapshot and field (IGRF-14) valid, so that a mission epoch or a flight blob's date outside them is refused by name?"
+content = [["value", "list", "[2460676.5, 2461714.5]"], ["value", "source", "DR-env-002 (the developer's proposal S12.1, unsigned): 2025.0 to 2030.0 intersected with the files' expiry. First: 2025.0 = 2025-01-01 0 h UTC = MJD 60676, the IGRF-14 epoch 2025.0 and the snapshot's first day. Last: the earliest of 2030.0 (MJD 62502, the end of IGRF-14's 2025-30 secular variation) and the last day finals2000A.all gives values (env_eop_finals_expiry_mjd, MJD 61714, 5 November 2027): the EOP file limits it, so the last date is MJD 61714, Julian date 2461714.5. Leap_Second.dat expires earlier (env_leap_second_expiry_mjd, MJD 61584, 28 June 2027) and does not limit the span: an epoch or a run past it is inside the span, and warns and records (tai_minus_utc's status, S12.4a), because the design's sizing flies four seasons (the case's epoch plus 0, 91.3, 182.6 and 273.9 days, 2027-10-01 at the last), which a span ending on 28 June 2027 would refuse; the DR does not say which file's expiry the span takes, and this reading is the developer's to be confirmed by the owner. A run that starts inside the span and runs past MJD 61584 or 61714 warns and records (P9)"]]
+why = "the epoch span as a stated node (DR-env-002), which the engine, the twin and the flight parameter rule read by name; tests/test_epoch_span.py holds it to the other stated expiries"

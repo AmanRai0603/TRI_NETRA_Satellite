@@ -358,7 +358,7 @@ int32_t adcs_params_validate(const adcs_params_t *p)
     size_t i, j;
     double n2;
     (void)i; (void)j; (void)n2;
-    if ((!isfinite(p->jd0) || p->jd0 > 1e15 || p->jd0 < -1e15 || (p->jd0 != 0.0 && p->jd0 < 1e-30 && p->jd0 > -1e-30) || !(p->jd0 > 0.0))) return 1;
+    if ((!isfinite(p->jd0) || p->jd0 > 1e15 || p->jd0 < -1e15 || (p->jd0 != 0.0 && p->jd0 < 1e-30 && p->jd0 > -1e-30) || !(p->jd0 > 0.0) || p->jd0 < 2460676.5 || p->jd0 > 2461714.5)) return 1;
     if ((!isfinite(p->dt) || p->dt > 1e15 || p->dt < -1e15 || (p->dt != 0.0 && p->dt < 1e-30 && p->dt > -1e-30) || !(p->dt > 0.0))) return 2;
     if ((!isfinite(p->mu) || p->mu > 1e15 || p->mu < -1e15 || (p->mu != 0.0 && p->mu < 1e-30 && p->mu > -1e-30) || !(p->mu > 0.0))) return 3;
     if ((p->start_mode >= 11)) return 4;

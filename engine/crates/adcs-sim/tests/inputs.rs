@@ -60,6 +60,14 @@ fn an_override_keeps_the_type_it_replaces() {
     build("detumble_ais", &[("initial.rate.magnitude_deg_s", "8.5")]).unwrap();
 }
 
+/// E14: the season a campaign shifts the epoch by is held to the same span as the case's epoch.
+#[test]
+fn a_shifted_epoch_outside_the_span_is_refused() {
+    build("nadir_hold_ais", &[("engine.epoch_days", "-30")]).unwrap();
+    refused("nadir_hold_ais", &[("engine.epoch_days", "900")], "is outside env_epoch_span");
+    refused("nadir_hold_ais", &[("engine.epoch_days", "-900")], "is outside env_epoch_span");
+}
+
 #[test]
 fn an_override_outside_the_scenario_is_refused() {
     refused("nadir_hold_ais", &[("bogus.x", "1")], "no section \"bogus\"");
@@ -113,7 +121,10 @@ fn a_case_the_engine_cannot_fly_is_refused_by_name() {
                              // a stated value nothing models: refused, never quietly dropped
                              ("mission.duty", "0.5", "states mission.duty = 0.5"), ("resources.vbus", "28", "states resources.vbus"),
                              ("surface.cps", "0.05", "one centre-of-mass offset for both torques"),
-                             ("surface.asun", "0.1", "no deployables are modelled")] {
+                             ("surface.asun", "0.1", "no deployables are modelled"),
+                             // E14: an epoch the design's EOP, leap-second and field data do not cover is refused by name
+                             ("mission.epoch", "36.5", "mission.epoch = 36.5"), ("mission.epoch", "20", "is outside env_epoch_span"),
+                             ("mission.epoch", "28.0", "is outside env_epoch_span")] {
         let f = d.join("case.csv");
         std::fs::write(&f, with(key, val)).unwrap();
         let e = Config::build(&root(), "nadir_hold_ais", &f, 1, &[]).unwrap_err();

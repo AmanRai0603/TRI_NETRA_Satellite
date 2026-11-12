@@ -45,6 +45,9 @@ pub struct Config {
     /// the Earth frame the precision orbit is built on (env_earth_frame_build; DR-env-002): A, the IAU 2006/2000A chain with
     /// the EOP of env_eop_snapshot, or gmst
     pub frame_build: adcs_pop::frames::Build,
+    /// env_epoch_span (E14, DR-env-002): the first and last UTC Julian date the design's EOP, leap-second and field data are
+    /// valid for; a mission epoch outside it is refused by name
+    pub epoch_span: [f64; 2],
     /// space weather (asils.config P.env): F10.7, F10.7a, Kp, ap
     pub f107: f64, pub f107a: f64, pub kp: f64, pub ap: f64,
     pub igrf_nmax: usize, pub env_dt_s: f64, pub env_on: [bool; 4],
@@ -200,6 +203,14 @@ pub fn set_override(s: &mut Value, k: &str, v: &str) -> Result<(), Error> {
 }
 
 /// A number the engine reads from an override: finite, or refused.
+/// env_epoch_span (E14, DR-env-002): the dates the design's data covers. The EOP snapshot, the leap-second table and the
+/// field (IGRF-14) are valid between its two Julian dates; an epoch outside them is refused by name, not flown on values the
+/// data does not hold (the field and the EOP would be extrapolated, TAI - UTC a guess).
+fn check_epoch_span(what: &str, shown: f64, jd: f64, span: [f64; 2]) -> Result<(), Error> {
+    if jd >= span[0] && jd <= span[1] { return Ok(()); }
+    Err(Error::refused(format!("{what} = {shown} (UTC Julian date {jd}) is outside env_epoch_span, Julian dates {} to {}: the design's EOP, leap-second and field data do not cover it", span[0], span[1])))
+}
+
 /// env_earth_frame_build: the Earth frame the truth orbit is built on, 0 gmst, 1 A (IAU 2006/2000A with the EOP of
 /// env_eop_snapshot, linear interpolation), 2 B, 3 C. B and C need the EOP 20 C04 series, which the snapshot does not hold:
 /// refused by name rather than flown on build A.
@@ -590,6 +601,7 @@ fn apply_engine(cfg: &mut Config, eng: &[(String, String)]) -> Result<(), Error>
                 if x.abs() > 3660.0 { return Err(Error::refused(format!("{k}: {x} days; at most ten years either way"))); }
                 // env_case_orbit: the epoch moved, its seconds rounded
                 (cfg.epoch_utc, cfg.jd0) = crate::gen::caseorbit::shifted_epoch(cfg.jd0, x);
+                check_epoch_span(&k, x, cfg.jd0, cfg.epoch_span)?;
                 cfg.params.jd0 = cfg.jd0;
             }
             // the truth orbit's local time of the ascending node (the beta angle) and altitude; the
@@ -720,6 +732,8 @@ impl Config {
         let st = Stated::load(root)?;
         // env_case_orbit: the mission's epoch (its seconds rounded), the orbit's mean motion and period
         let (epoch, jd0) = crate::gen::caseorbit::mission_epoch(v("mission.epoch"));
+        let epoch_span: [f64; 2] = st.list("env_epoch_span")?;
+        check_epoch_span("mission.epoch", v("mission.epoch"), jd0, epoch_span)?;
         let mu = crate::gen::constants::MU_E;
         let (n, period_s) = crate::gen::caseorbit::case_mean_motion(v("orbit.alt")*1e3);
         // dyn_truth_plant and s1_4: the inertia, the residual dipole on each axis, the centre of mass's offset
@@ -756,7 +770,7 @@ impl Config {
             third_body: st.flag("env_force_third_body")?, drag: st.flag("env_force_drag")?, srp: st.flag("env_force_srp")?,
             density_scale: st.get("env_density_scale_default")?,
             orbit_model: if st.flag("env_orbit_precision_default")? { "pop" } else { "fast" }.into(),
-            frame_build: frame_build(&st)?,
+            frame_build: frame_build(&st)?, epoch_span,
             f107: st.get("env_f107_default")?, f107a: st.get("env_f107a_default")?, kp: st.get("env_kp_default")?, ap: st.get("env_ap_default")?,
             igrf_nmax: st.whole("env_field_degree", 1, 13)?, env_dt_s: st.get("env_refresh_step")?,
             env_on: [st.flag("env_torque_gravity_gradient")?, st.flag("env_torque_aero")?, st.flag("env_torque_radiation")?, st.flag("env_torque_magnetic")?],
