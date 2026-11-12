@@ -478,13 +478,15 @@ function m = t_leap_status()
 end
 
 function m = t_orbit_vs_pop()
-    % The in-loop precision orbit (env's generated models, asils.orbit.accel) against the vendored POP, its referent:
+    % The in-loop precision orbit (env's generated models, asils.orbit.accel) against the vendored POP, its referent, on the Earth
+    % frame the design states (build A with the snapshot's EOP, S12.4):
     % the force model at the run's states (to the last bits: POP takes the Sun's distance by norm, the design by the
     % square root of the dot product), and RK4 + Hermite against POP's own batch propagator (rk78).
     pop_path_();
     P = asils.config('nadir_hold_ais', fullfile(asils.util.root(), 'cases', 'ais_3u.csv'), struct());
     P.sim.duration_s = 600;
     O = asils.orbit.init(P);
+    assert(strcmp(O.W.build, 'A') && P.env.frame_build == 1, 'the twin flies the Earth frame the design states (env_earth_frame_build 1: build A)');
     cfg = pop_cfg_(P, O.y0);
     evalc('W = op.buildWorld(cfg);');
     da = 0;
@@ -530,7 +532,13 @@ function cfg = pop_cfg_(P, y0)
     cfg.forces.drag      = struct('on', fs.drag_on, 'model', dm{fs.drag_model + 1}, 'atmos', at{fs.drag_atmos + 1}, 'corotate', fs.drag_corotate);
     cfg.forces.srp       = struct('on', fs.srp_on, 'model', sm{fs.srp_model + 1}, 'eclipse', ec{fs.srp_eclipse + 1}, 'Cr', fs.srp_cr);
     cfg.spaceweather.manual = struct('F107', P.env.F107, 'F107a', P.env.F107a, 'Kp', P.env.Kp, 'ap', P.env.ap);
-    cfg.frame = struct('build', 'gmst', 'dUT1', 0.0, 'data_dir', '');
+    % the run's Earth frame (env_earth_frame_build): POP's own build A over the committed IERS files the design's snapshot was read
+    % from (finals2000A.all and Leap_Second.dat), or its gmst build
+    if P.env.frame_build == 1
+        cfg.frame = struct('build', 'A', 'dUT1', 0.0, 'data_dir', fullfile(asils.util.root(), '..', 'engine', 'crates', 'adcs-pop', 'data', 'time_frames'));
+    else
+        cfg.frame = struct('build', 'gmst', 'dUT1', 0.0, 'data_dir', '');
+    end
     cfg.r0 = y0(1:3); cfg.v0 = y0(4:6); cfg.tspan = P.sim.duration_s;
 end
 

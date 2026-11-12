@@ -30,7 +30,10 @@ impl Truth {
             if let Some(e) = crate::pop_kernel_missing() { return Err(e); }
             use adcs_pop::accel::{sso_initial, Forces, InLoop, Sc, World};
             let cr = adcs_pop::gen::forcemodel::sils_cr(c.refl); // env_force_model: Cr = 1 + the reflectivity
-            let w = World::new(c.epoch_utc, adcs_pop::frames::Build::Gmst, adcs_pop::frames::FrameOpt::default(),
+            // env_earth_frame_build (DR-env-002): the Earth frame, build A with the EOP of env_eop_snapshot, linear interpolation
+            let frame = adcs_pop::frames::FrameOpt { eop: (c.frame_build != adcs_pop::frames::Build::Gmst).then(adcs_pop::eop::Eop::from_snapshot),
+                ..Default::default() };
+            let w = World::new(c.epoch_utc, c.frame_build, frame,
                 adcs_pop::gravity::Field::default_field(), Forces::sils(cr),
                 Sc { mass: c.mass_kg, aref: c.aref_m2, cd: Some(c.cd), cr: Some(cr), r_bi: adcs_pop::la::I3, srp_facets: vec![], drag_facets: None },
                 Some(adcs_pop::spaceweather::ManualIndices { f107: c.f107, f107a: Some(c.f107a), kp: Some(adcs_pop::atmos::dtm2020::KpIn::Scalar(c.kp)), ap: Some(c.ap), ap3: None }),
@@ -55,8 +58,9 @@ impl Truth {
         match self {
             Truth::Pop(o) => {
                 let x = o.context(t);
-                // the field in J2000: precession to the equator of date, then POP's Earth rotation
-                let cp = mm(&x.c, &time::precession(jd0 + t/86400.0));
+                // the field in J2000, through POP's Earth frame: on a build with the CIO chain (A) C is already GCRF to ITRF, with
+                // the precession in it; only the gmst build turns about the pole of J2000 and needs the precession put in front
+                let cp = if o.world.build == adcs_pop::frames::Build::Gmst { mm(&x.c, &time::precession(jd0 + t/86400.0)) } else { x.c };
                 let re = mv(&cp, r);
                 let (lat, lon, h) = adcs_pop::geodetic::geodetic(&re);
                 let w = o.omega_e;

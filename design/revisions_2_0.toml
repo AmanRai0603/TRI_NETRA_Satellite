@@ -4602,3 +4602,19 @@ source = "IERS Bulletin C (Leap_Second.dat, 'File expires on 28 June 2027', env_
 generate = ["adcs-pop"]
 uses = ["env/leapsec.pc", "env/eopsnapshot.pc"]
 why = "the leap-second table's validity end and a status past it (DR-env-002: past the expiry a run warns and records, a published-vector case refuses), as a method of env over its tables, generated into adcs-pop"
+
+[[revision]]
+id = "S12.4b"
+at = "2026-11-12T13:00:00Z"
+by = "the developer"
+about = "P2, E4 and T5/E3's truth side of docs/S12_INVENTORY.md (S12.4; decision DR-env-002): the truth orbit's Earth frame is chosen by a stated env node, env_earth_frame_build, and is build A (IAU 2006/2000A with the EOP of env_eop_snapshot, linear interpolation) instead of the GMST-only rotation the loop took as a code constant; the loop's field uses the frame's rotation as it is (GCRF to ITRF, the precession in it), no longer a second precession in front of it; unsigned: the developer's proposal"
+
+[[revision.node]]
+id = "env_earth_frame_build"
+group = "env"
+parent = "m3"
+label = "Earth frame build of the truth orbit"
+behaviour = "stated"
+question = "Which Earth-orientation build does the truth orbit's gravity, drag and field take, 0 the GMST-only rotation (IAU 1982 GMST about the pole of J2000, no precession), 1 build A (the IAU 2006/2000A CIO chain with the EOP of env_eop_snapshot, linear interpolation), 2 build B, 3 build C?"
+content = [["value", "number", "1"], ["value", "source", "DR-env-002 (the developer's proposal S12.1, unsigned): truth on IAU 2006/2000A build A with EOP, linear interpolation; build A is the one with published vectors (ERFA c2t06a, IERS TN36). Builds B and C need the EOP 20 C04 series, which the snapshot does not hold: the engine refuses them by name. 0 keeps the loop's former GMST-only frame, whose field is then given the precession in front of it as before"]]
+why = "the Earth frame's build as a stated node (DR-env-002), not a constant in the loop; the engine and the twin read it by name"

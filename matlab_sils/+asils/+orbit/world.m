@@ -3,8 +3,8 @@ function W = world(W, env)
 %   holds the force set (W.fs), the epoch (W.epoch, UTC [Y Mo D H Mi S]) and the spacecraft (W.sc); env the run's
 %   space weather (F10.7, its mean, Kp, ap). Added: the indices as the density takes them (swindex.from_manual), the
 %   default field and its spherical-harmonic workspace (gravity.default_field, sph_setup), the Earth's rate in the
-%   inertial frame (earthframes.earth_rate_from over the GMST frames 15 s either side of the epoch, op.buildWorld's
-%   earthRateECI) and whether a force needs the ephemeris.
+%   inertial frame (earthframes.earth_rate_from over the frames of the build 15 s either side of the epoch, op.buildWorld's
+%   earthRateECI), the Earth frame build (env_earth_frame_build) and its EOP and whether a force needs the ephemeris.
 %   Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
     fs = W.fs;
     if fs.erp_on || fs.relativity_on || fs.solidtides || fs.oceantides
@@ -28,14 +28,15 @@ function W = world(W, env)
         zeros(nc, 1), zeros(nc, 1), zeros(nv, 1), zeros(nv, 1));
     W.g_v = zeros(nv, 1); W.g_w = zeros(nv, 1);
 
-    % the Earth's rate in the inertial frame (the GMST build, no polar motion)
+    % the Earth frame (env_earth_frame_build: 0 Gmst, 1 build A with the EOP of env_eop_snapshot) and the Earth's rate in the
+    % inertial frame, from the frames 15 s either side of the epoch (op.buildWorld's earthRateECI): a frame the build cannot make
+    % is an error, never [0; 0; omega] (P8c)
+    if env.frame_build == 0, W.build = 'Gmst';
+    elseif env.frame_build == 1, W.build = 'A'; W.eop = asils.orbit.eop_snapshot();
+    else, error('asils:orbit', 'env_earth_frame_build = %d: build B and C need the EOP 20 C04 series, which the snapshot does not hold', env.frame_build);
+    end
     d = 15;
     up = asils.models.timescales.addsec(W.epoch, d); um = asils.models.timescales.addsec(W.epoch, -d);
-    tp = asils.models.timescales.convert_utc(up(1), up(2), up(3), up(4), up(5), up(6), 0);
-    tm = asils.models.timescales.convert_utc(um(1), um(2), um(3), um(4), um(5), um(6), 0);
-    t0 = asils.models.timescales.convert_utc(W.epoch(1), W.epoch(2), W.epoch(3), W.epoch(4), W.epoch(5), W.epoch(6), 0);
-    [~, ctp] = asils.models.earthframes.eci2ecef_gmst(tp.gmst_rad, 0, 0);
-    [~, ctm] = asils.models.earthframes.eci2ecef_gmst(tm.gmst_rad, 0, 0);
-    c0 = asils.models.earthframes.eci2ecef_gmst(t0.gmst_rad, 0, 0);
+    ctp = asils.orbit.eci2ecef(W, up)'; ctm = asils.orbit.eci2ecef(W, um)'; c0 = asils.orbit.eci2ecef(W, W.epoch);
     W.omega_eci = asils.models.earthframes.earth_rate_from(ctp, ctm, c0, d);
 end

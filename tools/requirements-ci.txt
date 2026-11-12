@@ -1,6 +1,8 @@
 # The Python packages CI and the release install, pinned so every run checks with the same
 # versions (docs/RELEASE_PLAN.md, P0). The tools themselves need only the standard library;
 # these are the lint (pyflakes) and the reports' arithmetic (numpy). The figures are drawn by the
-# engine (adcs-plot: `adcs figures`, `adcs plot`), not by a Python package.
+# engine (adcs-plot: `adcs figures`, `adcs plot`), not by a Python package. pyerfa (the BSD release of the IAU SOFA
+# library) is the external oracle of the truth Earth frame (tests/test_earth_frame_oracle.py, S12.4).
 pyflakes==4.0.0
 numpy==2.4.6
+pyerfa==2.0.1.5

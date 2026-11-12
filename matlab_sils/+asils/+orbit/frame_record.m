@@ -8,4 +8,8 @@ function f = frame_record(O, t_end)
     u = asils.models.timescales.addsec(W.epoch, t_end);
     T = asils.models.timescales.convert_utc(u(1), u(2), u(3), u(4), u(5), u(6), 0);
     f = struct('build', W.build, 'eop_flag', 0, 'leap_status', T.leap_status, 'end_mjd_utc', T.utc_mjd);
+    if ~strcmp(W.build, 'Gmst')
+        [~, info] = asils.orbit.eci2ecef(W, u);
+        f.eop_flag = info.eop_flag; f.leap_status = max(f.leap_status, info.leap_status);
+    end
 end

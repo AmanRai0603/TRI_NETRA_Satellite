@@ -1,8 +1,8 @@
 function [a, C, E, rho] = accel(W, t, r, v)
 %ASILS.ORBIT.ACCEL  The precision orbit's acceleration [m/s^2] at t [s after the epoch], r, v (ECI): POP's op.accel as
 %   the engine's adcs-pop World::accel makes it, every model env's (+asils/+models): the time scales at the UTC instant
-%   (timescales.addsec, convert_utc), the ephemeris (asils.orbit.ephem), the Earth-fixed frame (earthframes'
-%   GMST build), then the forces in op.accel's order, summed by forcemodel.force_sum: gravity (gravity.sph_accel in
+%   (timescales.addsec, convert_utc), the ephemeris (asils.orbit.ephem), the Earth-fixed frame (asils.orbit.eci2ecef:
+%   the world's build), then the forces in op.accel's order, summed by forcemodel.force_sum: gravity (gravity.sph_accel in
 %   the Earth-fixed frame, or two_body), the Sun and the Moon (thirdbody.tb_total), drag (geodesy, drag.probe_geo, the
 %   density densitymodel.atmos_density with the run's indices, drag.drag_force), solar pressure (srp.srp_force), the
 %   empirical acceleration. Also the frame C (r_ecef = C r), the ephemeris E ([] when no force reads it) and the
@@ -13,7 +13,7 @@ function [a, C, E, rho] = accel(W, t, r, v)
     T = asils.models.timescales.convert_utc(utc(1), utc(2), utc(3), utc(4), utc(5), utc(6), 0);
     E = [];
     if W.need_ephem, E = asils.orbit.ephem(T.tdb_jd); end
-    C = asils.models.earthframes.eci2ecef_gmst(T.gmst_rad, 0, 0);
+    C = asils.orbit.eci2ecef(W, utc);
 
     if fs.grav_model == 0                                   % two-body
         ag = asils.models.gravity.two_body(r, W.gm);

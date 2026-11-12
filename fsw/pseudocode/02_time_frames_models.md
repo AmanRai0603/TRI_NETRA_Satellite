@@ -18,9 +18,14 @@ decyear(jd) = 2000 + (jd − 2451544.5) / 365.25
 
 Every inertial vector onboard is J2000: the Sun model, the star-tracker quaternion, the GNSS fix after
 conversion, and the field reference (through `eci2ecef`). A GMST-only rotation would put the field and the
-GNSS position in the mean equator of date, 0.37° off J2000 in 2027. The truth model uses the same precession
-for the field and the GNSS emulator; its gravity field keeps POP's GMST orientation (a 0.37° turn of the
-tesseral terms, negligible for the orbit).
+GNSS position in the mean equator of date: a turn of 0.38° (the general precession, 1,360 arcsec at 2027-01-01,
+about the ecliptic pole), which moves the pole by 0.15° (measured: the pole of J2000 is 0.1515° from the
+celestial intermediate pole at 2027-01-01). The truth model's Earth frame is the IAU 2006/2000A chain with the
+EOP of the design's snapshot (env_earth_frame_build, S12.4): the truth's gravity (its J2 axis included), drag
+and field all take the pole of date from it, where until S12.4 the field alone had the precession and the
+gravity kept POP's GMST orientation. This onboard `eci2ecef` stays the IAU-76 precession and GMST, within about
+8 arcsec of the truth's frame at 2027-01-01 (nutation, UT1 - UTC, polar motion omitted; up to about 25 arcsec
+over the span): the onboard side is S12.5.
 
 ## Onboard Sun model (Vallado alg. 29, precessed to J2000)
 

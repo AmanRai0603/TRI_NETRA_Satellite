@@ -162,9 +162,12 @@ impl World {
         let utc = time::addsec(self.epoch, t);
         let times = time::convert_utc(utc[0], utc[1], utc[2], utc[3], utc[4], utc[5], self.frame.dut1);
         let e = if self.forces.need_ephem() { self.eph.as_ref().map(|k| k.inputs(times.tdb_jd)) } else { None };
-        let mut fo = self.frame.clone();
-        fo.gmst_rad = Some(times.gmst_rad);
-        let (c, _ct) = frames::eci2ecef(utc, self.build, &fo);
+        // the gmst build takes the time scales' GMST; the CIO builds take their EOP from the world's own set (no copy of it)
+        let (c, _ct) = if self.build == Build::Gmst {
+            let mut fo = self.frame.clone();
+            fo.gmst_rad = Some(times.gmst_rad);
+            frames::eci2ecef(utc, self.build, &fo)
+        } else { frames::eci2ecef(utc, self.build, &self.frame) };
         let r_ecef = mv(&c, r);
         let v_ecef = mv(&c, &sub(v, &cross(&self.omega_eci, r)));
         Ctx { t, utc, times, e, c, r_eci: *r, v_eci: *v, r_ecef, v_ecef }
@@ -317,23 +320,39 @@ impl InLoop {
         Ok((r, v))
     }
 
-    /// asils.orbit.context: Sun/Moon/P_srp linear, density log-linear, ECI->ECEF rotated
-    /// on from node 0 at the Earth rate.
+    /// asils.orbit.context: Sun/Moon/P_srp linear, density log-linear, ECI->ECEF turned on from node 0 towards node 1
+    /// ([`frac_rot`]).
     pub fn context(&self, t: f64) -> EnvCtx {
         let (a, b) = (&self.n0, &self.n1);
         let s = (t - a.t)/(b.t - a.t);
         let lerp = |x: &V3, y: &V3| [x[0] + s*(y[0] - x[0]), x[1] + s*(y[1] - x[1]), x[2] + s*(y[2] - x[2])];
         let rho = if a.rho > 0.0 && b.rho > 0.0 { (a.rho.ln() + s*(b.rho.ln() - a.rho.ln())).exp() } else { a.rho + s*(b.rho - a.rho) };
-        let th = self.omega_e*(t - a.t);
-        let (sn, c) = th.sin_cos();
-        let rot = [[c, sn, 0.0], [-sn, c, 0.0], [0.0, 0.0, 1.0]];
-        EnvCtx { sun_eci: lerp(&a.sun_eci, &b.sun_eci), moon_eci: lerp(&a.moon_eci, &b.moon_eci), p_srp: a.p_srp + s*(b.p_srp - a.p_srp), rho, c: mm(&rot, &a.c) }
+        EnvCtx { sun_eci: lerp(&a.sun_eci, &b.sun_eci), moon_eci: lerp(&a.moon_eci, &b.moon_eci), p_srp: a.p_srp + s*(b.p_srp - a.p_srp), rho, c: frac_rot(&a.c, &b.c, s) }
     }
 
     /// The last node's per-force accelerations (diagnostics).
     pub fn parts(&self) -> Parts { self.n1.parts }
     /// Set the attitude the box-wing / panel models read (asils: O.W.sc.R_bi = dcm(q)').
     pub fn set_attitude(&mut self, r_bi: M3) { self.world.sc.r_bi = r_bi; }
+}
+
+/// The Earth frame at the fraction s of the step from node 0 to node 1, from the two nodes' frames: (C1 C0^T)^s C0, the
+/// rotation between them taken to the power s about its own axis (Rodrigues), so the frame is exact at both nodes. Turning
+/// node 0's frame about the z axis of the Earth-fixed frame by the Earth rate times the time (what this did until S12.4b)
+/// is exact only for a frame whose pole is the Earth-fixed z axis: on build A the Earth turns about the CIP, which is the
+/// pole of the polar motion (about 1.5e-6 rad off), and a step of 10 s then left 1.3e-9 rad.
+pub fn frac_rot(c0: &M3, c1: &M3, s: f64) -> M3 {
+    let d = mm(c1, &transpose(c0));
+    let v = [d[2][1] - d[1][2], d[0][2] - d[2][0], d[1][0] - d[0][1]];      // 2 sin(theta) n
+    let sv = (v[0]*v[0] + v[1]*v[1] + v[2]*v[2]).sqrt();
+    if sv == 0.0 { return *c0; }
+    let th = (0.5*sv).atan2(0.5*(d[0][0] + d[1][1] + d[2][2] - 1.0));
+    let n = [v[0]/sv, v[1]/sv, v[2]/sv];
+    let (sn, cs) = (s*th).sin_cos();
+    let k = [[0.0, -n[2], n[1]], [n[2], 0.0, -n[0]], [-n[1], n[0], 0.0]];
+    let mut r = [[0.0; 3]; 3];
+    for i in 0..3 { for j in 0..3 { r[i][j] = (if i == j { cs } else { 0.0 }) + (1.0 - cs)*n[i]*n[j] + sn*k[i][j]; } }
+    mm(&r, c0)
 }
 
 /// The orbit geometry of asils.orbit.init: a = Re + alt, RAAN from the LTAN and the DE440

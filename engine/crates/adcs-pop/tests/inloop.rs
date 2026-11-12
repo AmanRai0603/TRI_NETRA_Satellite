@@ -33,7 +33,11 @@ fn inloop_matches_matlab_pop() {
         let g = |n: &str| k[n].clone();
         let e = g("epoch");
         let sw = g("sw");
-        let world = World::new([e[0], e[1], e[2], e[3], e[4], e[5]], Build::Gmst, FrameOpt::default(), Field::default_field(), Forces::sils(g("cr")[0]),
+        // env_earth_frame_build (the data's own record of the twin's frame): build A over the design's EOP snapshot, or gmst
+        let build = if g("frame_build")[0] == 1.0 { Build::A } else { Build::Gmst };
+        assert_eq!(build, Build::A, "the twin flies the frame the design states");
+        let frame = FrameOpt { eop: (build == Build::A).then(adcs_pop::eop::Eop::from_snapshot), ..Default::default() };
+        let world = World::new([e[0], e[1], e[2], e[3], e[4], e[5]], build, frame, Field::default_field(), Forces::sils(g("cr")[0]),
             Sc { mass: g("mass")[0], aref: g("aref")[0], cd: Some(g("cd")[0]), cr: Some(g("cr")[0]), r_bi: I3, srp_facets: vec![], drag_facets: None },
             Some(ManualIndices { f107: sw[0], f107a: Some(sw[1]), kp: Some(KpIn::Scalar(sw[2])), ap: Some(sw[3]), ap3: None }), None).unwrap();
         let (r0, v0, raan) = sso_initial(&world, g("alt_km")[0], g("ecc")[0], g("inc_deg")[0], g("ltan_h")[0], g("argp_deg")[0], g("u0_deg")[0]).unwrap();

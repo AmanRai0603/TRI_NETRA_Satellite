@@ -42,6 +42,9 @@ pub struct Config {
     pub zonal_max: usize, pub third_body: bool, pub drag: bool, pub srp: bool, pub density_scale: f64,
     /// truth orbit/environment: "pop" (the POP port, as the MATLAB twin) or "fast" (analytic)
     pub orbit_model: String,
+    /// the Earth frame the precision orbit is built on (env_earth_frame_build; DR-env-002): A, the IAU 2006/2000A chain with
+    /// the EOP of env_eop_snapshot, or gmst
+    pub frame_build: adcs_pop::frames::Build,
     /// space weather (asils.config P.env): F10.7, F10.7a, Kp, ap
     pub f107: f64, pub f107a: f64, pub kp: f64, pub ap: f64,
     pub igrf_nmax: usize, pub env_dt_s: f64, pub env_on: [bool; 4],
@@ -197,6 +200,18 @@ pub fn set_override(s: &mut Value, k: &str, v: &str) -> Result<(), Error> {
 }
 
 /// A number the engine reads from an override: finite, or refused.
+/// env_earth_frame_build: the Earth frame the truth orbit is built on, 0 gmst, 1 A (IAU 2006/2000A with the EOP of
+/// env_eop_snapshot, linear interpolation), 2 B, 3 C. B and C need the EOP 20 C04 series, which the snapshot does not hold:
+/// refused by name rather than flown on build A.
+fn frame_build(st: &Stated) -> Result<adcs_pop::frames::Build, Error> {
+    use adcs_pop::frames::Build;
+    match st.whole("env_earth_frame_build", 0, 3)? {
+        0 => Ok(Build::Gmst),
+        1 => Ok(Build::A),
+        n => Err(Error::refused(format!("env_earth_frame_build = {n}: build {} needs the EOP 20 C04 series, which the design's EOP snapshot (env_eop_snapshot) does not hold; 0 (gmst) or 1 (A) fly", if n == 2 { "B" } else { "C" }))),
+    }
+}
+
 fn finite(k: &str, v: &str) -> Result<f64, Error> {
     match v.trim().parse::<f64>() {
         Ok(x) if x.is_finite() => Ok(x),
@@ -741,6 +756,7 @@ impl Config {
             third_body: st.flag("env_force_third_body")?, drag: st.flag("env_force_drag")?, srp: st.flag("env_force_srp")?,
             density_scale: st.get("env_density_scale_default")?,
             orbit_model: if st.flag("env_orbit_precision_default")? { "pop" } else { "fast" }.into(),
+            frame_build: frame_build(&st)?,
             f107: st.get("env_f107_default")?, f107a: st.get("env_f107a_default")?, kp: st.get("env_kp_default")?, ap: st.get("env_ap_default")?,
             igrf_nmax: st.whole("env_field_degree", 1, 13)?, env_dt_s: st.get("env_refresh_step")?,
             env_on: [st.flag("env_torque_gravity_gradient")?, st.flag("env_torque_aero")?, st.flag("env_torque_radiation")?, st.flag("env_torque_magnetic")?],
