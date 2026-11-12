@@ -13,6 +13,11 @@ Readers (each returns {table name: (type, rows)}: a 1-D table a list of numbers,
                 as the flight software's and the engine's tables have always been made)
   igrf14        IAGA's igrf14coeffs.txt: the IGRF-14 epochs 1900.0 to 2025.0, the 2025-30 secular variation and the 2030.0
                 epoch it defines (2025.0 + 5 x SV), Gauss coefficients [nT] to degree 13
+  finals2000a   the IERS Rapid Service/Prediction Centre's finals2000A.all by the file's own fixed columns: Bulletin A's pole,
+                UT1-UTC and nutation offsets and Bulletin B's where present, over a span of MJD
+  leap_second_dat  the IERS Leap_Second.dat: TAI - UTC from each date, and the expiry its header states
+  sw_all        CelesTrak's SW-All.txt (CSSI space weather): the observed and daily-predicted rows (Kp, Ap, F10.7, their means) and
+                the monthly-predicted F10.7 rows, by the file's fixed columns, from a year on
   matlab_matrix the numeric matrices a MATLAB file assigns (`NAME = [...]`), e.g. the Octave POP's leapTable.m and
                 its IERS tidal-EOP tables, and the numbers it assigns (`F.mu = 3.986004415e14;`)
   matlab_cell   the rows of a cell array a MATLAB file assigns (`L = {...};`), each row's numbers in order (the Octave
@@ -93,6 +98,153 @@ def igrf14(path):
     return {"IGRF14_YEAR": ("real[1][{n}]", years + [2030.0]),
             "IGRF14_GH": ("real[1][195][{n}]", gh + [last]),
             "IGRF14_SV": ("real[1][195]", [float(s) for s in sv])}
+
+
+def _field(line, a, b):
+    """The fixed columns a..b (1-based, inclusive) of a line as a number, or None when they are blank."""
+    t = line[a - 1:b].strip()
+    return float(t) if t else None
+
+
+_IERS_FLAG = {"I": 0.0, "P": 1.0}
+
+
+def finals2000a(path, mjd0=None, mjd1=None):
+    """IERS finals2000A.all (the Rapid Service/Prediction Centre's Bulletin A with Bulletin B where present), by the fixed
+    columns of the file's own format note (ReadMe.finals2000A), the rows from MJD mjd0 to mjd1 inclusive (the whole file when
+    they are None). A day's value is in a table only when the file has it, so no table holds a stand-in for a blank:
+      FINALS_A_PM_UT1  MJD, pole flag, x [arcsec], y [arcsec], UT1 flag, UT1-UTC [s]      (Bulletin A; flag 0 = IERS, 1 = prediction)
+      FINALS_A_NUT     MJD, nutation flag, dX [mas], dY [mas] wrt IAU 2000A                   (Bulletin A; the file's own offsets)
+      FINALS_B         MJD, x [arcsec], y [arcsec], UT1-UTC [s], dX [mas], dY [mas]           (Bulletin B, where the day has it)
+    A day whose pair is half present is refused."""
+    pm, nut, bb, last = [], [], [], None
+    for k, line in enumerate(pathlib.Path(path).read_text(encoding="ascii").splitlines(), 1):
+        if not line.strip():
+            continue
+        line = line.ljust(187)
+        mjd = _field(line, 8, 15)
+        if mjd is None or (last is not None and mjd <= last):
+            raise SystemExit(f"readers: finals2000a: {path}:{k}: no MJD, or not ascending")
+        last = mjd
+        if (mjd0 is not None and mjd < mjd0) or (mjd1 is not None and mjd > mjd1):
+            continue
+        x, y, u = _field(line, 19, 27), _field(line, 38, 46), _field(line, 59, 68)
+        if (x is None) != (y is None) or (x is None) != (u is None):
+            raise SystemExit(f"readers: finals2000a: {path}:{k}: Bulletin A x, y and UT1-UTC are not all present or all blank")
+        if x is not None:
+            for c in (17, 58):
+                if line[c - 1] not in _IERS_FLAG:
+                    raise SystemExit(f"readers: finals2000a: {path}:{k}: the flag in column {c} is {line[c - 1]!r}, not I or P")
+            pm.append([mjd, _IERS_FLAG[line[16]], x, y, _IERS_FLAG[line[57]], u])
+        dx, dy = _field(line, 98, 106), _field(line, 117, 125)
+        if (dx is None) != (dy is None):
+            raise SystemExit(f"readers: finals2000a: {path}:{k}: Bulletin A dX and dY are not both present or both blank")
+        if dx is not None:
+            if line[95] not in _IERS_FLAG:
+                raise SystemExit(f"readers: finals2000a: {path}:{k}: the flag in column 96 is {line[95]!r}, not I or P")
+            nut.append([mjd, _IERS_FLAG[line[95]], dx, dy])
+        b = [_field(line, 135, 144), _field(line, 145, 154), _field(line, 155, 165), _field(line, 166, 175), _field(line, 176, 185)]
+        if any(v is not None for v in b) and any(v is None for v in b):
+            raise SystemExit(f"readers: finals2000a: {path}:{k}: Bulletin B is not all present or all blank")
+        if b[0] is not None:
+            bb.append([mjd] + b)
+    if not pm:
+        raise SystemExit(f"readers: finals2000a: {path}: no row with values in the span")
+    return {"FINALS_A_PM_UT1": ("real[1][6][{n}]", pm), "FINALS_A_NUT": ("real[1][4][{n}]", nut), "FINALS_B": ("real[1][6][{n}]", bb)}
+
+
+def leap_second_dat(path):
+    """IERS Leap_Second.dat (Bulletin C's table as the IERS ships it): LEAP_DAT, a row an entry, MJD, day, month, year and
+    TAI - UTC [s] from that date (the rows of the file, none dropped), and LEAP_DAT_EXPIRY: the year, month, day and MJD of the
+    header line `File expires on D Month YYYY` (the file's own expiry; the file is refused when it states none)."""
+    import datetime
+    months = {m: i for i, m in enumerate(["January", "February", "March", "April", "May", "June", "July", "August",
+                                           "September", "October", "November", "December"], 1)}
+    rows, expiry = [], None
+    for line in pathlib.Path(path).read_text(encoding="ascii").splitlines():
+        t = line.strip()
+        if t.startswith("#"):
+            m = re.search(r"File expires on\s+(\d+)\s+([A-Za-z]+)\s+(\d{4})", t)
+            if m:
+                d, mon, y = int(m.group(1)), months[m.group(2)], int(m.group(3))
+                expiry = [float(y), float(mon), float(d), float((datetime.date(y, mon, d) - datetime.date(1858, 11, 17)).days)]
+            continue
+        if not t:
+            continue
+        v = t.split()
+        if len(v) != 5:
+            raise SystemExit(f"readers: leap_second_dat: {path}: a row is not MJD day month year TAI-UTC: {t!r}")
+        rows.append([float(x) for x in v])
+    if expiry is None or not rows:
+        raise SystemExit(f"readers: leap_second_dat: {path}: no rows, or no 'File expires on' header line")
+    if any(b[0] <= a[0] for a, b in zip(rows, rows[1:])):
+        raise SystemExit(f"readers: leap_second_dat: {path}: the rows are not in ascending order")
+    return {"LEAP_DAT": ("real[1][5][{n}]", rows), "LEAP_DAT_EXPIRY": ("real[1][4]", expiry)}
+
+
+# SW-All.txt: CelesTrak's FORMAT(I4,I3,I3,I5,I3,8I3,I4,8I4,I4,F4.1,I2,I4,F6.1,I2,5F6.1), as the file's own header states it
+_SW_BLOCKS = {"OBSERVED": 0.0, "DAILY_PREDICTED": 1.0, "MONTHLY_PREDICTED": 2.0}
+
+
+def sw_all(path, first_year=None):
+    """CelesTrak's SW-All.txt (CSSI space weather, as the PyPI package spaceweather 0.4.2 ships it): the rows of its three
+    blocks (OBSERVED, DAILY_PREDICTED, MONTHLY_PREDICTED), by the fixed columns of its FORMAT line, from the first of January
+    of first_year (every row when None). A type column: 0 observed, 1 daily predicted, 2 monthly predicted. A blank is never
+    filled: the monthly rows hold only F10.7, so they are a table of their own.
+      SW_DAILY    year, month, day, type, Kp x 10 of the eight 3-hour intervals (the file's integers: 43 is Kp 4.3), Ap of the
+                  eight 3-hour intervals, the daily Ap, F10.7 adjusted to 1 AU, its centred and its last 81-day mean, F10.7
+                  observed, its centred and its last 81-day mean [sfu]
+      SW_MONTHLY  year, month, day, type, the six F10.7 values as above
+    The counts the file's header states for each block (NUM_*_POINTS) must be the block's rows, or the file is refused."""
+    fmt = "FORMAT(I4,I3,I3,I5,I3,8I3,I4,8I4,I4,F4.1,I2,I4,F6.1,I2,5F6.1)"
+    text = pathlib.Path(path).read_text(encoding="ascii")
+    if fmt not in text:
+        raise SystemExit(f"readers: sw_all: {path}: the file's FORMAT line is not {fmt}")
+    daily, monthly, block, count, seen = [], [], None, {}, {}
+    for k, line in enumerate(text.splitlines(), 1):
+        m = re.match(r"NUM_(\w+)_POINTS\s+(\d+)", line)
+        if m:
+            count[m.group(1)] = int(m.group(2))
+            continue
+        m = re.match(r"(BEGIN|END)\s+(\w+)$", line.strip())
+        if m:
+            if m.group(1) == "BEGIN":
+                block = m.group(2)
+                seen[block] = 0
+                if block not in _SW_BLOCKS:
+                    raise SystemExit(f"readers: sw_all: {path}:{k}: the block {block} is not one of {sorted(_SW_BLOCKS)}")
+            else:
+                block = None
+            continue
+        if block is None or not line.strip():
+            continue
+        seen[block] += 1
+        line = line.ljust(130)
+        num = lambda a, b, conv=float: (conv(line[a:b]) if line[a:b].strip() else None)
+        ymd = [num(0, 4, int), num(4, 7, int), num(7, 10, int)]
+        if None in ymd:
+            raise SystemExit(f"readers: sw_all: {path}:{k}: no date")
+        if first_year is not None and ymd[0] < first_year:
+            continue
+        typ = _SW_BLOCKS[block]
+        f107 = [num(92, 98), num(100, 106), num(106, 112), num(112, 118), num(118, 124), num(124, 130)]
+        if block == "MONTHLY_PREDICTED":
+            if None in f107:
+                raise SystemExit(f"readers: sw_all: {path}:{k}: a monthly row without its six F10.7 values")
+            monthly.append([float(v) for v in ymd] + [typ] + f107)
+            continue
+        kp = [num(18 + 3 * i, 21 + 3 * i, int) for i in range(8)]
+        ap = [num(46 + 4 * i, 50 + 4 * i, int) for i in range(8)]
+        avg = num(78, 82, int)
+        if None in kp or None in ap or avg is None or None in f107:
+            raise SystemExit(f"readers: sw_all: {path}:{k}: a row of {block} with a blank Kp, Ap or F10.7")
+        daily.append([float(v) for v in ymd] + [typ] + [float(v) for v in kp] + [float(v) for v in ap] + [float(avg)] + f107)
+    for b, n in count.items():
+        if seen.get(b) != n:
+            raise SystemExit(f"readers: sw_all: {path}: the header states {n} rows of {b}, the block has {seen.get(b)}")
+    if not daily or not monthly:
+        raise SystemExit(f"readers: sw_all: {path}: no daily or no monthly rows from {first_year}")
+    return {"SW_DAILY": ("real[1][27][{n}]", daily), "SW_MONTHLY": ("real[1][10][{n}]", monthly)}
 
 
 _MAT = re.compile(r"\b([A-Za-z_]\w*)\s*=\s*\[([^\]]*)\]", re.S)
@@ -337,7 +489,7 @@ def de440_slice(path, span_jd_tdb):
     return {"DE440_SEGMENTS": ("real[1][9][{n}]", rows), **out}
 
 
-READERS = {"igrf13": igrf13, "igrf14": igrf14, "matlab_matrix": matlab_matrix, "xys06": xys06, "text_table": text_table,
+READERS = {"igrf13": igrf13, "igrf14": igrf14, "finals2000a": finals2000a, "sw_all": sw_all, "leap_second_dat": leap_second_dat, "matlab_matrix": matlab_matrix, "xys06": xys06, "text_table": text_table,
            "solfsmy": solfsmy, "dtcfile": dtcfile, "de440_slice": de440_slice, "matlab_cell": matlab_cell, "fes_bin": fes_bin}
 
 

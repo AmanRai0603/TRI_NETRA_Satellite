@@ -115,6 +115,13 @@ class Igrf14(unittest.TestCase):
         self.assertEqual(gh[25][0], -29350.0)       # g10 at 2025.0, the number the S12 inventory names
         self.assertEqual(gh[26][0], -29287.0)       # 2025.0 + 5 x 12.6
 
+    def test_the_design_carries_the_file_and_writes_it_back(self):
+        """matlab_sils/data is generated from the design (tools/from_design.py): the committed file is the node's own table."""
+        import sqlite3
+        with sqlite3.connect(f"file:{ROOT / 'tests' / 'regression' / 'design.tndb'}?mode=ro", uri=True) as c:
+            body = c.execute('SELECT "body" FROM engine_input WHERE "path" = ?', ("data/igrf14coeffs.txt",)).fetchone()[0]
+        self.assertEqual(bytes(body), TXT.read_bytes())
+
     def test_the_revision_cites_its_files_and_version(self):
         import convert_2_0
         d = next(d for r in convert_2_0.revisions() if r["id"] == "S12.2" for d in r["data"] if d["node"] == "env_igrf14_coefficients")

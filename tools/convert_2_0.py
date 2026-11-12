@@ -241,8 +241,13 @@ def data_rows(r, d, origin):
             docs[name] = [f"{name}: {d['publication']}", f"read by tools/readers.py ({d['reader']}) from {one['file']} (sha256 {h[:16]}), {origin}"]
     text = readers.module_text(d["module"], d["about"], tables, docs)
     where = f"{d['path']} ({origin}: " if d.get("path") else f"{origin} ("
-    return [("data", f"{d['module']}.pc", text, f"{where}reader {d['reader']} of {'; '.join(files)})"),
+    rows = [("data", f"{d['module']}.pc", text, f"{where}reader {d['reader']} of {'; '.join(files)})"),
             ("sources", f"published.{d['module']}", d["publication"], origin)]
+    if d.get("carry"):
+        # a file of matlab_sils/data the design carries as it carries igrf13coeffs.txt: a `table` row the build writes back out
+        # (tools/design_build.py engine_inputs), so the file in the repository is the design's
+        rows.append(("table", pathlib.Path(d["file"]).name, (ROOT / d["file"]).read_text(encoding="utf-8"), f"{d['file']} ({d['carry']})"))
+    return rows
 
 
 def method_rows(m, origin):

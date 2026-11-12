@@ -4499,9 +4499,66 @@ module = "igrf14coeffs"
 path = "env/igrf14coeffs.pc"
 reader = "igrf14"
 file = "matlab_sils/data/igrf14coeffs.txt"
+carry = "IAGA, pyIGRF14 1.0.4"
 publication = "IAGA Working Group V-MOD, International Geomagnetic Reference Field: the 14th generation (International Association of Geomagnetism and Aeronomy, 2024, IGRF-14, Zenodo, https://doi.org/10.5281/zenodo.14012302, as the documentation of ppigrf 2.1.0 cites it; its journal article is listed there as in progress and is not cited here); the file igrf14coeffs.txt as shipped in the PyPI package pyIGRF14 1.0.4 (MIT licence), whose header reads '14th Generation International Geomagnetic Reference Field Schmidt semi-normalised spherical harmonic coefficients, degree n=1,13'; the file states no date of its own (not stated in the file); its last epoch is 2025.0 with the 2025-30 secular variation; checked coefficient by coefficient against IGRF14.shc of ppigrf 2.1.0 (tests/test_igrf14.py)"
 about = ["IGRF-14 Gauss coefficients [nT] (the numbers in nT, as plain numbers), degree 13, 195 an epoch (g(1,0), g(1,1), h(1,1), g(2,0), ...):",
          "IGRF14_YEAR and IGRF14_GH: the 26 epochs of the file, 1900.0 to 2025.0 (DGRF to 2015.0 and 2020.0, IGRF 2025.0), then 2030.0, which is",
          "2025.0 plus five years of the 2025-30 secular variation, the model's own definition of its predictive epoch (ppigrf's .shc holds it as a column);",
          "IGRF14_SV: the secular variation 2025-30 [nT/yr], as the file gives it (degrees 1 to 8; 0.0 above)."]
 why = "IGRF-14 as a data table of its node, read by its reader from the IAGA file; nothing flies it until S12.6"
+
+[[revision.node]]
+id = "env_eop_snapshot"
+group = "env"
+parent = "m3"
+label = "EOP and leap-second snapshot (IERS finals2000A, Leap_Second.dat)"
+behaviour = "lookup"
+question = "The frozen Earth-orientation and leap-second snapshot (DR-env-002): the IERS Rapid Service/Prediction Centre's pole, UT1 - UTC and celestial-pole offsets for 2025.0 to 2030.0 as far as the file goes, and the IERS Bulletin C leap-second table with its own expiry"
+why = "the EOP and leap-second snapshot of the Earth frame (DR-env-002), read by readers from the files committed in the repository; the engine and the flight blob read them in S12.4 and S12.5"
+
+[[revision.node]]
+id = "env_eop_snapshot_mjd"
+group = "env"
+parent = "m3"
+label = "EOP snapshot date (MJD)"
+behaviour = "stated"
+question = "On which day is the EOP and leap-second snapshot (env_eop_snapshot) taken, as a Modified Julian Date (UTC)?"
+content = [["value", "number", "61353"], ["value", "source", "the developer's choice (DR-env-002 leaves the date to S12.2): 9 November 2026, the date in the version 0.2026.11.9.0.35.9 of the PyPI package astropy-iers-data that carries finals2000A.all and Leap_Second.dat; finals2000A.all states no date of its own (not stated in the file); MJD 61353 by the calendar"]]
+why = "the snapshot's date (DR-env-002), stated"
+
+[[revision.node]]
+id = "env_eop_finals_expiry_mjd"
+group = "env"
+parent = "m3"
+label = "EOP table expiry (MJD)"
+behaviour = "stated"
+question = "Up to which day does the snapshot's finals2000A.all give pole and UT1 - UTC values, as a Modified Julian Date (UTC)?"
+content = [["value", "number", "61714"], ["value", "source", "finals2000A.all (astropy-iers-data 0.2026.11.9.0.35.9): the last row with Bulletin A pole and UT1 - UTC values is MJD 61714 (a prediction, flag P); its rows to MJD 61764 hold no values; the file states no expiry (not stated in the file), so this is the file's last day of data; MJD 61714 is a day in November 2027"]]
+why = "the EOP table's expiry (DR-env-002), stated; tests/test_eop_snapshot.py holds it to the file"
+
+[[revision.node]]
+id = "env_leap_second_expiry_mjd"
+group = "env"
+parent = "m3"
+label = "Leap-second table expiry (MJD)"
+behaviour = "stated"
+question = "Until which day does the snapshot's Leap_Second.dat state that no leap second is introduced, as a Modified Julian Date (UTC)?"
+content = [["value", "number", "61584"], ["value", "source", "Leap_Second.dat (astropy-iers-data 0.2026.11.9.0.35.9), header: 'File expires on 28 June 2027', updated through IERS Bulletin 72 issued in July 2026; MJD 61584 by the calendar"]]
+why = "the leap-second table's expiry (DR-env-002), stated; tests/test_eop_snapshot.py holds it to the file's header"
+
+[[revision.data]]
+node = "env_eop_snapshot"
+module = "eopsnapshot"
+path = "env/eopsnapshot.pc"
+reader = "finals2000a"
+files = [{ file = "engine/crates/adcs-pop/data/time_frames/finals2000A.all", reader = "finals2000a", args = { mjd0 = 60676.0, mjd1 = 62502.0 } },
+         { file = "engine/crates/adcs-pop/data/time_frames/Leap_Second.dat", reader = "leap_second_dat" }]
+publication = "IERS Earth Orientation Centre and Rapid Service/Prediction Centre (finals2000A.all: all EOP values since 2 January 1973 with dX and dY on the IAU 2000A nutation, with one year of predictions; the file's format note names http://maia.usno.navy.mil/ as its source) and IERS Bulletin C (Leap_Second.dat: TAI - UTC, updated through Bulletin 72 issued in July 2026, 'File expires on 28 June 2027'), both as shipped in the PyPI package astropy-iers-data 0.2026.11.9.0.35.9 (BSD 3-Clause licence, Copyright Astropy Developers; the package states the IERS data are the work of the IERS and gives no separate licence for them); finals2000A.all states no date of its own (not stated in the file), its last row with values is MJD 61714"
+about = ["The EOP snapshot, 2025.0 (MJD 60676) to 2030.0 (MJD 62502) as far as the file goes (MJD 61714), by the file's own fixed columns (ReadMe.finals2000A).",
+         "Flags: 0 = IERS value, 1 = prediction. FINALS_A_PM_UT1: a row a day, MJD (UTC), pole flag, x [arcsec], y [arcsec], UT1 flag, UT1 - UTC [s] (Bulletin A).",
+         "FINALS_A_NUT: a row a day, MJD, nutation flag, dX, dY [milliarcsec] wrt IAU 2000A, free core nutation not removed (Bulletin A; the file ends them on MJD 61419).",
+         "FINALS_B: a row a day, MJD, x [arcsec], y [arcsec], UT1 - UTC [s], dX, dY [milliarcsec] (Bulletin B, where the file has it; its last day is MJD 61284).",
+         "A day's value is in a table only if the file has it. The errors and the length of day are not read.",
+         "LEAP_DAT: TAI - UTC [s] from each date, a row MJD, day, month, year, TAI - UTC (Leap_Second.dat, 28 rows, 1972 to 2017).",
+         "LEAP_DAT_EXPIRY: the file's own expiry, year, month, day and MJD, from its header."]
+why = "the EOP and leap-second snapshot as data tables of its node, read by their readers from the committed IERS files; the engine's own reader of the same files reads the same values (tests/test_eop_snapshot.py)"
