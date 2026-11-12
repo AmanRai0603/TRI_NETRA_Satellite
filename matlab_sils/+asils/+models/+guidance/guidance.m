@@ -22,21 +22,21 @@ function [q_ref, w_ref, wd_ref] = guidance(kind, r, v, t, q_off, roll_deg, t0, t
     q_ref = zeros(4, 1);
     w_ref = zeros(3, 1);
     wd_ref = zeros(3, 1);
-    h__600 = sqrt(r(1)*r(1) + r(2)*r(2) + r(3)*r(3));
-    if 1e-30 > h__600, h__600 = 1e-30; end
-    rh = (r / h__600);
-    h__601 = sqrt(v(1)*v(1) + v(2)*v(2) + v(3)*v(3));
+    h__601 = sqrt(r(1)*r(1) + r(2)*r(2) + r(3)*r(3));
     if 1e-30 > h__601, h__601 = 1e-30; end
-    vh = (v / h__601);
+    rh = (r / h__601);
+    h__602 = sqrt(v(1)*v(1) + v(2)*v(2) + v(3)*v(3));
+    if 1e-30 > h__602, h__602 = 1e-30; end
+    vh = (v / h__602);
     mr = (rh * (-(1)));
-    h__602 = [vh(2)*mr(3) - vh(3)*mr(2); vh(3)*mr(1) - vh(1)*mr(3); vh(1)*mr(2) - vh(2)*mr(1)];
-    h__603 = sqrt(h__602(1)*h__602(1) + h__602(2)*h__602(2) + h__602(3)*h__602(3));
-    if 1e-30 > h__603, h__603 = 1e-30; end
-    nrm = (h__602 / h__603);
-    h__604 = [mr(2)*nrm(3) - mr(3)*nrm(2); mr(3)*nrm(1) - mr(1)*nrm(3); mr(1)*nrm(2) - mr(2)*nrm(1)];
-    h__605 = sqrt(h__604(1)*h__604(1) + h__604(2)*h__604(2) + h__604(3)*h__604(3));
-    if 1e-30 > h__605, h__605 = 1e-30; end
-    ram = (h__604 / h__605);
+    h__603 = [vh(2)*mr(3) - vh(3)*mr(2); vh(3)*mr(1) - vh(1)*mr(3); vh(1)*mr(2) - vh(2)*mr(1)];
+    h__604 = sqrt(h__603(1)*h__603(1) + h__603(2)*h__603(2) + h__603(3)*h__603(3));
+    if 1e-30 > h__604, h__604 = 1e-30; end
+    nrm = (h__603 / h__604);
+    h__605 = [mr(2)*nrm(3) - mr(3)*nrm(2); mr(3)*nrm(1) - mr(1)*nrm(3); mr(1)*nrm(2) - mr(2)*nrm(1)];
+    h__606 = sqrt(h__605(1)*h__605(1) + h__605(2)*h__605(2) + h__605(3)*h__605(3));
+    if 1e-30 > h__606, h__606 = 1e-30; end
+    ram = (h__605 / h__606);
     rr = zeros(3, 3);
     i = ((0):((3) - 1)).';
     rr(1, (i) + 1) = ((-(reshape(ram((i) + 1), [], 1)))).';
@@ -49,9 +49,9 @@ function [q_ref, w_ref, wd_ref] = guidance(kind, r, v, t, q_off, roll_deg, t0, t
     if flip
         u = [1; 0; 0];
         if (sqrt(roll_axis(1)*roll_axis(1) + roll_axis(2)*roll_axis(2) + roll_axis(3)*roll_axis(3)) > 0)
-            h__606 = sqrt(roll_axis(1)*roll_axis(1) + roll_axis(2)*roll_axis(2) + roll_axis(3)*roll_axis(3));
-            if 1e-30 > h__606, h__606 = 1e-30; end
-            u = (roll_axis / h__606);
+            h__607 = sqrt(roll_axis(1)*roll_axis(1) + roll_axis(2)*roll_axis(2) + roll_axis(3)*roll_axis(3));
+            if 1e-30 > h__607, h__607 = 1e-30; end
+            u = (roll_axis / h__607);
         end
         q_nad = asils.models.math.qmult(q_nad, [u(1); u(2); u(3); 0]);
     end
@@ -59,21 +59,21 @@ function [q_ref, w_ref, wd_ref] = guidance(kind, r, v, t, q_off, roll_deg, t0, t
     wd_ref = zeros(3, 1);
     ax = [1; 0; 0];
     if (sqrt(axis(1)*axis(1) + axis(2)*axis(2) + axis(3)*axis(3)) > 0)
-        h__607 = sqrt(axis(1)*axis(1) + axis(2)*axis(2) + axis(3)*axis(3));
-        if 1e-30 > h__607, h__607 = 1e-30; end
-        ax = (axis / h__607);
+        h__608 = sqrt(axis(1)*axis(1) + axis(2)*axis(2) + axis(3)*axis(3));
+        if 1e-30 > h__608, h__608 = 1e-30; end
+        ax = (axis / h__608);
     end
     if (kind == 1)
         q_ref = asils.models.math.qmult(q_nad, asils.models.math.fromrotvec((ax * (roll_deg * (pi / 180)))));
-        h__608 = asils.models.math.dcm(q_ref);
-        w_ref = [h__608(1, 1)*w_orb(1) + h__608(1, 2)*w_orb(2) + h__608(1, 3)*w_orb(3); h__608(2, 1)*w_orb(1) + h__608(2, 2)*w_orb(2) + h__608(2, 3)*w_orb(3); h__608(3, 1)*w_orb(1) + h__608(3, 2)*w_orb(2) + h__608(3, 3)*w_orb(3)];
+        h__609 = asils.models.math.dcm(q_ref);
+        w_ref = [h__609(1, 1)*w_orb(1) + h__609(1, 2)*w_orb(2) + h__609(1, 3)*w_orb(3); h__609(2, 1)*w_orb(1) + h__609(2, 2)*w_orb(2) + h__609(2, 3)*w_orb(3); h__609(3, 1)*w_orb(1) + h__609(3, 2)*w_orb(2) + h__609(3, 3)*w_orb(3)];
     elseif (kind == 2)
-        h__609 = ((t - t0) / t_slew);
-        h__610 = 0;
-        if h__610 > h__609, h__609 = h__610; end
-        h__610 = 1;
-        if h__610 < h__609, h__609 = h__610; end
-        tau = h__609;
+        h__610 = ((t - t0) / t_slew);
+        h__611 = 0;
+        if h__611 > h__610, h__610 = h__611; end
+        h__611 = 1;
+        if h__611 < h__610, h__610 = h__611; end
+        tau = h__610;
         sd = 0;
         sdd = 0;
         ph = (roll_deg * (pi / 180));
@@ -83,10 +83,10 @@ function [q_ref, w_ref, wd_ref] = guidance(kind, r, v, t, q_off, roll_deg, t0, t
         end
         s = (tau - (sin(((2 * pi) * tau)) / (2 * pi)));
         q_ref = asils.models.math.qmult(q_nad, asils.models.math.fromrotvec((ax * (ph * s))));
-        h__611 = asils.models.math.dcm(q_ref);
-        wo = [h__611(1, 1)*w_orb(1) + h__611(1, 2)*w_orb(2) + h__611(1, 3)*w_orb(3); h__611(2, 1)*w_orb(1) + h__611(2, 2)*w_orb(2) + h__611(2, 3)*w_orb(3); h__611(3, 1)*w_orb(1) + h__611(3, 2)*w_orb(2) + h__611(3, 3)*w_orb(3)];
-        h__612 = (ax * (ph * sd));
-        tr = [h__612(2)*wo(3) - h__612(3)*wo(2); h__612(3)*wo(1) - h__612(1)*wo(3); h__612(1)*wo(2) - h__612(2)*wo(1)];
+        h__612 = asils.models.math.dcm(q_ref);
+        wo = [h__612(1, 1)*w_orb(1) + h__612(1, 2)*w_orb(2) + h__612(1, 3)*w_orb(3); h__612(2, 1)*w_orb(1) + h__612(2, 2)*w_orb(2) + h__612(2, 3)*w_orb(3); h__612(3, 1)*w_orb(1) + h__612(3, 2)*w_orb(2) + h__612(3, 3)*w_orb(3)];
+        h__613 = (ax * (ph * sd));
+        tr = [h__613(2)*wo(3) - h__613(3)*wo(2); h__613(3)*wo(1) - h__613(1)*wo(3); h__613(1)*wo(2) - h__613(2)*wo(1)];
         i = ((0):((3) - 1)).';
         w_ref((i) + 1) = (reshape(wo((i) + 1), [], 1) + ((reshape(ax((i) + 1), [], 1) .* ph) .* sd));
         wd_ref((i) + 1) = (((reshape(ax((i) + 1), [], 1) .* ph) .* sdd) - reshape(tr((i) + 1), [], 1));
@@ -96,9 +96,9 @@ function [q_ref, w_ref, wd_ref] = guidance(kind, r, v, t, q_off, roll_deg, t0, t
     elseif (kind == 4)
         a = [0; 0; (-(1))];
         if (sqrt(sun_axis(1)*sun_axis(1) + sun_axis(2)*sun_axis(2) + sun_axis(3)*sun_axis(3)) > 0)
-            h__613 = sqrt(sun_axis(1)*sun_axis(1) + sun_axis(2)*sun_axis(2) + sun_axis(3)*sun_axis(3));
-            if 1e-30 > h__613, h__613 = 1e-30; end
-            a = (sun_axis / h__613);
+            h__614 = sqrt(sun_axis(1)*sun_axis(1) + sun_axis(2)*sun_axis(2) + sun_axis(3)*sun_axis(3));
+            if 1e-30 > h__614, h__614 = 1e-30; end
+            a = (sun_axis / h__614);
         end
         b = [1; 0; 0];
         if (sqrt(roll_axis(1)*roll_axis(1) + roll_axis(2)*roll_axis(2) + roll_axis(3)*roll_axis(3)) > 0)
@@ -110,21 +110,21 @@ function [q_ref, w_ref, wd_ref] = guidance(kind, r, v, t, q_off, roll_deg, t0, t
         if (sqrt(b(1)*b(1) + b(2)*b(2) + b(3)*b(3)) < 0.000001)
             b = [((-(a(2))) * a(1)); (1 - (a(2) * a(2))); ((-(a(2))) * a(3))];
         end
-        h__614 = sqrt(b(1)*b(1) + b(2)*b(2) + b(3)*b(3));
-        if 1e-30 > h__614, h__614 = 1e-30; end
-        b = (b / h__614);
-        h__615 = sqrt(sun_eci(1)*sun_eci(1) + sun_eci(2)*sun_eci(2) + sun_eci(3)*sun_eci(3));
+        h__615 = sqrt(b(1)*b(1) + b(2)*b(2) + b(3)*b(3));
         if 1e-30 > h__615, h__615 = 1e-30; end
-        s = (sun_eci / h__615);
+        b = (b / h__615);
+        h__616 = sqrt(sun_eci(1)*sun_eci(1) + sun_eci(2)*sun_eci(2) + sun_eci(3)*sun_eci(3));
+        if 1e-30 > h__616, h__616 = 1e-30; end
+        s = (sun_eci / h__616);
         e2 = zeros(3, 1);
         i = ((0):((3) - 1)).';
         e2((i) + 1) = (reshape(nrm((i) + 1), [], 1) - ((nrm(1)*s(1) + nrm(2)*s(2) + nrm(3)*s(3)) .* reshape(s((i) + 1), [], 1)));
         if (sqrt(e2(1)*e2(1) + e2(2)*e2(2) + e2(3)*e2(3)) < 0.000001)
             e2 = [((-(s(3))) * s(1)); ((-(s(3))) * s(2)); (1 - (s(3) * s(3)))];
         end
-        h__616 = sqrt(e2(1)*e2(1) + e2(2)*e2(2) + e2(3)*e2(3));
-        if 1e-30 > h__616, h__616 = 1e-30; end
-        e2 = (e2 / h__616);
+        h__617 = sqrt(e2(1)*e2(1) + e2(2)*e2(2) + e2(3)*e2(3));
+        if 1e-30 > h__617, h__617 = 1e-30; end
+        e2 = (e2 / h__617);
         b3 = [a(2)*b(3) - a(3)*b(2); a(3)*b(1) - a(1)*b(3); a(1)*b(2) - a(2)*b(1)];
         e3 = [s(2)*e2(3) - s(3)*e2(2); s(3)*e2(1) - s(1)*e2(3); s(1)*e2(2) - s(2)*e2(1)];
         m = zeros(3, 3);
@@ -135,7 +135,7 @@ function [q_ref, w_ref, wd_ref] = guidance(kind, r, v, t, q_off, roll_deg, t0, t
         w_ref = zeros(3, 1);
     else
         q_ref = q_nad;
-        h__617 = asils.models.math.dcm(q_nad);
-        w_ref = [h__617(1, 1)*w_orb(1) + h__617(1, 2)*w_orb(2) + h__617(1, 3)*w_orb(3); h__617(2, 1)*w_orb(1) + h__617(2, 2)*w_orb(2) + h__617(2, 3)*w_orb(3); h__617(3, 1)*w_orb(1) + h__617(3, 2)*w_orb(2) + h__617(3, 3)*w_orb(3)];
+        h__618 = asils.models.math.dcm(q_nad);
+        w_ref = [h__618(1, 1)*w_orb(1) + h__618(1, 2)*w_orb(2) + h__618(1, 3)*w_orb(3); h__618(2, 1)*w_orb(1) + h__618(2, 2)*w_orb(2) + h__618(2, 3)*w_orb(3); h__618(3, 1)*w_orb(1) + h__618(3, 2)*w_orb(2) + h__618(3, 3)*w_orb(3)];
     end
 end

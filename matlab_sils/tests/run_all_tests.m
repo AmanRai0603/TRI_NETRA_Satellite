@@ -11,7 +11,7 @@ function ok = run_all_tests()
          @t_torques, @t_plant_conservation, @t_cmg_plant, @t_mekf, @t_quest, @t_lqr_blob, ...
          @t_fmr_spin_down, @t_cmg_steering, @t_hal_link, @t_hal_codec, @t_select, @t_gen_bdot, @t_sun_spin_law, @t_sun_guidance, ...
          @t_sun_model, @t_st_chain, @t_sun_chain, @t_blob_decode, ...
-         @t_sizing, @t_modes_table, @t_orbit_vs_pop, @t_short_runs, @t_campaign_draw, @t_metrics_evaluate, @t_flex_plant, ...
+         @t_sizing, @t_modes_table, @t_leap_status, @t_orbit_vs_pop, @t_short_runs, @t_campaign_draw, @t_metrics_evaluate, @t_flex_plant, ...
          @t_solution_scenario, @t_coil_lag, @t_wheel_motor, @t_st_moon_blind, @t_gps_latency, @t_earth_radiation, ...
          @t_fidelity_refused, @t_chains_from_part, @t_streams, @t_checkpoint, @t_engine_parity, @t_physics_vectors, ...
          @test_trinetra_open};
@@ -459,6 +459,22 @@ function m = t_modes_table()
         end
     end
     m = sprintf('%d options over %d modes map to FSW states', n, numel(asils.solution.mode()));
+end
+
+function m = t_leap_status()
+    % S12.4a (P9): the leap-second table carries its validity end (28 June 2027, MJD 61584): past it TAI - UTC says 'beyond
+    % validity' (status 1) and holds the last row; every run records it (asils.orbit.frame_record).
+    jd = @(y, mo, d) asils.models.timescales.cal2jd(y, mo, d, 0, 0, 0);
+    [n0, s0] = asils.models.timescales.tai_minus_utc(jd(2027, 6, 27));
+    [n1, s1] = asils.models.timescales.tai_minus_utc(jd(2036, 1, 1));
+    assert(n0 == 37 && s0 == 0, 'inside the validity: %g s, status %d', n0, s0);
+    assert(n1 == 37 && s1 == 1, 'past the expiry: %g s, status %d', n1, s1);
+    T = asils.models.timescales.convert_utc(2036, 1, 1, 0, 0, 0, 0);
+    assert(T.leap_status == 1, 'convert_utc carries the status');
+    O.W.epoch = [2027; 6; 27; 12; 0; 0]; O.W.build = 'Gmst';
+    f = asils.orbit.frame_record(O, 86400);
+    assert(f.leap_status == 1 && f.eop_flag == 0 && strcmp(f.build, 'Gmst'), 'the run records the status at its end');
+    m = 'tai_minus_utc: 37 s inside, 37 s with status 1 at 2036-01-01; the run record carries it';
 end
 
 function m = t_orbit_vs_pop()

@@ -13,15 +13,15 @@ function [passes, x, tmp] = kpi_sort(x, m, tmp)
     for it = (0):((62) - 1)
         if (wd < m)
             if (rem(passes, 2) == 0)
-                [t__537, t__538, t__539] = asils.models.kpistats.kpi_merge(x, tmp, m, wd);
-                z0 = t__537;
-                x = t__538;
-                tmp = t__539;
-            else
-                [t__540, t__541, t__542] = asils.models.kpistats.kpi_merge(tmp, x, m, wd);
-                z1 = t__540;
+                [t__539, t__540, t__541] = asils.models.kpistats.kpi_merge(x, tmp, m, wd);
+                z0 = t__539;
+                x = t__540;
                 tmp = t__541;
-                x = t__542;
+            else
+                [t__542, t__543, t__544] = asils.models.kpistats.kpi_merge(tmp, x, m, wd);
+                z1 = t__542;
+                tmp = t__543;
+                x = t__544;
             end
             passes = (passes + 1);
             wd = (2 * wd);

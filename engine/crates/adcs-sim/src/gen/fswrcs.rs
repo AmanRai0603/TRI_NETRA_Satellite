@@ -31,14 +31,14 @@ pub fn fsw_thrusters(fitted: bool, nc: i64, tau: [[f64; 3]; 6], mib: f64, res: f
     if fitted {
         n = nc;
         {
-            let __end17: i64 = crate::gen::fswrcs::FSW_NC;
+            let __end18: i64 = crate::gen::fswrcs::FSW_NC;
             let mut c: i64 = 0;
-            while c < __end17 {
+            while c < __end18 {
                 if (c < nc) {
                     {
-                        let __end18: i64 = 3;
+                        let __end19: i64 = 3;
                         let mut k: i64 = 0;
-                        while k < __end18 {
+                        while k < __end19 {
                             rcs_tau[(c) as usize][(k) as usize] = tau[(c) as usize][(k) as usize];
                             k += 1;
                         }

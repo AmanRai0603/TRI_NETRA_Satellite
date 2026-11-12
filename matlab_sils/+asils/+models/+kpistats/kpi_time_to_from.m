@@ -21,8 +21,8 @@ function [v, t, x, tt, xx] = kpi_time_to_from(t, x, n, t0, thr, hold, tt, xx)
             m = (m + 1);
         end
     end
-    [t__552, t__553, t__554] = asils.models.kpistats.kpi_time_to(tt, xx, m, thr, hold);
-    v = t__552;
-    tt = t__553;
-    xx = t__554;
+    [t__554, t__555, t__556] = asils.models.kpistats.kpi_time_to(tt, xx, m, thr, hold);
+    v = t__554;
+    tt = t__555;
+    xx = t__556;
 end

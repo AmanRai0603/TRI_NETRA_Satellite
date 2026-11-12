@@ -4586,3 +4586,19 @@ about = ["Dated space-weather indices from 1 January 2020 to the end of the file
          "and its last 81-day mean [sfu]. SW_MONTHLY: a row a month (the first of it), year, month, day, type, then the same six F10.7 values: the file",
          "holds no Kp or Ap for a month, so no stand-in is written. The sunspot number, the quality flag, the Cp and C9 and the sums are not read."]
 why = "the dated CelesTrak SW-All table as a data table of its node, read by its reader from the committed file; nothing reads it until S12.9"
+
+[[revision]]
+id = "S12.4a"
+at = "2026-11-12T12:00:00Z"
+by = "the developer"
+about = "P9 of docs/S12_INVENTORY.md (S12.4; decision DR-env-002): the leap-second table carries its validity end, the expiry of Leap_Second.dat (env_eop_snapshot's LEAP_DAT_EXPIRY, MJD 61584, the stated env_leap_second_expiry_mjd), and tai_minus_utc (with utc2tai, tai2utc, utc2tt, tt2utc, utc2tdb, utc2gps and convert_utc's leap_status) gives a status, 0 within it and 1 beyond it, instead of the last row silently; unsigned: the developer's transcription"
+
+[[revision.method]]
+node = "env_time_scales"
+pseudocode = "design/revisions/S12.4a/timescales.pc"
+path = "env/timescales.pc"
+transcribes = "design/revisions/S7.3/timescales.pc as S7.3 left it, with the status of the leap-second lookup added (tai_minus_utc, utc2tai, tai2utc, utc2tt, tt2utc, utc2tdb, utc2gps and Times.leap_status); no value changed"
+source = "IERS Bulletin C (Leap_Second.dat, 'File expires on 28 June 2027', env_eop_snapshot's LEAP_DAT_EXPIRY); IERS Conventions (2010) chapter 10 (time scales); DR-env-002"
+generate = ["adcs-pop"]
+uses = ["env/leapsec.pc", "env/eopsnapshot.pc"]
+why = "the leap-second table's validity end and a status past it (DR-env-002: past the expiry a run warns and records, a published-vector case refuses), as a method of env over its tables, generated into adcs-pop"

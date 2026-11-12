@@ -10,9 +10,9 @@ function [r] = kpi_cp_upper(n, k, g)
     r = 0;
     r = 1;
     if ((n > 0) && (k <= 0))
-        h__659 = log((1 - g));
-        if ~isreal(h__659), h__659 = NaN; end
-        r = (1 - exp((h__659 / n)));
+        h__660 = log((1 - g));
+        if ~isreal(h__660), h__660 = NaN; end
+        r = (1 - exp((h__660 / n)));
     elseif (k < n)
         lo = 0;
         hi = 1;

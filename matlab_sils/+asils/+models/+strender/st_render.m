@@ -25,9 +25,9 @@ function [drawn, cr, cm, img, g, tx, ty, tk] = st_render(r_eh, cr, cm, nc, cam, 
     if ~isempty(l)
         img((l) + 1) = cam.bg;
     end
-    h__762 = 2;
-    if h__762 < 0, h__762 = NaN; else, h__762 = sqrt(h__762); end
-    cmin = cos((cam.fov * h__762));
+    h__763 = 2;
+    if h__763 < 0, h__763 = NaN; else, h__763 = sqrt(h__763); end
+    cmin = cos((cam.fov * h__763));
     s2 = ((2 * cam.psf_px) * cam.psf_px);
     drawn = 0;
     for k = (0):((nc) - 1)
@@ -36,9 +36,9 @@ function [drawn, cr, cm, img, g, tx, ty, tk] = st_render(r_eh, cr, cm, nc, cam, 
             x = (((cam.f * v(1)) / v(3)) + cam.c);
             y = (((cam.f * v(2)) / v(3)) + cam.c);
             if (~((((x < 6) || (y < 6)) || (x > (nf - 5))) || (y > (nf - 5))))
-                h__763 = (10)^(((-(0.4)) * (cm((k) + 1) - 6)));
-                if ~isreal(h__763), h__763 = NaN; end
-                fl = (cam.flux0 * h__763);
+                h__764 = (10)^(((-(0.4)) * (cm((k) + 1) - 6)));
+                if ~isreal(h__764), h__764 = NaN; end
+                fl = (cam.flux0 * h__764);
                 rx = round(x);
                 ry = round(y);
                 w = zeros(9, 9);
@@ -73,18 +73,18 @@ function [drawn, cr, cm, img, g, tx, ty, tk] = st_render(r_eh, cr, cm, nc, cam, 
     if noisy
         for l3 = (0):((np) - 1)
             v3 = img((l3) + 1);
-            [t__699, t__700] = asils.pc.stream_normal(g);
-            n1 = t__699;
-            g = t__700;
             [t__701, t__702] = asils.pc.stream_normal(g);
-            n2 = t__701;
+            n1 = t__701;
             g = t__702;
-            h__764 = v3;
-            h__765 = 0;
-            if h__765 > h__764, h__764 = h__765; end
-            h__766 = h__764;
-            if h__766 < 0, h__766 = NaN; else, h__766 = sqrt(h__766); end
-            img((l3) + 1) = ((v3 + (h__766 * n1)) + (cam.read_noise * n2));
+            [t__703, t__704] = asils.pc.stream_normal(g);
+            n2 = t__703;
+            g = t__704;
+            h__765 = v3;
+            h__766 = 0;
+            if h__766 > h__765, h__765 = h__766; end
+            h__767 = h__765;
+            if h__767 < 0, h__767 = NaN; else, h__767 = sqrt(h__767); end
+            img((l3) + 1) = ((v3 + (h__767 * n1)) + (cam.read_noise * n2));
         end
     end
 end

@@ -2023,14 +2023,14 @@ function y = call(name, x)
             [o1] = asils.models.timescales.mjd2jd(x(1));
             y = [double(o1)];
         case 'timescales::tai_minus_utc'
-            [o1] = asils.models.timescales.tai_minus_utc(x(1));
-            y = [double(o1)];
+            [o1, o2] = asils.models.timescales.tai_minus_utc(x(1));
+            y = [double(o1); double(o2)];
         case 'timescales::utc2tai'
-            [o1] = asils.models.timescales.utc2tai(x(1));
-            y = [double(o1)];
+            [o1, o2] = asils.models.timescales.utc2tai(x(1));
+            y = [double(o1); double(o2)];
         case 'timescales::tai2utc'
-            [o1] = asils.models.timescales.tai2utc(x(1));
-            y = [double(o1)];
+            [o1, o2] = asils.models.timescales.tai2utc(x(1));
+            y = [double(o1); double(o2)];
         case 'timescales::tai2tt'
             [o1] = asils.models.timescales.tai2tt(x(1));
             y = [double(o1)];
@@ -2038,17 +2038,17 @@ function y = call(name, x)
             [o1] = asils.models.timescales.tt2tai(x(1));
             y = [double(o1)];
         case 'timescales::tt2utc'
-            [o1] = asils.models.timescales.tt2utc(x(1));
-            y = [double(o1)];
+            [o1, o2] = asils.models.timescales.tt2utc(x(1));
+            y = [double(o1); double(o2)];
         case 'timescales::utc2tt'
-            [o1] = asils.models.timescales.utc2tt(x(1));
-            y = [double(o1)];
+            [o1, o2] = asils.models.timescales.utc2tt(x(1));
+            y = [double(o1); double(o2)];
         case 'timescales::tt2tdb'
             [o1] = asils.models.timescales.tt2tdb(x(1));
             y = [double(o1)];
         case 'timescales::utc2tdb'
-            [o1] = asils.models.timescales.utc2tdb(x(1));
-            y = [double(o1)];
+            [o1, o2] = asils.models.timescales.utc2tdb(x(1));
+            y = [double(o1); double(o2)];
         case 'timescales::utc2ut1'
             [o1] = asils.models.timescales.utc2ut1(x(1), x(2));
             y = [double(o1)];
@@ -2056,8 +2056,8 @@ function y = call(name, x)
             [o1] = asils.models.timescales.tai2gps(x(1));
             y = [double(o1)];
         case 'timescales::utc2gps'
-            [o1] = asils.models.timescales.utc2gps(x(1));
-            y = [double(o1)];
+            [o1, o2] = asils.models.timescales.utc2gps(x(1));
+            y = [double(o1); double(o2)];
         case 'timescales::tt2jc'
             [o1] = asils.models.timescales.tt2jc(x(1));
             y = [double(o1)];
@@ -2075,7 +2075,7 @@ function y = call(name, x)
             y = [double(o1)];
         case 'timescales::convert_utc'
             [o1] = asils.models.timescales.convert_utc(x(1), x(2), x(3), x(4), x(5), x(6), x(7));
-            y = [[double(o1.utc_jd); double(o1.tai_jd); double(o1.tt_jd); double(o1.tdb_jd); double(o1.ut1_jd); double(o1.gps_jd); double(o1.utc_mjd); double(o1.tt_mjd); double(o1.tdb_mjd); double(o1.leap); double(o1.dut1); double(o1.t_tt); double(o1.j2000_tt_sec); double(o1.gps_week); double(o1.gps_sow); double(o1.gmst_rad); double(o1.doy)]];
+            y = [[double(o1.utc_jd); double(o1.tai_jd); double(o1.tt_jd); double(o1.tdb_jd); double(o1.ut1_jd); double(o1.gps_jd); double(o1.utc_mjd); double(o1.tt_mjd); double(o1.tdb_mjd); double(o1.leap); double(o1.leap_status); double(o1.dut1); double(o1.t_tt); double(o1.j2000_tt_sec); double(o1.gps_week); double(o1.gps_sow); double(o1.gmst_rad); double(o1.doy)]];
         case 'timescales::is_leap_year'
             [o1] = asils.models.timescales.is_leap_year(x(1));
             y = [double(o1)];

@@ -22,31 +22,31 @@ function [sig_sun, sig_mag, mag_err] = fsw_mekf_sigmas(sun_fitted, sun_noise, su
     if sun_fitted
         hs = asils.models.fswsens.fsw_hyp(sun_noise, sun_bias_sigma);
         if (hs > 0.005)
-            h__572 = hs;
+            h__573 = hs;
         else
-            h__572 = 0.005;
+            h__573 = 0.005;
         end
-        sig_sun = h__572;
+        sig_sun = h__573;
     else
         ca = (0.5 * css_albedo);
         if (ca > 0.1)
-            h__573 = ca;
+            h__574 = ca;
         else
-            h__573 = 0.1;
+            h__574 = 0.1;
         end
-        sig_sun = h__573;
+        sig_sun = h__574;
     end
     hm = asils.models.fswsens.fsw_hyp(mag_misalign, mag_sf_sigma);
     if (hm > 0.01)
-        h__574 = hm;
+        h__575 = hm;
     else
-        h__574 = 0.01;
+        h__575 = 0.01;
     end
-    sig_mag = h__574;
+    sig_mag = h__575;
     b = asils.models.fswsens.fsw_or_zero(mag_bias);
     bs = asils.models.fswsens.fsw_or_zero(mag_bias_sigma);
     nz = asils.models.fswsens.fsw_or_zero(mag_noise);
-    h__575 = (((b * b) + (3 * (bs * bs))) + (3 * (nz * nz)));
-    if h__575 < 0, h__575 = NaN; else, h__575 = sqrt(h__575); end
-    mag_err = h__575;
+    h__576 = (((b * b) + (3 * (bs * bs))) + (3 * (nz * nz)));
+    if h__576 < 0, h__576 = NaN; else, h__576 = sqrt(h__576); end
+    mag_err = h__576;
 end

@@ -11,6 +11,7 @@ pub mod dtm2020coeffs;
 pub mod dtm2020res;
 pub mod earthframes;
 pub mod eop;
+pub mod eopsnapshot;
 pub mod erp;
 pub mod expatmos;
 pub mod forcemodel;

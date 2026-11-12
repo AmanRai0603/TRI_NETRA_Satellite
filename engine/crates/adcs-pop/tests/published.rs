@@ -97,6 +97,6 @@ fn calendar_and_leap_seconds_cal2jd_dat() {
     let (djm0, djm) = cal2jd_sofa(2003.0, 6.0, 1.0);
     assert_eq!((djm0, djm), (2400000.5, 52791.0), "eraCal2jd");
     for (y, m, d, want) in [(2003.0, 6.0, 1.0, 32.0), (2008.0, 1.0, 17.0, 33.0), (2017.0, 9.0, 1.0, 37.0)] {
-        assert_eq!(time::tai_minus_utc(time::cal2jd(y, m, d, 0.0, 0.0, 0.0)), want, "eraDat {y}-{m}-{d}");
+        assert_eq!(time::tai_minus_utc(time::cal2jd(y, m, d, 0.0, 0.0, 0.0)), (want, 0), "eraDat {y}-{m}-{d}");
     }
 }

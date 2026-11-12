@@ -17,17 +17,17 @@ function [v] = datevec(date)
         m = (m - 12);
     end
     fracd = (date - floor(date));
-    h__545 = ((2.220446049250313e-16 * 86400) * date);
-    if h__545 < 0, h__545 = -h__545; elseif h__545 == 0, h__545 = 0; end
-    tmps = h__545;
+    h__546 = ((2.220446049250313e-16 * 86400) * date);
+    if h__546 < 0, h__546 = -h__546; elseif h__546 == 0, h__546 = 0; end
+    tmps = h__546;
     if (tmps == 0)
         tmps = 1;
     end
-    h__546 = log2(tmps);
-    if ~isreal(h__546), h__546 = NaN; end
-    h__547 = (2)^(floor((-(h__546))));
+    h__547 = log2(tmps);
     if ~isreal(h__547), h__547 = NaN; end
-    srnd = h__547;
+    h__548 = (2)^(floor((-(h__547))));
+    if ~isreal(h__548), h__548 = NaN; end
+    srnd = h__548;
     s = (round(((86400 * fracd) * srnd)) / srnd);
     h = floor((s / 3600));
     s = (s - (3600 * h));

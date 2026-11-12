@@ -82,14 +82,14 @@ pub fn fsw_star_tracker(nh: i64, bs: [[f64; 3]; 2], noise_cross: f64, noise_roll
     let mut st_latency: f64 = 0.0;
     st_bs = [[0.0; 3]; 2];
     {
-        let __end25: i64 = crate::gen::fswsens::FSW_NH;
+        let __end26: i64 = crate::gen::fswsens::FSW_NH;
         let mut h: i64 = 0;
-        while h < __end25 {
+        while h < __end26 {
             if (h < nh) {
                 {
-                    let __end26: i64 = 3;
+                    let __end27: i64 = 3;
                     let mut k: i64 = 0;
-                    while k < __end26 {
+                    while k < __end27 {
                         st_bs[(h) as usize][(k) as usize] = bs[(h) as usize][(k) as usize];
                         k += 1;
                     }

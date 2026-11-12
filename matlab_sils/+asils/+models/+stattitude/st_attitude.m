@@ -19,8 +19,8 @@ function [q, ok, id] = st_attitude(b, rs, n, id, tol)
         if (~done)
             k = zeros(32, 1);
             nk = 0;
-            t__609 = ((0):((n) - 1)).';
-            for p = t__609(logical((id((t__609) + 1) >= 0))).'
+            t__611 = ((0):((n) - 1)).';
+            for p = t__611(logical((id((t__611) + 1) >= 0))).'
                 k((nk) + 1) = p;
                 nk = (nk + 1);
             end
@@ -38,16 +38,16 @@ function [q, ok, id] = st_attitude(b, rs, n, id, tol)
                 rm = (-(Inf));
                 j = 0;
                 for i = (0):((nk) - 1)
-                    h__706 = [a(1, 1)*rr((i) + 1, 1) + a(1, 2)*rr((i) + 1, 2) + a(1, 3)*rr((i) + 1, 3); a(2, 1)*rr((i) + 1, 1) + a(2, 2)*rr((i) + 1, 2) + a(2, 3)*rr((i) + 1, 3); a(3, 1)*rr((i) + 1, 1) + a(3, 2)*rr((i) + 1, 2) + a(3, 3)*rr((i) + 1, 3)];
-                    c = (bb((i) + 1, 1)*h__706(1) + bb((i) + 1, 2)*h__706(2) + bb((i) + 1, 3)*h__706(3));
+                    h__707 = [a(1, 1)*rr((i) + 1, 1) + a(1, 2)*rr((i) + 1, 2) + a(1, 3)*rr((i) + 1, 3); a(2, 1)*rr((i) + 1, 1) + a(2, 2)*rr((i) + 1, 2) + a(2, 3)*rr((i) + 1, 3); a(3, 1)*rr((i) + 1, 1) + a(3, 2)*rr((i) + 1, 2) + a(3, 3)*rr((i) + 1, 3)];
+                    c = (bb((i) + 1, 1)*h__707(1) + bb((i) + 1, 2)*h__707(2) + bb((i) + 1, 3)*h__707(3));
                     if (c < 1)
-                        h__707 = c;
+                        h__708 = c;
                     else
-                        h__707 = 1;
+                        h__708 = 1;
                     end
-                    h__708 = acos(h__707);
-                    if ~isreal(h__708), h__708 = NaN; end
-                    res = h__708;
+                    h__709 = acos(h__708);
+                    if ~isreal(h__709), h__709 = NaN; end
+                    res = h__709;
                     if (res > rm)
                         rm = res;
                         j = i;

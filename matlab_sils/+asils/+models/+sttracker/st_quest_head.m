@@ -27,8 +27,8 @@ function [q, ok, cr, cm, g] = st_quest_head(rold, dq, bs, fov, noise_cross, smea
         smag((i) + 1) = 1000000000;
     end
     ns = 0;
-    t__712 = ((0):((4000) - 1)).';
-    for s = t__712(logical((~((bs_eci(1) .* cr((t__712) + 1, 1) + bs_eci(2) .* cr((t__712) + 1, 2) + bs_eci(3) .* cr((t__712) + 1, 3)) <= cf)))).'
+    t__714 = ((0):((4000) - 1)).';
+    for s = t__714(logical((~((bs_eci(1) .* cr((t__714) + 1, 1) + bs_eci(2) .* cr((t__714) + 1, 2) + bs_eci(3) .* cr((t__714) + 1, 3)) <= cf)))).'
         if (ns < 12)
             sel((ns) + 1) = s;
             smag((ns) + 1) = cm((s) + 1);
@@ -50,17 +50,17 @@ function [q, ok, cr, cm, g] = st_quest_head(rold, dq, bs, fov, noise_cross, smea
     ok = (ns >= 3);
     if ok
         rm = asils.pc.mm((asils.models.math.dcm(dq)).', rold);
-        h__769 = 8;
-        if h__769 < 0, h__769 = NaN; else, h__769 = sqrt(h__769); end
-        sc = ((noise_cross * smear) * h__769);
+        h__770 = 8;
+        if h__770 < 0, h__770 = NaN; else, h__770 = sqrt(h__770); end
+        sc = ((noise_cross * smear) * h__770);
         bm = zeros(32, 3);
         rr = zeros(32, 3);
         for i = (0):((ns) - 1)
             r = (cr((sel((i) + 1)) + 1, :)).';
             v = [rm(1, 1)*r(1) + rm(1, 2)*r(2) + rm(1, 3)*r(3); rm(2, 1)*r(1) + rm(2, 2)*r(2) + rm(2, 3)*r(3); rm(3, 1)*r(1) + rm(3, 2)*r(2) + rm(3, 3)*r(3)];
-            [t__713, t__714] = asils.pc.stream_normal3(g);
-            n0 = t__713;
-            g = t__714;
+            [t__715, t__716] = asils.pc.stream_normal3(g);
+            n0 = t__715;
+            g = t__716;
             e0 = (n0 * sc);
             e = (e0 - (v * (v(1)*e0(1) + v(2)*e0(2) + v(3)*e0(3))));
             bm((i) + 1, :) = asils.models.facets.unit_or_zero((v + e)).';

@@ -29,9 +29,9 @@ pub fn maxabs3(a: [f64; 3]) -> f64 {
 pub fn mat3t_vec(m: [[f64; 3]; 3], v: [f64; 3]) -> [f64; 3] {
     let mut r: [f64; 3] = [0.0; 3];
     {
-        let __end27: i64 = 3;
+        let __end28: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end27 {
+        while i < __end28 {
             r[(i) as usize] = (((m[0][(i) as usize] * v[0]) + (m[1][(i) as usize] * v[1])) + (m[2][(i) as usize] * v[2]));
             i += 1;
         }
@@ -87,18 +87,18 @@ pub fn pinv_rows(a: [[f64; 8]; 3], n: i64) -> [[f64; 3]; 8] {
     let mut p: [[f64; 3]; 8] = [[0.0; 3]; 8];
     let mut s: [[f64; 3]; 3] = [[0.0; 3]; 3];
     {
-        let __end28: i64 = 3;
+        let __end29: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end28 {
+        while i < __end29 {
             {
-                let __end29: i64 = 3;
+                let __end30: i64 = 3;
                 let mut j: i64 = 0;
-                while j < __end29 {
+                while j < __end30 {
                     s[(i) as usize][(j) as usize] = 0.0;
                     {
-                        let __end30: i64 = n;
+                        let __end31: i64 = n;
                         let mut k: i64 = 0;
-                        while k < __end30 {
+                        while k < __end31 {
                             s[(i) as usize][(j) as usize] = (s[(i) as usize][(j) as usize] + (a[(i) as usize][(k) as usize] * a[(j) as usize][(k) as usize]));
                             k += 1;
                         }
@@ -112,22 +112,22 @@ pub fn pinv_rows(a: [[f64; 8]; 3], n: i64) -> [[f64; 3]; 8] {
     let mut tr: f64 = (((s[0][0] + s[1][1]) + s[2][2]) / 3.0);
     let mut eps: f64 = (1.0e-12 * (if (tr > 1.0e-30) { tr } else { 1.0e-30 }));
     {
-        let __end31: i64 = 3;
+        let __end32: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end31 {
+        while i < __end32 {
             s[(i) as usize][(i) as usize] = (s[(i) as usize][(i) as usize] + eps);
             i += 1;
         }
     }
     let (mut si, mut ok) = crate::gen::math::inv3(s);
     {
-        let __end32: i64 = n;
+        let __end33: i64 = n;
         let mut k: i64 = 0;
-        while k < __end32 {
+        while k < __end33 {
             {
-                let __end33: i64 = 3;
+                let __end34: i64 = 3;
                 let mut j: i64 = 0;
-                while j < __end33 {
+                while j < __end34 {
                     p[(k) as usize][(j) as usize] = (((a[0][(k) as usize] * si[0][(j) as usize]) + (a[1][(k) as usize] * si[1][(j) as usize])) + (a[2][(k) as usize] * si[2][(j) as usize]));
                     j += 1;
                 }
@@ -152,13 +152,13 @@ pub fn jacobi_eig4(k: [[f64; 4]; 4]) -> ([f64; 4], [[f64; 4]; 4]) {
     let mut pp: [i64; 6] = [0, 0, 0, 1, 1, 2];
     let mut qq: [i64; 6] = [1, 2, 3, 2, 3, 3];
     {
-        let __end34: i64 = 12;
+        let __end35: i64 = 12;
         let mut sweep: i64 = 0;
-        while sweep < __end34 {
+        while sweep < __end35 {
             {
-                let __end35: i64 = 6;
+                let __end36: i64 = 6;
                 let mut pi_: i64 = 0;
-                while pi_ < __end35 {
+                while pi_ < __end36 {
                     let mut p: i64 = pp[(pi_) as usize];
                     let mut q: i64 = qq[(pi_) as usize];
                     let mut apq: f64 = a[(p) as usize][(q) as usize];
@@ -171,9 +171,9 @@ pub fn jacobi_eig4(k: [[f64; 4]; 4]) -> ([f64; 4], [[f64; 4]; 4]) {
                         let mut c: f64 = (1.0 / f64::sqrt(((t * t) + 1.0)));
                         let mut sn: f64 = (t * c);
                         {
-                            let __end36: i64 = 4;
+                            let __end37: i64 = 4;
                             let mut i: i64 = 0;
-                            while i < __end36 {
+                            while i < __end37 {
                                 let mut aip: f64 = a[(i) as usize][(p) as usize];
                                 let mut aiq: f64 = a[(i) as usize][(q) as usize];
                                 a[(i) as usize][(p) as usize] = ((c * aip) - (sn * aiq));
@@ -182,9 +182,9 @@ pub fn jacobi_eig4(k: [[f64; 4]; 4]) -> ([f64; 4], [[f64; 4]; 4]) {
                             }
                         }
                         {
-                            let __end37: i64 = 4;
+                            let __end38: i64 = 4;
                             let mut i: i64 = 0;
-                            while i < __end37 {
+                            while i < __end38 {
                                 let mut api: f64 = a[(p) as usize][(i) as usize];
                                 let mut aqi: f64 = a[(q) as usize][(i) as usize];
                                 a[(p) as usize][(i) as usize] = ((c * api) - (sn * aqi));
@@ -193,9 +193,9 @@ pub fn jacobi_eig4(k: [[f64; 4]; 4]) -> ([f64; 4], [[f64; 4]; 4]) {
                             }
                         }
                         {
-                            let __end38: i64 = 4;
+                            let __end39: i64 = 4;
                             let mut i: i64 = 0;
-                            while i < __end38 {
+                            while i < __end39 {
                                 let mut vip: f64 = v[(i) as usize][(p) as usize];
                                 let mut viq: f64 = v[(i) as usize][(q) as usize];
                                 v[(i) as usize][(p) as usize] = ((c * vip) - (sn * viq));
@@ -211,9 +211,9 @@ pub fn jacobi_eig4(k: [[f64; 4]; 4]) -> ([f64; 4], [[f64; 4]; 4]) {
         }
     }
     {
-        let __end39: i64 = 4;
+        let __end40: i64 = 4;
         let mut i: i64 = 0;
-        while i < __end39 {
+        while i < __end40 {
             lam[(i) as usize] = a[(i) as usize][(i) as usize];
             i += 1;
         }

@@ -12,6 +12,7 @@ function s = Times_zero()
     s.tt_mjd = 0;
     s.tdb_mjd = 0;
     s.leap = 0;
+    s.leap_status = 0;
     s.dut1 = 0;
     s.t_tt = 0;
     s.j2000_tt_sec = 0;

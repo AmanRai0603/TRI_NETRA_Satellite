@@ -9,27 +9,27 @@ function [lo, pa] = st_first_not_below(pa, np, x)
     lo = 0;
     lo = 0;
     hi = np;
-    n__646 = 64; k__645 = 0;
+    n__648 = 64; k__647 = 0;
     while true
         if (lo < hi)
             mid = (lo + fix(((hi - lo)) / (2)));
             left = (pa((mid) + 1) < x);
             if left
-                h__739 = (mid + 1);
+                h__740 = (mid + 1);
             else
-                h__739 = lo;
+                h__740 = lo;
             end
-            lo = h__739;
+            lo = h__740;
             if left
-                h__740 = hi;
+                h__741 = hi;
             else
-                h__740 = mid;
+                h__741 = mid;
             end
-            hi = h__740;
+            hi = h__741;
         end
-        k__645 = k__645 + 1;
+        k__647 = k__647 + 1;
         if (~(lo < hi)), break; end
-        if k__645 >= n__646
+        if k__647 >= n__648
             break;
         end
     end

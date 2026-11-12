@@ -49,6 +49,9 @@ pub struct Eop {
     pub finals: EopTable,
     /// build B/C table: EOP 20 C04 spliced with the finals tail (None if no C04 file).
     pub c04: Option<EopTable>,
+    /// the leap-second table's validity end, MJD (UTC) of the day its file expires (`Leap_Second.dat`'s header); None when
+    /// the set states none (a table read from files, as the tests do)
+    pub leap_expiry_mjd: Option<f64>,
 }
 
 /// Output of `eop_interp(mjd, E)`: `[dUT1, xp, yp, dX, dY, dAT, flag]`.
@@ -68,6 +71,8 @@ pub struct EopAt {
     pub dat: f64,
     /// 1 if the MJD is outside the table (extrapolated; MATLAB warns), else 0
     pub flag: i32,
+    /// 1 if the MJD is after the leap-second table's expiry (the last row held), else 0 (S12.4a, P9)
+    pub leap_status: i32,
 }
 
 /// Options that change how the files are parsed (`opt.c04_native_dxdy`).
@@ -112,7 +117,7 @@ impl Eop {
             }
             None => None,
         };
-        Ok(Eop { finals: finalize_eop(fin, &ls), c04: c04t, leap: ls })
+        Ok(Eop { finals: finalize_eop(fin, &ls), c04: c04t, leap: ls, leap_expiry_mjd: None })
     }
 
     /// `eop_interp(mjd, E)` of the given build: A = finals, linear (`interp1`
@@ -120,12 +125,42 @@ impl Eop {
     /// with RG_ZONT2 regularisation and the sub-daily tidal model always on.
     /// `tidal` is `opt.tidal` of builds A/B (ignored by C, which always applies it).
     pub fn at(&self, mjd_utc: f64, build: Build, tidal: bool) -> Result<EopAt, FrameError> {
-        match build {
+        let mut r = match build {
             Build::A => Ok(interp_linear(&self.finals, &self.leap, mjd_utc, tidal)),
             Build::B => self.c04.as_ref().map(|e| interp_linear(e, &self.leap, mjd_utc, tidal)).ok_or(FrameError::NoC04),
             Build::C => self.c04.as_ref().map(|e| interp_c(e, &self.leap, mjd_utc)).ok_or(FrameError::NoC04),
             Build::Gmst => Err(FrameError::GmstHasNoEop),
+        }?;
+        r.leap_status = self.leap_status(mjd_utc);
+        Ok(r)
+    }
+
+    /// 1 when the UTC MJD is after the day the leap-second table expires (the last row is then held), else 0.
+    pub fn leap_status(&self, mjd_utc: f64) -> i32 {
+        match self.leap_expiry_mjd { Some(e) if mjd_utc > e => 1, _ => 0 }
+    }
+
+    /// The snapshot of the design (env_eop_snapshot, DR-env-002): the finals2000A.all rows and Leap_Second.dat's rows and
+    /// expiry the design holds, as its generated tables give them (`gen::eopsnapshot`), taken as `parse_finals` takes the
+    /// file: Bulletin B's pole, UT1 - UTC and celestial pole offsets where the day has them, else Bulletin A's (the offsets
+    /// from the A table by day, 0 where it has none), dX and dY from milliarcseconds to arcseconds. Its build B/C table is
+    /// absent (the snapshot has no EOP 20 C04): only build A flies it.
+    pub fn from_snapshot() -> Eop {
+        use crate::gen::eopsnapshot as s;
+        let leap: Vec<[f64; 2]> = s::DATA_LEAP_DAT.iter().map(|r| [r[0], r[4]]).collect();
+        let nut = |mjd: f64| s::DATA_FINALS_A_NUT.iter().find(|r| r[0] == mjd).map(|r| (r[2], r[3]));
+        let mut e = EopTable { source: "finals2000A.all (env_eop_snapshot)".into(), ..Default::default() };
+        for a in s::DATA_FINALS_A_PM_UT1.iter() {
+            let mjd = a[0];
+            let a_nut = nut(mjd);
+            let (xp, yp, du, dx, dy) = match s::DATA_FINALS_B.iter().find(|b| b[0] == mjd) {
+                Some(b) => (b[1], b[2], b[3], b[4], b[5]),
+                None => (a[2], a[3], a[5], a_nut.map_or(0.0, |n| n.0), a_nut.map_or(0.0, |n| n.1)),
+            };
+            e.mjd.push(mjd); e.xp.push(xp); e.yp.push(yp); e.dut1.push(du);
+            e.dx.push(dx / 1000.0); e.dy.push(dy / 1000.0);
         }
+        Eop { finals: finalize_eop(e, &leap), c04: None, leap, leap_expiry_mjd: Some(s::DATA_LEAP_DAT_EXPIRY[3]) }
     }
 
     /// `leap_at(E.leap, mjd)`: TAI-UTC from the leap file at a UTC MJD.
@@ -411,7 +446,7 @@ fn table_cols(e: &EopTable) -> [Vec<f64>; 6] {
 }
 
 fn eop_at(r: (f64, f64, f64, f64, f64, f64, i64)) -> EopAt {
-    EopAt { dut1: r.0, xp: r.1, yp: r.2, dx: r.3, dy: r.4, dat: r.5, flag: r.6 as i32 }
+    EopAt { dut1: r.0, xp: r.1, yp: r.2, dx: r.3, dy: r.4, dat: r.5, flag: r.6 as i32, leap_status: 0 }
 }
 
 /// `eop_interp` of builds A/B (linear interp1 with extrapolation, optional tidal): env's `eop::eop_linear`.

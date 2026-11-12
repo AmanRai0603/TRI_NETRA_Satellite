@@ -110,8 +110,8 @@ fn convert_utc_matches_matlab() {
         let jc = time::jd2cal(t.tt_jd);
         let mj = arr(&c["jd2cal_tt"]);
         for k in 0..6 { assert!((jc[k] - mj[k]).abs() <= 1e-9, "jd2cal {i:?}: {jc:?} vs {mj:?}"); }
-        assert_eq!(time::tt2utc(t.tt_jd), f(&c["tt2utc"]));
-        assert_eq!(time::tai2utc(t.tai_jd), f(&c["tai2utc"]));
+        assert_eq!(time::tt2utc(t.tt_jd).0, f(&c["tt2utc"]));
+        assert_eq!(time::tai2utc(t.tai_jd).0, f(&c["tai2utc"]));
     }
     eprintln!("convert_utc: {} cases, max |dJD| = {worst_jd:e} d, max |d sec-fields| = {worst_s:e} s", cases.len());
 }
@@ -291,4 +291,79 @@ fn world_on_a_cio_build_without_eop_is_refused() {
         let r = World::new([2027., 1., 1., 6., 0., 0.], b, FrameOpt::default(), adcs_pop::gravity::Field::default_field(), Forces::sils(1.3), sc, None, None);
         assert_eq!(r.err(), Some(adcs_pop::PopError::Frame(frames::FrameError::NoEop)), "{b:?}");
     }
+}
+
+// ---- S12.4a, P9 (DR-env-002): the leap-second table's validity end, the EOP flag, the refusal of a published-vector case ----
+
+/// The leap-second table carries its validity end (Leap_Second.dat's expiry, 28 June 2027, MJD 61584): past it
+/// `tai_minus_utc` says so with a status, and holds the last row; it did not (37 s, silently, in 2036).
+#[test]
+fn tai_minus_utc_says_when_it_is_beyond_the_tables_validity() {
+    let jd = |y, m, d| time::cal2jd(y, m, d, 0.0, 0.0, 0.0);
+    assert_eq!(time::tai_minus_utc(jd(2027.0, 6.0, 27.0)), (37.0, 0), "the day before the expiry");
+    assert_eq!(time::tai_minus_utc(jd(2027.0, 6.0, 28.0)), (37.0, 0), "0 h UTC of the expiry day itself");
+    assert_eq!(time::tai_minus_utc(jd(2027.0, 6.0, 28.0) + 1e-3), (37.0, 1), "after it");
+    assert_eq!(time::tai_minus_utc(jd(2036.0, 1.0, 1.0)), (37.0, 1), "2036-01-01 is beyond validity");
+    // every function that looks the leap up carries the status, and convert_utc's Times has it
+    assert_eq!(time::utc2tai(jd(2036.0, 1.0, 1.0)).1, 1);
+    assert_eq!(time::tai2utc(jd(2036.0, 1.0, 1.0)).1, 1);
+    assert_eq!(time::utc2tdb(jd(2027.0, 1.0, 1.0)).1, 0);
+    assert_eq!(time::convert_utc(2036.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0).leap_status, 1);
+    assert_eq!(time::convert_utc(2027.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0).leap_status, 0);
+}
+
+/// The design's own tables agree on the validity end: the leap table's expiry is the stated env_leap_second_expiry_mjd
+/// and the EOP table's last day the stated env_eop_finals_expiry_mjd.
+#[test]
+fn the_snapshots_validity_ends_are_the_stated_nodes() {
+    let st: serde_json::Value = serde_json::from_slice(&std::fs::read(
+        std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../matlab_sils/data/stated.json")).unwrap()).unwrap();
+    let e = adcs_pop::eop::Eop::from_snapshot();
+    assert_eq!(e.leap_expiry_mjd, st["value"]["env_leap_second_expiry_mjd"].as_f64());
+    assert_eq!(e.finals.mjd.last().copied(), st["value"]["env_eop_finals_expiry_mjd"].as_f64());
+}
+
+/// The snapshot assembled from the design's tables is the table `parse_finals` reads from the committed file, row for row
+/// over the span, bit for bit (Bulletin B where the day has it, else A).
+#[test]
+fn eop_from_the_design_snapshot_is_what_the_file_reads() {
+    let dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("data/time_frames");
+    let f = adcs_pop::eop::parse_finals(&String::from_utf8_lossy(&std::fs::read(dir.join("finals2000A.all")).unwrap()));
+    let e = adcs_pop::eop::Eop::from_snapshot();
+    let k0 = f.mjd.iter().position(|&m| m == e.finals.mjd[0]).unwrap();
+    assert_eq!(e.finals.mjd.len(), f.mjd.len() - k0);
+    for (i, k) in (k0..f.mjd.len()).enumerate() {
+        assert_eq!((e.finals.mjd[i], e.finals.xp[i], e.finals.yp[i], e.finals.dut1[i], e.finals.dx[i], e.finals.dy[i]),
+                   (f.mjd[k], f.xp[k], f.yp[k], f.dut1[k], f.dx[k], f.dy[k]), "row {k}, MJD {}", f.mjd[k]);
+    }
+}
+
+/// A build-A frame past the EOP table's last day is extrapolated and says so (eop_flag 1), inside it is not (0); past the
+/// leap table's expiry leap_status is 1. A published-vector case (refuse_beyond_validity) is refused by name past either.
+#[test]
+fn build_a_records_eop_flag_and_a_published_vector_case_refuses() {
+    let opt = FrameOpt { eop: Some(adcs_pop::eop::Eop::from_snapshot()), ..Default::default() };
+    let at = |u: [f64; 6], o: &FrameOpt| frames::try_eci2ecef(u, Build::A, o);
+    let inside = at([2027., 1., 1., 6., 0., 0.], &opt).unwrap().2;
+    assert_eq!((inside.eop_flag, inside.leap_status), (0, 0));
+    let leap_only = at([2027., 8., 1., 0., 0., 0.], &opt).unwrap().2;          // after 28 June 2027, before the finals' MJD 61714
+    assert_eq!((leap_only.eop_flag, leap_only.leap_status), (0, 1));
+    let past = at([2028., 3., 1., 0., 0., 0.], &opt).unwrap().2;               // past MJD 61714 (November 2027)
+    assert_eq!((past.eop_flag, past.leap_status), (1, 1));
+    let strict = FrameOpt { refuse_beyond_validity: true, ..opt.clone() };
+    assert!(at([2027., 1., 1., 6., 0., 0.], &strict).is_ok());
+    assert_eq!(at([2027., 8., 1., 0., 0., 0.], &strict).err(), Some(frames::FrameError::BeyondValidity { eop_flag: 0, leap_status: 1 }));
+    assert_eq!(at([2028., 3., 1., 0., 0., 0.], &strict).err(), Some(frames::FrameError::BeyondValidity { eop_flag: 1, leap_status: 1 }));
+}
+
+/// A world records the validity at the end of its span: the run's header reads it.
+#[test]
+fn a_worlds_validity_at_the_end_of_a_run() {
+    use adcs_pop::accel::{Forces, Sc, World, Validity};
+    let sc = Sc { mass: 12.0, aref: 0.07, cd: Some(2.2), cr: Some(1.3), r_bi: adcs_pop::la::I3, srp_facets: vec![], drag_facets: None };
+    let opt = FrameOpt { eop: Some(adcs_pop::eop::Eop::from_snapshot()), ..Default::default() };
+    let w = World::new([2027., 6., 27., 12., 0., 0.], Build::A, opt, adcs_pop::gravity::Field::default_field(), Forces::sils(1.3), sc, None, None).unwrap();
+    assert_eq!(w.validity(0.0), Validity { eop_flag: 0, leap_status: 0 });
+    assert_eq!(w.validity(86400.0), Validity { eop_flag: 0, leap_status: 1 }, "a run that crosses the leap table's expiry");
+    assert_eq!(w.validity(200.0*86400.0), Validity { eop_flag: 1, leap_status: 1 });
 }

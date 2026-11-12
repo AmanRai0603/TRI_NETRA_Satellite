@@ -12,6 +12,7 @@ pub mod caltime;
 pub mod caseorbit;
 pub mod dtm2020;
 pub mod dtm2020coeffs;
+pub mod eopsnapshot;
 pub mod leapsec;
 pub mod orbitstart;
 pub mod timescales;

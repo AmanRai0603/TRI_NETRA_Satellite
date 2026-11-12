@@ -12,9 +12,9 @@ function [v, h, idx] = kpi_wheel_peak(h, nr, idx, ni)
     v = NaN;
     for i = (0):((ni) - 1)
         for r = (0):((nr) - 1)
-            h__636 = h((((idx((i) + 1) * nr) + r)) + 1);
-            if h__636 < 0, h__636 = -h__636; elseif h__636 == 0, h__636 = 0; end
-            v = asils.models.kpistats.kpi_max(v, h__636);
+            h__637 = h((((idx((i) + 1) * nr) + r)) + 1);
+            if h__637 < 0, h__637 = -h__637; elseif h__637 == 0, h__637 = 0; end
+            v = asils.models.kpistats.kpi_max(v, h__637);
         end
     end
 end

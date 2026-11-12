@@ -15,12 +15,12 @@ function [b] = igrf_ned(gh, lat, lon, alt_km, nmax0)
     bb = (a * (1 - f));
     ct = cos(((pi / 2) - lat));
     st = sin(((pi / 2) - lat));
-    h__595 = (((a * st) * (a * st)) + ((bb * ct) * (bb * ct)));
-    if h__595 < 0, h__595 = NaN; else, h__595 = sqrt(h__595); end
-    rho = h__595;
-    h__596 = (((alt_km * alt_km) + ((2 * alt_km) * rho)) + (((((((a * a) * a) * a) * st) * st) + (((((bb * bb) * bb) * bb) * ct) * ct)) / (rho * rho)));
+    h__596 = (((a * st) * (a * st)) + ((bb * ct) * (bb * ct)));
     if h__596 < 0, h__596 = NaN; else, h__596 = sqrt(h__596); end
-    r = h__596;
+    rho = h__596;
+    h__597 = (((alt_km * alt_km) + ((2 * alt_km) * rho)) + (((((((a * a) * a) * a) * st) * st) + (((((bb * bb) * bb) * bb) * ct) * ct)) / (rho * rho)));
+    if h__597 < 0, h__597 = NaN; else, h__597 = sqrt(h__597); end
+    r = h__597;
     cd = ((alt_km + rho) / r);
     sd = ((((((a * a) - (bb * bb)) / rho) * ct) * st) / r);
     oc = ct;
@@ -59,19 +59,19 @@ function [b] = igrf_ned(gh, lat, lon, alt_km, nmax0)
         if ((m < n) && (pi_ ~= 3))
             l1 = ((pi_ - n) - 1);
             l2 = (pi_ - (2 * n));
-            h__597 = ((n * n) - (m * m));
-            if h__597 < 0, h__597 = NaN; else, h__597 = sqrt(h__597); end
-            k1 = (((2 * n) - 1) / h__597);
-            h__598 = ((((n - 1) * (n - 1)) - (m * m)) / ((n * n) - (m * m)));
+            h__598 = ((n * n) - (m * m));
             if h__598 < 0, h__598 = NaN; else, h__598 = sqrt(h__598); end
-            k2 = h__598;
+            k1 = (((2 * n) - 1) / h__598);
+            h__599 = ((((n - 1) * (n - 1)) - (m * m)) / ((n * n) - (m * m)));
+            if h__599 < 0, h__599 = NaN; else, h__599 = sqrt(h__599); end
+            k2 = h__599;
             pp((ix) + 1) = (((k1 * ct) * pp((l1) + 1)) - (k2 * pp((l2) + 1)));
             dp((ix) + 1) = ((k1 * ((ct * dp((l1) + 1)) - (st * pp((l1) + 1)))) - (k2 * dp((l2) + 1)));
         elseif (pi_ ~= 3)
             ln = ((pi_ - n) - 2);
-            h__599 = (1 - (1 / (2 * m)));
-            if h__599 < 0, h__599 = NaN; else, h__599 = sqrt(h__599); end
-            kk = h__599;
+            h__600 = (1 - (1 / (2 * m)));
+            if h__600 < 0, h__600 = NaN; else, h__600 = sqrt(h__600); end
+            kk = h__600;
             pp((ix) + 1) = ((kk * st) * pp((ln) + 1));
             dp((ix) + 1) = (kk * ((st * dp((ln) + 1)) + (ct * pp((ln) + 1))));
         end

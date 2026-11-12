@@ -72,6 +72,43 @@ impl Truth {
         }
     }
     pub fn set_attitude(&mut self, r_bi: M3) { if let Truth::Pop(o) = self { o.set_attitude(r_bi); } }
+    /// What the run records of the Earth frame and of the data's validity at the end of its span (S12.4a, P9; DR-env-002):
+    /// the frame build, the EOP table's extrapolation flag, the leap-second table's status. None for the fast analytic orbit.
+    pub fn frame_record(&self, t_end: f64) -> Option<FrameRecord> {
+        match self {
+            Truth::Pop(o) => {
+                let w = &o.world;
+                let v = w.validity(t_end);
+                let u = adcs_pop::time::addsec(w.epoch, t_end);
+                let end_mjd = adcs_pop::time::convert_utc(u[0], u[1], u[2], u[3], u[4], u[5], 0.0).utc_mjd;
+                Some(FrameRecord { build: w.build, eop_flag: v.eop_flag, leap_status: v.leap_status, end_mjd,
+                    eop_valid_to_mjd: w.frame.eop.as_ref().and_then(|e| e.finals.mjd.last().copied()),
+                    leap_valid_to_mjd: adcs_pop::gen::eopsnapshot::DATA_LEAP_DAT_EXPIRY[3] })
+            }
+            Truth::Fast(..) => None,
+        }
+    }
+}
+
+/// The Earth frame a run flew and whether its data was valid to the end of the run (the manifest's `frame`).
+#[derive(Clone, Debug)]
+pub struct FrameRecord { pub build: adcs_pop::frames::Build, pub eop_flag: i32, pub leap_status: i32, pub end_mjd: f64,
+    pub eop_valid_to_mjd: Option<f64>, pub leap_valid_to_mjd: f64 }
+impl FrameRecord {
+    /// A run past the data's validity warns (DR-env-002); it is not refused: the header records it.
+    pub fn warning(&self) -> Option<String> {
+        if self.eop_flag == 0 && self.leap_status == 0 { return None; }
+        Some(format!("the run ends at MJD {:.3}, beyond the EOP and leap-second snapshot's validity ({}{}): recorded in the manifest (frame.eop_flag = {}, frame.leap_status = {})",
+            self.end_mjd,
+            if self.eop_flag == 1 { format!("the EOP table is extrapolated past MJD {}", self.eop_valid_to_mjd.unwrap_or(f64::NAN)) } else { String::new() },
+            if self.leap_status == 1 { format!("{}the leap-second table expired at MJD {}", if self.eop_flag == 1 { "; " } else { "" }, self.leap_valid_to_mjd) } else { String::new() },
+            self.eop_flag, self.leap_status))
+    }
+    pub fn json(&self) -> serde_json::Value {
+        serde_json::json!({"build": format!("{:?}", self.build), "eop_flag": self.eop_flag, "leap_status": self.leap_status, "end_mjd_utc": self.end_mjd,
+            "eop_valid_to_mjd": self.eop_valid_to_mjd, "leap_valid_to_mjd": self.leap_valid_to_mjd,
+            "meaning": "eop_flag 1: the EOP table is extrapolated at the end of the run; leap_status 1: the leap-second table has expired (its last row held)"})
+    }
 }
 
 /// One recorded sample (the channels of asils.rec.write).
@@ -91,7 +128,7 @@ pub struct Row {
 #[derive(Clone, Debug, Default)]
 pub struct Ledger { pub fine_ticks: u64, pub fine_ran: u64, pub date_err_max_s: f64, /** for each instant of the flight software's schedule, how often its time passed it */ pub sched_cross: Vec<u64> }
 
-pub struct Record { pub ledger: Ledger, pub rows: Vec<Row>, pub nr: usize, pub ng: usize, pub raan_rad: f64, pub mode_log: Vec<(f64, String)>, pub wall_s: f64, pub fsw_build: String, pub fsw_impl: Impl,
+pub struct Record { pub ledger: Ledger, pub rows: Vec<Row>, pub nr: usize, pub ng: usize, pub raan_rad: f64, pub mode_log: Vec<(f64, String)>, pub wall_s: f64, pub fsw_build: String, pub fsw_impl: Impl, /** the Earth frame and the data's validity at the end of the run */ pub frame: Option<FrameRecord>,
     pub oils: Option<OilsStats> }
 
 pub struct Opts { pub fsw: Impl, pub quiet: bool, /// pace ticks to wall-clock time (OILS / HILS with a real OBC)
@@ -623,5 +660,7 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
                 crate::config::MODES.get(mode as usize).unwrap_or(&"?"), norm(&x.w).to_degrees(), wall.elapsed().as_secs_f64());
         }
     }
-    Ok(Record { ledger, rows, nr, ng, raan_rad: raan, mode_log: log, wall_s: wall.elapsed().as_secs_f64(), fsw_build, fsw_impl: o.fsw.clone(), oils })
+    let frame = orb.frame_record(c.duration_s);
+    if let (Some(w), false) = (frame.as_ref().and_then(|f| f.warning()), o.quiet) { eprintln!("warning: {w}"); }
+    Ok(Record { ledger, rows, nr, ng, raan_rad: raan, mode_log: log, wall_s: wall.elapsed().as_secs_f64(), fsw_build, fsw_impl: o.fsw.clone(), frame, oils })
 }

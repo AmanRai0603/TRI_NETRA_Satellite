@@ -213,6 +213,11 @@ function rec = run(scenarioId, caseFile, varargin)
     rec.ledger = ledger;
     rec.P = P; rec.modes = modes; rec.mission_modes = MT.mission; rec.mode_log = log;
     rec.orbit = struct('raan_rad', O.raan_rad, 'inc_rad', O.inc_rad, 'a_m', O.a_m);
+    rec.frame = asils.orbit.frame_record(O, P.sim.duration_s);
+    if (rec.frame.eop_flag ~= 0 || rec.frame.leap_status ~= 0) && ~o.quiet
+        fprintf('warning: the run ends at MJD %.3f, beyond the EOP and leap-second snapshot''s validity (frame.eop_flag = %d, frame.leap_status = %d): recorded in the manifest\n', ...
+            rec.frame.end_mjd_utc, rec.frame.eop_flag, rec.frame.leap_status);
+    end
     rec.wall_s = wall0 + toc(tic_all);
     rec = asils.metrics.derive(rec);
     rec.metrics = asils.metrics.evaluate(rec);

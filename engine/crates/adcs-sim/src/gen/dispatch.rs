@@ -311,17 +311,20 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
         "timescales::tai_minus_utc" => {
             if x.len() != 1 { return None; }
             let r = crate::timescales::tai_minus_utc(x[0]);
-            out.push(r);
+            out.push(r.0);
+            out.push(r.1 as f64);
         }
         "timescales::utc2tai" => {
             if x.len() != 1 { return None; }
             let r = crate::timescales::utc2tai(x[0]);
-            out.push(r);
+            out.push(r.0);
+            out.push(r.1 as f64);
         }
         "timescales::tai2utc" => {
             if x.len() != 1 { return None; }
             let r = crate::timescales::tai2utc(x[0]);
-            out.push(r);
+            out.push(r.0);
+            out.push(r.1 as f64);
         }
         "timescales::tai2tt" => {
             if x.len() != 1 { return None; }
@@ -336,12 +339,14 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
         "timescales::tt2utc" => {
             if x.len() != 1 { return None; }
             let r = crate::timescales::tt2utc(x[0]);
-            out.push(r);
+            out.push(r.0);
+            out.push(r.1 as f64);
         }
         "timescales::utc2tt" => {
             if x.len() != 1 { return None; }
             let r = crate::timescales::utc2tt(x[0]);
-            out.push(r);
+            out.push(r.0);
+            out.push(r.1 as f64);
         }
         "timescales::tt2tdb" => {
             if x.len() != 1 { return None; }
@@ -351,7 +356,8 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
         "timescales::utc2tdb" => {
             if x.len() != 1 { return None; }
             let r = crate::timescales::utc2tdb(x[0]);
-            out.push(r);
+            out.push(r.0);
+            out.push(r.1 as f64);
         }
         "timescales::utc2ut1" => {
             if x.len() != 2 { return None; }
@@ -366,7 +372,8 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
         "timescales::utc2gps" => {
             if x.len() != 1 { return None; }
             let r = crate::timescales::utc2gps(x[0]);
-            out.push(r);
+            out.push(r.0);
+            out.push(r.1 as f64);
         }
         "timescales::tt2jc" => {
             if x.len() != 1 { return None; }
@@ -397,7 +404,7 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
         "timescales::convert_utc" => {
             if x.len() != 7 { return None; }
             let r = crate::timescales::convert_utc(x[0], x[1], x[2], x[3], x[4], x[5], x[6]);
-            out.push(r.utc_jd); out.push(r.tai_jd); out.push(r.tt_jd); out.push(r.tdb_jd); out.push(r.ut1_jd); out.push(r.gps_jd); out.push(r.utc_mjd); out.push(r.tt_mjd); out.push(r.tdb_mjd); out.push(r.leap); out.push(r.dut1); out.push(r.t_tt); out.push(r.j2000_tt_sec); out.push(r.gps_week); out.push(r.gps_sow); out.push(r.gmst_rad); out.push(r.doy);
+            out.push(r.utc_jd); out.push(r.tai_jd); out.push(r.tt_jd); out.push(r.tdb_jd); out.push(r.ut1_jd); out.push(r.gps_jd); out.push(r.utc_mjd); out.push(r.tt_mjd); out.push(r.tdb_mjd); out.push(r.leap); out.push(r.leap_status as f64); out.push(r.dut1); out.push(r.t_tt); out.push(r.j2000_tt_sec); out.push(r.gps_week); out.push(r.gps_sow); out.push(r.gmst_rad); out.push(r.doy);
         }
         "timescales::is_leap_year" => {
             if x.len() != 1 { return None; }

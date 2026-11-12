@@ -88,6 +88,8 @@ pub fn write(dir: &Path, c: &Config, rec: &Record, d: &Derived, metrics: &[Value
                         "note": "fixed in the engine for a 3U body; to come from the case and the parts"},
         "mode_log": rec.mode_log.iter().map(|(t, m)| json!({"t": t, "mode": m})).collect::<Vec<_>>(),
         "oils": rec.oils.as_ref().map(|s| s.json(c.dt)),
+        // the Earth frame and whether the EOP and leap-second snapshot was valid to the end of the run (S12.4a, DR-env-002)
+        "frame": rec.frame.as_ref().map(|f| f.json()),
     });
     if let (Some(o), Value::Object(p)) = (man.as_object_mut(), crate::store::provenance(c, &impl_label(&rec.fsw_impl), &impl_id(&rec.fsw_impl))) { o.extend(p); }
     // the inputs it flew, kept once by fingerprint, so it can be flown again exactly

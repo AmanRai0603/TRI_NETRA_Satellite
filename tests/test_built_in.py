@@ -84,11 +84,14 @@ class BuiltIn(unittest.TestCase):
         (tools/engine_build.py), as are the published models S7.3 added to env."""
         moved = {"l3_dist_row_07", "l3_dist_row_08", "env_time_frames", "env_calendar_time", "env_two_body_elements",
                  "env_time_scales", "env_geodetic", "env_earth_frames", "env_iau2006", "env_tidal_eop"}
+        # a later revision may replace a method (S12.4a: the leap-second status in env_time_scales): the method's origin then
+        # names that revision, and the node's history still says S7.3 transcribed it, unsigned
+        replaced = {"env_time_scales": "S12.4a"}
         for nid in moved:
             _k, x = self.nodes[nid]
             self.assertEqual(self.beh(nid), "method", nid)
             rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
-            self.assertIn("the developer's revision S7.3", rows[("code", "pseudocode")][1], nid)
+            self.assertIn(f"the developer's revision {replaced.get(nid, 'S7.3')}", rows[("code", "pseudocode")][1], nid)
             self.assertTrue(rows[("code", "transcribes")][0], nid)
             self.assertEqual(x["sealed_as"], "unconfirmed", nid)
             self.assertTrue(any(w.startswith("the developer's revision S7.3") and "not yet signed by a person" in w for w in x["why"]), nid)

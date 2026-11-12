@@ -62,9 +62,9 @@ pub fn fsw_mtq_pd(ii: [f64; 3], wn: f64, z: f64) -> ([f64; 3], [f64; 3], [f64; 3
     kd = [0.0; 3];
     ki = [0.0; 3];
     {
-        let __end14: i64 = 3;
+        let __end15: i64 = 3;
         let mut ax: i64 = 0;
-        while ax < __end14 {
+        while ax < __end15 {
             kp[(ax) as usize] = (((kp_factor * ii[(ax) as usize]) * wn) * wn);
             kd[(ax) as usize] = (((2.0 * z) * ii[(ax) as usize]) * wn);
             ax += 1;
@@ -214,9 +214,9 @@ pub fn fsw_mtq_tango(ii: [f64; 3], wn: f64, z: f64, gp: f64, gd: f64) -> ([[f64;
     let mut trd: f64 = ((d[0] + d[1]) + d[2]);
     let mut mi: [f64; 3] = [0.0; 3];
     {
-        let __end15: i64 = 3;
+        let __end16: i64 = 3;
         let mut ax: i64 = 0;
-        while ax < __end15 {
+        while ax < __end16 {
             mi[(ax) as usize] = ((((7.0 / 15.0) * d[(ax) as usize]) + (trd / 15.0)) / r);
             ax += 1;
         }
@@ -228,9 +228,9 @@ pub fn fsw_mtq_tango(ii: [f64; 3], wn: f64, z: f64, gp: f64, gd: f64) -> ([[f64;
     pth = [[0.0; 3]; 3];
     pw = [[0.0; 3]; 3];
     {
-        let __end16: i64 = 3;
+        let __end17: i64 = 3;
         let mut ax: i64 = 0;
-        while ax < __end16 {
+        while ax < __end17 {
             let mut p12: f64 = f64::sqrt((qt / mi[(ax) as usize]));
             let mut p22: f64 = f64::sqrt(((qw + (2.0 * p12)) / mi[(ax) as usize]));
             pth[(ax) as usize][(ax) as usize] = ((gp * p12) / r);

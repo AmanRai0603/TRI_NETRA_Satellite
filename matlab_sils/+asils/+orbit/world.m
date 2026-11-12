@@ -10,6 +10,7 @@ function W = world(W, env)
     if fs.erp_on || fs.relativity_on || fs.solidtides || fs.oceantides
         error('asils:orbit', 'the force set names Earth radiation, relativity or tides: the twin''s orbit flies none of them');
     end
+    W.build = 'Gmst';                                       % the Earth-frame build (the engine's frames::Build)
     W.need_ephem = fs.tb_on || fs.srp_on;
 
     % the run's space weather: Kp one value (kind 1, as the four-slot [Kp 0 Kp 0]) and ap, ap3 not given

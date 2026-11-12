@@ -17,9 +17,9 @@ function [i, g] = quad_currents(s, p, g)
         a2 = (p.a * p.a);
         i = [(s(3) * ((xp * yp) / a2)); (s(3) * ((xm * yp) / a2)); (s(3) * ((xm * ym) / a2)); (s(3) * ((xp * ym) / a2))];
         for k = (0):((4) - 1)
-            [t__727, t__728] = asils.pc.stream_normal(g);
-            z = t__727;
-            g = t__728;
+            [t__729, t__730] = asils.pc.stream_normal(g);
+            z = t__729;
+            g = t__730;
             i((k) + 1) = (i((k) + 1) + (p.noise * z));
         end
     end

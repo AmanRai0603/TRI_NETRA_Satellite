@@ -82,24 +82,24 @@ pub fn kpi_window(w: i64, after: f64, t: &mut [f64], mode: &mut [i64], nu: &mut 
     ni = 0;
     if (w == crate::gen::kpistats::METRICWINDOW_ECLIPSE) {
         {
-            let __end66: i64 = n;
+            let __end67: i64 = n;
             let mut j: i64 = 0;
-            while j < __end66 {
+            while j < __end67 {
                 (*idx)[(j) as usize] = 0;
                 j += 1;
             }
         }
         {
-            let __end67: i64 = n;
+            let __end68: i64 = n;
             let mut j: i64 = 1;
-            while j < __end67 {
+            while j < __end68 {
                 let mut now: bool = ((*nu)[(j) as usize] < 1.0);
                 let mut before: bool = ((*nu)[((j - 1)) as usize] < 1.0);
                 if ((now && (!before)) || (before && (!now))) {
                     {
-                        let __end68: i64 = n;
+                        let __end69: i64 = n;
                         let mut i: i64 = 0;
-                        while i < __end68 {
+                        while i < __end69 {
                             if ((((*t)[(i) as usize] - (*t)[(j) as usize]) <= after) && (((*t)[(j) as usize] - (*t)[(i) as usize]) <= after)) {
                                 (*idx)[(i) as usize] = 1;
                             }
@@ -111,9 +111,9 @@ pub fn kpi_window(w: i64, after: f64, t: &mut [f64], mode: &mut [i64], nu: &mut 
             }
         }
         {
-            let __end69: i64 = n;
+            let __end70: i64 = n;
             let mut j: i64 = 0;
-            while j < __end69 {
+            while j < __end70 {
                 if ((*idx)[(j) as usize] == 1) {
                     (*idx)[(ni) as usize] = j;
                     ni = (ni + 1);
@@ -123,9 +123,9 @@ pub fn kpi_window(w: i64, after: f64, t: &mut [f64], mode: &mut [i64], nu: &mut 
         }
     } else {
         {
-            let __end70: i64 = n;
+            let __end71: i64 = n;
             let mut j: i64 = 0;
-            while j < __end70 {
+            while j < __end71 {
                 let mut inw: bool = true;
                 if (w == crate::gen::kpistats::METRICWINDOW_LAST_ORBIT) {
                     inw = ((*t)[(j) as usize] >= (te - per));
@@ -161,18 +161,18 @@ pub fn kpi_merge(src: &mut [f64], dst: &mut [f64], m: i64, wd: i64) -> i64 {
     z = 0;
     let mut nb: i64 = (((m + (2 * wd)) - 1) / (2 * wd));
     {
-        let __end71: i64 = nb;
+        let __end72: i64 = nb;
         let mut bk: i64 = 0;
-        while bk < __end71 {
+        while bk < __end72 {
             let mut lo: i64 = ((bk * 2) * wd);
             let mut mid: i64 = rt::imin((lo + wd), m);
             let mut hi: i64 = rt::imin((lo + (2 * wd)), m);
             let mut i: i64 = lo;
             let mut j: i64 = mid;
             {
-                let __end72: i64 = hi;
+                let __end73: i64 = hi;
                 let mut k: i64 = lo;
-                while k < __end72 {
+                while k < __end73 {
                     if ((i < mid) && ((j >= hi) || (!((*src)[(j) as usize] < (*src)[(i) as usize])))) {
                         (*dst)[(k) as usize] = (*src)[(i) as usize];
                         i = (i + 1);
@@ -202,9 +202,9 @@ pub fn kpi_sort(x: &mut [f64], m: i64, tmp: &mut [f64]) -> i64 {
     passes = 0;
     let mut wd: i64 = 1;
     {
-        let __end73: i64 = 62;
+        let __end74: i64 = 62;
         let mut it: i64 = 0;
-        while it < __end73 {
+        while it < __end74 {
             if (wd < m) {
                 if ((passes % 2) == 0) {
                     let mut z0: i64 = crate::gen::kpistats::kpi_merge(&mut (*x), &mut (*tmp), m, wd);
@@ -219,9 +219,9 @@ pub fn kpi_sort(x: &mut [f64], m: i64, tmp: &mut [f64]) -> i64 {
     }
     if ((passes % 2) == 1) {
         {
-            let __end74: i64 = m;
+            let __end75: i64 = m;
             let mut i: i64 = 0;
-            while i < __end74 {
+            while i < __end75 {
                 (*x)[(i) as usize] = (*tmp)[(i) as usize];
                 i += 1;
             }
@@ -246,9 +246,9 @@ pub fn kpi_stat_of(w: &mut [f64], m: i64, st: i64, tmp: &mut [f64]) -> f64 {
         if (st == crate::gen::kpistats::METRICSTAT_MAX) {
             let mut acc: f64 = (-(1.7976931348623157e+308));
             {
-                let __end75: i64 = m;
+                let __end76: i64 = m;
                 let mut i: i64 = 0;
-                while i < __end75 {
+                while i < __end76 {
                     acc = rt::fmax(acc, (*w)[(i) as usize]);
                     i += 1;
                 }
@@ -257,9 +257,9 @@ pub fn kpi_stat_of(w: &mut [f64], m: i64, st: i64, tmp: &mut [f64]) -> f64 {
         } else if (st == crate::gen::kpistats::METRICSTAT_RMS) {
             let mut s: f64 = (-(0.0));
             {
-                let __end76: i64 = m;
+                let __end77: i64 = m;
                 let mut i: i64 = 0;
-                while i < __end76 {
+                while i < __end77 {
                     s = (s + ((*w)[(i) as usize] * (*w)[(i) as usize]));
                     i += 1;
                 }
@@ -268,9 +268,9 @@ pub fn kpi_stat_of(w: &mut [f64], m: i64, st: i64, tmp: &mut [f64]) -> f64 {
         } else if (st == crate::gen::kpistats::METRICSTAT_MEAN) {
             let mut s2: f64 = (-(0.0));
             {
-                let __end77: i64 = m;
+                let __end78: i64 = m;
                 let mut i: i64 = 0;
-                while i < __end77 {
+                while i < __end78 {
                     s2 = (s2 + (*w)[(i) as usize]);
                     i += 1;
                 }
@@ -305,9 +305,9 @@ pub fn kpi_statistic(x: &mut [f64], n: i64, st: i64, w: &mut [f64], tmp: &mut [f
     let mut v: f64 = 0.0;
     let mut m: i64 = 0;
     {
-        let __end78: i64 = n;
+        let __end79: i64 = n;
         let mut i: i64 = 0;
-        while i < __end78 {
+        while i < __end79 {
             if ((*x)[(i) as usize]).is_finite() {
                 (*w)[(m) as usize] = (*x)[(i) as usize];
                 m = (m + 1);
@@ -334,9 +334,9 @@ pub fn kpi_channel_stat(ch: &mut [f64], idx: &mut [i64], ni: i64, st: i64, w: &m
     let mut v: f64 = 0.0;
     let mut m: i64 = 0;
     {
-        let __end79: i64 = ni;
+        let __end80: i64 = ni;
         let mut i: i64 = 0;
-        while i < __end79 {
+        while i < __end80 {
             let mut x: f64 = (*ch)[((*idx)[(i) as usize]) as usize];
             if (x).is_finite() {
                 (*w)[(m) as usize] = x;
@@ -366,9 +366,9 @@ pub fn kpi_time_to(t: &mut [f64], x: &mut [f64], n: i64, thr: f64, hold: f64) ->
     let mut start: i64 = 0;
     let mut inrun: bool = false;
     {
-        let __end80: i64 = n;
+        let __end81: i64 = n;
         let mut k: i64 = 0;
-        while k < __end80 {
+        while k < __end81 {
             if (!found) {
                 if ((*x)[(k) as usize] < thr) {
                     if (!inrun) {
@@ -413,9 +413,9 @@ pub fn kpi_time_to_from(t: &mut [f64], x: &mut [f64], n: i64, t0: f64, thr: f64,
     let mut v: f64 = 0.0;
     let mut m: i64 = 0;
     {
-        let __end81: i64 = n;
+        let __end82: i64 = n;
         let mut j: i64 = 0;
-        while j < __end81 {
+        while j < __end82 {
             if ((*t)[(j) as usize] >= t0) {
                 (*tt)[(m) as usize] = ((*t)[(j) as usize] - t0);
                 (*xx)[(m) as usize] = (*x)[(j) as usize];
@@ -472,9 +472,9 @@ pub fn kpi_binomial_tail(n: i64, k: i64, p: f64, upper: bool) -> f64 {
         let mut lq: f64 = f64::ln((1.0 - p));
         let mut lc: f64 = 0.0;
         {
-            let __end82: i64 = (n + 1);
+            let __end83: i64 = (n + 1);
             let mut i: i64 = 0;
-            while i < __end82 {
+            while i < __end83 {
                 if (i > 0) {
                     lc = ((lc + f64::ln((((n - i) + 1) as f64))) - f64::ln((i as f64)));
                 }
@@ -510,9 +510,9 @@ pub fn kpi_cp_lower(n: i64, k: i64, g: f64) -> f64 {
         let mut lo: f64 = 0.0;
         let mut hi: f64 = 1.0;
         {
-            let __end83: i64 = 60;
+            let __end84: i64 = 60;
             let mut it: i64 = 0;
-            while it < __end83 {
+            while it < __end84 {
                 let mut mid: f64 = (0.5 * (lo + hi));
                 if (crate::gen::kpistats::kpi_binomial_tail(n, k, mid, true) < (1.0 - g)) {
                     lo = mid;
@@ -544,9 +544,9 @@ pub fn kpi_cp_upper(n: i64, k: i64, g: f64) -> f64 {
         let mut lo: f64 = 0.0;
         let mut hi: f64 = 1.0;
         {
-            let __end84: i64 = 60;
+            let __end85: i64 = 60;
             let mut it: i64 = 0;
-            while it < __end84 {
+            while it < __end85 {
                 let mut mid: f64 = (0.5 * (lo + hi));
                 if (crate::gen::kpistats::kpi_binomial_tail(n, k, mid, false) > (1.0 - g)) {
                     lo = mid;
@@ -630,9 +630,9 @@ pub fn kpi_mann_whitney(a: &mut [f64], b: &mut [f64]) -> (i64, i64, f64, f64, f6
     n1 = 0;
     n2 = 0;
     {
-        let __end85: i64 = ((*a).len() as i64);
+        let __end86: i64 = ((*a).len() as i64);
         let mut i: i64 = 0;
-        while i < __end85 {
+        while i < __end86 {
             if ((*a)[(i) as usize]).is_finite() {
                 n1 = (n1 + 1);
             }
@@ -640,9 +640,9 @@ pub fn kpi_mann_whitney(a: &mut [f64], b: &mut [f64]) -> (i64, i64, f64, f64, f6
         }
     }
     {
-        let __end86: i64 = ((*b).len() as i64);
+        let __end87: i64 = ((*b).len() as i64);
         let mut i: i64 = 0;
-        while i < __end86 {
+        while i < __end87 {
             if ((*b)[(i) as usize]).is_finite() {
                 n2 = (n2 + 1);
             }
@@ -656,17 +656,17 @@ pub fn kpi_mann_whitney(a: &mut [f64], b: &mut [f64]) -> (i64, i64, f64, f64, f6
         let mut r1: f64 = 0.0;
         let mut ties: f64 = 0.0;
         {
-            let __end87: i64 = 2;
+            let __end88: i64 = 2;
             let mut side: i64 = 0;
-            while side < __end87 {
+            while side < __end88 {
                 let mut m: i64 = ((*a).len() as i64);
                 if (side == 1) {
                     m = ((*b).len() as i64);
                 }
                 {
-                    let __end88: i64 = m;
+                    let __end89: i64 = m;
                     let mut i: i64 = 0;
-                    while i < __end88 {
+                    while i < __end89 {
                         let mut x: f64 = f64::NAN;
                         if (side == 0) {
                             x = (*a)[(i) as usize];
@@ -677,9 +677,9 @@ pub fn kpi_mann_whitney(a: &mut [f64], b: &mut [f64]) -> (i64, i64, f64, f64, f6
                             let mut less: f64 = 0.0;
                             let mut eq: f64 = 0.0;
                             {
-                                let __end89: i64 = ((*a).len() as i64);
+                                let __end90: i64 = ((*a).len() as i64);
                                 let mut j: i64 = 0;
-                                while j < __end89 {
+                                while j < __end90 {
                                     if ((*a)[(j) as usize]).is_finite() {
                                         if ((*a)[(j) as usize] < x) {
                                             less = (less + 1.0);
@@ -691,9 +691,9 @@ pub fn kpi_mann_whitney(a: &mut [f64], b: &mut [f64]) -> (i64, i64, f64, f64, f6
                                 }
                             }
                             {
-                                let __end90: i64 = ((*b).len() as i64);
+                                let __end91: i64 = ((*b).len() as i64);
                                 let mut j: i64 = 0;
-                                while j < __end90 {
+                                while j < __end91 {
                                     if ((*b)[(j) as usize]).is_finite() {
                                         if ((*b)[(j) as usize] < x) {
                                             less = (less + 1.0);

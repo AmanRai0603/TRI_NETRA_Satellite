@@ -29,20 +29,20 @@ function [t] = kpi_binomial_tail(n, k, p, upper)
             end
         end
     else
-        h__652 = log(p);
-        if ~isreal(h__652), h__652 = NaN; end
-        lp = h__652;
-        h__653 = log((1 - p));
+        h__653 = log(p);
         if ~isreal(h__653), h__653 = NaN; end
-        lq = h__653;
+        lp = h__653;
+        h__654 = log((1 - p));
+        if ~isreal(h__654), h__654 = NaN; end
+        lq = h__654;
         lc = 0;
         for i = (0):(((n + 1)) - 1)
             if (i > 0)
-                h__654 = log(((n - i) + 1));
-                if ~isreal(h__654), h__654 = NaN; end
-                h__655 = log(i);
+                h__655 = log(((n - i) + 1));
                 if ~isreal(h__655), h__655 = NaN; end
-                lc = ((lc + h__654) - h__655);
+                h__656 = log(i);
+                if ~isreal(h__656), h__656 = NaN; end
+                lc = ((lc + h__655) - h__656);
             end
             inside = (i <= k);
             if upper
@@ -52,9 +52,9 @@ function [t] = kpi_binomial_tail(n, k, p, upper)
                 t = (t + exp(((lc + (i * lp)) + ((n - i) * lq))));
             end
         end
-        h__656 = t;
-        h__657 = 1;
-        if h__657 < h__656, h__656 = h__657; end
-        t = h__656;
+        h__657 = t;
+        h__658 = 1;
+        if h__658 < h__657, h__657 = h__658; end
+        t = h__657;
     end
 end

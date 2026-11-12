@@ -8,8 +8,8 @@ function [gh] = igrf_gh(dy)
     D__IGRF_GH = asils.models.igrf13.IGRF_GH();
     D__IGRF_YEAR = asils.models.igrf13.IGRF_YEAR();
     i = 0;
-    t__514 = ((0):((25) - 1)).';
-    for ii = t__514(logical((D__IGRF_YEAR(((t__514 + 1)) + 1) <= dy))).'
+    t__516 = ((0):((25) - 1)).';
+    for ii = t__516(logical((D__IGRF_YEAR(((t__516 + 1)) + 1) <= dy))).'
         i = (ii + 1);
     end
     if (i >= 25)

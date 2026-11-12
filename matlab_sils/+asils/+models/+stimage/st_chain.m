@@ -39,45 +39,45 @@ function [q_body, ok, spots, identified, used, cr, cm, img, work, ia, ib, pi, pj
     tx = zeros(1, 1);
     ty = zeros(1, 1);
     tk = zeros(1, 1);
-    [t__656, t__657, t__658, t__659, t__660, t__661, t__662, t__663] = asils.models.strender.st_render(r_eh, cr, cm, nc, cam, img, noisy, g, tx, ty, tk);
-    drawn = t__656;
-    cr = t__657;
-    cm = t__658;
-    img = t__659;
-    g = t__660;
-    tx = t__661;
-    ty = t__662;
-    tk = t__663;
-    [t__664, t__665, t__666, t__667, t__668, t__669] = asils.models.stcentroid.st_centroid(img, cam, work, ia, ib);
-    sp = t__664;
-    ns = t__665;
-    img = t__666;
-    work = t__667;
-    ia = t__668;
-    ib = t__669;
+    [t__658, t__659, t__660, t__661, t__662, t__663, t__664, t__665] = asils.models.strender.st_render(r_eh, cr, cm, nc, cam, img, noisy, g, tx, ty, tk);
+    drawn = t__658;
+    cr = t__659;
+    cm = t__660;
+    img = t__661;
+    g = t__662;
+    tx = t__663;
+    ty = t__664;
+    tk = t__665;
+    [t__666, t__667, t__668, t__669, t__670, t__671] = asils.models.stcentroid.st_centroid(img, cam, work, ia, ib);
+    sp = t__666;
+    ns = t__667;
+    img = t__668;
+    work = t__669;
+    ia = t__670;
+    ib = t__671;
     spots = ns;
     if (ns >= 3)
         b = zeros(32, 3);
         mag = zeros(32, 1);
         for k = (0):((ns) - 1)
             b((k) + 1, :) = asils.models.facets.unit_or_zero([((sp((k) + 1, 1) - cam.c) / cam.f); ((sp((k) + 1, 2) - cam.c) / cam.f); 1]).';
-            h__759 = sp((k) + 1, 3);
-            h__760 = 1;
-            if h__760 > h__759, h__759 = h__760; end
-            h__761 = log10((h__759 / cam.flux0));
-            if ~isreal(h__761), h__761 = NaN; end
-            mag((k) + 1) = (6 - (2.5 * h__761));
+            h__760 = sp((k) + 1, 3);
+            h__761 = 1;
+            if h__761 > h__760, h__760 = h__761; end
+            h__762 = log10((h__760 / cam.flux0));
+            if ~isreal(h__762), h__762 = NaN; end
+            mag((k) + 1) = (6 - (2.5 * h__762));
         end
-        [t__670, t__671, t__672, t__673, t__674, t__675, t__676] = asils.models.stidentify.st_identify(b, mag, ns, pi, pj, pa, cr, cm, nc, cam.id_tol, cam.mag_tol);
-        id = t__670;
-        okid = t__671;
-        pi = t__672;
-        pj = t__673;
-        pa = t__674;
-        cr = t__675;
-        cm = t__676;
-        t__677 = ((0):((ns) - 1)).';
-        for k2 = t__677(logical((id((t__677) + 1) >= 0))).'
+        [t__672, t__673, t__674, t__675, t__676, t__677, t__678] = asils.models.stidentify.st_identify(b, mag, ns, pi, pj, pa, cr, cm, nc, cam.id_tol, cam.mag_tol);
+        id = t__672;
+        okid = t__673;
+        pi = t__674;
+        pj = t__675;
+        pa = t__676;
+        cr = t__677;
+        cm = t__678;
+        t__679 = ((0):((ns) - 1)).';
+        for k2 = t__679(logical((id((t__679) + 1) >= 0))).'
             identified = (identified + 1);
         end
         if okid
@@ -87,17 +87,17 @@ function [q_body, ok, spots, identified, used, cr, cm, img, work, ia, ib, pi, pj
             if ~isempty(p)
                 ig((p) + 1) = (-(1));
             end
-            t__678 = ((0):((ns) - 1)).';
-            for p2 = t__678(logical((id((t__678) + 1) >= 0))).'
+            t__680 = ((0):((ns) - 1)).';
+            for p2 = t__680(logical((id((t__680) + 1) >= 0))).'
                 rs((p2) + 1, :) = (cr((id((p2) + 1)) + 1, :)).'.';
                 ig((p2) + 1) = id((p2) + 1);
             end
-            [t__679, t__680, t__681] = asils.models.stattitude.st_attitude(b, rs, ns, ig, cam.fit_tol);
-            q_eh = t__679;
-            oka = t__680;
-            ig = t__681;
-            t__682 = ((0):((ns) - 1)).';
-            for p3 = t__682(logical((ig((t__682) + 1) >= 0))).'
+            [t__681, t__682, t__683] = asils.models.stattitude.st_attitude(b, rs, ns, ig, cam.fit_tol);
+            q_eh = t__681;
+            oka = t__682;
+            ig = t__683;
+            t__684 = ((0):((ns) - 1)).';
+            for p3 = t__684(logical((ig((t__684) + 1) >= 0))).'
                 used = (used + 1);
             end
             if oka

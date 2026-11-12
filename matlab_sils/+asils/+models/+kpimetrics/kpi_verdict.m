@@ -13,18 +13,18 @@ function [pass] = kpi_verdict(val, rv, sense_min)
             pass = 0;
         elseif sense_min
             if (val >= rv)
-                h__639 = 1;
-            else
-                h__639 = 0;
-            end
-            pass = h__639;
-        else
-            if (val <= rv)
                 h__640 = 1;
             else
                 h__640 = 0;
             end
             pass = h__640;
+        else
+            if (val <= rv)
+                h__641 = 1;
+            else
+                h__641 = 0;
+            end
+            pass = h__641;
         end
     end
 end

@@ -9,9 +9,9 @@ function [c] = kpi_min(a, b)
     if isnan(a)
         c = b;
     else
-        h__643 = a;
-        h__644 = b;
-        if h__644 < h__643, h__643 = h__644; end
-        c = h__643;
+        h__644 = a;
+        h__645 = b;
+        if h__645 < h__644, h__644 = h__645; end
+        c = h__644;
     end
 end

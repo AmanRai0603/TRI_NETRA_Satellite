@@ -112,6 +112,11 @@ pub struct World {
     pub forces: Forces,
 }
 
+/// What a run records of the data's validity at an instant (S12.4a, P9; DR-env-002): `eop_flag` 1 when the EOP table is
+/// extrapolated there (builds A/B/C), `leap_status` 1 when the leap-second table has expired.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Validity { pub eop_flag: i32, pub leap_status: i32 }
+
 /// What op.accel builds per evaluation (ctx) and returns alongside a.
 #[derive(Clone, Debug)]
 pub struct Ctx {
@@ -137,6 +142,19 @@ impl World {
             if !(sc.aref > 0.0) { return Err(crate::PopError::Unsupported("spacecraft.Aref must be a positive scalar for drag/SRP".into())); }
         }
         Ok(World { epoch, build, frame, omega_eci, grav, eph, sc, sw_manual, forces })
+    }
+
+    /// The validity of the data at t seconds after the epoch: the EOP table's extrapolation flag and the leap-second table's
+    /// status (both nondecreasing in t, so a run records the end of its span). A run warns and records it; it never refuses.
+    pub fn validity(&self, t: f64) -> Validity {
+        let utc = time::addsec(self.epoch, t);
+        let times = time::convert_utc(utc[0], utc[1], utc[2], utc[3], utc[4], utc[5], self.frame.dut1);
+        let mut v = Validity { eop_flag: 0, leap_status: times.leap_status as i32 };
+        if self.build != Build::Gmst {
+            let fo = FrameOpt { refuse_beyond_validity: false, ..self.frame.clone() };
+            if let Ok((_, _, info)) = frames::try_eci2ecef(utc, self.build, &fo) { v.eop_flag = info.eop_flag; v.leap_status |= info.leap_status; }
+        }
+        v
     }
 
     /// The context of op.accel at t (time scales, ephemeris inputs, ECI->ECEF).

@@ -26,23 +26,23 @@ function [ok, s, u] = sun_sample(u, d, s_body, nu)
             g = u.g;
             if d.chain
                 rh = asils.models.sunquad.head_frame((d.normals((jm) + 1, :)).');
-                h__694 = asils.models.coildisp.small_rotation((u.bias((jm) + 1, :)).');
-                sb = [h__694(1, 1)*s_body(1) + h__694(1, 2)*s_body(2) + h__694(1, 3)*s_body(3); h__694(2, 1)*s_body(1) + h__694(2, 2)*s_body(2) + h__694(2, 3)*s_body(3); h__694(3, 1)*s_body(1) + h__694(3, 2)*s_body(2) + h__694(3, 3)*s_body(3)];
-                [t__567, t__568] = asils.models.sunquad.quad_currents([rh(1, 1)*sb(1) + rh(1, 2)*sb(2) + rh(1, 3)*sb(3); rh(2, 1)*sb(1) + rh(2, 2)*sb(2) + rh(2, 3)*sb(3); rh(3, 1)*sb(1) + rh(3, 2)*sb(2) + rh(3, 3)*sb(3)], d.head, g);
-                cur = t__567;
-                g = t__568;
+                h__695 = asils.models.coildisp.small_rotation((u.bias((jm) + 1, :)).');
+                sb = [h__695(1, 1)*s_body(1) + h__695(1, 2)*s_body(2) + h__695(1, 3)*s_body(3); h__695(2, 1)*s_body(1) + h__695(2, 2)*s_body(2) + h__695(2, 3)*s_body(3); h__695(3, 1)*s_body(1) + h__695(3, 2)*s_body(2) + h__695(3, 3)*s_body(3)];
+                [t__569, t__570] = asils.models.sunquad.quad_currents([rh(1, 1)*sb(1) + rh(1, 2)*sb(2) + rh(1, 3)*sb(3); rh(2, 1)*sb(1) + rh(2, 2)*sb(2) + rh(2, 3)*sb(3); rh(3, 1)*sb(1) + rh(3, 2)*sb(2) + rh(3, 3)*sb(3)], d.head, g);
+                cur = t__569;
+                g = t__570;
                 [sh, okh] = asils.models.sunangles.quad_angles(cur, d.head);
                 ok = okh;
                 if ok
                     s = asils.models.math.mat3t_vec(rh, sh);
                 end
             else
-                [t__569, t__570] = asils.pc.stream_normal3(g);
-                n = t__569;
-                g = t__570;
+                [t__571, t__572] = asils.pc.stream_normal3(g);
+                n = t__571;
+                g = t__572;
                 e = ((u.bias((jm) + 1, :)).' + (n * d.noise));
-                h__695 = asils.models.coildisp.small_rotation(e);
-                s = asils.models.facets.unit_or_zero([h__695(1, 1)*s_body(1) + h__695(1, 2)*s_body(2) + h__695(1, 3)*s_body(3); h__695(2, 1)*s_body(1) + h__695(2, 2)*s_body(2) + h__695(2, 3)*s_body(3); h__695(3, 1)*s_body(1) + h__695(3, 2)*s_body(2) + h__695(3, 3)*s_body(3)]);
+                h__696 = asils.models.coildisp.small_rotation(e);
+                s = asils.models.facets.unit_or_zero([h__696(1, 1)*s_body(1) + h__696(1, 2)*s_body(2) + h__696(1, 3)*s_body(3); h__696(2, 1)*s_body(1) + h__696(2, 2)*s_body(2) + h__696(2, 3)*s_body(3); h__696(3, 1)*s_body(1) + h__696(3, 2)*s_body(2) + h__696(3, 3)*s_body(3)]);
                 ok = true;
             end
             u.g = g;

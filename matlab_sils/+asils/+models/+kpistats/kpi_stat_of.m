@@ -14,10 +14,10 @@ function [v, w, tmp] = kpi_stat_of(w, m, st, tmp)
         if (st == 0)
             acc = (-(1.7976931348623157e+308));
             for i = (0):((m) - 1)
-                h__649 = acc;
-                h__650 = w((i) + 1);
-                if h__650 > h__649, h__649 = h__650; end
-                acc = h__649;
+                h__650 = acc;
+                h__651 = w((i) + 1);
+                if h__651 > h__650, h__650 = h__651; end
+                acc = h__650;
             end
             v = acc;
         elseif (st == 1)
@@ -25,9 +25,9 @@ function [v, w, tmp] = kpi_stat_of(w, m, st, tmp)
             for i = (0):((m) - 1)
                 s = (s + (w((i) + 1) * w((i) + 1)));
             end
-            h__651 = (s / m);
-            if h__651 < 0, h__651 = NaN; else, h__651 = sqrt(h__651); end
-            v = h__651;
+            h__652 = (s / m);
+            if h__652 < 0, h__652 = NaN; else, h__652 = sqrt(h__652); end
+            v = h__652;
         elseif (st == 2)
             s2 = (-(0));
             for i = (0):((m) - 1)
@@ -39,10 +39,10 @@ function [v, w, tmp] = kpi_stat_of(w, m, st, tmp)
             if (st == 4)
                 q = 0.9973;
             end
-            [t__543, t__544, t__545] = asils.models.kpistats.kpi_sort(w, m, tmp);
-            passes = t__543;
-            w = t__544;
-            tmp = t__545;
+            [t__545, t__546, t__547] = asils.models.kpistats.kpi_sort(w, m, tmp);
+            passes = t__545;
+            w = t__546;
+            tmp = t__547;
             k = fix(ceil((q * m)));
             if (k < 1)
                 k = 1;

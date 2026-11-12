@@ -59,6 +59,9 @@ pub enum FrameError {
     NoC04,
     /// `Eop::at` asked for the gmst build (it uses no EOP table).
     GmstHasNoEop,
+    /// A published-vector case (`FrameOpt::refuse_beyond_validity`) asked for an instant past the data's validity: the EOP
+    /// table was extrapolated (`eop_flag` 1) or the leap-second table's expiry had passed (`leap_status` 1) (DR-env-002).
+    BeyondValidity { eop_flag: i32, leap_status: i32 },
 }
 
 impl std::fmt::Display for FrameError {
@@ -67,6 +70,8 @@ impl std::fmt::Display for FrameError {
             FrameError::NoEop => write!(f, "eci2ecef: could not obtain finals2000A.all (no EOP loaded; set FrameOpt.eop or use build gmst)"),
             FrameError::NoC04 => write!(f, "eci2ecef: could not obtain eopc04_20.1962-now (build B/C need EOP 20 C04)"),
             FrameError::GmstHasNoEop => write!(f, "eci2ecef: build gmst uses no EOP table"),
+            FrameError::BeyondValidity { eop_flag, leap_status } => write!(f, "eci2ecef: the instant is beyond the EOP snapshot's validity \
+                (eop_flag {eop_flag}: the table is extrapolated; leap_status {leap_status}: the leap-second table has expired), which a published-vector case refuses"),
         }
     }
 }
@@ -89,11 +94,15 @@ pub struct FrameOpt {
     pub tidal: bool,
     /// `opt.eop_override = [dUT1 xp yp dX dY dAT]` (s, rad, rad, rad, rad, s), builds A/B/C.
     pub eop_override: Option<[f64; 6]>,
+    /// A published-vector case (DR-env-002): refuse an instant beyond the EOP snapshot's validity (the table extrapolated,
+    /// the leap-second table expired) with `FrameError::BeyondValidity`. A run leaves it false: it warns and records
+    /// `FrameInfo::eop_flag` and `leap_status` instead. Builds A/B/C only.
+    pub refuse_beyond_validity: bool,
 }
 
 impl Default for FrameOpt {
     fn default() -> Self {
-        FrameOpt { dut1: 0.0, xp: 0.0, yp: 0.0, gmst_rad: None, eop: None, tidal: false, eop_override: None }
+        FrameOpt { dut1: 0.0, xp: 0.0, yp: 0.0, gmst_rad: None, eop: None, tidal: false, eop_override: None, refuse_beyond_validity: false }
     }
 }
 
@@ -128,6 +137,8 @@ pub struct FrameInfo {
     pub era: f64,
     /// `info.eop_flag`: 0 interpolated, 1 extrapolated, 2 eop_override
     pub eop_flag: i32,
+    /// 1 when the instant is after the leap-second table's expiry (S12.4a), else 0 (A/B/C)
+    pub leap_status: i32,
 }
 
 /// `frames.utcvec(utc)`: normalise a numeric UTC input to `[Y Mo D H Mi S]`.
@@ -146,17 +157,18 @@ pub fn eci2ecef_gmst(gmst_rad: f64, xp: f64, yp: f64) -> (M3, M3) { crate::gen::
 /// EOP from `opt.eop_override` (flag 2) or `eop_interp`, then the CIO chain.
 pub fn eci2ecef_cio(utc: [f64; 6], build: Build, opt: &FrameOpt) -> Result<(M3, M3, FrameInfo), FrameError> {
     let mjd = iau2006::mjd_of(&utc);
-    let (dut1, xp, yp, dx, dy, dat, ef) = if let Some(eo) = opt.eop_override {
+    let (dut1, xp, yp, dx, dy, dat, ef, ls) = if let Some(eo) = opt.eop_override {
         // MATLAB still loads the EOP files first (and errors offline); the override
         // itself does not use them, so the port accepts it without an EOP set.
-        (eo[0], eo[1], eo[2], eo[3], eo[4], eo[5], 2)
+        (eo[0], eo[1], eo[2], eo[3], eo[4], eo[5], 2, 0)
     } else {
         let eop = opt.eop.as_ref().ok_or(FrameError::NoEop)?;
         let e = eop.at(mjd, build, opt.tidal)?;
-        (e.dut1, e.xp, e.yp, e.dx, e.dy, e.dat, e.flag)
+        (e.dut1, e.xp, e.yp, e.dx, e.dy, e.dat, e.flag, e.leap_status)
     };
+    if opt.refuse_beyond_validity && (ef == 1 || ls == 1) { return Err(FrameError::BeyondValidity { eop_flag: ef, leap_status: ls }); }
     let (c, p) = cio_c2t(&utc, dut1, xp, yp, dx, dy, dat);
-    let info = FrameInfo { build, gmst_rad: 0.0, mjd_utc: mjd, dut1, xp, yp, dx, dy, dat, x: p.x, y: p.y, s: p.s, era: p.era, eop_flag: ef };
+    let info = FrameInfo { build, gmst_rad: 0.0, mjd_utc: mjd, dut1, xp, yp, dx, dy, dat, x: p.x, y: p.y, s: p.s, era: p.era, eop_flag: ef, leap_status: ls };
     Ok((c, transpose(&c), info))
 }
 

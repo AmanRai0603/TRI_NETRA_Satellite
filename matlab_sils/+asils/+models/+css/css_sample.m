@@ -14,30 +14,30 @@ function [ok, s, u] = css_sample(u, d, s_b, nu, nadir_b, earth_ang)
     s = zeros(3, 1);
     c0 = (-((s_b(1)*nadir_b(1) + s_b(2)*nadir_b(2) + s_b(3)*nadir_b(3))));
     if (c0 > 0)
-        h__688 = c0;
+        h__689 = c0;
     else
-        h__688 = 0;
+        h__689 = 0;
     end
-    geo = ((sin(earth_ang) * sin(earth_ang)) * h__688);
+    geo = ((sin(earth_ang) * sin(earth_ang)) * h__689);
     iv = zeros(8, 1);
     g = u.g;
     for j = (0):((d.n) - 1)
         cs = (d.normals((j) + 1, 1)*s_b(1) + d.normals((j) + 1, 2)*s_b(2) + d.normals((j) + 1, 3)*s_b(3));
         ce = (d.normals((j) + 1, 1)*nadir_b(1) + d.normals((j) + 1, 2)*nadir_b(2) + d.normals((j) + 1, 3)*nadir_b(3));
-        [t__559, t__560] = asils.pc.stream_normal(g);
-        z = t__559;
-        g = t__560;
+        [t__561, t__562] = asils.pc.stream_normal(g);
+        z = t__561;
+        g = t__562;
         if (cs > 0)
-            h__689 = cs;
-        else
-            h__689 = 0;
-        end
-        if (ce > 0)
-            h__690 = ce;
+            h__690 = cs;
         else
             h__690 = 0;
         end
-        iv((j) + 1) = ((u.scale((j) + 1) * ((nu * h__689) + ((d.albedo * geo) * h__690))) + (d.noise * z));
+        if (ce > 0)
+            h__691 = ce;
+        else
+            h__691 = 0;
+        end
+        iv((j) + 1) = ((u.scale((j) + 1) * ((nu * h__690) + ((d.albedo * geo) * h__691))) + (d.noise * z));
         if u.dead((j) + 1)
             iv((j) + 1) = 0;
         end
@@ -62,7 +62,7 @@ function [ok, s, u] = css_sample(u, d, s_b, nu, nadir_b, earth_ang)
     ok = ((nu > 0.5) && (sqrt(est(1)*est(1) + est(2)*est(2) + est(3)*est(3)) > 0.3));
     s = [0; 0; 0];
     if ok
-        h__691 = asils.models.facets.unit_or_zero(est);
-        s = [u.r(1, 1)*h__691(1) + u.r(1, 2)*h__691(2) + u.r(1, 3)*h__691(3); u.r(2, 1)*h__691(1) + u.r(2, 2)*h__691(2) + u.r(2, 3)*h__691(3); u.r(3, 1)*h__691(1) + u.r(3, 2)*h__691(2) + u.r(3, 3)*h__691(3)];
+        h__692 = asils.models.facets.unit_or_zero(est);
+        s = [u.r(1, 1)*h__692(1) + u.r(1, 2)*h__692(2) + u.r(1, 3)*h__692(3); u.r(2, 1)*h__692(1) + u.r(2, 2)*h__692(2) + u.r(2, 3)*h__692(3); u.r(3, 1)*h__692(1) + u.r(3, 2)*h__692(2) + u.r(3, 3)*h__692(3)];
     end
 end
