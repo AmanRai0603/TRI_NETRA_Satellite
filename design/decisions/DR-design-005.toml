@@ -1,0 +1,29 @@
+schema = "trinetra-decision/1"
+id = "DR-design-005"
+decisions = ["DD5"]
+title = "The slew profile the sizing assumes"
+group = "design"
+parent = "gb"
+owner_team = "design"
+status = "proposed"
+owner_question = 20
+owner_question_stage = "S12"
+items = ["Y17"]
+context = "The sizing calls its profile 'bang-bang' (S11.8/sizedemand.pc:8) but computes a cycloidal one (:293 a_slew = 2 pi theta/T^2), 57 % more torque than bang-bang's 4 theta/T^2 (rw.pc gw_4); the doc claims a k_tau lever looprules never raises."
+current = "cycloidal, named bang-bang"
+choice = "Cycloidal, named so: it is the profile flown by slew_img. S12.1 (the developer's proposal, unsigned)."
+rationale = "The name and the flight agree."
+consequences = "The profile is renamed; the peak torque is pi/2 times gw_4's bang-bang; SIZING_LAWS no longer claims a lever looprules lacks."
+sets = ["l3_budget_row_01 (sizedemand.pc a_slew), gw_3 and gw_4's profile name (to be stated in S12.12 as slew_profile_name)"]
+revisit_when = "the flight changes its slew profile"
+signature = {}
+
+[[option]]
+name = "cycloidal, named so"
+evidence = "docs/S12_INVENTORY.md section 5 question 20"
+rejected_because = ""
+
+[[option]]
+name = "bang-bang or rest-to-rest with a stated wmax"
+evidence = "Wie ch. 7"
+rejected_because = "the flight flies cycloidal"

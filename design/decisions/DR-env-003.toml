@@ -1,0 +1,31 @@
+schema = "trinetra-decision/1"
+id = "DR-env-003"
+decisions = ["DD44"]
+title = "One stated solar and geomagnetic activity table"
+group = "env"
+parent = "m3"
+owner_team = "env"
+status = "proposed"
+owner_question = 2
+owner_question_stage = "S12"
+items = ["P6", "T6/E9", "E6", "ENV-storm"]
+context = "The survey's high activity is F10.7 250 with Kp 2 (S11.8/sizedemand.pc:53-58, adcs-design/src/lib.rs:199-203); the DTM2020 bundle takes 70/130/250 with Kp 2 (atmosbundle.pc:13-26, 'the high activity's Ap is S12's'); the engine's default is 130, Kp 2 (adcs-sim/src/run.rs:37, env_f107_default, env_kp_default, env_ap_default)."
+drivers = ["aero torque at high activity"]
+standard = ["ECSS-E-ST-10-04C"]
+current = "three tables that disagree (65/250, 70/130/250, 130); the high level keeps Kp 2"
+choice = "One activity table of three levels (low, moderate, high long-term: F10.7 with its Ap) from ECSS-E-ST-10-04C, used by the bundle, the survey and the scenarios. The values are NOT stated here: they are to be transcribed in S12.9 from the standard's table, with the table number, and checked against the page by the owner. The survey always runs on DTM2020. S12.1 (the developer's proposal, unsigned)."
+rationale = "One source for the levels removes the inert high entry on the fast orbit and the Kp 2 at high activity."
+consequences = "The survey's and the bundle's high entries rise; the sizing's aero torque at high activity grows by the DTM2020 density ratio."
+sets = ["the activity table (to be stated in S12.9 as env_activity_table, values from ECSS-E-ST-10-04C, table number named there)"]
+revisit_when = "the owner checks the transcription against the page, or the standard is revised"
+signature = {}
+
+[[option]]
+name = "one ECSS-E-ST-10-04C table for bundle, survey and scenarios"
+evidence = "TECHNICAL_ROADMAP E9; docs/S12_INVENTORY.md section 5 question 2"
+rejected_because = ""
+
+[[option]]
+name = "keep the survey's 65/250 and the bundle's 70/130/250 with Kp 2"
+evidence = "the present nodes"
+rejected_because = "the high level carries Kp 2, which no standard states, and the three tables disagree"

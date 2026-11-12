@@ -1,0 +1,29 @@
+schema = "trinetra-decision/1"
+id = "DR-env-007"
+decisions = ["DD44"]
+title = "Orbit drag shape"
+group = "env"
+parent = "m2"
+owner_team = "env"
+status = "proposed"
+owner_question = 10
+owner_question_stage = "S12"
+items = ["P10"]
+context = "Orbit drag uses a fixed cannonball (S7.6/forcemodel.pc:62,69) while the attitude torques use facets (S7.4/facets.pc); set_attitude has no effect (adcs-pop/src/accel.rs:313)."
+current = "cannonball drag in the orbit; facets in the torques"
+choice = "The orbit's drag uses the attitude torques' facets with the case's Cd, so orbit and torque agree. Sentman panels are not adopted. S12.1 (the developer's proposal, unsigned)."
+rationale = "One shape, one Cd: the orbit and the torque cannot disagree."
+consequences = "A 3U face-on (X-ram) and Z-ram orbit differ in drag by a ratio of about 3.4."
+sets = ["sils_forces drag_model (S7.6/forcemodel.pc:52-73) reading the facet set of env"]
+revisit_when = "a Cd model by surface is stated"
+signature = {}
+
+[[option]]
+name = "the torques' facets with the case's Cd"
+evidence = "TECHNICAL_ROADMAP P10; docs/S12_INVENTORY.md section 5 question 10"
+rejected_because = ""
+
+[[option]]
+name = "Sentman panels"
+evidence = "Sentman (1961)"
+rejected_because = "needs the accommodation by material, which the catalogue does not state"

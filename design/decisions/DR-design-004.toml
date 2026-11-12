@@ -1,0 +1,29 @@
+schema = "trinetra-decision/1"
+id = "DR-design-004"
+decisions = ["DD10", "DD5"]
+title = "Blank requirements, and the developer's reference values"
+group = "design"
+parent = "ct3"
+owner_team = "design"
+status = "proposed"
+owner_question = [18, 24]
+owner_question_stage = "S12"
+items = ["Y14"]
+context = "The sizing fills blanks (S11.8/sizedemand.pc:228-238 demand_defaults: req.slew 60 s, req.dump 0.25 orbit, mission.life 3 yr, w0, spd, sangle); adcs-design/src/lib.rs:224-228 notes 'blank: ... taken' and goes on; tau_slew 3.8e-5 against tau_dist 4.4-5.6e-7. Some case values come from the developer's reference adcs_ref_c1 and are UNCONFIRMED."
+current = "blanks are taken; reference values are requirements"
+choice = "Refuse by name every blank the sizing or a closure needs: the closure reads 'not stated'; no slew is sized unless req.slew and req.wmax are stated. The developer's reference values (UNCONFIRMED, adcs_ref_c1) are refused as requirements: each is kept in a record as the developer's proposal for the owner to state, and the run still reports the metric against it, marked unconfirmed. S12.1 (the developer's proposal, unsigned)."
+rationale = "A requirement the owner has not stated is not a requirement; the refusal makes that visible."
+consequences = "ais_3u with req.slew, req.dump or mission.life blank returns an error naming each; the case template gains req.temp_op, req.cleanliness, req.leop_energy, req.avail, req.data."
+sets = ["adcs-design/src/lib.rs demand() and the case requirement nodes (to be stated in S12.12 as demand_refusals); the proposals list (S12.12 as case_reference_proposals)"]
+revisit_when = "the owner states the blank requirements"
+signature = {}
+
+[[option]]
+name = "refuse by name; reference values kept as proposals"
+evidence = "docs/S12_INVENTORY.md section 5 questions 18 and 24; SPEC 8.3.2"
+rejected_because = ""
+
+[[option]]
+name = "case-wide stated defaults in a decision record"
+evidence = "the present demand_defaults"
+rejected_because = "a default in a record is a requirement no one signed"

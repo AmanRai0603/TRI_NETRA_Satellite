@@ -1,0 +1,29 @@
+schema = "trinetra-decision/1"
+id = "DR-env-010"
+decisions = ["DD44"]
+title = "Albedo and Earth IR for the torques"
+group = "env"
+parent = "gd"
+owner_team = "env"
+status = "proposed"
+owner_question = 14
+owner_question_stage = "S12"
+items = ["E13"]
+context = "Albedo is a point at nadir with constants differing from their comments (0.30 against 0.31, 237 against 235 W/m2; S7.4/albedo.pc:4-12, earthir.pc:4-10); POP's Knocke rings (S7.6/erp.pc) are not used for torques."
+current = "a point at nadir"
+choice = "The torques use Knocke's 1988 rings with Knocke's constants. S12.1 (the developer's proposal, unsigned)."
+rationale = "The same model in orbit and torque, with every constant equal to its cited source."
+consequences = "The albedo pressure at 550 km, Sun zenith 60 deg, moves by up to 10 %."
+sets = ["l3_dist_row_04 and l3_dist_row_05, env_erp_force (rings; to be stated in S12.10 as env_erp_torque_source)"]
+revisit_when = "a source with a different ring set is chosen"
+signature = {}
+
+[[option]]
+name = "Knocke 1988 rings with their constants"
+evidence = "Knocke (1988); docs/S12_INVENTORY.md section 5 question 14"
+rejected_because = ""
+
+[[option]]
+name = "the point at nadir with its constants corrected"
+evidence = "the present nodes"
+rejected_because = "a point source differs by up to 10 % from the rings at 60 deg Sun zenith"

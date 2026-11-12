@@ -1,0 +1,29 @@
+schema = "trinetra-decision/1"
+id = "DR-nav-001"
+decisions = ["DD43", "DD3"]
+title = "Aberration of starlight, onboard"
+group = "nav"
+parent = "ge"
+owner_team = "nav"
+status = "proposed"
+owner_question = 5
+owner_question_stage = "S12"
+items = ["E2"]
+context = "No aberration of starlight anywhere (gen/sttracker.rs:398 st_sample takes no velocity; star directions are the J2000 catalogue through the true mount, S11.7/sttracker.pc:9-11): annual 20.5 arcsec plus orbital 5.2 arcsec, about 0.0071 deg, above the 0.005 deg imaging AKE."
+current = "none, truth or onboard"
+choice = "Onboard the correction uses the GNSS velocity plus the Sun model's derivative (annual and orbital terms); the truth tracker includes it by the geometric velocity. S12.1 (the developer's proposal, unsigned)."
+rationale = "It needs no uplink and no new input beyond what the flight software already has."
+consequences = "Star directions move by up to 1.24e-4 rad; the estimator's residual falls below 0.0005 deg."
+sets = ["fsw_estimation's aberration term (to be stated in S12.5 as fsw_param_aberration_source) and sens_star_tracker st_sample (S12.5)"]
+revisit_when = "the Sun model's derivative is too coarse, or an uplink exists"
+signature = {}
+
+[[option]]
+name = "GNSS velocity plus the Sun model's derivative"
+evidence = "TECHNICAL_ROADMAP E2; docs/S12_INVENTORY.md section 5 question 5"
+rejected_because = ""
+
+[[option]]
+name = "an uplinked Earth velocity"
+evidence = "the ground segment"
+rejected_because = "adds an uplink dependency for a term the Sun model gives"

@@ -1,0 +1,29 @@
+schema = "trinetra-decision/1"
+id = "DR-env-011"
+decisions = []
+title = "RK78 nodes in the loop"
+group = "env"
+parent = "m2"
+owner_team = "env"
+status = "proposed"
+owner_question = 15
+owner_question_stage = "S12"
+items = ["RK78"]
+context = "The loop advances POP by RK4 (adcs-pop accel.rs:250-267); the step is limited to 1e-3..30 s (adcs-sim config.rs:667, S11.12); the roadmap's RK78 alternative has no S12 row."
+current = "RK4 at the run's step"
+choice = "Drop RK78: RK4 at 10 s is 0.43 m a day, far below attitude relevance. S12.1 (the developer's proposal, unsigned)."
+rationale = "No attitude requirement sees 0.43 m a day."
+consequences = "Nothing moves."
+sets = ["the in-loop integrator (accel.rs InLoop::advance); no node changes"]
+revisit_when = "a precise-orbit arc is required (S13)"
+signature = {}
+
+[[option]]
+name = "drop it"
+evidence = "docs/S12_INVENTORY.md section 5 question 15"
+rejected_because = ""
+
+[[option]]
+name = "adopt RK78 nodes"
+evidence = "the roadmap's P5 alternative"
+rejected_because = "adds cost for an error far below attitude relevance"

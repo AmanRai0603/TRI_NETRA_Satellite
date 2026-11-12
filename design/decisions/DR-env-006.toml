@@ -1,0 +1,30 @@
+schema = "trinetra-decision/1"
+id = "DR-env-006"
+decisions = ["DD44"]
+title = "Gravity field in the precise orbit"
+group = "env"
+parent = "m2"
+owner_team = "env"
+status = "proposed"
+owner_question = 7
+owner_question_stage = "S12"
+items = ["T4", "P7"]
+context = "Gravity is zonal J2-J6 only (adcs-pop/src/gravity/field.rs:52-58); only a synthetic .gfc ships (tests/data/gravity_tides_synth.gfc); adcs-sim-core/src/orbit.rs:7 claims tesserals; tesserals to degree 4 move a day's position by 12 km."
+standard = ["EGM2008"]
+current = "J2-J6 zonals; no EGM2008 file"
+choice = "EGM2008 degree and order 20 in POP; the fast orbit stays J2-J6. The file needs icgem.gfz-potsdam.de, which is not reachable from this environment today, so S12.8 proceeds when the owner supplies it. S12.1 (the developer's proposal, unsigned)."
+rationale = "20x20 captures the ground-track effect for little cost; the attitude does not need more."
+consequences = "POP's position moves by about 12 km a day; the comment at orbit.rs:7 is corrected."
+sets = ["env_gravity_field default_field and the data node (to be stated in S12.8 as env_egm2008_20x20)"]
+revisit_when = "the host becomes reachable, or the orbit's accuracy requirement changes"
+signature = {}
+
+[[option]]
+name = "EGM2008 20x20 in POP, fast orbit J2-J6"
+evidence = "TECHNICAL_ROADMAP T4; docs/S12_INVENTORY.md section 5 question 7"
+rejected_because = ""
+
+[[option]]
+name = "a lower degree"
+evidence = "the J2-J6 field today"
+rejected_because = "tesserals to degree 4 already move a day by 12 km"

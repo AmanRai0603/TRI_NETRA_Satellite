@@ -1,0 +1,30 @@
+schema = "trinetra-decision/1"
+id = "DR-env-005"
+decisions = ["DD44"]
+title = "Field error in the truth"
+group = "env"
+parent = "m3"
+owner_team = "env"
+status = "proposed"
+owner_question = 6
+owner_question_stage = "S12"
+items = ["E5"]
+context = "The truth is IGRF only (S7.3/truthfield.pc:1-3; adcs-sim/src/run.rs:63,69); the only difference from the onboard model is degree 13 against 10, so the magnetometer measures the onboard model almost exactly; the roadmap cites 20-50 nT quiet and 100-500 nT storm (0.1-0.9 deg)."
+drivers = ["magnetometer residual", "magnetic control authority"]
+current = "no crustal or external field in the truth"
+choice = "A truth-only error field: a Dst-scaled external dipole (the ring current) plus a crustal term of stated RMS, dispersed per Monte Carlo draw. The magnitudes are from the roadmap's cited ranges (E5): RMS 20-50 nT quiet, 100-500 nT at Dst -200 nT. These magnitudes are the developer's, unsigned. S12.1 (the developer's proposal, unsigned)."
+rationale = "It reproduces the order of the missing error without a file the repository does not hold."
+consequences = "Magnetometer and magnetic-control runs read a field the onboard model does not know; campaigns draw the error per seed."
+sets = ["a truth-only error-field node and its dispersion (to be stated in S12.7 as env_field_error)"]
+revisit_when = "a crustal table (WMM-HR or EMM) is added to the repository"
+signature = {}
+
+[[option]]
+name = "Dst-scaled external dipole plus a crustal RMS term, dispersed"
+evidence = "TECHNICAL_ROADMAP E5; docs/S12_INVENTORY.md section 5 question 6"
+rejected_because = ""
+
+[[option]]
+name = "a higher-degree crustal table (WMM-HR, EMM)"
+evidence = "NOAA WMM-HR, EMM"
+rejected_because = "the file is not in the repository"

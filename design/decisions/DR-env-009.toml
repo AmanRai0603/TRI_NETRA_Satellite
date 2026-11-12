@@ -1,0 +1,29 @@
+schema = "trinetra-decision/1"
+id = "DR-env-009"
+decisions = ["DD3"]
+title = "What LTAN means, and the mean-element start"
+group = "env"
+parent = "m2"
+owner_team = "env"
+status = "proposed"
+owner_question = [12, 13]
+owner_question_stage = "S12"
+items = ["E12", "P12"]
+context = "The orbit start sets RAAN from the apparent Sun, atan2(sun) + (ltan-12) 15 deg (S7.6/orbitstart.pc:10-17; forcemodel.pc:142-146), up to 4 deg in RAAN from the equation of time; the SSO start uses osculating elements (forcemodel.pc:145-154 sso_initial), about 1 deg of LTAN a year."
+current = "LTAN from the apparent Sun; osculating start"
+choice = "LTAN is mean solar time (the launch-provider convention); the start converts mean to osculating elements by Eckstein-Ustinov (J2, near-circular). S12.1 (the developer's proposal, unsigned)."
+rationale = "Mean solar time is how LTAN is quoted; Eckstein-Ustinov is enough for J2 near-circular orbits."
+consequences = "RAAN moves by up to about 4 deg at the equation-of-time extremes; the node drift falls below 0.0003 deg/day."
+sets = ["env_orbit_start (S7.6/orbitstart.pc) and sso_initial (forcemodel.pc), the mean-Sun reading and the conversion (to be stated in S12.10 as env_ltan_convention)"]
+revisit_when = "a case states its LTAN as apparent"
+signature = {}
+
+[[option]]
+name = "mean solar time; Eckstein-Ustinov"
+evidence = "TECHNICAL_ROADMAP E12, P12; docs/S12_INVENTORY.md section 5 questions 12 and 13"
+rejected_because = ""
+
+[[option]]
+name = "apparent Sun; Brouwer-Lyddane"
+evidence = "Brouwer (1959); Lyddane (1963)"
+rejected_because = "LTAN quoted by providers is mean; the long-period terms are not needed for near-circular orbits"

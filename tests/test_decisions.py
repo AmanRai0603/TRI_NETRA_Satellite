@@ -18,9 +18,9 @@ def load():
     return {f: tomllib.loads(f.read_text(encoding="utf-8")) for f in FILES}
 
 
-def test_twenty_records_complete_and_unsigned():
+def test_records_complete_and_unsigned():
     recs = load()
-    assert len(recs) == 20
+    assert len(recs) == 36
     for f, d in recs.items():
         assert not [k for k in REQUIRED if k not in d], f.name
         assert d["status"] == "proposed", f.name
@@ -32,12 +32,24 @@ def test_coverage():
     recs = load()
     dds = {x for d in recs.values() for x in d["decisions"]}
     assert not set(COVER) - dds, sorted(set(COVER) - dds)
-    qs = {d["owner_question"] for d in recs.values() if "owner_question" in d}
+    qs = {d["owner_question"] for d in recs.values() if "owner_question" in d and d.get("owner_question_stage", "S11") == "S11"}
     assert set(range(1, 10)) <= qs, sorted(qs)
     text = (ROOT / "docs" / "DESIGN_DECISIONS.md").read_text(encoding="utf-8")
     for x in sorted(dds):
         if re.fullmatch(r"DD\d+", x):
             assert re.search(rf"\b{x}\b", text), f"{x} is not in docs/DESIGN_DECISIONS.md"
+
+
+def test_s12_questions_carried_once():
+    """S12.1: every owner question 1-24 of docs/S12_INVENTORY.md section 5 is carried by exactly one record, on its default,
+    proposed and unsigned. A record that also carries an S11 question holds its S12 ones in owner_question_s12."""
+    carried = []
+    for f, d in load().items():
+        if d.get("owner_question_stage") == "S12":
+            n = d["owner_question"]
+            carried += n if isinstance(n, list) else [n]
+        carried += d.get("owner_question_s12", [])
+    assert sorted(carried) == list(range(1, 25)), sorted(carried)
 
 
 def test_regression_copy_holds_them():

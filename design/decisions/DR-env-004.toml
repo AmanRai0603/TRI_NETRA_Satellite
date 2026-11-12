@@ -1,0 +1,31 @@
+schema = "trinetra-decision/1"
+id = "DR-env-004"
+decisions = ["DD44"]
+title = "Space-weather indices in the loop, and the F10.7 lag on the dated path"
+group = "env"
+parent = "m3"
+owner_team = "env"
+status = "proposed"
+owner_question = [8, 9]
+owner_question_stage = "S12"
+items = ["P1", "T6/E9", "ENV-storm", "P3"]
+context = "The loop feeds drag only the manual indices (adcs-pop/src/accel.rs:175, SwSources manual; run.rs:37); JB2008 and the dated DTM2020 are unreachable (a World with JB2008 returns MissingDriver, drag.rs:324); the dated path gives DTM2020 the daily-mean Kp in both delayed slots and same-day F10.7 (adcs-pop/src/spaceweather.rs:232,196)."
+drivers = ["density along the orbit"]
+standard = ["DTM2020 specification", "CelesTrak SW-All"]
+current = "manual indices only; same-day F10.7 on the dated path"
+choice = "Manual indices stay the default. A dated path is offered by a stated node (the dated CelesTrak SW-All table, read in S12.2) choosing the source: manual, dated or JB2008 indices. On the dated path F10.7 is the previous day's, per the DTM2020 specification, and the 3-h-delayed and 24-h-mean Kp slots are filled from the 3-hourly ap. One historic storm, 10-11 May 2024, is a scenario. S12.1 (the developer's proposal, unsigned)."
+rationale = "The default keeps every present run unchanged; the dated path is opt-in and follows the model's own specification."
+consequences = "No present run moves; the May 2024 scenario is new and carries stated verdicts."
+sets = ["the index-source switch (to be stated in S12.9 as env_sw_source)", "the dated table's selection rule in env_space_weather (S12.9)"]
+revisit_when = "the owner asks for the dated path as the default"
+signature = {}
+
+[[option]]
+name = "manual default; dated table by a stated node; the lagged F10.7"
+evidence = "TECHNICAL_ROADMAP E9; docs/S12_INVENTORY.md section 5 questions 8 and 9; the DTM2020 specification"
+rejected_because = ""
+
+[[option]]
+name = "dated path as the default, same-day F10.7"
+evidence = "the present reader (spaceweather.rs:196)"
+rejected_because = "same-day F10.7 departs from the model's specification and smooths storm onsets by up to a day"

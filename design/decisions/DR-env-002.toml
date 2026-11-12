@@ -1,0 +1,31 @@
+schema = "trinetra-decision/1"
+id = "DR-env-002"
+decisions = ["DD3", "DD45"]
+title = "Earth frame, EOP and leap-second snapshot, and the data-validity guard"
+group = "env"
+parent = "m2"
+owner_team = "env"
+status = "proposed"
+owner_question = [3, 4]
+owner_question_stage = "S12"
+items = ["P9", "E14", "P2", "T5/E3", "E4"]
+context = "The loop builds POP on Gmst (adcs-sim/src/run.rs:33), the Earth frame 1,259-1,360 arcsec off and the J2 pole 0.15 deg off (E4, run.rs:58-60); nutation, UT1-UTC and polar motion are omitted on both sides, up to about 25 arcsec (S7.3/caltime.pc:4-5,75); the leap-second table (gen/leapsec.rs) has 28 rows to 2017 and tai_minus_utc has no validity end (S7.3/timescales.pc:108-115); the flight parameter check tests only that jd0 is finite and positive (fsw/src/adcs_params.c:361)."
+drivers = ["pointing budget's frame term", "tracker-to-onboard J2000 residual"]
+standard = ["IERS TN36", "ERFA c2t06a", "SOFA IAU 2006/2000A"]
+current = "truth and onboard on Gmst; UT1 = UTC; no epoch guard"
+choice = "Truth on IAU 2006/2000A build A with EOP (linear interpolation); onboard IAU 2000B nutation with dUT1 and the pole (xp, yp) as flight parameters set by telecommand. A frozen EOP and leap-second snapshot (IERS finals2000A and Leap_Second.dat; the snapshot's date is the developer's choice, stated in S12.2) carries its expiry. A run past the expiry warns and records (eop_flag in the run's header); a published-vector case refuses. The valid epoch span is 2025.0-2030.0 intersected with the files' expiry, refused by name outside it (mission.epoch, and the flight blob's jd0). S12.1 (the developer's proposal, unsigned)."
+rationale = "Build A is the one with published vectors (ERFA c2t06a); IAU 2000B onboard is within 1 arcsec for far less cost than 2000A; a frozen snapshot keeps runs reproducible and the expiry keeps them honest."
+consequences = "The Earth frame moves by about 25 arcsec in truth and onboard; golden rows that read the frame move; a mission epoch past the span is refused."
+sets = ["the env earth-frame build switch (to be stated in S12.4 as env_earth_frame_build)", "the EOP and leap-second snapshot nodes with their expiry (to be stated in S12.2 as env_eop_snapshot)", "the valid span (to be stated in S12.4 as env_epoch_span)"]
+revisit_when = "the snapshot expires, or the onboard nutation's error exceeds the pointing budget"
+signature = {}
+
+[[option]]
+name = "truth build A with EOP; onboard IAU 2000B, dUT1 and pole by telecommand; warn-and-record past expiry"
+evidence = "TECHNICAL_ROADMAP T5/E3, E4, P9, E14; docs/S12_INVENTORY.md section 5 questions 3 and 4; IERS TN36"
+rejected_because = ""
+
+[[option]]
+name = "refuse any run past the expiry"
+evidence = "the snapshot's expiry"
+rejected_because = "a run for the mission epoch near the end of the span would stop for a data limit that does not bear on attitude"

@@ -1,0 +1,29 @@
+schema = "trinetra-decision/1"
+id = "DR-vv-004"
+decisions = []
+title = "The reference ledger's form, and the relations no row uses"
+group = "vv"
+parent = "v1"
+owner_team = "vv"
+status = "proposed"
+owner_question = [16, 17]
+owner_question_stage = "S12"
+items = ["V1", "PV"]
+context = "docs/references.toml holds 15 rows (time_frames and igrf13 checked; orbit_propagation and atmosphere owed); spec/plan/physics.toml has 39 relations, 7 sourced vectors cover 4 relations, 35 have interpreter vectors only; 8 relations are used by no row (31 are used)."
+current = "15 rows; 35 of 39 relations with interpreter vectors only"
+choice = "The ledger stays docs/references.toml: one row per model, each with a test or 'owed' with its reason. The 31 used relations are sourced; the 8 no row uses are marked unused, not sourced. The precise-orbit arcs are S13's. S12.1 (the developer's proposal, unsigned)."
+rationale = "A table next to the tests is the one the checks read; sourcing an unused relation buys nothing."
+consequences = "35 relations gain a sourced vector or an owed reason; 8 are flagged unused."
+sets = ["docs/references.toml and tests/test_env_sources.py (S12.14); the unused flag on the 8 relations (to be stated in S12.14 as lib_spec_physics_unused)"]
+revisit_when = "a relation becomes used by a row"
+signature = {}
+
+[[option]]
+name = "references.toml, one row per model; mark 8 unused, source 31"
+evidence = "TECHNICAL_ROADMAP V1; docs/S12_INVENTORY.md section 5 questions 16 and 17"
+rejected_because = ""
+
+[[option]]
+name = "design nodes for the ledger; source all 39"
+evidence = "the design's source fields"
+rejected_because = "a second ledger beside the checked one, and sourcing 8 unused relations buys no evidence"

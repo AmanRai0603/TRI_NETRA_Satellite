@@ -1,0 +1,29 @@
+schema = "trinetra-decision/1"
+id = "DR-vv-005"
+decisions = ["DD44"]
+title = "Beta extremes"
+group = "vv"
+parent = "v2"
+owner_team = "vv"
+status = "proposed"
+owner_question = 23
+owner_question_stage = "S12"
+items = ["ENV-beta"]
+context = "The 80 scenarios have no environment block (adcs-sim/src/config.rs:699-701); engine.epoch_days and ltan_h exist only as campaign knobs; the cases are ais_3u at LTAN 6 and ais_img_3u at LTAN 10."
+current = "no beta-extreme scenarios"
+choice = "Beta minimum and maximum by epoch at the case's own LTAN. S12.1 (the developer's proposal, unsigned)."
+rationale = "The case's LTAN is what flies; the epoch gives its beta range."
+consequences = "Each case gets scenarios at its year's beta minimum and maximum."
+sets = ["the scenario environment block and its cases (to be stated in S12.15 as env_beta_cases)"]
+revisit_when = "a case is flown at another LTAN"
+signature = {}
+
+[[option]]
+name = "by epoch at the case's own LTAN"
+evidence = "docs/S12_INVENTORY.md section 5 question 23"
+rejected_because = ""
+
+[[option]]
+name = "by LTAN"
+evidence = "TEST_STRATEGY section 4"
+rejected_because = "it flies LTANs that the cases do not state"
