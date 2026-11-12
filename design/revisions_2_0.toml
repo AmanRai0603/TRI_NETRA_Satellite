@@ -4562,3 +4562,27 @@ about = ["The EOP snapshot, 2025.0 (MJD 60676) to 2030.0 (MJD 62502) as far as t
          "LEAP_DAT: TAI - UTC [s] from each date, a row MJD, day, month, year, TAI - UTC (Leap_Second.dat, 28 rows, 1972 to 2017).",
          "LEAP_DAT_EXPIRY: the file's own expiry, year, month, day and MJD, from its header."]
 why = "the EOP and leap-second snapshot as data tables of its node, read by their readers from the committed IERS files; the engine's own reader of the same files reads the same values (tests/test_eop_snapshot.py)"
+
+[[revision.node]]
+id = "env_sw_all_table"
+group = "env"
+parent = "m3"
+label = "Dated space-weather indices (CelesTrak SW-All)"
+behaviour = "lookup"
+question = "The dated Kp, Ap and F10.7 indices from 1 January 2020 to the end of CelesTrak's SW-All file: a row a day (observed, then daily predicted) with the eight 3-hour Kp and Ap, the daily Ap, F10.7 observed and adjusted with their centred and last-81-day means, and a row a month of predicted F10.7 beyond"
+why = "the dated table of DR-env-004 (decision 8), read by its reader from the committed CelesTrak file; the index-source switch and the selection rule come in S12.9 (DR-env-004 names no node for the table: this one is the developer's choice of name)"
+
+[[revision.data]]
+node = "env_sw_all_table"
+module = "swall"
+path = "env/swall.pc"
+reader = "sw_all"
+file = "engine/crates/adcs-pop/data/atmos_drag/SW-All.txt"
+args = { first_year = 2020 }
+publication = "CelesTrak SW-All space-weather data (T.S. Kelso, CelesTrak, https://celestrak.org/SpaceData/; the file's format is described at https://celestrak.org/SpaceData/SpaceWx-format.php, as its header says), the file SW-All.txt (the fixed-column text format of CelesTrak, not the CSV; header 'DATATYPE CssiSpaceWeather', 'VERSION 1.2', 'UPDATED 2025 Jul 21 10:37:15 UTC'), the copy bundled in the PyPI package spaceweather 0.4.2 (code GPLv2; the package's COPYING.data quotes T.S. Kelso: 'There are no licensing requirements', asking only that the URL be given); the observed rows end on 2025-07-20, the daily predictions on 2025-08-28 and the monthly ones on 2041-10-01"
+about = ["Dated space-weather indices from 1 January 2020 to the end of the file. A type column: 0 observed, 1 daily predicted, 2 monthly predicted.",
+         "SW_DAILY: a row a day, year, month, day, type, Kp x 10 of the eight 3-hour intervals of the day (the file's integers: 43 is Kp 4.3),",
+         "Ap of the eight 3-hour intervals, the daily Ap, then F10.7 adjusted to 1 AU, its centred and its last 81-day mean, F10.7 observed, its centred",
+         "and its last 81-day mean [sfu]. SW_MONTHLY: a row a month (the first of it), year, month, day, type, then the same six F10.7 values: the file",
+         "holds no Kp or Ap for a month, so no stand-in is written. The sunspot number, the quality flag, the Cp and C9 and the sums are not read."]
+why = "the dated CelesTrak SW-All table as a data table of its node, read by its reader from the committed file; nothing reads it until S12.9"
