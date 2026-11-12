@@ -54,3 +54,6 @@ af2c8ad2eae275add,2026-11-07,S11,code,standard,standard,217162,33,69.5,,code: S1
 af9bdecb955abe27b,2026-11-07,S11,code,standard,standard,183805,130,71.9,,"code: pre-S11.16 loop lever, srp, guard"
 a3e2e15883b8c9f81,2026-11-09,S11,code,standard,standard,164320,139,272.0,,code: S11.16 gate failures triage and fix
 a6489f33b8de9d8f5,2026-11-10,S11,run,light,light,0,0,0.0,,run: S11.17 counts and tables
+a377a5e24fff2d3f8,2026-11-12,S12,page,deep,standard,169949,65,8.0,,"inventory: S12 requirements, Y3, vectors"
+a77d0da65232e7502,2026-11-12,S12,decide,deep,deep,192075,79,11.0,,"inventory: S12 frames, fields, env"
+af999031910ebeb68,2026-11-12,S12,decide,deep,deep,192974,69,10.4,,"inventory: S12 propagator, V1, TS1"
