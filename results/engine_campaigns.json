@@ -8,9 +8,9 @@
   "matlab_pass_rate": 1,
   "engine_pass_rate": 1.0,
   "matlab_mean": 0.005020009645256331,
-  "engine_mean": 0.005020272697297474,
+  "engine_mean": 0.0050195036786042325,
   "matlab_std": 0.00021654865937407205,
-  "engine_std": 0.00021870388700978593
+  "engine_std": 0.00021708607316582324
  },
  {
   "campaign": "edge_fine_img",
@@ -21,9 +21,9 @@
   "matlab_pass_rate": 1,
   "engine_pass_rate": 1.0,
   "matlab_mean": 0.0026523271869086135,
-  "engine_mean": 0.0026523886275568198,
+  "engine_mean": 0.002653332754497235,
   "matlab_std": 0.0004408377864162282,
-  "engine_std": 0.0004408187748668424
+  "engine_std": 0.0004345875383871122
  },
  {
   "campaign": "edge_fine_img",
@@ -34,9 +34,9 @@
   "matlab_pass_rate": 1,
   "engine_pass_rate": 1.0,
   "matlab_mean": 0.003720469724493969,
-  "engine_mean": 0.003720374893311986,
+  "engine_mean": 0.003721351348481545,
   "matlab_std": 5.974310133301973e-05,
-  "engine_std": 5.72974721051471e-05
+  "engine_std": 5.84389377772605e-05
  },
  {
   "campaign": "edge_fine_img",
@@ -47,9 +47,9 @@
   "matlab_pass_rate": null,
   "engine_pass_rate": null,
   "matlab_mean": 0.002746573505106108,
-  "engine_mean": 0.0026935490280898364,
+  "engine_mean": 0.002693533456075751,
   "matlab_std": 0.0001745779487207941,
-  "engine_std": 9.182885936249309e-05
+  "engine_std": 9.183949096063739e-05
  },
  {
   "campaign": "edge_fine_img",
@@ -60,9 +60,9 @@
   "matlab_pass_rate": 0,
   "engine_pass_rate": 0.0,
   "matlab_mean": 5.0654837421614145,
-  "engine_mean": 5.065533334605974,
+  "engine_mean": 5.06553275162974,
   "matlab_std": 0.0010977147173176713,
-  "engine_std": 0.0008982718323183329
+  "engine_std": 0.0008982885028682588
  },
  {
   "campaign": "edge_fine_img",
@@ -73,9 +73,9 @@
   "matlab_pass_rate": 1,
   "engine_pass_rate": 0.0,
   "matlab_mean": -1.8662350402837935,
-  "engine_mean": -1.8664964108123547,
+  "engine_mean": -1.8666230864767106,
   "matlab_std": 0.0007532701985747917,
-  "engine_std": 0.0009804565616755444
+  "engine_std": 0.0009806200109514298
  },
  {
   "campaign": "edge_nadir_ais",
@@ -84,11 +84,11 @@
   "matlab_runs": 17,
   "engine_runs": 17,
   "matlab_pass_rate": 0.35294117647058826,
-  "engine_pass_rate": 0.35294117647058826,
+  "engine_pass_rate": 0.29411764705882354,
   "matlab_mean": 21.471230791766647,
-  "engine_mean": 20.885521536146335,
+  "engine_mean": 20.89194165838212,
   "matlab_std": 23.72266974666114,
-  "engine_std": 28.41328947448617
+  "engine_std": 28.381438188160104
  },
  {
   "campaign": "edge_nadir_ais",
@@ -99,9 +99,9 @@
   "matlab_pass_rate": 1,
   "engine_pass_rate": 1.0,
   "matlab_mean": 1.9285525030444968,
-  "engine_mean": 1.8846954703310512,
+  "engine_mean": 1.8835536027676671,
   "matlab_std": 0.9754310791998606,
-  "engine_std": 0.9091038870751316
+  "engine_std": 0.9071963997001449
  },
  {
   "campaign": "edge_nadir_ais",
@@ -112,9 +112,9 @@
   "matlab_pass_rate": 0,
   "engine_pass_rate": 0.0,
   "matlab_mean": 1.510707455481975,
-  "engine_mean": 1.5109552325082622,
+  "engine_mean": 1.5109570793626568,
   "matlab_std": 0.0013615680150856654,
-  "engine_std": 0.0019652193254947564
+  "engine_std": 0.0019666173273212894
  },
  {
   "campaign": "edge_nadir_ais",
@@ -125,9 +125,9 @@
   "matlab_pass_rate": 0,
   "engine_pass_rate": 1.0,
   "matlab_mean": 5.056200113665057,
-  "engine_mean": 4.962901477020601,
+  "engine_mean": 4.965188233718784,
   "matlab_std": 0.42737750955730053,
-  "engine_std": 0.4500097410504754
+  "engine_std": 0.45592932584355744
  },
  {
   "campaign": "mc_agile_rw_rcs",
@@ -138,9 +138,9 @@
   "matlab_pass_rate": 0.95,
   "engine_pass_rate": 0.9828674481514879,
   "matlab_mean": 0.011586884154197657,
-  "engine_mean": 0.00794541677171467,
+  "engine_mean": 0.007945385335499919,
   "matlab_std": 0.023513324548880842,
-  "engine_std": 0.013213689028538521
+  "engine_std": 0.01321300308343542
  },
  {
   "campaign": "mc_agile_rw_rcs",
@@ -151,9 +151,9 @@
   "matlab_pass_rate": null,
   "engine_pass_rate": null,
   "matlab_mean": 0.0035479674752569752,
-  "engine_mean": 0.0035795857092539947,
+  "engine_mean": 0.003579601385289763,
   "matlab_std": 5.21384382397798e-05,
-  "engine_std": 8.885876820389502e-05
+  "engine_std": 8.887075472702246e-05
  },
  {
   "campaign": "mc_detumble_ais",
@@ -164,9 +164,9 @@
   "matlab_pass_rate": 1,
   "engine_pass_rate": 1.0,
   "matlab_mean": 56.63930555555556,
-  "engine_mean": 55.60875000000001,
+  "engine_mean": 55.60805555555556,
   "matlab_std": 12.541647026000962,
-  "engine_std": 13.425932359513148
+  "engine_std": 13.42508460077039
  },
  {
   "campaign": "mc_detumble_ais",
@@ -177,9 +177,9 @@
   "matlab_pass_rate": 0,
   "engine_pass_rate": 0.0,
   "matlab_mean": 1.5269692314193695,
-  "engine_mean": 1.5283646915738116,
+  "engine_mean": 1.5283659556585596,
   "matlab_std": 0.007905862931555168,
-  "engine_std": 0.008229641174195222
+  "engine_std": 0.00822924103929111
  },
  {
   "campaign": "mc_detumble_ais",
@@ -190,9 +190,9 @@
   "matlab_pass_rate": 0,
   "engine_pass_rate": 0.0,
   "matlab_mean": 1.8611868800927764,
-  "engine_mean": 1.8637276718955047,
+  "engine_mean": 1.863723364970855,
   "matlab_std": 0.1385480296433704,
-  "engine_std": 0.15807500728399215
+  "engine_std": 0.15807325768549077
  },
  {
   "campaign": "mc_fine_img",
@@ -203,9 +203,9 @@
   "matlab_pass_rate": 0.9583333333333334,
   "engine_pass_rate": 0.9215509467989179,
   "matlab_mean": 0.00631541616282301,
-  "engine_mean": 0.007036172923358828,
+  "engine_mean": 0.007038290916918919,
   "matlab_std": 0.005928626903019055,
-  "engine_std": 0.00788411916023429
+  "engine_std": 0.007885609452241624
  },
  {
   "campaign": "mc_fine_img",
@@ -216,9 +216,9 @@
   "matlab_pass_rate": 0.9583333333333334,
   "engine_pass_rate": 0.9134355275022543,
   "matlab_mean": 0.0040106422997941175,
-  "engine_mean": 0.004816797385250073,
+  "engine_mean": 0.004817954103891985,
   "matlab_std": 0.006417610257099994,
-  "engine_std": 0.008383558231067725
+  "engine_std": 0.008385997495194936
  },
  {
   "campaign": "mc_fine_img",
@@ -229,9 +229,9 @@
   "matlab_pass_rate": 1,
   "engine_pass_rate": 1.0,
   "matlab_mean": 0.003774308769144649,
-  "engine_mean": 0.0037472488283365516,
+  "engine_mean": 0.0037469633993297536,
   "matlab_std": 0.00010268516620498536,
-  "engine_std": 8.680936847707837e-05
+  "engine_std": 8.683851223793453e-05
  },
  {
   "campaign": "mc_fine_img",
@@ -242,9 +242,9 @@
   "matlab_pass_rate": null,
   "engine_pass_rate": null,
   "matlab_mean": 0.002856184215887811,
-  "engine_mean": 0.0028372762422520033,
+  "engine_mean": 0.0028372769367966196,
   "matlab_std": 0.000266020699234386,
-  "engine_std": 0.00024284908739491949
+  "engine_std": 0.00024284855999268844
  },
  {
   "campaign": "mc_fine_img",
@@ -255,9 +255,9 @@
   "matlab_pass_rate": 0,
   "engine_pass_rate": 0.0,
   "matlab_mean": 5.065734020939362,
-  "engine_mean": 5.066217605995568,
+  "engine_mean": 5.066217596340067,
   "matlab_std": 0.005286456166280814,
-  "engine_std": 0.0045986307050198275
+  "engine_std": 0.004598500892144724
  },
  {
   "campaign": "mc_fine_img",
@@ -268,9 +268,9 @@
   "matlab_pass_rate": 1,
   "engine_pass_rate": 0.0,
   "matlab_mean": -1.5861452513464496,
-  "engine_mean": -1.4885948179895414,
+  "engine_mean": -1.4885896910400798,
   "matlab_std": 0.4049786421711565,
-  "engine_std": 0.3937634216272294
+  "engine_std": 0.39381402217931
  },
  {
   "campaign": "mc_nadir_ais",
@@ -281,9 +281,9 @@
   "matlab_pass_rate": 0,
   "engine_pass_rate": 0.0,
   "matlab_mean": 101.73172008427086,
-  "engine_mean": 78.25543694689613,
+  "engine_mean": 78.45047319523604,
   "matlab_std": 47.04043342581868,
-  "engine_std": 38.6661782508696
+  "engine_std": 38.490012897943025
  },
  {
   "campaign": "mc_nadir_ais",
@@ -294,9 +294,9 @@
   "matlab_pass_rate": 1,
   "engine_pass_rate": 1.0,
   "matlab_mean": 1.449198841492089,
-  "engine_mean": 1.5886171185086388,
+  "engine_mean": 1.5910520125332213,
   "matlab_std": 0.6750333514046386,
-  "engine_std": 0.7483234265372556
+  "engine_std": 0.7482089481342862
  },
  {
   "campaign": "mc_nadir_ais",
@@ -307,9 +307,9 @@
   "matlab_pass_rate": 0,
   "engine_pass_rate": 0.0,
   "matlab_mean": 1.5117656048203367,
-  "engine_mean": 1.5099707713165433,
+  "engine_mean": 1.5099656953558904,
   "matlab_std": 0.002846336832390408,
-  "engine_std": 0.0029200073046415425
+  "engine_std": 0.0029090703873590196
  },
  {
   "campaign": "mc_nadir_ais",
@@ -320,9 +320,9 @@
   "matlab_pass_rate": 0,
   "engine_pass_rate": 1.0,
   "matlab_mean": 6.82524473450767,
-  "engine_mean": 5.755409896769488,
+  "engine_mean": 5.741317498179199,
   "matlab_std": 1.6377078900890163,
-  "engine_std": 1.6560878280986115
+  "engine_std": 1.6688087672022287
  },
  {
   "campaign": "mc_slew_cmg",
@@ -333,9 +333,9 @@
   "matlab_pass_rate": 1,
   "engine_pass_rate": 0.9531109107303878,
   "matlab_mean": 6.420000000000013,
-  "engine_mean": 11.963412408759135,
+  "engine_mean": 11.96660583941607,
   "matlab_std": 0.9844047092425661,
-  "engine_std": 32.82650703677202
+  "engine_std": 32.82475702523869
  },
  {
   "campaign": "mc_slew_cmg",
@@ -346,9 +346,9 @@
   "matlab_pass_rate": 1,
   "engine_pass_rate": 0.9098286744815148,
   "matlab_mean": 0.003430910818413553,
-  "engine_mean": 0.008808200530106666,
+  "engine_mean": 0.008808956578984705,
   "matlab_std": 0.00038576405417124136,
-  "engine_std": 0.022329846999515224
+  "engine_std": 0.022330653856519507
  },
  {
   "campaign": "mc_slew_cmg",
@@ -372,9 +372,9 @@
   "matlab_pass_rate": 1,
   "engine_pass_rate": 0.9504057709648331,
   "matlab_mean": 6.880000000000012,
-  "engine_mean": 12.161116193961584,
+  "engine_mean": 12.16697163769443,
   "matlab_std": 1.5355947649205084,
-  "engine_std": 31.716636553772624
+  "engine_std": 31.715684026306622
  },
  {
   "campaign": "mc_slew_img",
@@ -385,9 +385,9 @@
   "matlab_pass_rate": 0.975,
   "engine_pass_rate": 0.90892696122633,
   "matlab_mean": 0.006286242407692473,
-  "engine_mean": 0.011387412152729363,
+  "engine_mean": 0.01138774274826151,
   "matlab_std": 0.0011638641162506794,
-  "engine_std": 0.021927769118655727
+  "engine_std": 0.021925328016937494
  },
  {
   "campaign": "mc_slew_img",
@@ -398,8 +398,8 @@
   "matlab_pass_rate": null,
   "engine_pass_rate": null,
   "matlab_mean": 0.0025671499148990154,
-  "engine_mean": 0.0025864260504481935,
+  "engine_mean": 0.0025864261131271498,
   "matlab_std": 0.00014203840226713875,
-  "engine_std": 0.0001345179035715892
+  "engine_std": 0.00013451684153625555
  }
 ]
