@@ -10,7 +10,6 @@ import datetime
 import json
 import pathlib
 import re
-import shutil
 import sqlite3
 import struct
 import tempfile
