@@ -13,9 +13,9 @@ typedef struct { pc_a3f v[8]; } pc_a8a3f;
 typedef struct { double v[4]; } pc_a4f;
 typedef struct { pc_a4f v[4]; } pc_a4a4f;
 typedef struct { int64_t v[6]; } pc_a6i;
-typedef struct { double v[26]; } pc_a26f;
+typedef struct { double v[27]; } pc_a27f;
 typedef struct { double v[195]; } pc_a195f;
-typedef struct { pc_a195f v[26]; } pc_a26a195f;
+typedef struct { pc_a195f v[27]; } pc_a27a195f;
 typedef struct { double v[11]; } pc_a11f;
 typedef struct { pc_a11f v[77]; } pc_a77a11f;
 typedef struct { double v[14]; } pc_a14f;
@@ -250,15 +250,20 @@ double math_qangle(pc_a4f a, pc_a4f b);
 /* - returns qe */
 pc_a4f math_qerr(pc_a4f q_ref, pc_a4f q);
 
-/* IGRF_YEAR: IAGA Working Group V-MOD, International Geomagnetic Reference Field: the thirteenth generation (Alken et al. 2021, Earth Planets Space 73:49), igrf13coeffs.txt; the 2025.0 epoch is 2020.0 plus five years of the 2020-25 secular variation, the model's own definition */
-/* read by tools/readers.py (igrf13) from matlab_sils/data/igrf13coeffs.txt (sha256 a9f4fbb21c91e00e), the developer's revision S7.2b */
-/* Data: IGRF_YEAR, its values from the design. */
-extern const pc_a26f igrf13_DATA_IGRF_YEAR;
+/* IGRF14_YEAR: IAGA Working Group V-MOD, International Geomagnetic Reference Field: the 14th generation (International Association of Geomagnetism and Aeronomy, 2024, IGRF-14, Zenodo, https://doi.org/10.5281/zenodo.14012302, as the documentation of ppigrf 2.1.0 cites it; its journal article is listed there as in progress and is not cited here); the file igrf14coeffs.txt as shipped in the PyPI package pyIGRF14 1.0.4 (MIT licence), whose header reads '14th Generation International Geomagnetic Reference Field Schmidt semi-normalised spherical harmonic coefficients, degree n=1,13'; the file states no date of its own (not stated in the file); its last epoch is 2025.0 with the 2025-30 secular variation; checked coefficient by coefficient against IGRF14.shc of ppigrf 2.1.0 (tests/test_igrf14.py) */
+/* read by tools/readers.py (igrf14) from matlab_sils/data/igrf14coeffs.txt (sha256 8f8d88403028fc4e), the developer's revision S12.2 */
+/* Data: IGRF14_YEAR, its values from the design. */
+extern const pc_a27f igrf14coeffs_DATA_IGRF14_YEAR;
 
-/* IGRF_GH: IAGA Working Group V-MOD, International Geomagnetic Reference Field: the thirteenth generation (Alken et al. 2021, Earth Planets Space 73:49), igrf13coeffs.txt; the 2025.0 epoch is 2020.0 plus five years of the 2020-25 secular variation, the model's own definition */
-/* read by tools/readers.py (igrf13) from matlab_sils/data/igrf13coeffs.txt (sha256 a9f4fbb21c91e00e), the developer's revision S7.2b */
-/* Data: IGRF_GH, its values from the design. */
-extern const pc_a26a195f igrf13_DATA_IGRF_GH;
+/* IGRF14_GH: IAGA Working Group V-MOD, International Geomagnetic Reference Field: the 14th generation (International Association of Geomagnetism and Aeronomy, 2024, IGRF-14, Zenodo, https://doi.org/10.5281/zenodo.14012302, as the documentation of ppigrf 2.1.0 cites it; its journal article is listed there as in progress and is not cited here); the file igrf14coeffs.txt as shipped in the PyPI package pyIGRF14 1.0.4 (MIT licence), whose header reads '14th Generation International Geomagnetic Reference Field Schmidt semi-normalised spherical harmonic coefficients, degree n=1,13'; the file states no date of its own (not stated in the file); its last epoch is 2025.0 with the 2025-30 secular variation; checked coefficient by coefficient against IGRF14.shc of ppigrf 2.1.0 (tests/test_igrf14.py) */
+/* read by tools/readers.py (igrf14) from matlab_sils/data/igrf14coeffs.txt (sha256 8f8d88403028fc4e), the developer's revision S12.2 */
+/* Data: IGRF14_GH, its values from the design. */
+extern const pc_a27a195f igrf14coeffs_DATA_IGRF14_GH;
+
+/* IGRF14_SV: IAGA Working Group V-MOD, International Geomagnetic Reference Field: the 14th generation (International Association of Geomagnetism and Aeronomy, 2024, IGRF-14, Zenodo, https://doi.org/10.5281/zenodo.14012302, as the documentation of ppigrf 2.1.0 cites it; its journal article is listed there as in progress and is not cited here); the file igrf14coeffs.txt as shipped in the PyPI package pyIGRF14 1.0.4 (MIT licence), whose header reads '14th Generation International Geomagnetic Reference Field Schmidt semi-normalised spherical harmonic coefficients, degree n=1,13'; the file states no date of its own (not stated in the file); its last epoch is 2025.0 with the 2025-30 secular variation; checked coefficient by coefficient against IGRF14.shc of ppigrf 2.1.0 (tests/test_igrf14.py) */
+/* read by tools/readers.py (igrf14) from matlab_sils/data/igrf14coeffs.txt (sha256 8f8d88403028fc4e), the developer's revision S12.2 */
+/* Data: IGRF14_SV, its values from the design. */
+extern const pc_a195f igrf14coeffs_DATA_IGRF14_SV;
 
 /* The Earth's rotation about z by the Greenwich mean sidereal time (IAU 1982). */
 /* - jd */
@@ -378,8 +383,9 @@ typedef struct { double lat; double lon; double h; } frames_geodetic_out;
 /* - returns h */
 frames_geodetic_out frames_geodetic(pc_a3f r);
 
-/* The Gauss coefficients at a decimal year: straight-line between the two epochs around it, */
-/* extrapolated from the last interval. */
+/* The Gauss coefficients at a decimal year: straight-line between the two epochs around it (IGRF-14's own definition of */
+/* its coefficients between epochs). The table is env_igrf14_coefficients': 27 epochs, 1900.0 to 2025.0 and 2030.0, which */
+/* is 2025.0 plus five years of the 2025-30 secular variation, so the 2025-30 interval is interpolated, not extrapolated. */
 /* - dy */
 /* - returns gh */
 pc_a195f frames_igrf_gh(double dy);

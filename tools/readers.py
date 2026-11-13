@@ -13,6 +13,7 @@ Readers (each returns {table name: (type, rows)}: a 1-D table a list of numbers,
                 as the flight software's and the engine's tables have always been made)
   igrf14        IAGA's igrf14coeffs.txt: the IGRF-14 epochs 1900.0 to 2025.0, the 2025-30 secular variation and the 2030.0
                 epoch it defines (2025.0 + 5 x SV), Gauss coefficients [nT] to degree 13
+  igrf14_degree1  the degree-1 coefficients of the same table at a stated epoch (args: epoch), the dipole's constants (S12.6a)
   finals2000a   the IERS Rapid Service/Prediction Centre's finals2000A.all by the file's own fixed columns: Bulletin A's pole,
                 UT1-UTC and nutation offsets and Bulletin B's where present, over a span of MJD
   leap_second_dat  the IERS Leap_Second.dat: TAI - UTC from each date, and the expiry its header states
@@ -98,6 +99,18 @@ def igrf14(path):
     return {"IGRF14_YEAR": ("real[1][{n}]", years + [2030.0]),
             "IGRF14_GH": ("real[1][195][{n}]", gh + [last]),
             "IGRF14_SV": ("real[1][195]", [float(s) for s in sv])}
+
+
+def igrf14_degree1(path, epoch):
+    """The degree-1 Gauss coefficients of the IGRF-14 table at one of its epochs (the stated epoch, a decimal year the table
+    holds, else refused): IGRF14_DEGREE1 = [epoch, g(1,0), g(1,1), h(1,1)] [decimal year, nT], read from the file by the same
+    reader as the whole table (igrf14), so the dipole's constants are the table's and are kept nowhere else."""
+    got = igrf14(path)
+    years = got["IGRF14_YEAR"][1]
+    if float(epoch) not in years:
+        raise SystemExit(f"readers: igrf14_degree1: {epoch} is not an epoch of {path} ({years[0]} to {years[-1]} in 5-year steps)")
+    gh = got["IGRF14_GH"][1][years.index(float(epoch))]
+    return {"IGRF14_DEGREE1": ("real[1][{n}]", [float(epoch), gh[0], gh[1], gh[2]])}
 
 
 def _field(line, a, b):
@@ -489,7 +502,7 @@ def de440_slice(path, span_jd_tdb):
     return {"DE440_SEGMENTS": ("real[1][9][{n}]", rows), **out}
 
 
-READERS = {"igrf13": igrf13, "igrf14": igrf14, "finals2000a": finals2000a, "sw_all": sw_all, "leap_second_dat": leap_second_dat, "matlab_matrix": matlab_matrix, "xys06": xys06, "text_table": text_table,
+READERS = {"igrf13": igrf13, "igrf14": igrf14, "igrf14_degree1": igrf14_degree1, "finals2000a": finals2000a, "sw_all": sw_all, "leap_second_dat": leap_second_dat, "matlab_matrix": matlab_matrix, "xys06": xys06, "text_table": text_table,
            "solfsmy": solfsmy, "dtcfile": dtcfile, "de440_slice": de440_slice, "matlab_cell": matlab_cell, "fes_bin": fes_bin}
 
 

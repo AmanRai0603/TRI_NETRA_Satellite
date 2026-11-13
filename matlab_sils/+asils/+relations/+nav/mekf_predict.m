@@ -19,9 +19,9 @@ function [q, p] = mekf_predict(q0, b, p0, arw, rrw, wm, dt, stale)
     p = zeros(6, 6);
     arw_eff = arw;
     if (stale && ((0.002 * asils.pc.sqrt_(dt)) > arw))
-        h__70 = dt;
-        if h__70 < 0, h__70 = NaN; else, h__70 = sqrt(h__70); end
-        arw_eff = (0.002 * h__70);
+        h__67 = dt;
+        if h__67 < 0, h__67 = NaN; else, h__67 = sqrt(h__67); end
+        arw_eff = (0.002 * h__67);
     end
     sv2 = (arw_eff * arw_eff);
     su2 = (rrw * rrw);

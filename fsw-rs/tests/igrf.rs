@@ -1,27 +1,57 @@
-//! The flight software's geomagnetic field against an independent implementation of the same
-//! model: pyIGRF 0.3.3 (PyPI; IGRF-13 coefficients, its own Python port of the IAGA igrf13syn
-//! routine), north-east-down at geodetic latitude, longitude and altitude. Values written by
-//! `pyIGRF.igrf_value(lat, lon, alt_km, year)` (X, Y, Z in nT); they agree to well under 1 nT.
+//! The flight software's geomagnetic field against two independent implementations of the same model, IGRF-14
+//! (IAGA V-MOD, 2024): ppigrf 2.1.0 (PyPI, MIT; reads IGRF14.shc, its own Legendre recursion and its own WGS-84 conversion)
+//! and pyIGRF14 1.0.4 (PyPI, MIT; the IAGA synthesis routine in Python), north-east-down at geodetic latitude, longitude and
+//! altitude, degree 13. Values written by `ppigrf.igrf(lon, lat, alt_km, date)` (Bn, Be, -Bu) and by
+//! `pyIGRF14.igrf_value(lat, lon, alt_km, year)` (X, Y, Z), in nT. IGRF interpolates its coefficients linearly in the
+//! decimal year between its epochs (pyIGRF14 and this software do); ppigrf interpolates in calendar time, so its date is
+//! the calendar date that is the same fraction of the way between the two epochs' 1 January 0 h (the epochs' own dates).
+//! The two packages agree with each other to 0.0064 nT on these points (their WGS-84 constants differ in the seventh digit).
 use adcs_fsw::env::{igrf_gh, igrf_ned};
 
-const PY_IGRF: [(f64, f64, f64, f64, [f64; 3]); 8] = [
-    (45.0, 105.0, 500.0, 2025.0, [19086.817231, -1323.853275, 41013.823279]),
-    (-33.9, 18.4, 0.0, 2000.0, [9760.925563, -4241.970038, -24136.639844]),
-    (89.0, 0.0, 550.0, 2021.25, [1475.983066, -151.000042, 45215.519863]),
-    (-89.0, -120.0, 400.0, 1995.5, [526.463740, 12766.644908, -44874.520690]),
-    (0.0, -60.0, 700.0, 2023.7, [18646.618145, -4742.785060, 3748.730254]),
-    (51.5, -0.1, 10.0, 2010.0, [19302.624229, -581.813732, 44341.565931]),
-    (-30.0, -45.0, 550.0, 2024.9, [12523.298120, -4007.903593, -13200.173089]),
-    (10.0, 170.0, 1000.0, 1985.3, [21237.673246, 3183.183938, 3349.692069]),
+// (lat deg, lon deg, alt km, decimal year, ppigrf [N, E, D], pyIGRF14 [X, Y, Z])
+const POINTS: [(f64, f64, f64, f64, [f64; 3], [f64; 3]); 9] = [
+    (45.0, 105.0, 500.0, 2027.0, [19098.503040, -1277.925661, 41013.558808], [19098.507867, -1277.925814, 41013.559434]),
+    (45.0, 105.0, 500.0, 2025.0, [19113.125119, -1260.924282, 40938.843754], [19113.129942, -1260.924436, 40938.844372]),
+    (-33.9, 18.4, 0.0, 2000.0, [9760.924225, -4241.970288, -24136.639111], [9760.925563, -4241.970038, -24136.639844]),
+    (89.0, 0.0, 550.0, 2021.25, [1482.303385, -153.089844, 45213.761796], [1482.303850, -153.089717, 45213.767431]),
+    (-89.0, -120.0, 400.0, 1995.5, [526.463947, 12766.642518, -44874.514400], [526.463740, 12766.644908, -44874.520690]),
+    (0.0, -60.0, 700.0, 2023.7, [18629.894126, -4742.927202, 3769.956969], [18629.894120, -4742.927200, 3769.956968]),
+    (51.5, -0.1, 10.0, 2010.0, [19302.618912, -581.813880, 44341.564511], [19302.624229, -581.813732, 44341.565931]),
+    (-30.0, -45.0, 550.0, 2024.9, [12539.096193, -3980.558473, -13144.841449], [12539.097272, -3980.558904, -13144.840851]),
+    (10.0, 170.0, 1000.0, 1985.3, [21237.673033, 3183.183880, 3349.692974], [21237.673246, 3183.183938, 3349.692069]),
 ];
 
 #[test]
-fn igrf13_matches_an_independent_implementation() {
+fn igrf14_matches_two_independent_implementations() {
     let mut bad = vec![];
-    for (lat, lon, alt, year, want) in PY_IGRF {
+    for (lat, lon, alt, year, pp, py) in POINTS {
         let b = igrf_ned(&igrf_gh(year), lat.to_radians(), lon.to_radians(), alt, 13);
-        let d = (0..3).map(|k| (b[k] - want[k]).abs()).fold(0.0, f64::max);
-        if d >= 0.01 { bad.push(format!("{lat} {lon} {alt} km {year}: {b:?} nT vs pyIGRF {want:?} nT")); }
+        for (who, want) in [("ppigrf 2.1.0", pp), ("pyIGRF14 1.0.4", py)] {
+            let d = (0..3).map(|k| (b[k] - want[k]).abs()).fold(0.0, f64::max);
+            if d >= 0.01 { bad.push(format!("{lat} {lon} {alt} km {year}: {b:?} nT vs {who} {want:?} nT ({d:.4} nT)")); }
+        }
     }
     assert!(bad.is_empty(), "{}", bad.join("\n"));
+}
+
+/// The first point of the table, the one the inventory names: 2027.0, 45 N 105 E, 500 km, to 0.01 nT.
+/// (IGRF-13 extrapolated to this date was tens of nT away.)
+#[test]
+fn the_field_at_2027_45n_105e_500km_is_igrf14s() {
+    let b = igrf_ned(&igrf_gh(2027.0), 45f64.to_radians(), 105f64.to_radians(), 500.0, 13);
+    for (k, want) in [19098.503040, -1277.925661, 41013.558808].into_iter().enumerate() {
+        assert!((b[k] - want).abs() < 0.01, "component {k}: {} vs ppigrf {want}", b[k]);
+    }
+}
+
+/// The coefficient g(1,0) at 2025.0 is the file's: -29350.0 nT as igrf14coeffs.txt (matlab_sils/data) states it, read here from the
+/// file (not from the generated table) so a table that is not the file's fails.
+#[test]
+fn g10_at_2025_is_the_files() {
+    let text = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/../matlab_sils/data/igrf14coeffs.txt")).unwrap();
+    let head = text.lines().find(|l| l.starts_with("g/h")).unwrap().split_whitespace().collect::<Vec<_>>();
+    let col = head.iter().position(|x| *x == "2025.0").unwrap() - 3;
+    let row = text.lines().find(|l| l.starts_with("g ") && l.split_whitespace().nth(1) == Some("1") && l.split_whitespace().nth(2) == Some("0")).unwrap();
+    let want: f64 = row.split_whitespace().nth(3 + col).unwrap().parse().unwrap();
+    assert_eq!(igrf_gh(2025.0)[0], want);
 }

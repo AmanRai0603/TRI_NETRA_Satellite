@@ -199,11 +199,13 @@ pub struct Held {
 
 /// {path: held} of every file the design keeps whole (a lookup block's table, a method's pseudocode and its notes,
 /// a data block's module), by the path its origin names; the last row of a path is the design's: a developer's revision of a method the node already had (S11.5, S11.6) follows
-/// the 1.0.0 row, which stays as provenance (from_design.py `_held`).
+/// the 1.0.0 row, which stays as provenance (from_design.py `_held`). A node's rows are kept sorted by section, so its 1.0.0 `table`
+/// row comes after a developer's revision of the same path (S12.6a: the relations library's env.pc and constants.pc): the table rows
+/// go first and the revisions override them.
 fn held(ns: &[Node]) -> BTreeMap<String, Held> {
     let mut out = BTreeMap::new();
     for n in ns {
-        for (sec, field, value, origin) in &n.rows {
+        for (sec, field, value, origin) in n.rows.iter().filter(|r| r.0 == "table").chain(n.rows.iter().filter(|r| r.0 != "table")) {
             if origin.is_empty() {
                 continue;
             }

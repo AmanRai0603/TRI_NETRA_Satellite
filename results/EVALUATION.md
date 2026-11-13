@@ -4,7 +4,7 @@
 
 ## ais_3u
 
-From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1037 not computed, 184 stated. Closures: 34 blocked, 4 fail.
+From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1038 not computed, 184 stated. Closures: 34 blocked, 4 fail.
 
 | Closure | KPI | Answer | Why |
 |---|---|---|---|
@@ -224,9 +224,9 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1037 not 
 | `gd_0` | env | computed | 6.34679e-08 (SI) | gd_0(r, i_max, i_min) |
 | `gd_1` | env | computed | 7.83267e-08 (SI) | gd_1(rho, v, c_d, a_fr, c_pa) |
 | `gd_2` | env | computed | 5.10763e-09 (SI) | gd_2(p_srp, a_sun, q, c_ps) |
-| `gd_3` | env | computed | 4.6512e-07 (SI) | gd_3(residual_dipole, field) |
-| `gd_4` | env | computed | 6.12022e-07 (SI) | gd_4(aerodynamic, gravity_gradient, solar, magnetic) |
-| `gd_5` | env | computed | 0.00351239 (SI) | gd_5(tau_d, t_orb) |
+| `gd_3` | env | computed | 4.63987e-07 (SI) | gd_3(residual_dipole, field) |
+| `gd_4` | env | computed | 6.1089e-07 (SI) | gd_4(aerodynamic, gravity_gradient, solar, magnetic) |
+| `gd_5` | env | computed | 0.00350589 (SI) | gd_5(tau_d, t_orb) |
 | `gdn_payload_boresight_x` | gdn | stated | 0.0 | the design, 1.0.0 code: engine/crates/adcs-sim/src/product.rs Dev::load (boresight: [0.0, 1.0, 0.0], the payload boresight the guidance, the metrics and the Earth sensor take when the product states none) |
 | `gdn_payload_boresight_y` | gdn | stated | 1.0 | the design, 1.0.0 code: engine/crates/adcs-sim/src/product.rs Dev::load (boresight: [0.0, 1.0, 0.0], the payload boresight the guidance, the metrics and the Earth sensor take when the product states none) |
 | `gdn_payload_boresight_z` | gdn | stated | 0.0 | the design, 1.0.0 code: engine/crates/adcs-sim/src/product.rs Dev::load (boresight: [0.0, 1.0, 0.0], the payload boresight the guidance, the metrics and the Earth sensor take when the product states none) |
@@ -243,9 +243,9 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1037 not 
 | `gf_7` | act | computed | 0.754688 (SI) | gf_7(d, rho, mu) |
 | `gf_8` | act | computed | 0.00173718 (SI) | gf_8(h, mu, l, rho, d, s) |
 | `gm_0` | act | stated | 0.45 AmpereSquareMetre | the design, idmas_v2 |
-| `gm_1` | act | computed | 0.0263168 (SI) | gm_1(tau_d, b_min) |
-| `gm_2` | act | computed | 0.0263168 (SI) | gm_2(momentum, field, dump_time) |
-| `gm_3` | act | computed | 1.04652e-05 (SI) | gm_3(m_av, b_min, n_mtq) |
+| `gm_1` | act | computed | 0.0263322 (SI) | gm_1(tau_d, b_min) |
+| `gm_2` | act | computed | 0.0263322 (SI) | gm_2(momentum, field, dump_time) |
+| `gm_3` | act | computed | 1.04397e-05 (SI) | gm_3(m_av, b_min, n_mtq) |
 | `gr_1` | act | stated | 0.8 Metre | the design, idmas_v2 |
 | `gr_2` | act | stated | 220 Second | the design, idmas_v2 |
 | `kpi_verdict_confidence` | kpi | stated | 0.95 | the design, DR-kpi-001 (design/decisions/DR-kpi-001.toml), option 1: 95 % one-sided, the roadmap's A1 and the usual confidence of ECSS-E-ST-60-10C practice; the developer's value, for the owner to sign or override (docs/S11_INVENTORY.md section 5, question 1) |
@@ -260,8 +260,8 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1037 not 
 | `m2_4` | env | computed | 6.92814e+06 (SI) | radius(h) |
 | `m2_5` | env | computed | 5738.99 (SI) | m2_5(r) |
 | `m2_6` | env | computed | 0.00109482 (SI) | mean_motion(t_orb) |
-| `m3_0` | env | computed | 2.3256e-05 (SI) | m3_0(r) |
-| `m3_1` | env | computed | 4.6512e-05 (SI) | m3_1(r, lambda_max) |
+| `m3_0` | env | computed | 2.31994e-05 (SI) | m3_0(r) |
+| `m3_1` | env | computed | 4.63987e-05 (SI) | m3_1(r, lambda_max) |
 | `m3_2` | env | computed | 1.5708 (SI) | max_magnetic_latitude(i) |
 | `m3_3` | env | computed | 1.82006e-12 (SI) | density_worst(h, t_epoch) |
 | `m3_4` | env | computed | 7585.09 (SI) | circular_speed(r) |
@@ -293,9 +293,9 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1037 not 
 | `vv_record_step_default` | vv | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(time, record_dt_s, 1.0)) |
 | `vv_run_duration_default` | vv | stated | 600 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(time, duration_s, 600.0)) |
 
-**Not computed (1037), by why:**
+**Not computed (1038), by why:**
 
-- no value, relation or pseudocode yet: 753 (act__cmg, act__vscmg, cas, cat, cf, cf_1, cf_4, cf_5, ci1, ci1_0, ci1_1, ci1_2, …)
+- no value, relation or pseudocode yet: 754 (act__cmg, act__vscmg, cas, cat, cf, cf_1, cf_4, cf_5, ci1, ci1_0, ci1_1, ci1_2, …)
 - computed during a run (generated into adcs-sim-core): 72 (act_cmg_model, act_rotor_set, act_rotor_telemetry, act_vscmg_gimbal_limits, act_vscmg_model, dyn_flexible_mode, dyn_initial_state, dyn_rigid_body, dyn_rotor_coupling, dyn_total_momentum, env_calendar_time, env_moon_fast, …)
 - computed during a run (generated into adcs-sim): 47 (env_orbit_start, fsw_param_alloc, fsw_param_bdot_law, fsw_param_es_noise, fsw_param_gim_axis, fsw_param_gim_rate_max, fsw_param_gps_latency, fsw_param_gyro_arw, fsw_param_gyro_rrw, fsw_param_has_es, fsw_param_has_gps, fsw_param_has_gyro, …)
 - computed during a run (generated into adcs-pop): 23 (env_de440, env_density_model, env_drag_force, env_dtm2020_operational, env_dtm2020_research, env_earth_frames, env_eop, env_erp_force, env_exponential_atmosphere, env_force_model, env_gas_surface, env_geodetic, …)
@@ -361,7 +361,7 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1037 not 
 
 ## ais_img_3u
 
-From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1029 not computed, 187 stated. Closures: 33 blocked, 4 fail, 1 pass.
+From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1030 not computed, 187 stated. Closures: 33 blocked, 4 fail, 1 pass.
 
 | Closure | KPI | Answer | Why |
 |---|---|---|---|
@@ -581,9 +581,9 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1029 not 
 | `gd_0` | env | computed | 6.34679e-08 (SI) | gd_0(r, i_max, i_min) |
 | `gd_1` | env | computed | 7.83267e-08 (SI) | gd_1(rho, v, c_d, a_fr, c_pa) |
 | `gd_2` | env | computed | 5.10763e-09 (SI) | gd_2(p_srp, a_sun, q, c_ps) |
-| `gd_3` | env | computed | 4.6512e-07 (SI) | gd_3(residual_dipole, field) |
-| `gd_4` | env | computed | 6.12022e-07 (SI) | gd_4(aerodynamic, gravity_gradient, solar, magnetic) |
-| `gd_5` | env | computed | 0.00351239 (SI) | gd_5(tau_d, t_orb) |
+| `gd_3` | env | computed | 4.63987e-07 (SI) | gd_3(residual_dipole, field) |
+| `gd_4` | env | computed | 6.1089e-07 (SI) | gd_4(aerodynamic, gravity_gradient, solar, magnetic) |
+| `gd_5` | env | computed | 0.00350589 (SI) | gd_5(tau_d, t_orb) |
 | `gdn_payload_boresight_x` | gdn | stated | 0.0 | the design, 1.0.0 code: engine/crates/adcs-sim/src/product.rs Dev::load (boresight: [0.0, 1.0, 0.0], the payload boresight the guidance, the metrics and the Earth sensor take when the product states none) |
 | `gdn_payload_boresight_y` | gdn | stated | 1.0 | the design, 1.0.0 code: engine/crates/adcs-sim/src/product.rs Dev::load (boresight: [0.0, 1.0, 0.0], the payload boresight the guidance, the metrics and the Earth sensor take when the product states none) |
 | `gdn_payload_boresight_z` | gdn | stated | 0.0 | the design, 1.0.0 code: engine/crates/adcs-sim/src/product.rs Dev::load (boresight: [0.0, 1.0, 0.0], the payload boresight the guidance, the metrics and the Earth sensor take when the product states none) |
@@ -601,9 +601,9 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1029 not 
 | `gf_8` | act | computed | 0.00173718 (SI) | gf_8(h, mu, l, rho, d, s) |
 | `gf_9` | act | computed | 56.5657 (SI) | pump_pressure_for_torque(tau, l, s, d) |
 | `gm_0` | act | stated | 0.45 AmpereSquareMetre | the design, idmas_v2 |
-| `gm_1` | act | computed | 0.0263168 (SI) | gm_1(tau_d, b_min) |
-| `gm_2` | act | computed | 0.0263168 (SI) | gm_2(momentum, field, dump_time) |
-| `gm_3` | act | computed | 1.04652e-05 (SI) | gm_3(m_av, b_min, n_mtq) |
+| `gm_1` | act | computed | 0.0263322 (SI) | gm_1(tau_d, b_min) |
+| `gm_2` | act | computed | 0.0263322 (SI) | gm_2(momentum, field, dump_time) |
+| `gm_3` | act | computed | 1.04397e-05 (SI) | gm_3(m_av, b_min, n_mtq) |
 | `gr_1` | act | stated | 0.8 Metre | the design, idmas_v2 |
 | `gr_2` | act | stated | 220 Second | the design, idmas_v2 |
 | `gr_3` | act | computed | 8.49422e-07 (SI) | propellant_per_slew(h, r, isp) |
@@ -622,8 +622,8 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1029 not 
 | `m2_4` | env | computed | 6.92814e+06 (SI) | radius(h) |
 | `m2_5` | env | computed | 5738.99 (SI) | m2_5(r) |
 | `m2_6` | env | computed | 0.00109482 (SI) | mean_motion(t_orb) |
-| `m3_0` | env | computed | 2.3256e-05 (SI) | m3_0(r) |
-| `m3_1` | env | computed | 4.6512e-05 (SI) | m3_1(r, lambda_max) |
+| `m3_0` | env | computed | 2.31994e-05 (SI) | m3_0(r) |
+| `m3_1` | env | computed | 4.63987e-05 (SI) | m3_1(r, lambda_max) |
 | `m3_2` | env | computed | 1.5708 (SI) | max_magnetic_latitude(i) |
 | `m3_3` | env | computed | 1.82006e-12 (SI) | density_worst(h, t_epoch) |
 | `m3_4` | env | computed | 7585.09 (SI) | circular_speed(r) |
@@ -658,9 +658,9 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1029 not 
 | `vv_record_step_default` | vv | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(time, record_dt_s, 1.0)) |
 | `vv_run_duration_default` | vv | stated | 600 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(time, duration_s, 600.0)) |
 
-**Not computed (1029), by why:**
+**Not computed (1030), by why:**
 
-- no value, relation or pseudocode yet: 753 (act__cmg, act__vscmg, cas, cat, cf, cf_1, cf_4, cf_5, ci1, ci1_0, ci1_1, ci1_2, …)
+- no value, relation or pseudocode yet: 754 (act__cmg, act__vscmg, cas, cat, cf, cf_1, cf_4, cf_5, ci1, ci1_0, ci1_1, ci1_2, …)
 - computed during a run (generated into adcs-sim-core): 72 (act_cmg_model, act_rotor_set, act_rotor_telemetry, act_vscmg_gimbal_limits, act_vscmg_model, dyn_flexible_mode, dyn_initial_state, dyn_rigid_body, dyn_rotor_coupling, dyn_total_momentum, env_calendar_time, env_moon_fast, …)
 - computed during a run (generated into adcs-sim): 47 (env_orbit_start, fsw_param_alloc, fsw_param_bdot_law, fsw_param_es_noise, fsw_param_gim_axis, fsw_param_gim_rate_max, fsw_param_gps_latency, fsw_param_gyro_arw, fsw_param_gyro_rrw, fsw_param_has_es, fsw_param_has_gps, fsw_param_has_gyro, …)
 - computed during a run (generated into adcs-pop): 23 (env_de440, env_density_model, env_drag_force, env_dtm2020_operational, env_dtm2020_research, env_earth_frames, env_eop, env_erp_force, env_exponential_atmosphere, env_force_model, env_gas_surface, env_geodetic, …)

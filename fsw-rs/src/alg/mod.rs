@@ -3,7 +3,7 @@
 #![allow(clippy::all)]
 pub mod rt;
 pub mod math;
-pub mod igrf13;
+pub mod igrf14coeffs;
 pub mod frames;
 pub mod estimation;
 pub mod navorbit;

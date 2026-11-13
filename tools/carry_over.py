@@ -30,6 +30,7 @@ import argparse
 import json
 import pathlib
 import re
+import shutil
 import sqlite3
 import sys
 import tempfile
@@ -137,6 +138,28 @@ def fn_outputs(text):
 
 # ------------------------------------------------------------------ what each node gets
 
+def physics_files():
+    """(the relations library's files as the design holds them, the temporary folder that holds the ones a reader writes): 1.0.0's spec/physics/*.pc, each replaced by the developer's
+    revision of its path (`[[revision.method]]` or `[[revision.data]]` in design/revisions_2_0.toml: the last of a path is the
+    design's, as tools/from_design.py reads it) and the files a revision adds under spec/physics/ (S12.6a: the dipole's
+    file and its data). A revision's file is the text that revision gives the node, so a node's carried relation and the
+    library's are one text."""
+    import tempfile
+    import convert_2_0
+    files = {f"spec/physics/{f.name}": f for f in sorted((V1 / "spec" / "physics").glob("*.pc"))}
+    tmp = pathlib.Path(tempfile.mkdtemp(prefix="carry_physics_"))
+    for r in _toml(ROOT / "design" / "revisions_2_0.toml").get("revision", []):
+        for m in r.get("method", []):
+            if m.get("path", "").startswith("spec/physics/"):
+                files[m["path"]] = ROOT / m["pseudocode"]
+        for d in r.get("data", []):
+            if d.get("path", "").startswith("spec/physics/"):
+                f = tmp / pathlib.PurePosixPath(d["path"]).name
+                f.write_text(convert_2_0.data_rows(r, d, f"the developer's revision {r['id']}")[0][2], encoding="utf-8")
+                files[d["path"]] = f
+    return [files[k] for k in sorted(files)], tmp
+
+
 class Plan:
     """Everything the repository states, read once."""
 
@@ -147,7 +170,9 @@ class Plan:
         self.cat = node_catalog.catalogue()
         self.rows = self.cat["rows"]
         self.physics = _toml(PLAN / "physics.toml")["function"]
-        self.phys_blocks = pc_blocks(sorted((V1 / "spec" / "physics").glob("*.pc")))
+        phys, tmp = physics_files()
+        self.phys_blocks = pc_blocks(phys)
+        shutil.rmtree(tmp)
         self.fsw_blocks = pc_blocks(sorted((ROOT / "fsw" / "pseudocode").glob("*.pc")))
         ci = _toml(PLAN / "case_inputs.toml")
         self.case_in = {x["tree_id"]: x for x in ci.get("input", []) if x.get("tree_id")}

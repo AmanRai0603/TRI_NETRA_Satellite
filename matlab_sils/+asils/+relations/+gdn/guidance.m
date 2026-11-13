@@ -22,21 +22,21 @@ function [q_ref, w_ref, wd_ref] = guidance(kind, r, v, t, q_off, roll_deg, t0, t
     q_ref = zeros(4, 1);
     w_ref = zeros(3, 1);
     wd_ref = zeros(3, 1);
-    h__43 = sqrt(r(1)*r(1) + r(2)*r(2) + r(3)*r(3));
-    if 1e-30 > h__43, h__43 = 1e-30; end
-    rh = (r / h__43);
-    h__44 = sqrt(v(1)*v(1) + v(2)*v(2) + v(3)*v(3));
-    if 1e-30 > h__44, h__44 = 1e-30; end
-    vh = (v / h__44);
+    h__40 = sqrt(r(1)*r(1) + r(2)*r(2) + r(3)*r(3));
+    if 1e-30 > h__40, h__40 = 1e-30; end
+    rh = (r / h__40);
+    h__41 = sqrt(v(1)*v(1) + v(2)*v(2) + v(3)*v(3));
+    if 1e-30 > h__41, h__41 = 1e-30; end
+    vh = (v / h__41);
     mr = (rh * (-(1)));
-    h__45 = [vh(2)*mr(3) - vh(3)*mr(2); vh(3)*mr(1) - vh(1)*mr(3); vh(1)*mr(2) - vh(2)*mr(1)];
-    h__46 = sqrt(h__45(1)*h__45(1) + h__45(2)*h__45(2) + h__45(3)*h__45(3));
-    if 1e-30 > h__46, h__46 = 1e-30; end
-    nrm = (h__45 / h__46);
-    h__47 = [mr(2)*nrm(3) - mr(3)*nrm(2); mr(3)*nrm(1) - mr(1)*nrm(3); mr(1)*nrm(2) - mr(2)*nrm(1)];
-    h__48 = sqrt(h__47(1)*h__47(1) + h__47(2)*h__47(2) + h__47(3)*h__47(3));
-    if 1e-30 > h__48, h__48 = 1e-30; end
-    ram = (h__47 / h__48);
+    h__42 = [vh(2)*mr(3) - vh(3)*mr(2); vh(3)*mr(1) - vh(1)*mr(3); vh(1)*mr(2) - vh(2)*mr(1)];
+    h__43 = sqrt(h__42(1)*h__42(1) + h__42(2)*h__42(2) + h__42(3)*h__42(3));
+    if 1e-30 > h__43, h__43 = 1e-30; end
+    nrm = (h__42 / h__43);
+    h__44 = [mr(2)*nrm(3) - mr(3)*nrm(2); mr(3)*nrm(1) - mr(1)*nrm(3); mr(1)*nrm(2) - mr(2)*nrm(1)];
+    h__45 = sqrt(h__44(1)*h__44(1) + h__44(2)*h__44(2) + h__44(3)*h__44(3));
+    if 1e-30 > h__45, h__45 = 1e-30; end
+    ram = (h__44 / h__45);
     rr = zeros(3, 3);
     i = ((0):((3) - 1)).';
     rr(1, (i) + 1) = ((-(reshape(ram((i) + 1), [], 1)))).';
@@ -49,9 +49,9 @@ function [q_ref, w_ref, wd_ref] = guidance(kind, r, v, t, q_off, roll_deg, t0, t
     if flip
         u = [1; 0; 0];
         if (sqrt(roll_axis(1)*roll_axis(1) + roll_axis(2)*roll_axis(2) + roll_axis(3)*roll_axis(3)) > 0)
-            h__49 = sqrt(roll_axis(1)*roll_axis(1) + roll_axis(2)*roll_axis(2) + roll_axis(3)*roll_axis(3));
-            if 1e-30 > h__49, h__49 = 1e-30; end
-            u = (roll_axis / h__49);
+            h__46 = sqrt(roll_axis(1)*roll_axis(1) + roll_axis(2)*roll_axis(2) + roll_axis(3)*roll_axis(3));
+            if 1e-30 > h__46, h__46 = 1e-30; end
+            u = (roll_axis / h__46);
         end
         q_nad = asils.relations.shared.qmult(q_nad, [u(1); u(2); u(3); 0]);
     end
@@ -59,21 +59,21 @@ function [q_ref, w_ref, wd_ref] = guidance(kind, r, v, t, q_off, roll_deg, t0, t
     wd_ref = zeros(3, 1);
     ax = [1; 0; 0];
     if (sqrt(axis(1)*axis(1) + axis(2)*axis(2) + axis(3)*axis(3)) > 0)
-        h__50 = sqrt(axis(1)*axis(1) + axis(2)*axis(2) + axis(3)*axis(3));
-        if 1e-30 > h__50, h__50 = 1e-30; end
-        ax = (axis / h__50);
+        h__47 = sqrt(axis(1)*axis(1) + axis(2)*axis(2) + axis(3)*axis(3));
+        if 1e-30 > h__47, h__47 = 1e-30; end
+        ax = (axis / h__47);
     end
     if (kind == 1)
         q_ref = asils.relations.shared.qmult(q_nad, asils.relations.shared.fromrotvec((ax * (roll_deg * (pi / 180)))));
-        h__51 = asils.relations.gdn.dcm(q_ref);
-        w_ref = [h__51(1, 1)*w_orb(1) + h__51(1, 2)*w_orb(2) + h__51(1, 3)*w_orb(3); h__51(2, 1)*w_orb(1) + h__51(2, 2)*w_orb(2) + h__51(2, 3)*w_orb(3); h__51(3, 1)*w_orb(1) + h__51(3, 2)*w_orb(2) + h__51(3, 3)*w_orb(3)];
+        h__48 = asils.relations.gdn.dcm(q_ref);
+        w_ref = [h__48(1, 1)*w_orb(1) + h__48(1, 2)*w_orb(2) + h__48(1, 3)*w_orb(3); h__48(2, 1)*w_orb(1) + h__48(2, 2)*w_orb(2) + h__48(2, 3)*w_orb(3); h__48(3, 1)*w_orb(1) + h__48(3, 2)*w_orb(2) + h__48(3, 3)*w_orb(3)];
     elseif (kind == 2)
-        h__52 = ((t - t0) / t_slew);
-        h__53 = 0;
-        if h__53 > h__52, h__52 = h__53; end
-        h__53 = 1;
-        if h__53 < h__52, h__52 = h__53; end
-        tau = h__52;
+        h__49 = ((t - t0) / t_slew);
+        h__50 = 0;
+        if h__50 > h__49, h__49 = h__50; end
+        h__50 = 1;
+        if h__50 < h__49, h__49 = h__50; end
+        tau = h__49;
         sd = 0;
         sdd = 0;
         ph = (roll_deg * (pi / 180));
@@ -83,10 +83,10 @@ function [q_ref, w_ref, wd_ref] = guidance(kind, r, v, t, q_off, roll_deg, t0, t
         end
         s = (tau - (sin(((2 * pi) * tau)) / (2 * pi)));
         q_ref = asils.relations.shared.qmult(q_nad, asils.relations.shared.fromrotvec((ax * (ph * s))));
-        h__54 = asils.relations.gdn.dcm(q_ref);
-        wo = [h__54(1, 1)*w_orb(1) + h__54(1, 2)*w_orb(2) + h__54(1, 3)*w_orb(3); h__54(2, 1)*w_orb(1) + h__54(2, 2)*w_orb(2) + h__54(2, 3)*w_orb(3); h__54(3, 1)*w_orb(1) + h__54(3, 2)*w_orb(2) + h__54(3, 3)*w_orb(3)];
-        h__55 = (ax * (ph * sd));
-        tr = [h__55(2)*wo(3) - h__55(3)*wo(2); h__55(3)*wo(1) - h__55(1)*wo(3); h__55(1)*wo(2) - h__55(2)*wo(1)];
+        h__51 = asils.relations.gdn.dcm(q_ref);
+        wo = [h__51(1, 1)*w_orb(1) + h__51(1, 2)*w_orb(2) + h__51(1, 3)*w_orb(3); h__51(2, 1)*w_orb(1) + h__51(2, 2)*w_orb(2) + h__51(2, 3)*w_orb(3); h__51(3, 1)*w_orb(1) + h__51(3, 2)*w_orb(2) + h__51(3, 3)*w_orb(3)];
+        h__52 = (ax * (ph * sd));
+        tr = [h__52(2)*wo(3) - h__52(3)*wo(2); h__52(3)*wo(1) - h__52(1)*wo(3); h__52(1)*wo(2) - h__52(2)*wo(1)];
         i = ((0):((3) - 1)).';
         w_ref((i) + 1) = (reshape(wo((i) + 1), [], 1) + ((reshape(ax((i) + 1), [], 1) .* ph) .* sd));
         wd_ref((i) + 1) = (((reshape(ax((i) + 1), [], 1) .* ph) .* sdd) - reshape(tr((i) + 1), [], 1));
@@ -96,9 +96,9 @@ function [q_ref, w_ref, wd_ref] = guidance(kind, r, v, t, q_off, roll_deg, t0, t
     elseif (kind == 4)
         a = [0; 0; (-(1))];
         if (sqrt(sun_axis(1)*sun_axis(1) + sun_axis(2)*sun_axis(2) + sun_axis(3)*sun_axis(3)) > 0)
-            h__56 = sqrt(sun_axis(1)*sun_axis(1) + sun_axis(2)*sun_axis(2) + sun_axis(3)*sun_axis(3));
-            if 1e-30 > h__56, h__56 = 1e-30; end
-            a = (sun_axis / h__56);
+            h__53 = sqrt(sun_axis(1)*sun_axis(1) + sun_axis(2)*sun_axis(2) + sun_axis(3)*sun_axis(3));
+            if 1e-30 > h__53, h__53 = 1e-30; end
+            a = (sun_axis / h__53);
         end
         b = [1; 0; 0];
         if (sqrt(roll_axis(1)*roll_axis(1) + roll_axis(2)*roll_axis(2) + roll_axis(3)*roll_axis(3)) > 0)
@@ -110,21 +110,21 @@ function [q_ref, w_ref, wd_ref] = guidance(kind, r, v, t, q_off, roll_deg, t0, t
         if (sqrt(b(1)*b(1) + b(2)*b(2) + b(3)*b(3)) < 0.000001)
             b = [((-(a(2))) * a(1)); (1 - (a(2) * a(2))); ((-(a(2))) * a(3))];
         end
-        h__57 = sqrt(b(1)*b(1) + b(2)*b(2) + b(3)*b(3));
-        if 1e-30 > h__57, h__57 = 1e-30; end
-        b = (b / h__57);
-        h__58 = sqrt(sun_eci(1)*sun_eci(1) + sun_eci(2)*sun_eci(2) + sun_eci(3)*sun_eci(3));
-        if 1e-30 > h__58, h__58 = 1e-30; end
-        s = (sun_eci / h__58);
+        h__54 = sqrt(b(1)*b(1) + b(2)*b(2) + b(3)*b(3));
+        if 1e-30 > h__54, h__54 = 1e-30; end
+        b = (b / h__54);
+        h__55 = sqrt(sun_eci(1)*sun_eci(1) + sun_eci(2)*sun_eci(2) + sun_eci(3)*sun_eci(3));
+        if 1e-30 > h__55, h__55 = 1e-30; end
+        s = (sun_eci / h__55);
         e2 = zeros(3, 1);
         i = ((0):((3) - 1)).';
         e2((i) + 1) = (reshape(nrm((i) + 1), [], 1) - ((nrm(1)*s(1) + nrm(2)*s(2) + nrm(3)*s(3)) .* reshape(s((i) + 1), [], 1)));
         if (sqrt(e2(1)*e2(1) + e2(2)*e2(2) + e2(3)*e2(3)) < 0.000001)
             e2 = [((-(s(3))) * s(1)); ((-(s(3))) * s(2)); (1 - (s(3) * s(3)))];
         end
-        h__59 = sqrt(e2(1)*e2(1) + e2(2)*e2(2) + e2(3)*e2(3));
-        if 1e-30 > h__59, h__59 = 1e-30; end
-        e2 = (e2 / h__59);
+        h__56 = sqrt(e2(1)*e2(1) + e2(2)*e2(2) + e2(3)*e2(3));
+        if 1e-30 > h__56, h__56 = 1e-30; end
+        e2 = (e2 / h__56);
         b3 = [a(2)*b(3) - a(3)*b(2); a(3)*b(1) - a(1)*b(3); a(1)*b(2) - a(2)*b(1)];
         e3 = [s(2)*e2(3) - s(3)*e2(2); s(3)*e2(1) - s(1)*e2(3); s(1)*e2(2) - s(2)*e2(1)];
         m = zeros(3, 3);
@@ -135,7 +135,7 @@ function [q_ref, w_ref, wd_ref] = guidance(kind, r, v, t, q_off, roll_deg, t0, t
         w_ref = zeros(3, 1);
     else
         q_ref = q_nad;
-        h__60 = asils.relations.gdn.dcm(q_nad);
-        w_ref = [h__60(1, 1)*w_orb(1) + h__60(1, 2)*w_orb(2) + h__60(1, 3)*w_orb(3); h__60(2, 1)*w_orb(1) + h__60(2, 2)*w_orb(2) + h__60(2, 3)*w_orb(3); h__60(3, 1)*w_orb(1) + h__60(3, 2)*w_orb(2) + h__60(3, 3)*w_orb(3)];
+        h__57 = asils.relations.gdn.dcm(q_nad);
+        w_ref = [h__57(1, 1)*w_orb(1) + h__57(1, 2)*w_orb(2) + h__57(1, 3)*w_orb(3); h__57(2, 1)*w_orb(1) + h__57(2, 2)*w_orb(2) + h__57(2, 3)*w_orb(3); h__57(3, 1)*w_orb(1) + h__57(3, 2)*w_orb(2) + h__57(3, 3)*w_orb(3)];
     end
 end

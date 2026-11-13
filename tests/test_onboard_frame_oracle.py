@@ -34,7 +34,7 @@ except ImportError as e:        # pragma: no cover
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 FRAMES = ROOT / "fsw" / "pseudocode" / "02_time_frames_models.pc"
-LIBS = [ROOT / "fsw" / "pseudocode" / "01_math.pc", ROOT / "fsw" / "pseudocode" / "02_igrf13.pc"]
+LIBS = [ROOT / "fsw" / "pseudocode" / "01_math.pc", ROOT / "fsw" / "pseudocode" / "02_igrf14.pc"]
 AS2R = math.pi / 180 / 3600
 MAS = AS2R / 1000
 TT_UTC = 69.184 / 86400          # TAI - UTC 37 s since 2017-01-01, plus 32.184 s

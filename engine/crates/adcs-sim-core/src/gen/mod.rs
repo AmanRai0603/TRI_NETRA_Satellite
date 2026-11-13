@@ -56,7 +56,7 @@ pub mod sunfast;
 pub mod truthdensity;
 pub mod truthfield;
 pub mod math;
-pub mod igrf13;
+pub mod igrf14coeffs;
 pub mod frames;
 pub mod guidance;
 pub mod drivers;

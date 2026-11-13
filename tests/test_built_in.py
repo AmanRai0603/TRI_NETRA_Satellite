@@ -86,7 +86,7 @@ class BuiltIn(unittest.TestCase):
                  "env_time_scales", "env_geodetic", "env_earth_frames", "env_iau2006", "env_tidal_eop"}
         # a later revision may replace a method (S12.4a: the leap-second status in env_time_scales): the method's origin then
         # names that revision, and the node's history still says S7.3 transcribed it, unsigned
-        replaced = {"env_time_scales": "S12.4a", "env_time_frames": "S12.5b"}
+        replaced = {"env_time_scales": "S12.4a", "env_time_frames": "S12.6a", "l3_dist_row_08": "S12.6a"}   # S12.6a: the field is IGRF-14's
         for nid in moved:
             _k, x = self.nodes[nid]
             self.assertEqual(self.beh(nid), "method", nid)
@@ -429,7 +429,7 @@ class BuiltIn(unittest.TestCase):
         import tempfile, pcode
         with tempfile.TemporaryDirectory() as d:
             files = []
-            for p in ("fsw/pseudocode/01_math.pc", "fsw/pseudocode/02_time_frames_models.pc", "fsw/pseudocode/02_igrf13.pc",
+            for p in ("fsw/pseudocode/01_math.pc", "fsw/pseudocode/02_time_frames_models.pc", "fsw/pseudocode/02_igrf14.pc",
                       "fsw/pseudocode/09_drivers.pc", "oils/emucodec.pc"):
                 f = pathlib.Path(d) / pathlib.PurePosixPath(p).name
                 f.write_text((ROOT / p).read_text(encoding="utf-8") if p.startswith("fsw/pseudocode/01") else from_design.text(p, REG / "design.tndb"),

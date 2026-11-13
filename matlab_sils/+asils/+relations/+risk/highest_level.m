@@ -6,9 +6,9 @@ function [l_max] = highest_level(levels)
     l_max = 0;
     l_max = levels(1);
     for k = (1):((7) - 1)
-        h__25 = l_max;
-        h__26 = levels((k) + 1);
-        if h__26 > h__25, h__25 = h__26; end
-        l_max = h__25;
+        h__22 = l_max;
+        h__23 = levels((k) + 1);
+        if h__23 > h__22, h__22 = h__23; end
+        l_max = h__22;
     end
 end

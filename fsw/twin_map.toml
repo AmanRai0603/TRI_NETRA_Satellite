@@ -107,7 +107,7 @@ parity = "same equations"
 [[node]]
 id = "field"
 matlab = "+asils/+env/{field,igrf_gh,igrf_ned}.m (degree 13) with op.geodetic (POP)"
-engine = "adcs-sim-core/src/field.rs (degree 13, same recursion, table = fsw-rs/src/igrf13.rs) fed by adcs_pop::geodetic"
+engine = "adcs-sim-core/src/field.rs (degree 13, same recursion, table = the design's env_igrf14_coefficients, generated (gen/igrf14coeffs.rs)) fed by adcs_pop::geodetic"
 parity = "bit: |B| equal to the 9 filed digits on every sample of all 40 scenarios (results/ENGINE_PARITY.md)"
 
 [[node]]

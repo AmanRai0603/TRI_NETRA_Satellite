@@ -55,7 +55,9 @@ def _held(db=None):
     and its notes, a data block's module), by the path its origin names."""
     out = {}
     for _nid, b in _bodies(db).items():
-        for sec, field, value, origin in b.get("content", []):
+        # a node's rows are kept sorted by section, so its 1.0.0 `table` row comes after a developer's revision of the same
+        # path (S12.6a: the relations library's env.pc and constants.pc): the table rows go first, the revisions override them
+        for sec, field, value, origin in sorted(b.get("content", []), key=lambda r: r[0] != "table"):
             if not origin:
                 continue
             src = origin.split(" ")[0]

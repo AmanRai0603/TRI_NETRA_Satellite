@@ -14,8 +14,14 @@ function y = call(name, x)
         case 'env::dipole_field_equator'
             [o1] = asils.relations.env.dipole_field_equator(x(1));
             y = [double(o1)];
+        case 'env::m3_0'
+            [o1] = asils.relations.env.m3_0(x(1));
+            y = [double(o1)];
         case 'env::dipole_field_max'
             [o1] = asils.relations.env.dipole_field_max(x(1), x(2));
+            y = [double(o1)];
+        case 'env::m3_1'
+            [o1] = asils.relations.env.m3_1(x(1), x(2));
             y = [double(o1)];
         case 'env::density_at'
             [o1] = asils.relations.env.density_at(x(1), x(2));
@@ -181,12 +187,6 @@ function y = call(name, x)
             y = [double(o1)];
         case 'env::m2_5'
             [o1] = asils.relations.env.m2_5(x(1));
-            y = [double(o1)];
-        case 'env::m3_0'
-            [o1] = asils.relations.env.m3_0(x(1));
-            y = [double(o1)];
-        case 'env::m3_1'
-            [o1] = asils.relations.env.m3_1(x(1), x(2));
             y = [double(o1)];
         case 'env::m3_5'
             [o1] = asils.relations.env.m3_5(x(1));

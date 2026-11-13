@@ -77,7 +77,7 @@ AT = "2026-10-06T00:00:00Z"            # fixed, so the conversion is the same by
 WHY = "converted from 1.0.0, not yet signed by a person"
 FSW_MODULES = {"03_estimation.pc": "nav", "04_guidance.pc": "gdn", "05_control.pc": "ctl", "06_step_laws.pc": "ctl",
                "07_allocation.pc": "ctl", "08_mode_manager.pc": "gdn", "09_drivers.pc": "fsw"}
-TOOLBOX_MODULES = ["01_math.pc", "02_time_frames_models.pc", "02_igrf13.pc"]
+TOOLBOX_MODULES = ["01_math.pc", "02_time_frames_models.pc", "02_igrf14.pc"]
 # Library data: (folder, glob, owning group, what it is). Each file becomes a lookup block of its group.
 LIBRARY = [("catalogue", "**/*.toml", "catalogue", "the catalogue"),
            ("spec/plan", "kpis.toml", "kpi", "the KPI definitions"),

@@ -1,4 +1,4 @@
-//! Truth geomagnetic field: env's methods, generated from the design (tools/engine_build.py): IGRF-13 by env's
+//! Truth geomagnetic field: env's methods, generated from the design (tools/engine_build.py): IGRF-14 by env's
 //! synthesis (`gen::frames::igrf_gh`, `igrf_ned`: the flight software's model and table, one copy) at the engine's
 //! geodetic coordinates, back to J2000 (`gen::truthfield`, the method of l3_dist_row_08). What is left here is the
 //! engine's call of it, by the names the engine has always used.
@@ -8,7 +8,7 @@ use crate::la::*;
 /// The Gauss coefficients at a date, 195 [nT].
 pub type Gh = [f64; 195];
 
-/// Gauss coefficients at a decimal year [nT] (linear between epochs, last interval extrapolated).
+/// Gauss coefficients at a decimal year [nT] (IGRF-14, linear between its 5-year epochs; 2025.0 to 2030.0 is the model's own secular variation).
 pub fn gh(dy: f64) -> Gh { frames::igrf_gh(dy) }
 
 /// WGS-84 geodetic latitude, longitude [rad], height [m].

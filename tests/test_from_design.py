@@ -33,7 +33,11 @@ class FromDesign(unittest.TestCase):
     def test_the_plan_is_read_from_the_design(self):
         kpis = tomllib.loads(from_design.text("spec/plan/kpis.toml"))
         self.assertEqual(len(kpis["kpi"]), 22)
-        self.assertEqual(len(from_design.paths("spec/physics/")), 11)
+        # 1.0.0's eleven relation files, and the two a developer's revision adds (S12.6a: the dipole's relations, and the IGRF-14
+        # degree-1 slice they read)
+        archived = {f"spec/physics/{f.name}" for f in (ROOT / "archive" / "design-1.0" / "spec" / "physics").glob("*.pc")}
+        self.assertEqual(len(archived), 11)
+        self.assertEqual(set(from_design.paths("spec/physics/")), archived | {"spec/physics/dipole.pc", "spec/physics/igrf14dipole.pc"})
         with self.assertRaises(SystemExit):
             from_design.text("spec/plan/no_such_file.toml")
 
@@ -41,7 +45,7 @@ class FromDesign(unittest.TestCase):
         # 1.0.0's sources, archived, are history: the design holds each one the code still reads, byte for byte. A
         # method a developer's revision added under the same folders (catalogue/catderive.pc, S7.15) is not one of them.
         revs = tomllib.loads((ROOT / "design" / "revisions_2_0.toml").read_text(encoding="utf-8"))["revision"]
-        added = {m["path"] for r in revs for m in r.get("method", []) if m.get("path")}
+        added = {m["path"] for r in revs for k in ("method", "data") for m in r.get(k, []) if m.get("path")}
         for p in from_design.paths("spec/") + from_design.paths("catalogue/"):
             if p in added:
                 continue

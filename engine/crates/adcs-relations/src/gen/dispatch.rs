@@ -26,9 +26,19 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             let r = crate::env::dipole_field_equator(x[0]);
             out.push(r);
         }
+        "env::m3_0" => {
+            if x.len() != 1 { return None; }
+            let r = crate::env::m3_0(x[0]);
+            out.push(r);
+        }
         "env::dipole_field_max" => {
             if x.len() != 2 { return None; }
             let r = crate::env::dipole_field_max(x[0], x[1]);
+            out.push(r);
+        }
+        "env::m3_1" => {
+            if x.len() != 2 { return None; }
+            let r = crate::env::m3_1(x[0], x[1]);
             out.push(r);
         }
         "env::density_at" => {
@@ -309,16 +319,6 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
         "env::m2_5" => {
             if x.len() != 1 { return None; }
             let r = crate::env::m2_5(x[0]);
-            out.push(r);
-        }
-        "env::m3_0" => {
-            if x.len() != 1 { return None; }
-            let r = crate::env::m3_0(x[0]);
-            out.push(r);
-        }
-        "env::m3_1" => {
-            if x.len() != 2 { return None; }
-            let r = crate::env::m3_1(x[0], x[1]);
             out.push(r);
         }
         "env::m3_5" => {

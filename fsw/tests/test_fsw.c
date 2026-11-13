@@ -50,11 +50,11 @@ static void t_math(void)
 
 static void t_env(void)
 {
-    /* twin: asils.env.igrf_ned(asils.env.igrf_gh(2027.1), 0.3, 1.2, 550, 13) and asils.fsw.sun_model */
+    /* twin: asils.alg.frames.igrf_ned(asils.alg.frames.igrf_gh(2027.1), 0.3, 1.2, 550, 13), the twin's IGRF-14 (S12.6a; 29155.7 -187.0 13232.6 on IGRF-13), and asils.fsw.sun_model */
     adcs_real gh[195], B[3], s[3];
     adcs_igrf_gh(2027.1, gh);
     adcs_igrf_ned(gh, 0.3, 1.2, 550, 13, B);
-    CHECK(fabs(B[0] - 29155.707342) < 1e-5 && fabs(B[1] + 187.025096) < 1e-5 && fabs(B[2] - 13232.587581) < 1e-5,
+    CHECK(fabs(B[0] - 29130.684800) < 1e-5 && fabs(B[1] + 200.904885) < 1e-5 && fabs(B[2] - 12918.277441) < 1e-5,
           "IGRF vs twin: %.6f %.6f %.6f", B[0], B[1], B[2]);
     adcs_sun_model(2461407.25, s);
     CHECK(fabs(s[0] - 0.185796268321) < 1e-11 && fabs(s[1] + 0.901530663479) < 1e-11 && fabs(s[2] + 0.390796890321) < 1e-11,

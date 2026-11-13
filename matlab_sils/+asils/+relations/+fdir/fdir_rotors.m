@@ -18,21 +18,21 @@ function [s] = fdir_rotors(st, rp, t, dt, zh)
         for i = (0):((nr) - 1)
             tmax = rp.rot_tmax((i) + 1);
             meas = ((zh((i) + 1) - s.h_prev((i) + 1)) / dt);
-            h__35 = s.cmd_r_prev((i) + 1);
-            h__36 = ((-(0.8)) * tmax);
-            if h__36 > h__35, h__35 = h__36; end
-            h__36 = (0.8 * tmax);
-            if h__36 < h__35, h__35 = h__36; end
-            expect = h__35;
-            h__37 = (meas - expect);
-            if h__37 < 0, h__37 = -h__37; elseif h__37 == 0, h__37 = 0; end
-            bad = ((((h__37 > (0.5 * tmax)) && (rp.rot_gi((i) + 1) == 0)) && (asils.pc.fabs(expect) > (0.2 * tmax))) && (asils.pc.fabs(zh((i) + 1)) < (0.9 * rp.rot_hmax((i) + 1))));
+            h__32 = s.cmd_r_prev((i) + 1);
+            h__33 = ((-(0.8)) * tmax);
+            if h__33 > h__32, h__32 = h__33; end
+            h__33 = (0.8 * tmax);
+            if h__33 < h__32, h__32 = h__33; end
+            expect = h__32;
+            h__34 = (meas - expect);
+            if h__34 < 0, h__34 = -h__34; elseif h__34 == 0, h__34 = 0; end
+            bad = ((((h__34 > (0.5 * tmax)) && (rp.rot_gi((i) + 1) == 0)) && (asils.pc.fabs(expect) > (0.2 * tmax))) && (asils.pc.fabs(zh((i) + 1)) < (0.9 * rp.rot_hmax((i) + 1))));
             if bad
-                h__38 = (s.fd_count((i) + 1) + dt);
+                h__35 = (s.fd_count((i) + 1) + dt);
             else
-                h__38 = 0;
+                h__35 = 0;
             end
-            s.fd_count((i) + 1) = h__38;
+            s.fd_count((i) + 1) = h__35;
             if ((s.fd_count((i) + 1) > rp.fdir_s) && (~s.rot_failed((i) + 1)))
                 s.rot_failed((i) + 1) = true;
                 s.faults = bitor(s.faults, bitshift(1, i));
@@ -58,16 +58,16 @@ function [s] = fdir_rotors(st, rp, t, dt, zh)
                     m = (zh((i) + 1) - s.fw_h0((i) + 1));
                     skip = ((((((rp.rot_kind((i) + 1) ~= 1) || (rp.rot_gi((i) + 1) ~= 0)) || s.rot_failed((i) + 1)) || (asils.pc.fabs(e) <= (rp.fdir_h_frac * hmax))) || (asils.pc.fabs(zh((i) + 1)) >= (0.9 * hmax))) || (asils.pc.fabs(s.fw_h0((i) + 1)) >= (0.9 * hmax)));
                     if (~skip)
-                        h__39 = (m - e);
-                        if h__39 < 0, h__39 = -h__39; elseif h__39 == 0, h__39 = 0; end
-                        h__40 = e;
-                        if h__40 < 0, h__40 = -h__40; elseif h__40 == 0, h__40 = 0; end
-                        if (h__39 > (0.5 * h__40))
-                            h__41 = (s.fw_bad((i) + 1) + 1);
+                        h__36 = (m - e);
+                        if h__36 < 0, h__36 = -h__36; elseif h__36 == 0, h__36 = 0; end
+                        h__37 = e;
+                        if h__37 < 0, h__37 = -h__37; elseif h__37 == 0, h__37 = 0; end
+                        if (h__36 > (0.5 * h__37))
+                            h__38 = (s.fw_bad((i) + 1) + 1);
                         else
-                            h__41 = 0;
+                            h__38 = 0;
                         end
-                        s.fw_bad((i) + 1) = h__41;
+                        s.fw_bad((i) + 1) = h__38;
                         if (s.fw_bad((i) + 1) >= 2)
                             s.rot_failed((i) + 1) = true;
                             s.faults = bitor(s.faults, bitshift(1, i));

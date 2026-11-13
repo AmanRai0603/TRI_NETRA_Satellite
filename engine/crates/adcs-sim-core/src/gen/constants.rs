@@ -43,11 +43,3 @@ pub const DAYS_PER_YEAR: f64 = 365.25;
 
 /// The epoch J2000.0 as a Julian date.
 pub const JD_J2000: f64 = 2451545.0;
-
-/// The degree-1 coefficients of the main field, IGRF-13 at 2020.0 (matlab_sils/data/igrf13coeffs.txt),
-/// until the igrf14 bundle lands (docs/ADCS_GAPS.md).
-pub const IGRF_G10: f64 = -0.0000294048;
-
-pub const IGRF_G11: f64 = -0.0000014509000000000002;
-
-pub const IGRF_H11: f64 = 0.0000046525;

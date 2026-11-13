@@ -4,7 +4,6 @@
 fsw/include/adcs_params.h           linguist-generated
 fsw/src/adcs_params.c               linguist-generated
 fsw-rs/src/params.rs                linguist-generated
-fsw-rs/src/igrf13.rs                linguist-generated
 fsw/alg/**                          linguist-generated
 fsw-rs/src/alg/**                   linguist-generated
 fsw/tests/alg_dispatch.c            linguist-generated

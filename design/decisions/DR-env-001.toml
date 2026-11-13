@@ -16,7 +16,7 @@ current = "IGRF-13, onboard degree 10, truth degree 13, extrapolated past 2025"
 choice = "IGRF-14 for the engine, both flight softwares and the twin; onboard degree 10, truth degree 13. Its coefficients are read into the design's env data node (S12.2) with 50 checked points on a stated grid (the developer's, unsigned). S12.1 (the developer's proposal, unsigned)."
 rationale = "IGRF-14 is the current reference field and its span covers the mission epoch; the degree split keeps the onboard model cheaper than the truth, as today."
 consequences = "The IGRF-13 rows and the 8 test points are replaced; golden rows that read the field move and are re-signed by their owners."
-sets = ["the env field coefficient data node and env_field_degree (to be stated in S12.2 as env_igrf14_coefficients)", "fsw_param_igrf_nmax"]
+sets = ["env_igrf14_coefficients (the IGRF-14 table, S12.2; flown by the engine, both flight softwares and the twin since S12.6a), with env_igrf14_dipole (its degree-1 slice at 2025.0, which the dipole relations read)", "env_field_degree (the truth's degree, 13: the value the engine stated before, unchanged)", "fsw_param_igrf_nmax (the onboard degree, 10: the value the flight stated before, unchanged)"]
 revisit_when = "IGRF-15 is published, or the onboard CPU budget changes the degree"
 signature = {}
 

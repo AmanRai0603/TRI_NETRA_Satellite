@@ -13,13 +13,13 @@ status = "checked"
 note = "to ERFA's tolerances (1e-12 and finer), except c2t06a to 1e-11: ERFA takes X, Y from the full matrix, the kernel from the xy06 series (documented ~1 microarcsecond apart)"
 
 [[ref]]
-id = "igrf13"
-what = "geomagnetic field, IGRF-13 to degree 13 (flight software and truth)"
-where = "fsw/src/adcs_env.c, fsw-rs/src/env.rs, engine/crates/adcs-sim-core/src/field.rs, matlab_sils/+asils/+env"
-reference = "pyIGRF 0.3.3 (independent Python implementation of IAGA igrf13syn); coefficients from the IAGA file igrf13coeffs.txt"
-test = "fsw-rs/tests/igrf.rs"
+id = "igrf14"
+what = "geomagnetic field, IGRF-14 (IAGA V-MOD, 2024): onboard to degree 10 and truth to degree 13 (flight software and truth); IGRF-13 retired (S12.6a)"
+where = "fsw/src/adcs_env.c, fsw-rs/src/env.rs, engine/crates/adcs-sim-core/src/field.rs, matlab_sils/+asils/+alg/+frames, the table env_igrf14_coefficients"
+reference = "ppigrf 2.1.0 and pyIGRF14 1.0.4 (PyPI, MIT; two independent implementations of IGRF-14: ppigrf reads IGRF14.shc with its own Legendre recursion and WGS-84 conversion, pyIGRF14 is the IAGA synthesis routine); the coefficients of the design are the IAGA file igrf14coeffs.txt, equal to ppigrf's IGRF14.shc (tests/test_igrf14.py)"
+test = "fsw-rs/tests/igrf.rs, tests/test_igrf14_flown.py, tests/test_igrf14.py"
 status = "checked"
-note = "agree to under 0.01 nT at 8 points 1985-2025. This check found the table ported from the Standard Code wrong by up to 75 nT (rounded, partly IGRF-12); replaced by the IAGA file (tools/gen_fsw_params.py)"
+note = "9 points 1985-2027 at degree 13 within 0.01 nT of both packages (the packages agree to 0.0064 nT: their WGS-84 constants differ in the seventh digit), 2027.0 45 N 105 E 500 km among them (IGRF-13 extrapolated was tens of nT away); g(1,0) at 2025.0 is the file's -29350.0; every generated table hashes equal to the design's. S12.6 TS1(f) widens it to 50 points and to the engine, C and the twin"
 
 [[ref]]
 id = "lqr"

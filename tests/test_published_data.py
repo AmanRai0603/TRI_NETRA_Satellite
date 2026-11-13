@@ -92,10 +92,10 @@ class PublishedData(unittest.TestCase):
         leap = self.module("env_leap_seconds")["LEAP_SECONDS"]
         self.assertEqual(len(leap), 28 * 3)
         self.assertEqual(bits(leap), bits(x for r in rust_table(gen_pop / "leapsec.rs", "DATA_LEAP_SECONDS") for x in r))
-        igrf = self.module("env_igrf13_coefficients")
-        for where in (gen_core / "igrf13.rs", ROOT / "fsw-rs" / "src" / "alg" / "igrf13.rs"):
-            self.assertEqual(bits(igrf["IGRF_YEAR"]), bits(rust_table(where, "DATA_IGRF_YEAR")), where)
-            self.assertEqual(bits(igrf["IGRF_GH"]), bits(x for r in rust_table(where, "DATA_IGRF_GH") for x in r), where)
+        igrf = self.module("env_igrf14_coefficients")      # IGRF-14 since S12.6a (IGRF-13 is retired: tests/test_igrf14_flown.py)
+        for where in (gen_core / "igrf14coeffs.rs", ROOT / "fsw-rs" / "src" / "alg" / "igrf14coeffs.rs"):
+            self.assertEqual(bits(igrf["IGRF14_YEAR"]), bits(rust_table(where, "DATA_IGRF14_YEAR")), where)
+            self.assertEqual(bits(igrf["IGRF14_GH"]), bits(x for r in rust_table(where, "DATA_IGRF14_GH") for x in r), where)
         tid = self.module("env_tidal_eop_terms")
         for name in tid:
             self.assertEqual(bits(tid[name]), bits(x for r in rust_table(gen_pop / "tidaleopterms.rs", f"DATA_{name}") for x in r), name)

@@ -1,7 +1,8 @@
 ## 02 - Time, frames and onboard models (02_time_frames_models.md): sidereal time, precession, the Earth-fixed frame of
 ## the onboard clock with the IAU 2000B nutation, the Sun, geodetic coordinates and the IGRF field, operation for operation
 ## as fsw/src/adcs_env.c and fsw-rs/src/env.rs. Times are Julian dates; the field is in nT from igrf_ned and in T from
-## field_eci. The developer's revision S12.5a (T5/E3, DR-env-002), unsigned; earth_velocity is S12.5b (E2, DR-nav-001).
+## field_eci. The developer's revision S12.5a (T5/E3, DR-env-002), unsigned; earth_velocity is S12.5b (E2, DR-nav-001);
+## the field's table is IGRF-14's (S12.6a, DR-env-001).
 module frames
 
 ## The Earth's rotation about z by the Greenwich mean sidereal time (IAU 1982).
@@ -279,21 +280,22 @@ fn geodetic(r: vec3[m] in -7.2e6 .. 7.2e6) -> (lat: real[1], lon: real[1], h: re
     h = hh
 end
 
-## The Gauss coefficients at a decimal year: straight-line between the two epochs around it,
-## extrapolated from the last interval.
+## The Gauss coefficients at a decimal year: straight-line between the two epochs around it (IGRF-14's own definition of
+## its coefficients between epochs). The table is env_igrf14_coefficients': 27 epochs, 1900.0 to 2025.0 and 2030.0, which
+## is 2025.0 plus five years of the 2025-30 secular variation, so the 2025-30 interval is interpolated, not extrapolated.
 fn igrf_gh(dy: real[1] in 2020 .. 2030) -> gh: real[1][195]
     let i = 0
-    for ii in 0 .. 25
-        if IGRF_YEAR[ii + 1] <= dy
+    for ii in 0 .. 26
+        if IGRF14_YEAR[ii + 1] <= dy
             i = ii + 1
         end
     end
-    if i >= 25
-        i = 24
+    if i >= 26
+        i = 25
     end
-    let f = (dy - IGRF_YEAR[i])/(IGRF_YEAR[i + 1] - IGRF_YEAR[i])
+    let f = (dy - IGRF14_YEAR[i])/(IGRF14_YEAR[i + 1] - IGRF14_YEAR[i])
     for k in 0 .. 195
-        gh[k] = IGRF_GH[i][k] + (IGRF_GH[i + 1][k] - IGRF_GH[i][k])*f
+        gh[k] = IGRF14_GH[i][k] + (IGRF14_GH[i + 1][k] - IGRF14_GH[i][k])*f
     end
 end
 

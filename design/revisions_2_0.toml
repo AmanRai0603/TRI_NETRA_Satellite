@@ -146,7 +146,7 @@ node = "env_igrf13_coefficients"
 module = "igrf13"
 reader = "igrf13"
 file = "matlab_sils/data/igrf13coeffs.txt"
-path = "fsw/pseudocode/02_igrf13.pc"
+path = "env/igrf13coeffs.pc"
 publication = "IAGA Working Group V-MOD, International Geomagnetic Reference Field: the thirteenth generation (Alken et al. 2021, Earth Planets Space 73:49), igrf13coeffs.txt; the 2025.0 epoch is 2020.0 plus five years of the 2020-25 secular variation, the model's own definition"
 about = ["IGRF-13 Gauss coefficients [nT] (the numbers in nT, as plain numbers), 5-year epochs, 195 an epoch (degree 13):",
          "the flight software's and the engine's table, one copy. A row of IGRF_GH: g(1,0), g(1,1), h(1,1), g(2,0), ..."]
@@ -4496,7 +4496,7 @@ why = "the IGRF-14 table (DR-env-001), read by its reader from the IAGA file, be
 [[revision.data]]
 node = "env_igrf14_coefficients"
 module = "igrf14coeffs"
-path = "env/igrf14coeffs.pc"
+path = "fsw/pseudocode/02_igrf14.pc"
 reader = "igrf14"
 file = "matlab_sils/data/igrf14coeffs.txt"
 carry = "IAGA, pyIGRF14 1.0.4"
@@ -4760,3 +4760,122 @@ from = "stated"
 to = "stated"
 content = [["value", "number", "1"], ["value", "source", "DR-nav-001 (design/decisions/DR-nav-001.toml), the owner's default: the onboard correction of the star tracker's attitude takes the GNSS velocity plus the Earth's velocity from the Sun model's derivative, 1; 0 takes none; the developer's, unsigned"]]
 why = "the aberration source as a stated flight parameter (DR-nav-001, S12.5b)"
+
+
+[[revision]]
+id = "S12.6a"
+at = "2026-11-13T18:00:00Z"
+by = "the developer"
+about = "IGRF-14 as the one table (docs/S12_INVENTORY.md IGRF-14, S12.6; decision DR-env-001, owner question 1, the default): the engine's truth field, the flight software in C and Rust and the twin all take env_igrf14_coefficients (module igrf14coeffs, 27 epochs, 1900.0 to 2025.0 and 2030.0) through the generators; igrf_gh interpolates the 2025-30 interval it defines, onboard synthesis to degree 10 (fsw_param_igrf_nmax, stated) and truth to degree 13 (env_field_degree, stated), both as the stated nodes already state them (the values are unchanged; DR-env-001 names them in its `sets`). The dipole's degree-1 coefficients (IGRF_G10, IGRF_G11, IGRF_H11, IGRF-13 at 2020.0, kept in the constants library and again in the env relations) are read from the same table at the stated epoch 2025.0 (IGRF14_DEGREE1) by dipole(). env_igrf13_coefficients is retired from use: its node and its table stay as history at the path env/igrf13coeffs.pc, and nothing generates from it. The dipole's constants are held as the degree-1 slice of the same table at 2025.0 (a node of their own, env_igrf14_dipole, module igrf14dipole at spec/physics/igrf14dipole.pc), read from the same file by the same reader, so the relations library, which holds the dipole, is whole by itself. Unsigned: the developer's transcription."
+
+[[revision.node]]
+id = "env_igrf14_dipole"
+group = "env"
+parent = "m3"
+label = "IGRF-14 dipole (degree-1 coefficients at a stated epoch)"
+behaviour = "lookup"
+question = "The IGRF-14 degree-1 Gauss coefficients g(1,0), g(1,1), h(1,1) [nT] at the stated epoch 2025.0, which make the dipole's strength and tilt (IAGA V-MOD)"
+why = "the dipole's constants, read from the table of env_igrf14_coefficients at a stated epoch instead of kept a second time (the relations library's dipole reads them, S12.6a)"
+
+[[revision.data]]
+node = "env_igrf14_dipole"
+module = "igrf14dipole"
+path = "spec/physics/igrf14dipole.pc"
+reader = "igrf14_degree1"
+file = "matlab_sils/data/igrf14coeffs.txt"
+args = { epoch = 2025.0 }
+publication = "IAGA Working Group V-MOD, International Geomagnetic Reference Field: the 14th generation (International Association of Geomagnetism and Aeronomy, 2024, IGRF-14, Zenodo, https://doi.org/10.5281/zenodo.14012302, as the documentation of ppigrf 2.1.0 cites it; its journal article is listed there as in progress and is not cited here); the file igrf14coeffs.txt as shipped in the PyPI package pyIGRF14 1.0.4 (MIT licence), whose header reads '14th Generation International Geomagnetic Reference Field Schmidt semi-normalised spherical harmonic coefficients, degree n=1,13'; the file states no date of its own (not stated in the file); its last epoch is 2025.0 with the 2025-30 secular variation; checked coefficient by coefficient against IGRF14.shc of ppigrf 2.1.0 (tests/test_igrf14.py)"
+about = ["The IGRF-14 dipole's constants: the degree-1 Gauss coefficients of env_igrf14_coefficients' table at the stated epoch 2025.0, read from the same file by the same reader's degree-1 slice:",
+         "IGRF14_DEGREE1 = [epoch (decimal year), g(1,0), g(1,1), h(1,1)] [nT, as plain numbers]; dipole() of spec/physics/dipole.pc reads it, so the dipole's constants are kept nowhere else."]
+why = "the dipole's constants read from the IGRF-14 table at a stated epoch, not typed a second time (S12.6a)"
+
+[[revision.method]]
+node = "env_time_frames"
+pseudocode = "design/revisions/S12.6a/frames.pc"
+path = "fsw/pseudocode/02_time_frames_models.pc"
+transcribes = "design/revisions/S12.5b/frames.pc as S12.5b left it, with igrf_gh reading env_igrf14_coefficients (IGRF14_YEAR, IGRF14_GH: 27 epochs, the last 2030.0) where it read IGRF-13's 26, the last interval being the model's own 2025-30 interpolation; nothing else changed"
+source = "IGRF-14 (IAGA V-MOD, 2024; the table of env_igrf14_coefficients); DR-env-001"
+generate = ["flight"]
+uses = ["fsw/pseudocode/01_math.pc", "fsw/pseudocode/02_igrf14.pc"]
+why = "the onboard field's coefficients are IGRF-14's (the one table), as the engine's truth is"
+
+[[revision.method]]
+node = "l3_dist_row_08"
+pseudocode = "design/revisions/S12.6a/truthfield.pc"
+path = "env/truthfield.pc"
+transcribes = "design/revisions/S7.3/truthfield.pc as S7.3 left it, its comment naming IGRF-14; the relations are unchanged (gh and ned are env_time_frames's igrf_gh and igrf_ned, now over IGRF-14)"
+source = "IGRF-14 (IAGA V-MOD, 2024); WGS-84 (NIMA TR8350.2)"
+generate = ["adcs-sim-core"]
+uses = ["fsw/pseudocode/02_time_frames_models.pc", "fsw/pseudocode/02_igrf14.pc", "fsw/pseudocode/01_math.pc"]
+why = "the truth field's table is IGRF-14's, the same module as the flight software's"
+
+[[revision.method]]
+node = "fsw_estimation"
+pseudocode = "design/revisions/S12.5b/estimation.pc"
+path = "fsw/pseudocode/03_estimation.pc"
+transcribes = "design/revisions/S12.5b/estimation.pc as S12.5b left it; only the modules it names change"
+source = "DR-nav-001; DR-env-001"
+generate = ["flight"]
+uses = ["01_math.pc", "02_time_frames_models.pc", "02_igrf14.pc"]
+why = "its field table is env_igrf14_coefficients' (a statement of what it calls; the pseudocode is unchanged)"
+
+[[revision.method]]
+node = "fsw_modes"
+pseudocode = "design/revisions/S11.5/modes.pc"
+path = "fsw/pseudocode/08_mode_manager.pc"
+transcribes = "design/revisions/S11.5/modes.pc as S11.5 left it; only the modules it names change"
+source = "DR-fdir-002; DR-gdn-003; DR-env-001"
+generate = ["flight"]
+uses = ["01_math.pc", "02_time_frames_models.pc", "02_igrf14.pc"]
+why = "its field table is env_igrf14_coefficients' (a statement of what it calls; the pseudocode is unchanged)"
+
+[[revision.method]]
+node = "fsw_steplaws"
+pseudocode = "design/revisions/S11.6/steplaws.pc"
+path = "fsw/pseudocode/06_step_laws.pc"
+transcribes = "design/revisions/S11.6/steplaws.pc as S11.6 left it; only the modules it names change"
+source = "docs/S11_INVENTORY.md G2; DR-env-001"
+generate = ["flight"]
+uses = ["01_math.pc", "02_time_frames_models.pc", "02_igrf14.pc"]
+why = "its field table is env_igrf14_coefficients' (a statement of what it calls; the pseudocode is unchanged)"
+
+[[revision.method]]
+node = "lib_spec_physics_env"
+pseudocode = "design/revisions/S12.6a/envphysics.pc"
+path = "spec/physics/env.pc"
+transcribes = "spec/physics/env.pc of 1.0.0 without the dipole's four relations (dipole, max_magnetic_latitude, dipole_field_equator, dipole_field_max), which are spec/physics/dipole.pc's, the same module env; the atmosphere and the Sun's pressure are unchanged"
+source = "Vallado (2013) table 8-4; Kopp and Lean (2011); as 1.0.0 states them"
+generate = []
+why = "the dipole's relations move to their own file, which reads the IGRF-14 table (S12.6a); the library's env.pc keeps what needs no table, so the engine's targets that take it for the atmosphere need no field table"
+
+[[revision.method]]
+node = "lib_spec_physics_constants"
+pseudocode = "design/revisions/S12.6a/constants.pc"
+path = "spec/physics/constants.pc"
+transcribes = "spec/physics/constants.pc of 1.0.0 without IGRF_G10, IGRF_G11 and IGRF_H11 (IGRF-13 at 2020.0), which dipole() reads from env_igrf14_coefficients at a stated epoch; every other constant unchanged"
+source = "as 1.0.0 states them"
+generate = []
+why = "the dipole's coefficients were kept twice (here and in the table); they are read from the table now (S12.6a)"
+
+[[revision.method]]
+node = "lib_spec_physics_env"
+pseudocode = "design/revisions/S12.6a/dipole.pc"
+path = "spec/physics/dipole.pc"
+transcribes = "spec/physics/env.pc of 1.0.0 (dipole, max_magnetic_latitude, dipole_field_equator, dipole_field_max) and the nodes' answers m3_0 and m3_1, with dipole() reading the degree-1 coefficients g10, g11, h11 from the IGRF-14 table's slice (IGRF14_DEGREE1, at the stated epoch 2025.0) where it read IGRF-13's at 2020.0 from three constants; the formulas, the radius R_E and the ranges are as 1.0.0 gave them"
+source = "Wertz (1978) (the dipole's equatorial and latitude-dependent field); IGRF-14 (IAGA V-MOD, 2024) for the coefficients; DR-env-001"
+generate = []
+why = "the dipole's strength and tilt are the table's degree-1 coefficients at a stated epoch, one copy (S12.6a); the relations library's second file of the module env (its first, env.pc, keeps what needs no table), carried to m3_0, m3_1 and m3_2 with the constants and the data they call"
+
+[[revision.change]]
+match = { nodes = ["env_igrf13_coefficients"] }
+from = "lookup"
+to = "lookup"
+content = [["code", "retired", "retired from use (S12.6a, DR-env-001): the IGRF-13 table is no longer generated into the engine, either flight software or the twin (IGRF-14 is, env_igrf14_coefficients); the node and its table stay as the design's history, at the path env/igrf13coeffs.pc, which nothing takes"]]
+why = "IGRF-13 retired; the field is IGRF-14 (DR-env-001)"
+
+[[revision.change]]
+match = { nodes = ["env_igrf14_coefficients"] }
+from = "lookup"
+to = "lookup"
+content = [["code", "flown", "flown since S12.6a (DR-env-001): the engine's truth field, the flight software in C and Rust and the twin take the table at fsw/pseudocode/02_igrf14.pc through the generators; the relations library holds its degree-1 slice at 2025.0 (spec/physics/igrf14dipole.pc) for the dipole's relations, read from the one file by the one reader"]]
+why = "the table is flown now (S12.6a)"

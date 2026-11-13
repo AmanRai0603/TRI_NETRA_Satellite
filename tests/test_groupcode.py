@@ -64,7 +64,8 @@ class Generated(unittest.TestCase):
         self.assertEqual(sorted(x for x in set(defs) if defs.count(x) > 1), [])
         srcs, moved = engine_build.relations_sources()
         self.assertGreater(len(moved), 0)
-        self.assertEqual(len(srcs), len(list(groupcode.SRC.glob("*.pc"))) + 11)
+        # the library's files (1.0.0's eleven and the two S12.6a added: dipole.pc and igrf14dipole.pc) and each group's module
+        self.assertEqual(len(srcs), len(list(groupcode.SRC.glob("*.pc"))) + 13)
 
     @unittest.skipUnless(CARGO, "cargo is needed")
     def test_the_rust_reproduces_the_interpreter_and_the_nodes_test_vectors(self):

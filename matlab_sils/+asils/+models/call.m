@@ -3488,18 +3488,6 @@ function y = call(name, x)
         case 'sunquad::quad_currents'
             [o1, io3] = asils.models.sunquad.quad_currents(reshape(x(1:3), 3, 1), struct('a', {x(4)}, 'h', {x(5)}, 'noise', {x(6)}, 'min_frac', {x(7)}), reshape(x(8:13), 6, 1));
             y = [reshape(o1, [], 1); reshape(io3, [], 1)];
-        case 'env::dipole'
-            [o1, o2] = asils.models.env.dipole();
-            y = [double(o1); double(o2)];
-        case 'env::max_magnetic_latitude'
-            [o1] = asils.models.env.max_magnetic_latitude(x(1));
-            y = [double(o1)];
-        case 'env::dipole_field_equator'
-            [o1] = asils.models.env.dipole_field_equator(x(1));
-            y = [double(o1)];
-        case 'env::dipole_field_max'
-            [o1] = asils.models.env.dipole_field_max(x(1), x(2));
-            y = [double(o1)];
         case 'env::density_at'
             [o1] = asils.models.env.density_at(x(1), x(2));
             y = [double(o1)];

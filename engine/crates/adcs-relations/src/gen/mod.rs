@@ -8,6 +8,7 @@ pub mod ctl;
 pub mod env;
 pub mod fmr;
 pub mod gnc;
+pub mod igrf14dipole;
 pub mod mission;
 pub mod mtq;
 pub mod orbit;

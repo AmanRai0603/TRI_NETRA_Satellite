@@ -46,6 +46,10 @@ This is the working record of S12 (`docs/PLAN_2_0.md`, S12 Environment, frames, 
 - **The truth GNSS velocity and the onboard transport rate** differ by 1e-3 m/s (the onboard rate is about the ITRF z axis, the truth's about the CIP, 0.3 arcsec apart): far below the receiver's noise.
 - **`0.001 deg` of E4 is not a bound against a pole without nutation**: the CIP is 0.0022 deg from the IAU 1976 mean pole of date at 2027-01-01. The J2-pole test takes the pole from the IAU 2006/2000A X, Y series.
 
+## S12.6 where it stands
+
+- Item 1 (IGRF-14 as the one table, revision S12.6a): design, generators, hand tests and the Octave suite done in the tree; golden, the stored runs' re-fly and the flight reseal follow it, then item 2 (E10) and item 3 (TS1(f)).
+
 ## Steps left, in order
 
 S12.6 to S12.10 and S12.12 to S12.18 of `docs/S12_INVENTORY.md` §6.

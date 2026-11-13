@@ -81,10 +81,10 @@ geodetic(r):   a = 6378137, f = 1/298.257223563, e² = f(2 − f)
     return lat, lon, h
 ```
 
-## Onboard field (IGRF-13, degree `igrf_nmax`, default 10)
+## Onboard field (IGRF-14, degree `igrf_nmax`, default 10)
 
 ```
-igrf_gh(decyear):     # linear between the two bracketing 5-year epochs; the last interval extrapolates
+igrf_gh(decyear):     # linear between the two bracketing 5-year epochs; the last epoch, 2030.0, is 2025.0 + 5 x the 2025-30 secular variation
 igrf_ned(gh, lat, lon, alt_km, nmax) -> B_NED [nT]:
     identical to asils.env.igrf_ned (Standard Code env.igrf, geodetic -> geocentric rotation,
     Schmidt semi-normalised recursion); coefficient order g10 g11 h11 g20 g21 h21 ...
@@ -95,10 +95,11 @@ field_eci(r_eci, jd, eop, gh, nmax):
     return Cᵀ R_n2e B_ned                   # T, ECI
 ```
 
-Coefficient table: `matlab_sils/data/igrf13coeffs.txt` generates `02_igrf13.pc` (tools/gen_fsw_params.py), which the
-flight build writes into the flight software with the rest (tools/flight_build.py). The field is recomputed at most once per
-second, at the start of a coil cycle; the coefficients `gh` are re-interpolated once a day. IGRF-13's last
-interval (2020–2025) is extrapolated for 2027; IGRF-14 is the table to load for flight.
+Coefficient table: `matlab_sils/data/igrf14coeffs.txt` (IAGA IGRF-14, 27 epochs 1900.0 to 2025.0 and 2030.0) is the design's
+`env_igrf14_coefficients`, which the flight build writes into the flight software as `02_igrf14.pc` with the rest
+(tools/flight_build.py). The field is recomputed at most once per second, at the start of a coil cycle; the coefficients `gh`
+are re-interpolated once a day. 2025 to 2030 is IGRF-14's own interpolation (its secular variation), not an extrapolation;
+IGRF-13 is retired (S12.6a).
 
 ## Onboard orbit
 
