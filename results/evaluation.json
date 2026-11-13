@@ -4368,8 +4368,8 @@
     "group": "env",
     "label": "Residual-magnetic torque",
     "state": "computed",
-    "si": 4.639874060215031e-07,
-    "value": "4.63987e-07 (SI)",
+    "si": 4.6247512373691775e-07,
+    "value": "4.62475e-07 (SI)",
     "why": "gd_3(residual_dipole, field)"
    },
    {
@@ -4377,8 +4377,8 @@
     "group": "env",
     "label": "Total disturbance torque",
     "state": "computed",
-    "si": 6.108896467156524e-07,
-    "value": "6.1089e-07 (SI)",
+    "si": 6.09377364431067e-07,
+    "value": "6.09377e-07 (SI)",
     "why": "gd_4(aerodynamic, gravity_gradient, solar, magnetic)"
    },
    {
@@ -4386,8 +4386,8 @@
     "group": "env",
     "label": "Secular momentum per orbit",
     "state": "computed",
-    "si": 0.0035058912932680575,
-    "value": "0.00350589 (SI)",
+    "si": 0.0034972123161025478,
+    "value": "0.00349721 (SI)",
     "why": "gd_5(tau_d, t_orb)"
    },
    {
@@ -4683,8 +4683,8 @@
     "group": "act",
     "label": "Dipole needed to reject disturbances",
     "state": "computed",
-    "si": 0.026332165002226,
-    "value": "0.0263322 (SI)",
+    "si": 0.026352871026105857,
+    "value": "0.0263529 (SI)",
     "why": "gm_1(tau_d, b_min)"
    },
    {
@@ -4692,8 +4692,8 @@
     "group": "act",
     "label": "Dipole needed to dump momentum",
     "state": "computed",
-    "si": 0.026332165002226,
-    "value": "0.0263322 (SI)",
+    "si": 0.026352871026105854,
+    "value": "0.0263529 (SI)",
     "why": "gm_2(momentum, field, dump_time)"
    },
    {
@@ -4701,8 +4701,8 @@
     "group": "act",
     "label": "Magnetic torque authority",
     "state": "computed",
-    "si": 1.0439716635483819e-05,
-    "value": "1.04397e-05 (SI)",
+    "si": 1.040569028408065e-05,
+    "value": "1.04057e-05 (SI)",
     "why": "gm_3(m_av, b_min, n_mtq)"
    },
    {
@@ -9687,8 +9687,8 @@
     "group": "env",
     "label": "Field strength, minimum",
     "state": "computed",
-    "si": 2.3199370301075155e-05,
-    "value": "2.31994e-05 (SI)",
+    "si": 2.3123756186845887e-05,
+    "value": "2.31238e-05 (SI)",
     "why": "m3_0(r)"
    },
    {
@@ -9696,8 +9696,8 @@
     "group": "env",
     "label": "Field strength, maximum",
     "state": "computed",
-    "si": 4.639874060215031e-05,
-    "value": "4.63987e-05 (SI)",
+    "si": 4.624751237369177e-05,
+    "value": "4.62475e-05 (SI)",
     "why": "m3_1(r, lambda_max)"
    },
    {
@@ -16280,8 +16280,8 @@
     "group": "env",
     "label": "Residual-magnetic torque",
     "state": "computed",
-    "si": 4.639874060215031e-07,
-    "value": "4.63987e-07 (SI)",
+    "si": 4.6247512373691775e-07,
+    "value": "4.62475e-07 (SI)",
     "why": "gd_3(residual_dipole, field)"
    },
    {
@@ -16289,8 +16289,8 @@
     "group": "env",
     "label": "Total disturbance torque",
     "state": "computed",
-    "si": 6.108896467156524e-07,
-    "value": "6.1089e-07 (SI)",
+    "si": 6.09377364431067e-07,
+    "value": "6.09377e-07 (SI)",
     "why": "gd_4(aerodynamic, gravity_gradient, solar, magnetic)"
    },
    {
@@ -16298,8 +16298,8 @@
     "group": "env",
     "label": "Secular momentum per orbit",
     "state": "computed",
-    "si": 0.0035058912932680575,
-    "value": "0.00350589 (SI)",
+    "si": 0.0034972123161025478,
+    "value": "0.00349721 (SI)",
     "why": "gd_5(tau_d, t_orb)"
    },
    {
@@ -16595,8 +16595,8 @@
     "group": "act",
     "label": "Dipole needed to reject disturbances",
     "state": "computed",
-    "si": 0.026332165002226,
-    "value": "0.0263322 (SI)",
+    "si": 0.026352871026105857,
+    "value": "0.0263529 (SI)",
     "why": "gm_1(tau_d, b_min)"
    },
    {
@@ -16604,8 +16604,8 @@
     "group": "act",
     "label": "Dipole needed to dump momentum",
     "state": "computed",
-    "si": 0.026332165002226,
-    "value": "0.0263322 (SI)",
+    "si": 0.026352871026105854,
+    "value": "0.0263529 (SI)",
     "why": "gm_2(momentum, field, dump_time)"
    },
    {
@@ -16613,8 +16613,8 @@
     "group": "act",
     "label": "Magnetic torque authority",
     "state": "computed",
-    "si": 1.0439716635483819e-05,
-    "value": "1.04397e-05 (SI)",
+    "si": 1.040569028408065e-05,
+    "value": "1.04057e-05 (SI)",
     "why": "gm_3(m_av, b_min, n_mtq)"
    },
    {
@@ -21599,8 +21599,8 @@
     "group": "env",
     "label": "Field strength, minimum",
     "state": "computed",
-    "si": 2.3199370301075155e-05,
-    "value": "2.31994e-05 (SI)",
+    "si": 2.3123756186845887e-05,
+    "value": "2.31238e-05 (SI)",
     "why": "m3_0(r)"
    },
    {
@@ -21608,8 +21608,8 @@
     "group": "env",
     "label": "Field strength, maximum",
     "state": "computed",
-    "si": 4.639874060215031e-05,
-    "value": "4.63987e-05 (SI)",
+    "si": 4.624751237369177e-05,
+    "value": "4.62475e-05 (SI)",
     "why": "m3_1(r, lambda_max)"
    },
    {

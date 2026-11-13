@@ -4879,3 +4879,19 @@ from = "lookup"
 to = "lookup"
 content = [["code", "flown", "flown since S12.6a (DR-env-001): the engine's truth field, the flight software in C and Rust and the twin take the table at fsw/pseudocode/02_igrf14.pc through the generators; the relations library holds its degree-1 slice at 2025.0 (spec/physics/igrf14dipole.pc) for the dipole's relations, read from the one file by the one reader"]]
 why = "the table is flown now (S12.6a)"
+
+[[revision]]
+id = "S12.6b"
+at = "2026-11-13T21:00:00Z"
+by = "the developer"
+about = "E10 of docs/S12_INVENTORY.md (S12.6; no owner decision): the dipole's relations (dipole_field_equator, dipole_field_max; the rows m3_0 and m3_1) scale the dipole by IGRF's reference radius a = 6371.2 km, the radius the Gauss coefficients are defined at, where they used the WGS-84 equatorial radius R_E = 6378.137 km (the field 1.00327 times too strong at the radius the inventory names, 6928.137 km). B0 is the IGRF-14 table's (S12.6a). The radius is a constant of the relations' own file, with its reason. Unsigned: the developer's transcription."
+
+[[revision.method]]
+node = "lib_spec_physics_env"
+pseudocode = "design/revisions/S12.6b/dipole.pc"
+path = "spec/physics/dipole.pc"
+transcribes = "design/revisions/S12.6a/dipole.pc as S12.6a left it, with dipole_field_equator and dipole_field_max scaling by IGRF's reference radius a = 6371.2 km (the constant IGRF_A) where they scaled by R_E = 6378.137 km; dipole(), max_magnetic_latitude and the nodes' answers are unchanged"
+source = "IGRF-14 (IAGA V-MOD, 2024): the Gauss coefficients are those of the expansion of the potential in (a/r)^(n+1) with the reference radius a = 6371.2 km, 'NOT the mean radius (= 6371.0 km) but 6371.2 km is what is used in determining the coefficients' (the docstring of calculate.py of pyIGRF14 1.0.4, whose synthesis takes ratio = 6371.2 / r; ppigrf 2.1.0 takes RE = 6371.2 as well); Wertz (1978) for the dipole's equatorial and latitude-dependent field"
+generate = []
+why = "the dipole rows use IGRF's reference radius, not R_E (E10): B0 is the coefficient set's, whose radius is a; carried to m3_0, m3_1 and m3_2 with the constants they call"
+

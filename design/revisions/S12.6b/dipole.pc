@@ -1,0 +1,51 @@
+## The dipole of the main field and the field it makes along the orbit. The dipole's strength and tilt are made of the degree-1
+## coefficients g(1,0), g(1,1), h(1,1) of the IGRF-14 table (env_igrf14_coefficients) at a stated epoch (module igrf14dipole), not
+## typed here a second time. The developer's revision S12.6a (DR-env-001, decision DD42), unsigned; the radius is IGRF's own since
+## S12.6b (E10).
+## source: wertz1978, igrf14
+module env
+
+## IGRF's reference radius a [km]: the radius the Gauss coefficients are defined at (the potential is expanded in (a/r)^(n+1)). It is
+## neither the Earth's equatorial radius R_E (WGS-84, 6378.137 km, 0.11 % larger, 0.33 % in the cube) nor its mean radius (6371.0 km).
+## The synthesis of the flight software and the truth uses it as well (env_time_frames: igrf_ned, re = 6371.2).
+const IGRF_A = 6371.2 [km]
+
+## The dipole strength B0 = sqrt(g10^2 + g11^2 + h11^2) and its tilt from the spin axis, from the degree-1 coefficients of the
+## IGRF-14 table at the epoch IGRF14_DEGREE1 states (its first value, 2025.0).
+fn dipole() -> (b0: real[T], tilt: real[rad])
+    let g10 = IGRF14_DEGREE1[1]*1 [nT]
+    let g11 = IGRF14_DEGREE1[2]*1 [nT]
+    let h11 = IGRF14_DEGREE1[3]*1 [nT]
+    b0 = sqrt(g10^2 + g11^2 + h11^2)
+    tilt = acos(-g10/b0)
+end
+
+## The highest magnetic latitude an orbit of inclination i reaches: min(90 deg, i' + tilt),
+## i' = min(i, 180 deg - i).
+fn max_magnetic_latitude(i: real[deg] in 0 .. 180) -> lambda_max: real[rad]
+    let b0, tilt = dipole()
+    let ip = min(i, 180 [deg] - i)
+    lambda_max = min(90 [deg], ip + tilt)
+end
+
+## The dipole field at the magnetic equator at radius r: B_min = B0 (a/r)^3, a = IGRF's reference radius.
+fn dipole_field_equator(r: real[km] in 6500 .. 8500) -> b_min: real[T]
+    let b0, tilt = dipole()
+    b_min = b0*(IGRF_A/r)^3
+end
+
+## The node's answer, B_min, as dipole_field_equator gives it.
+fn m3_0(r: real[km] in 6500 .. 8500) -> B_min: real[T]
+    B_min = dipole_field_equator(r)
+end
+
+## The dipole field at magnetic latitude lambda_max: B_max = B0 (a/r)^3 sqrt(1 + 3 sin^2 lambda), a = IGRF's reference radius.
+fn dipole_field_max(r: real[km] in 6500 .. 8500, lambda_max: real[deg] in 0 .. 90) -> b_max: real[T]
+    let b0, tilt = dipole()
+    b_max = b0*(IGRF_A/r)^3*sqrt(1 + 3*sin(lambda_max)^2)
+end
+
+## The node's answer, B_max, as dipole_field_max gives it.
+fn m3_1(r: real[km] in 6500 .. 8500, lambda_max: real[deg] in 0 .. 90) -> B_max: real[T]
+    B_max = dipole_field_max(r, lambda_max)
+end
