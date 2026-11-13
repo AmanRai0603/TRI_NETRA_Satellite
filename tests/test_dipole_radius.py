@@ -3,7 +3,8 @@ defined at, not by the WGS-84 equatorial radius R_E = 6378.137 km (1.00327 times
   - dipole_field_equator(6928.137 km) = B0 (6371.2/6928.137)^3 to 1e-12 relative, B0 = sqrt(g10^2 + g11^2 + h11^2) of the IGRF-14 file at
     2025.0, in the design's interpreter, in the relations' generated Rust (through the vectors it reproduces bit for bit) and in the twin's
     generated MATLAB;
-  - dipole_field_max at the same radius and several latitudes, the nodes' answers m3_0 and m3_1, and the tilt (unchanged);
+  - dipole_field_max at the same radius and several latitudes, and the tilt (unchanged); the nodes' answers m3_0 and m3_1 are the groups'
+    one-line wrappers of these two (their vectors in groups_vectors.json are checked below, and results/evaluation.json holds their values);
   - the test discriminates: with R_E the same assertion fails by 3.3e-3.
 
 Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
@@ -48,7 +49,6 @@ class DipoleRadius(unittest.TestCase):
         got = run("dipole_field_equator", r)[0]
         want = b0 * (A_IGRF / 6928.137) ** 3
         self.assertAlmostEqual(got / want, 1.0, delta=1e-12, msg=f"{got} vs {want}")
-        self.assertAlmostEqual(run("m3_0", r)[0] / want, 1.0, delta=1e-12)
 
     def test_the_old_radius_is_what_the_test_rejects(self):
         """The check discriminates: B0 (R_E/r)^3, what the relation computed before E10, is 1.00327 times the relation's value at 6928.137 km (0.33 %
@@ -66,7 +66,6 @@ class DipoleRadius(unittest.TestCase):
                 got = run("dipole_field_max", r_km * 1e3, lam)[0]
                 want = b0 * (A_IGRF / r_km) ** 3 * math.sqrt(1 + 3 * math.sin(lam) ** 2)
                 self.assertAlmostEqual(got / want, 1.0, delta=1e-12, msg=f"{r_km} {lam}")
-                self.assertAlmostEqual(run("m3_1", r_km * 1e3, lam)[0] / want, 1.0, delta=1e-12)
         epochs, t = test_igrf14.parse_txt(test_igrf14.TXT)
         j = epochs.index(test_igrf14.Decimal("2025.0"))
         g11, h11 = float(t[(1, 1)][j]), float(t[(1, -1)][j])
@@ -86,6 +85,12 @@ class DipoleRadius(unittest.TestCase):
             self.assertAlmostEqual(s["out"][0] / (b0 * (A_IGRF * 1e3 / s["in"][0]) ** 3 * math.sqrt(1 + 3 * math.sin(s["in"][1]) ** 2)), 1.0, delta=1e-12)
             n += 1
         self.assertGreaterEqual(n, 20)
+        # the groups' vectors (the nodes' answers m3_0 and m3_1 and the group's copies of the relations)
+        grp = json.loads((ROOT / "engine/crates/adcs-relations/tests/groups_vectors.json").read_text())["vectors"]
+        for s in grp["env::m3_0"]["sets"] + grp["env::dipole_field_equator"]["sets"]:
+            self.assertAlmostEqual(s["out"][0] / (b0 * (A_IGRF * 1e3 / s["in"][0]) ** 3), 1.0, delta=1e-12)
+        for s in grp["env::m3_1"]["sets"] + grp["env::dipole_field_max"]["sets"]:
+            self.assertAlmostEqual(s["out"][0] / (b0 * (A_IGRF * 1e3 / s["in"][0]) ** 3 * math.sqrt(1 + 3 * math.sin(s["in"][1]) ** 2)), 1.0, delta=1e-12)
         octave = shutil.which("octave-cli")
         if octave:
             out = subprocess.run([octave, "--no-gui", "-q", "--eval",

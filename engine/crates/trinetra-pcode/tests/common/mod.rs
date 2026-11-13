@@ -56,8 +56,9 @@ pub struct Package {
 }
 
 pub const PACKAGES: &[Package] = &[
-    // 1.0.0's relations, archived (archive/design-1.0); the same text the design holds (tests/test_from_design.py)
-    Package { name: "physics", src: "archive/design-1.0/spec/physics", vectors: "matlab_sils/data/physics_vectors.json" },
+    // the design's relations library (1.0.0's spec/physics with the developer's revisions: S12.6a's dipole file and its table), as
+    // tools/engine_build.py writes its text beside the relations crate
+    Package { name: "physics", src: "engine/crates/adcs-relations/tests/library", vectors: "matlab_sils/data/physics_vectors.json" },
     Package { name: "selftest", src: "design/pcode_selftest", vectors: "matlab_sils/data/pcselftest_vectors.json" },
     Package { name: "flight software", src: "fsw/pseudocode", vectors: "fsw/tests/pcode_vectors.txt" },
     // the groups' computing rows as tools/groupcode.py wires them; their vectors drawn by tools/engine_build.py (adcs-relations)

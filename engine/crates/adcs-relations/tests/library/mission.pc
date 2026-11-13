@@ -1,0 +1,14 @@
+## Requirement closure. (base)
+module mission
+
+## Whether an achieved value closes a requirement, and by how much. sense 0: the achieved value is
+## at most the requirement; 1: at least. Requirement and achieved value are the same quantity in
+## SI (the language has no generic units: the caller holds them to one).
+fn closure(req: real[1] in 0.001 .. 1000, ach: real[1] in 0.001 .. 1000, sense: int in 0 .. 1) -> (closed: bool, margin: real[1])
+    if sense == 0
+        margin = req - ach
+    else
+        margin = ach - req
+    end
+    closed = margin >= 0
+end

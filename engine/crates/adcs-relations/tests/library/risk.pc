@@ -1,0 +1,26 @@
+## The de-risking roll-ups. source: ecss_m_st_80c, adcs_derisk_method
+module risk
+
+## The highest open risk level over the seven areas (0 none open ... 5 would stop delivery).
+fn highest_level(levels: int[7] in 0 .. 5) -> l_max: int
+    l_max = levels[0]
+    for k in 1 .. 7
+        l_max = max(l_max, levels[k])
+    end
+end
+
+## The questions closed net of those opened.
+fn net_closed(closed: int in 0 .. 50, opened: int in 0 .. 50) -> n_net: int
+    n_net = closed - opened
+end
+
+## The share of beliefs tested: 1 - untested/total; with none recorded it is undefined, not 1.
+fn share_tested(untested: int in 0 .. 20, total: int in 0 .. 20) -> (share: real[1], defined: bool)
+    if total > 0
+        share = 1 - untested/total
+        defined = true
+    else
+        share = 0
+        defined = false
+    end
+end

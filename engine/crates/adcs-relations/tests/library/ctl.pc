@@ -1,0 +1,7 @@
+## Control-loop sizing. source: ogata2010
+module ctl
+
+## The 2 per cent settling time of a second-order loop: t_s = 4/(zeta w_n).
+fn settling_time_2pct(w_n: real[rad/s] in 0.005 .. 2, zeta: real[1] in 0.3 .. 1.5) -> t_s: real[s]
+    t_s = 4/(zeta*w_n)
+end

@@ -135,11 +135,15 @@ class Flown(unittest.TestCase):
         self.assertAlmostEqual(tilt, math.acos(-g10 / math.sqrt(g10 ** 2 + g11 ** 2 + h11 ** 2)), delta=1e-14)
 
     def test_the_dipole_constants_are_kept_once(self):
-        """No degree-1 coefficient typed in the relations: the constants library has no IGRF_* and the dipole file reads the table."""
+        """No degree-1 coefficient typed in the relations: the constants library has no IGRF_*, neither IGRF-13's numbers (29404.8, 1450.9,
+        4652.5) nor IGRF-14's (29350.0, 1410.3, 4545.5) are written in the dipole's file or the group's code, and the dipole file reads the table."""
         self.assertNotIn("IGRF_G10", from_design.text("spec/physics/constants.pc"))
         dip = from_design.text("spec/physics/dipole.pc")
-        code = "\n".join(ln for ln in dip.splitlines() if not ln.startswith("##"))
-        self.assertNotRegex(code, r"\d{3,}\.\d")      # no coefficient typed
+        groups = (ROOT / "design/groups/env.pc").read_text(encoding="utf-8")
+        for text in (dip, groups):
+            code = "\n".join(ln for ln in text.splitlines() if not ln.startswith("##"))
+            for typed in ("29404.8", "1450.9", "4652.5", "29350", "1410.3", "4545.5"):
+                self.assertNotIn(typed, code.replace(", ".join(("2025.0", "-29350.0", "-1410.3", "4545.5")), ""), typed)
         self.assertIn("IGRF14_DEGREE1", dip)
 
     def test_the_2025_to_2030_interval_is_the_models_own_interpolation(self):

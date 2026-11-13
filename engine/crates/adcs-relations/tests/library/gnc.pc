@@ -1,0 +1,43 @@
+## Disturbance torques, momentum and pointing at system level. source: wertz1978, smad2011
+module gnc
+
+## The magnetic torque of a residual dipole in a field: tau = D B. (base)
+fn magnetic_torque(residual_dipole: real[A m^2] in 0.0001 .. 1, field: real[T] in 1e-6 .. 6e-5) -> tau: real[N m]
+    tau = residual_dipole*field
+end
+
+## The worst-case sum of the four disturbance torques. (base)
+fn total_disturbance_torque(aerodynamic: real[N m] in 0 .. 1e-3, gravity_gradient: real[N m] in 0 .. 1e-3, solar: real[N m] in 0 .. 1e-3, magnetic: real[N m] in 0 .. 1e-3) -> tau: real[N m]
+    tau = gravity_gradient + aerodynamic + solar + magnetic
+end
+
+## The dipole that dumps a momentum within a time in a field: m = H/(B t). (base)
+fn magnetorquer_dipole_required(momentum: real[N m s] in 1e-4 .. 1, field: real[T] in 1e-6 .. 6e-5, dump_time: real[s] in 60 .. 10000) -> m: real[A m^2]
+    m = momentum/(field*dump_time)
+end
+
+## The root sum square of the five pointing-error terms (knowledge, control, alignment,
+## thermal, jitter). (base)
+fn pointing_error_rss(terms: real[rad][5] in 0 .. 0.1) -> ape: real[rad]
+    ape = sqrt(dot(terms, terms))
+end
+
+## The worst gravity-gradient torque: 3 mu/(2 r^3) |I_max - I_min| sin(2 theta), theta = 45 deg.
+fn gravity_gradient_torque_worst(r: real[km] in 6500 .. 8500, i_max: real[kg m^2] in 0.01 .. 100, i_min: real[kg m^2] in 0.01 .. 100) -> tau: real[N m]
+    tau = 3*MU_E/(2*r^3)*|i_max - i_min|*sin(2*45 [deg])
+end
+
+## The aerodynamic torque: tau = 1/2 rho v^2 C_D A c_pa.
+fn aero_torque(rho: real[kg/m^3] in 1e-14 .. 1e-10, v: real[m/s] in 6000 .. 8000, c_d: real[1] in 2 .. 2.5, a_fr: real[m^2] in 0.01 .. 2, c_pa: real[m] in 0 .. 0.2) -> tau: real[N m]
+    tau = 0.5*rho*v^2*c_d*a_fr*c_pa
+end
+
+## The solar-pressure torque at normal incidence: tau = P A (1 + q) c_ps.
+fn solar_pressure_torque_at(p_srp: real[Pa] in 4e-6 .. 5e-6, a_sun: real[m^2] in 0.01 .. 2, q: real[1] in 0 .. 1, c_ps: real[m] in 0 .. 0.2) -> tau: real[N m]
+    tau = p_srp*a_sun*(1 + q)*c_ps
+end
+
+## The momentum a constant disturbance builds over one orbit: H = tau T.
+fn secular_momentum_per_orbit(tau_d: real[N m] in 1e-8 .. 1e-4, t_orb: real[s] in 5000 .. 7000) -> h: real[N m s]
+    h = tau_d*t_orb
+end

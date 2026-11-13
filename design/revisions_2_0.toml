@@ -4861,7 +4861,7 @@ why = "the dipole's coefficients were kept twice (here and in the table); they a
 node = "lib_spec_physics_env"
 pseudocode = "design/revisions/S12.6a/dipole.pc"
 path = "spec/physics/dipole.pc"
-transcribes = "spec/physics/env.pc of 1.0.0 (dipole, max_magnetic_latitude, dipole_field_equator, dipole_field_max) and the nodes' answers m3_0 and m3_1, with dipole() reading the degree-1 coefficients g10, g11, h11 from the IGRF-14 table's slice (IGRF14_DEGREE1, at the stated epoch 2025.0) where it read IGRF-13's at 2020.0 from three constants; the formulas, the radius R_E and the ranges are as 1.0.0 gave them"
+transcribes = "spec/physics/env.pc of 1.0.0 (dipole, max_magnetic_latitude, dipole_field_equator, dipole_field_max), with dipole() reading the degree-1 coefficients g10, g11, h11 from the IGRF-14 table's slice (IGRF14_DEGREE1, at the stated epoch 2025.0) where it read IGRF-13's at 2020.0 from three constants; the formulas, the radius R_E and the ranges are as 1.0.0 gave them"
 source = "Wertz (1978) (the dipole's equatorial and latitude-dependent field); IGRF-14 (IAGA V-MOD, 2024) for the coefficients; DR-env-001"
 generate = []
 why = "the dipole's strength and tilt are the table's degree-1 coefficients at a stated epoch, one copy (S12.6a); the relations library's second file of the module env (its first, env.pc, keeps what needs no table), carried to m3_0, m3_1 and m3_2 with the constants and the data they call"
@@ -4890,7 +4890,7 @@ about = "E10 of docs/S12_INVENTORY.md (S12.6; no owner decision): the dipole's r
 node = "lib_spec_physics_env"
 pseudocode = "design/revisions/S12.6b/dipole.pc"
 path = "spec/physics/dipole.pc"
-transcribes = "design/revisions/S12.6a/dipole.pc as S12.6a left it, with dipole_field_equator and dipole_field_max scaling by IGRF's reference radius a = 6371.2 km (the constant IGRF_A) where they scaled by R_E = 6378.137 km; dipole(), max_magnetic_latitude and the nodes' answers are unchanged"
+transcribes = "design/revisions/S12.6a/dipole.pc as S12.6a left it, with dipole_field_equator and dipole_field_max scaling by IGRF's reference radius a = 6371.2 km (the constant IGRF_A) where they scaled by R_E = 6378.137 km; dipole() and max_magnetic_latitude are unchanged"
 source = "IGRF-14 (IAGA V-MOD, 2024): the Gauss coefficients are those of the expansion of the potential in (a/r)^(n+1) with the reference radius a = 6371.2 km, 'NOT the mean radius (= 6371.0 km) but 6371.2 km is what is used in determining the coefficients' (the docstring of calculate.py of pyIGRF14 1.0.4, whose synthesis takes ratio = 6371.2 / r; ppigrf 2.1.0 takes RE = 6371.2 as well); Wertz (1978) for the dipole's equatorial and latitude-dependent field"
 generate = []
 why = "the dipole rows use IGRF's reference radius, not R_E (E10): B0 is the coefficient set's, whose radius is a; carried to m3_0, m3_1 and m3_2 with the constants they call"

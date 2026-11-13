@@ -1,0 +1,17 @@
+## Thrusters. source: idmas_v2
+module rcs
+
+## The propellant of one slew by thrusters alone: impulse H/r to start and the same to stop,
+## m = (2 H/r)/(Isp g0).
+fn propellant_per_slew(h: real[N m s] in 0.01 .. 10, r: real[m] in 0.05 .. 2, isp: real[s] in 50 .. 300) -> m_p: real[kg]
+    m_p = (2*h/r)/(isp*G0)
+end
+
+## The propellant of a year of slews: m_p n_day 365.25 when thrusters are fitted, else 0.
+fn propellant_per_year(m_p: real[kg] in 1e-5 .. 0.1, n_day: real[1] in 0 .. 50, n_rcs: int in 0 .. 12) -> m_year: real[kg]
+    if n_rcs > 0
+        m_year = m_p*n_day*DAYS_PER_YEAR
+    else
+        m_year = 0
+    end
+end

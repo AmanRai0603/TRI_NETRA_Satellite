@@ -1,0 +1,53 @@
+## Circular-orbit relations and the Sun angle of the orbit plane. source: vallado2013
+module orbit
+
+## The orbit radius at altitude h: r = R_E + h (spherical Earth).
+fn radius(h: real[km] in 150 .. 2000) -> r: real[m]
+    r = R_E + h
+end
+
+## The period of a circular orbit of radius r: T = 2 pi sqrt(r^3/mu).
+fn circular_period(r: real[km] in 6500 .. 8500) -> t: real[s]
+    t = 2*pi*sqrt(r^3/MU_E)
+end
+
+## The mean motion of an orbit of period T: n = 2 pi / T.
+fn mean_motion(t_orb: real[min] in 85 .. 130) -> n: real[rad/s]
+    n = 2*pi/t_orb
+end
+
+## The speed on a circular orbit of radius r: v = sqrt(mu/r).
+fn circular_speed(r: real[km] in 6500 .. 8500) -> v: real[m/s]
+    v = sqrt(MU_E/r)
+end
+
+## The share of a circular orbit in the Earth's cylindrical shadow, at Sun angle beta:
+## f = acos(sqrt(1 - (R_E/r)^2)/cos beta)/pi while |beta| < asin(R_E/r), else 0.
+fn eclipse_fraction(r: real[km] in 6500 .. 8500, beta: real[deg] in -90 .. 90) -> f: real[1]
+    let rho = R_E/r
+    if |beta| < asin(rho)
+        f = acos(sqrt(1 - rho^2)/cos(beta))/pi
+    else
+        f = 0
+    end
+end
+
+## The Sun's right ascension and declination at a time from J2000.0 (Vallado 2013, algorithm 29).
+fn sun_ra_dec(epoch: real[yr] in 20 .. 40) -> (ra: real[rad], dec: real[rad])
+    let tc = epoch/(36525 [day])
+    let lm = (280.460 + 36000.771*tc)*1 [deg]
+    let m = (357.5291092 + 35999.05034*tc)*1 [deg]
+    let lam = lm + (1.914666471*sin(m) + 0.019994643*sin(2*m))*1 [deg]
+    let eps = (23.439291 - 0.0130042*tc)*1 [deg]
+    ra = atan2(cos(eps)*sin(lam), cos(lam))
+    dec = asin(sin(eps)*sin(lam))
+end
+
+## The beta angle of a Sun-synchronous orbit of inclination inc and local time of the ascending
+## node ltan at an epoch: the node sits (ltan - 12 h) x 15 deg/h east of the mean Sun, and
+## beta = asin(sin(inc) cos(dec) sin(raan - ra) + cos(inc) sin(dec)).
+fn beta_angle(inc: real[deg] in 0 .. 180, ltan: real[h] in 0 .. 24, epoch: real[yr] in 20 .. 40) -> beta: real[rad]
+    let ra, dec = sun_ra_dec(epoch)
+    let raan = ra + (ltan - 12 [h])*(2*pi/(1 [day]))
+    beta = asin(sin(inc)*cos(dec)*sin(raan - ra) + cos(inc)*sin(dec))
+end

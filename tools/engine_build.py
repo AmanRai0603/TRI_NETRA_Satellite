@@ -467,6 +467,11 @@ def relations(db=None):
         out[f"{crate}/tests/{pkg}_vectors.json"] = text
         out[twin] = text
     out[f"{crate}/tests/vectors.rs"] = RELATIONS_VECTORS
+    # the library's sources as the design holds them, for the translator's own tests (engine/crates/trinetra-pcode/tests: the
+    # interpreter in Rust against the JavaScript's vectors of this package); 1.0.0's archive is no longer the library's text
+    # (S12.6a: the dipole's file, the table it reads, the constants and env.pc without it)
+    for f in lib_files:
+        out[f"{crate}/tests/library/{f.name}"] = f.read_text(encoding="utf-8")
     # every node's own test vectors and the test apps' names, each called where the crate holds it
     wires = [json.loads(f.read_text(encoding="utf-8")) for f in sorted(R["groups"].glob("*.wire.json"))]
     page = lambda w, r: f"{'shared' if r['fn'] in w.get('shared', []) else w['group']}::{r['fn']}"  # noqa: E731
