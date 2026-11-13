@@ -58,6 +58,7 @@ a0bba478472d10088,2026-11-12,S12,code,standard,standard,145325,69,134.4,ok,code:
 a0e199d570d35244c,2026-11-12,S12,code,standard,standard,575822,559,609.1,ok,code: S12.4 truth Earth frame
 a377a5e24fff2d3f8,2026-11-12,S12,page,deep,standard,169949,65,8.0,,"inventory: S12 requirements, Y3, vectors"
 a3de7132ce0945cb7,2026-11-12,S12,code,standard,standard,64302,47,135.5,ok,code: S12.11 P8a P8b propagator fixes
+a50cc7ed526502365,2026-11-12,S12,code,standard,standard,68585,16,125.2,ok,code: S12.4 E14 epoch span (split guard)
 a5cde2b694fcdd698,2026-11-12,S12,code,standard,standard,199904,163,171.7,ok,code: S12.2 data transcription
 a77d0da65232e7502,2026-11-12,S12,decide,deep,deep,192075,79,11.0,,"inventory: S12 frames, fields, env"
 aba665c396e4ae866,2026-11-12,S12,code,standard,standard,104170,62,158.4,ok,code: S12.1 decision records
