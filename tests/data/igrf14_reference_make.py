@@ -40,7 +40,6 @@ import sys
 import numpy as np
 import pandas
 import ppigrf
-import pyIGRF14
 import pyIGRF14.calculate as calc
 
 EPOCHS = [1900.0 + 5 * i for i in range(27)]           # 1900.0 ... 2030.0
