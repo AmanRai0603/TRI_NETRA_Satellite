@@ -12,7 +12,9 @@ prec_rot(jd):                                  # J2000 -> mean of date, IAU-76
     ζ = 2306.2181 T + 0.30188 T² + 0.017998 T³, z = 2306.2181 T + 1.09468 T² + 0.018203 T³,
     θ = 2004.3109 T − 0.42665 T² − 0.041833 T³   (arcsec)
     return R3(−z) R2(θ) R3(−ζ)
-eci2ecef(jd) = gmst_rot(jd) prec_rot(jd)       # J2000 -> ECEF (nutation ≤ 0.005°, polar motion omitted)
+eci2ecef(jd, eop) = W R3(GAST) N P             # J2000 -> ECEF, eop = [UT1 − UTC s, xp ", yp "] (S12.5a)
+    # P N: IAU 2006 precession and frame bias with the IAU 2000B nutation (fw06, nut00b, npb);
+    # GAST = IAU 2006 GMST (ERA of UT1 = UTC + dUT1) + Δψ cos ε_A; W = R1(−yp) R2(−xp)
 decyear(jd) = 2000 + (jd − 2451544.5) / 365.25
 ```
 
@@ -23,9 +25,14 @@ about the ecliptic pole), which moves the pole by 0.15° (measured: the pole of 
 celestial intermediate pole at 2027-01-01). The truth model's Earth frame is the IAU 2006/2000A chain with the
 EOP of the design's snapshot (env_earth_frame_build, S12.4): the truth's gravity (its J2 axis included), drag
 and field all take the pole of date from it, where until S12.4 the field alone had the precession and the
-gravity kept POP's GMST orientation. This onboard `eci2ecef` stays the IAU-76 precession and GMST, within about
-8 arcsec of the truth's frame at 2027-01-01 (nutation, UT1 - UTC, polar motion omitted; up to about 25 arcsec
-over the span): the onboard side is S12.5.
+gravity kept POP's GMST orientation. The onboard `eci2ecef` (S12.5a, T5/E3) is the IAU 2006 precession with the
+IAU 2000B nutation (the 77 luni-solar terms of McCarthy and Luzum 2003), the equation of the equinoxes, UT1 = UTC +
+dUT1 and the polar motion; the Earth orientation `eop` = dUT1, xp, yp is three flight parameters (`eop_dut1`,
+`eop_xp`, `eop_yp`) set by telecommand 0x02 (three little-endian doubles after the id, each inside its rule in
+`params.toml`, else -4 and nothing changes). The engine and the twin load the values of env_eop_snapshot at the run's
+epoch into the blob, as a ground uplink would. It is within 0.003 arcsec of the truth's frame at the three epochs of
+`engine/crates/adcs-sim/tests/onboard_frame.rs` (8 to 9 arcsec for the IAU-76 precession and GMST it replaced), and
+within 3 milliarcseconds of ERFA's `c2t06a` (`tests/test_onboard_frame_oracle.py`). TT − UTC is the constant 69.184 s.
 
 ## Onboard Sun model (Vallado alg. 29, precessed to J2000)
 
@@ -61,8 +68,8 @@ igrf_gh(decyear):     # linear between the two bracketing 5-year epochs; the las
 igrf_ned(gh, lat, lon, alt_km, nmax) -> B_NED [nT]:
     identical to asils.env.igrf_ned (Standard Code env.igrf, geodetic -> geocentric rotation,
     Schmidt semi-normalised recursion); coefficient order g10 g11 h11 g20 g21 h21 ...
-field_eci(r_eci, jd, gh, nmax):
-    C = eci2ecef(jd); r_e = C r_eci; (lat, lon, h) = geodetic(r_e)
+field_eci(r_eci, jd, eop, gh, nmax):
+    C = eci2ecef(jd, eop); r_e = C r_eci; (lat, lon, h) = geodetic(r_e)
     B_ned = igrf_ned(gh, lat, lon, h/1000, nmax) · 1e-9
     R_n2e = [[−sl co, −so, −cl co], [−sl so, co, −cl so], [cl, 0, −sl]]
     return Cᵀ R_n2e B_ned                   # T, ECI
@@ -79,7 +86,7 @@ interval (2020–2025) is extrapolated for 2027; IGRF-14 is the table to load fo
 orbit_step(r, v, dt):
     if gnss fix this tick:
         L = gps_latency                                                # the fix is the state L seconds ago
-        if gnss_ecef: C = eci2ecef(jd − L/86400); r = Cᵀ r_e; v = Cᵀ (v_e + ω_E ẑ × r_e)    # receivers fix in ECEF
+        if gnss_ecef: C = eci2ecef(jd − L/86400, eop); r = Cᵀ r_e; v = Cᵀ (v_e + ω_E ẑ × r_e)    # receivers fix in ECEF
         else: r, v = fix
         if L > 0: a0 = acc(r); r += v L + a0 L²/2; v += (a0 + acc(r)) L/2  # carried forward to now
     elif r known (velocity Verlet, two-body + J2):

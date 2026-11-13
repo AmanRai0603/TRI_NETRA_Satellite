@@ -86,7 +86,7 @@ class BuiltIn(unittest.TestCase):
                  "env_time_scales", "env_geodetic", "env_earth_frames", "env_iau2006", "env_tidal_eop"}
         # a later revision may replace a method (S12.4a: the leap-second status in env_time_scales): the method's origin then
         # names that revision, and the node's history still says S7.3 transcribed it, unsigned
-        replaced = {"env_time_scales": "S12.4a"}
+        replaced = {"env_time_scales": "S12.4a", "env_time_frames": "S12.5a"}
         for nid in moved:
             _k, x = self.nodes[nid]
             self.assertEqual(self.beh(nid), "method", nid)
@@ -252,7 +252,7 @@ class BuiltIn(unittest.TestCase):
             group, target = added.get(nid, ("sens", "adcs-sim-core"))
             self.assertEqual(self.beh(nid), "method", nid)
             self.assertEqual(x["body"]["node"]["group_id"], group, nid)
-            self.assertIn("the developer's revision S7.8", rows[("code", "pseudocode")][1], nid)
+            self.assertIn(f"the developer's revision {'S12.5a' if nid == 'l3_sens_row_14' else 'S7.8'}", rows[("code", "pseudocode")][1], nid)   # S12.5a: gnss_ecef on the truth's frame
             self.assertTrue(rows[("code", "transcribes")][0], nid)
             self.assertEqual(rows[("code", "generate")][0], target, nid)
             self.assertEqual(x["sealed_as"], "unconfirmed", nid)
@@ -469,7 +469,7 @@ end
             self.assertNotIn(gone, emu, gone)
 
     def test_the_flight_parameters_are_the_designs(self):
-        """S7.13 (closes S6's finding): every one of the 151 fsw_param_* nodes has its value from the design (147 at S7.13; S11.4b added fsw_param_clock_step_max_s, S11.5 fsw_param_gyro_stale_ticks, S11.6 fsw_param_st_norm_tol and fsw_param_triad_sin_min). 77 are methods
+        """S7.13 (closes S6's finding): every one of the 154 fsw_param_* nodes has its value from the design (147 at S7.13; S11.4b added fsw_param_clock_step_max_s, S11.5 fsw_param_gyro_stale_ticks, S11.6 fsw_param_st_norm_tol and fsw_param_triad_sin_min; S12.5a the three of the Earth orientation, which the ground uplinks and the design states no one value of). 77 are methods
         of fsw, the developer's unsigned transcriptions generated into adcs-sim (the laws, the choices of law, the copies of
         the product's, the case's and the constants' values); 67 are stated as the 1.0.0 code gave them (the constants, and
         the value a run takes when its scenario states none); the schedule's three state none (a run whose scenario states
@@ -477,9 +477,9 @@ end
         the engine held with no node are stated too; the engine reads them from data/stated.json, and config.rs holds no
         law and no constant of the flight software."""
         params = sorted(n for n in self.nodes if n.startswith("fsw_param_"))
-        self.assertEqual(len(params), 151)
+        self.assertEqual(len(params), 154)
         stated = self.stated_file()
-        methods, values, none, later = [], [], [], []
+        methods, values, none, later, uplink = [], [], [], [], []
         for nid in params:
             _k, x = self.nodes[nid]
             rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
@@ -494,6 +494,10 @@ end
             else:
                 self.assertEqual(self.beh(nid), "stated", nid)
                 src = rows[("value", "source")][0]
+                if src.startswith("DR-env-002") and ("value", "number") not in rows:     # S12.5a: the Earth orientation the ground uplinks (telecommand 0x02): the engine loads env_eop_snapshot's values at the epoch
+                    uplink.append(nid)
+                    self.assertIn("engine/crates/adcs-sim/src/config.rs (fsw_eop_uplink)", src, nid)
+                    continue
                 if src.startswith(("DR-", "docs/S11_INVENTORY.md")):       # a value a decision record or the inventory states (S11.4b: DR-fsw-001's clock bound; S11.5: DR-fdir-002's gyro limit; S11.6: F4's tracker tolerance, G1's TRIAD threshold), not one 1.0.0's code gave
                     later.append(nid)
                     self.assertIn(nid, stated, nid)
@@ -506,6 +510,7 @@ end
                 else:
                     none.append(nid)
         self.assertEqual((len(methods), len(values)), (77, 67))
+        self.assertEqual(uplink, ["fsw_param_eop_dut1", "fsw_param_eop_xp", "fsw_param_eop_yp"])
         self.assertEqual(later, ["fsw_param_clock_step_max_s", "fsw_param_gyro_stale_ticks", "fsw_param_st_norm_tol", "fsw_param_triad_sin_min"])
         self.assertEqual(stated["fsw_param_clock_step_max_s"], 60.0)
         self.assertEqual(stated["fsw_param_gyro_stale_ticks"], 3.0)

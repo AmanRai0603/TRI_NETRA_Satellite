@@ -132,7 +132,7 @@ impl Scene {
     /// The same scene at a given position and velocity (a test that wants the Sun and the field at an angle of its choosing).
     fn feed_at(&self, hal: &mut Stub, r: &V3, v: &V3, t: f64, jd: f64) {
         let a = dcm(&self.q);
-        let b = mat3_vec(&a, &env::field_eci(r, jd, &self.gh, 10));
+        let b = mat3_vec(&a, &env::field_eci(r, jd, &[0.0; 3], &self.gh, 10));
         let s = mat3_vec(&a, &env::sun_model(jd));
         hal.mag[0] = 1; for i in 0..3 { put16(&mut hal.mag[1 + 2*i..], b[i]/MAG_LSB_T); }
         hal.sun[0] = 1; for i in 0..3 { put16(&mut hal.sun[1 + 2*i..], s[i]*ADCS_Q15); }
@@ -391,7 +391,7 @@ fn with_no_head_configured_none_is_ever_selected() {
 
 /// The angle [deg] between the Sun and the field at the position r, at the date of the scene's start.
 fn sun_field_deg(sc: &Scene, r: &V3) -> f64 {
-    let (s, b) = (env::sun_model(JD0), env::field_eci(r, JD0, &sc.gh, 10));
+    let (s, b) = (env::sun_model(JD0), env::field_eci(r, JD0, &[0.0; 3], &sc.gh, 10));
     let c = (dot(&s, &b)/(norm3(&s)*norm3(&b))).clamp(-1.0, 1.0);
     c.acos().to_degrees()
 }

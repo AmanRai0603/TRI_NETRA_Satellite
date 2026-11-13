@@ -1,4 +1,4 @@
-function [U, bus, z] = sense(U, dev, bus, x, sky, m_coil, nu, t, k, rt, r, v, jd0, dt, scale)
+function [U, bus, z] = sense(U, dev, bus, x, sky, m_coil, nu, t, k, rt, r, v, jd0, dt, scale, frame)
 %ASILS.DEVICES.SENSE  Every sensor sampled and written onto the bus as its device's bytes (registers, UART frames, CAN
 %   telemetry), in the order the units draw their noise: the engine's run.rs sense, in MATLAB. The models are sens's and
 %   act's methods (+asils/+models: gyro_sample, mag_sample, sun_sample, css_sample, st_history, st_sample, st_image,
@@ -59,7 +59,8 @@ function [U, bus, z] = sense(U, dev, bus, x, sky, m_coil, nu, t, k, rt, r, v, jd
     if dev.gps.fitted && mod(k, rt.gps) == 0 && ~G.dead
         % a receiver fixes in ECEF (WGS-84); the fix it reports now solves for the epoch `latency` ago
         [te, rd, vd] = asils.models.gnss.gps_delayed(G.ht, G.hr, G.hv, G.hn, dev.gps.latency, t);
-        [re, ve] = asils.models.gnss.gnss_ecef(jd0, te, rd, vd);
+        [ce, w] = frame(te);        % the truth's Earth frame at the fix's epoch and the Earth's rate in J2000 (S12.5)
+        [re, ve] = asils.models.gnss.gnss_ecef(ce, w, rd, vd);
         [rg, vg, G.g] = asils.models.gnss.gps_sample(re, ve, dev.gps.pos_sigma, dev.gps.vel_sigma, G.g);
         bus.uart{3} = [bus.uart{3}, asils.hal.gps_frame(true, rg, vg, scale, jd0 + t/86400.0).'];
     end

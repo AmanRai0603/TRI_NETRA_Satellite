@@ -62,9 +62,9 @@ int64_t clocktime_clock_sched_skip(double t, int64_t i, int64_t n, pc_a8f sched_
     int64_t j = 0;
     j = i;
     {
-        int64_t end__195 = INT64_C(8);
+        int64_t end__198 = INT64_C(8);
         int64_t k = INT64_C(0);
-        while (k < end__195) {
+        while (k < end__198) {
             if (((j < n) && (t >= sched_t.v[(j)]))) {
                 j = (j + INT64_C(1));
             }

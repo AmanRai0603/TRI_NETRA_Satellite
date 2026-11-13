@@ -36,10 +36,11 @@ function [F, bus] = step(F, bus)
         F.w_prev, F.gyro_same, p.gyro_stale_ticks);
     F.z = z;
 
+    eop = [p.eop_dut1; p.eop_xp; p.eop_yp];     % the Earth orientation the ground uplinked (the blob's), at this tick
     % 1 onboard orbit (02): nav's (asils.alg.navorbit.onboard_orbit), as adcs_fsw.c and fsw.rs: a usable GNSS fix (taken
     % from ECEF at its epoch, carried forward by its age), else the orbit held carried one tick, else none
     [F.r, F.v, F.have_r] = asils.alg.navorbit.onboard_orbit(F.r, F.v, F.have_r, z.gps_ok, z.r, z.v, p.gnss_ecef ~= 0, ...
-        p.gps_latency, F.jd, dt, p.mu);
+        p.gps_latency, F.jd, dt, p.mu, eop);
 
     % 2 estimation
     F.gd.sun_eci = asils.alg.frames.sun_model(F.jd);
@@ -55,7 +56,7 @@ function [F, bus] = step(F, bus)
         if isempty(F.gh) || fabs_(F.jd - F.gh_jd) > 1.0
             F.gh = asils.alg.frames.igrf_gh(asils.alg.frames.decyear(F.jd)); F.gh_jd = F.jd;
         end
-        F.bref = asils.alg.frames.field_eci(F.r, F.jd, F.gh, p.igrf_nmax);
+        F.bref = asils.alg.frames.field_eci(F.r, F.jd, eop, F.gh, p.igrf_nmax);
         F.k_bref = F.tick;
     end
     m = F.mode;

@@ -26,8 +26,10 @@ A change goes to the pseudocode first, then to all three in the same pull reques
 
 ## Frames and attitude
 
-- ECI means GCRF/J2000. ECEF is reached by a GMST rotation onboard (the truth uses the POP frame
-  chain; the difference is an onboard-model error, measured).
+- ECI means GCRF/J2000. ECEF is reached onboard by the IAU 2006 precession, the IAU 2000B nutation, the
+  equation of the equinoxes, UT1 = UTC + dUT1 and the polar motion (dUT1, xp, yp are flight parameters set by
+  telecommand; the truth uses the POP frame chain, IAU 2006/2000A; the difference is an onboard-model error,
+  measured: under 0.003 arcsec).
 - Body axes follow the product. For a 3U the long axis is X_B.
 - **Quaternion `q = [x, y, z, w]` (scalar last)**, Hamilton product, representing the attitude of
   the body relative to ECI. `dcm(q)` is the *passive* ECI → body DCM, and

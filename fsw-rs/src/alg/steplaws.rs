@@ -74,9 +74,9 @@ pub fn ctl_mtq(st: CtlState, cp: CtlParams) -> CtlState {
         let mut qe: [f64; 4] = crate::alg::math::qmult(crate::alg::math::qconj(s.q_ref), s.q);
         let mut wr: [f64; 3] = rt::mv(crate::alg::math::dcm(qe), s.w_ref);
         {
-            let __end110: i64 = 3;
+            let __end111: i64 = 3;
             let mut i: i64 = 0;
-            while i < __end110 {
+            while i < __end111 {
                 s.tau_req[(i) as usize] = ((-(cp.g_kd[(i) as usize])) * (s.w_est[(i) as usize] - wr[(i) as usize]));
                 i += 1;
             }
@@ -110,9 +110,9 @@ pub fn ctl_mtq(st: CtlState, cp: CtlParams) -> CtlState {
             let mut d: f64 = rt::dot(cp.sun_axis, e3);
             let mut pa: [f64; 3] = [0.0; 3];
             {
-                let __end111: i64 = 3;
+                let __end112: i64 = 3;
                 let mut i: i64 = 0;
-                while i < __end111 {
+                while i < __end112 {
                     pa[(i) as usize] = (cp.sun_axis[(i) as usize] - (d * e3[(i) as usize]));
                     i += 1;
                 }
@@ -123,9 +123,9 @@ pub fn ctl_mtq(st: CtlState, cp: CtlParams) -> CtlState {
                 let mut c: [f64; 3] = rt::cross(pa, pd);
                 let mut r: f64 = ((cp.sb_kroll * crate::m::atan2(rt::dot(c, e3), rt::dot(pa, pd))) - (cp.sb_kdroll * rt::dot(we, e3)));
                 {
-                    let __end112: i64 = 3;
+                    let __end113: i64 = 3;
                     let mut i: i64 = 0;
-                    while i < __end112 {
+                    while i < __end113 {
                         s.tau_req[(i) as usize] = (s.tau_req[(i) as usize] + (r * e3[(i) as usize]));
                         i += 1;
                     }
@@ -136,9 +136,9 @@ pub fn ctl_mtq(st: CtlState, cp: CtlParams) -> CtlState {
         s.tau_req = crate::alg::control::mtq_tango(s.q, s.w_est, s.q_ref, s.w_ref, cp.mtq_pth, cp.mtq_pw);
     } else {
         let mut z: [f64; 3] = [0.0; 3];
-        let __t113 = crate::alg::control::control_law(s.q, s.w_est, s.q_ref, s.w_ref, s.i_q, cp.mtq_period, cp.g_law, cp.g_kp, cp.g_kd, cp.g_ki, cp.g_klqr, cp.g_lambda, cp.g_phi, cp.g_gs, cp.g_err_max, cp.g_int_max, cp.j, z, z);
-        s.tau_req = __t113.0;
-        s.i_q = __t113.1;
+        let __t114 = crate::alg::control::control_law(s.q, s.w_est, s.q_ref, s.w_ref, s.i_q, cp.mtq_period, cp.g_law, cp.g_kp, cp.g_kd, cp.g_ki, cp.g_klqr, cp.g_lambda, cp.g_phi, cp.g_gs, cp.g_err_max, cp.g_int_max, cp.j, z, z);
+        s.tau_req = __t114.0;
+        s.i_q = __t114.1;
     }
     s
 }
@@ -178,9 +178,9 @@ pub fn ctl_capture(st: CtlState, cp: CtlParams, hdev: [f64; 3]) -> (CtlState, bo
             let mut mincap: f64 = s.cap[0];
             let mut minh: f64 = s.hcap[0];
             {
-                let __end114: i64 = 3;
+                let __end115: i64 = 3;
                 let mut i: i64 = 1;
-                while i < __end114 {
+                while i < __end115 {
                     if (s.cap[(i) as usize] < mincap) {
                         mincap = s.cap[(i) as usize];
                     }
@@ -202,9 +202,9 @@ pub fn ctl_capture(st: CtlState, cp: CtlParams, hdev: [f64; 3]) -> (CtlState, bo
             }
             let mut wc: [f64; 3] = [0.0; 3];
             {
-                let __end115: i64 = 3;
+                let __end116: i64 = 3;
                 let mut i: i64 = 0;
-                while i < __end115 {
+                while i < __end116 {
                     wc[(i) as usize] = (wref[(i) as usize] - (e[(i) as usize] * sp));
                     i += 1;
                 }
@@ -216,9 +216,9 @@ pub fn ctl_capture(st: CtlState, cp: CtlParams, hdev: [f64; 3]) -> (CtlState, bo
             let mut gy: [f64; 3] = rt::cross(s.w_est, rt::vadd(rt::mv(cp.j, s.w_est), hdev));
             let mut x: [f64; 3] = [0.0; 3];
             {
-                let __end116: i64 = 3;
+                let __end117: i64 = 3;
                 let mut i: i64 = 0;
-                while i < __end116 {
+                while i < __end117 {
                     x[(i) as usize] = (kr * (wc[(i) as usize] - s.w_est[(i) as usize]));
                     i += 1;
                 }
@@ -261,9 +261,9 @@ pub fn ctl_sun_acq(st: CtlState, cp: CtlParams, hdev: [f64; 3]) -> CtlState {
     let mut gy: [f64; 3] = rt::cross(s.w_est, rt::vadd(rt::mv(cp.j, s.w_est), hdev));
     let mut x: [f64; 3] = [0.0; 3];
     {
-        let __end117: i64 = 3;
+        let __end118: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end117 {
+        while i < __end118 {
             x[(i) as usize] = (cp.sa_kd * (wc[(i) as usize] - s.w_est[(i) as usize]));
             i += 1;
         }
@@ -299,9 +299,9 @@ pub fn damp_torque(kd: [f64; 3], w: [f64; 3]) -> [f64; 3] {
     let mut tau: [f64; 3] = [0.0; 3];
     let mut e: [f64; 3] = crate::alg::steplaws::damp_excess(w);
     {
-        let __end118: i64 = 3;
+        let __end119: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end118 {
+        while i < __end119 {
             tau[(i) as usize] = ((-(kd[(i) as usize])) * e[(i) as usize]);
             i += 1;
         }
@@ -361,15 +361,15 @@ pub fn alloc_rotors(tau_rot: [f64; 3], a: [[f64; 8]; 3], cmd_r0: [f64; 8], cmd_g
     cmd_g = cmd_g0;
     let mut drop: [i64; 8] = [0; 8];
     {
-        let __end119: i64 = 9;
+        let __end120: i64 = 9;
         let mut pass: i64 = 0;
-        while pass < __end119 {
+        while pass < __end120 {
             let mut fixed: [i64; 8] = [0; 8];
             let mut nf: i64 = 0;
             {
-                let __end120: i64 = nr;
+                let __end121: i64 = nr;
                 let mut i: i64 = 0;
-                while i < __end120 {
+                while i < __end121 {
                     if (((rot_gi[(i) as usize] == 0) && (!rot_failed[(i) as usize])) && (drop[(i) as usize] == 0)) {
                         fixed[(nf) as usize] = i;
                         nf = (nf + 1);
@@ -380,13 +380,13 @@ pub fn alloc_rotors(tau_rot: [f64; 3], a: [[f64; 8]; 3], cmd_r0: [f64; 8], cmd_g
             if (nf > 0) {
                 let mut af: [[f64; 8]; 3] = [[0.0; 8]; 3];
                 {
-                    let __end121: i64 = nf;
+                    let __end122: i64 = nf;
                     let mut i: i64 = 0;
-                    while i < __end121 {
+                    while i < __end122 {
                         {
-                            let __end122: i64 = 3;
+                            let __end123: i64 = 3;
                             let mut k: i64 = 0;
-                            while k < __end122 {
+                            while k < __end123 {
                                 af[(k) as usize][(i) as usize] = a[(k) as usize][(fixed[(i) as usize]) as usize];
                                 k += 1;
                             }
@@ -398,9 +398,9 @@ pub fn alloc_rotors(tau_rot: [f64; 3], a: [[f64; 8]; 3], cmd_r0: [f64; 8], cmd_g
                 let mut sc: f64 = 1.0;
                 let mut more: i64 = 0;
                 {
-                    let __end123: i64 = nf;
+                    let __end124: i64 = nf;
                     let mut i: i64 = 0;
-                    while i < __end123 {
+                    while i < __end124 {
                         let mut c: f64 = (-((((pi8[(i) as usize][0] * tau_rot[0]) + (pi8[(i) as usize][1] * tau_rot[1])) + (pi8[(i) as usize][2] * tau_rot[2]))));
                         let mut ki: i64 = fixed[(i) as usize];
                         cmd_r[(ki) as usize] = c;
@@ -416,9 +416,9 @@ pub fn alloc_rotors(tau_rot: [f64; 3], a: [[f64; 8]; 3], cmd_r0: [f64; 8], cmd_g
                 }
                 if (more == 0) {
                     {
-                        let __end124: i64 = nf;
+                        let __end125: i64 = nf;
                         let mut i: i64 = 0;
-                        while i < __end124 {
+                        while i < __end125 {
                             cmd_r[(fixed[(i) as usize]) as usize] = (cmd_r[(fixed[(i) as usize]) as usize] / sc);
                             i += 1;
                         }
@@ -429,9 +429,9 @@ pub fn alloc_rotors(tau_rot: [f64; 3], a: [[f64; 8]; 3], cmd_r0: [f64; 8], cmd_g
         }
     }
     {
-        let __end125: i64 = nr;
+        let __end126: i64 = nr;
         let mut i: i64 = 0;
-        while i < __end125 {
+        while i < __end126 {
             if (drop[(i) as usize] == 1) {
                 cmd_r[(i) as usize] = 0.0;
             }
@@ -441,9 +441,9 @@ pub fn alloc_rotors(tau_rot: [f64; 3], a: [[f64; 8]; 3], cmd_r0: [f64; 8], cmd_g
     if (ng > 0) {
         let mut wheels: bool = false;
         {
-            let __end126: i64 = nr;
+            let __end127: i64 = nr;
             let mut i: i64 = 0;
-            while i < __end126 {
+            while i < __end127 {
                 if (rot_kind[(i) as usize] == 3) {
                     wheels = true;
                 }
@@ -452,18 +452,18 @@ pub fn alloc_rotors(tau_rot: [f64; 3], a: [[f64; 8]; 3], cmd_r0: [f64; 8], cmd_g
         }
         let (mut gd, mut hd) = crate::alg::allocation::steer_sr(tau_rot, a, zh, nr, ng, rot_gi, gim_axis, gim_rate_max, cmg_lam0, cmg_mu, wheels);
         {
-            let __end127: i64 = ng;
+            let __end128: i64 = ng;
             let mut j: i64 = 0;
-            while j < __end127 {
+            while j < __end128 {
                 cmd_g[(j) as usize] = gd[(j) as usize];
                 j += 1;
             }
         }
         if wheels {
             {
-                let __end128: i64 = nr;
+                let __end129: i64 = nr;
                 let mut i: i64 = 0;
-                while i < __end128 {
+                while i < __end129 {
                     if (rot_gi[(i) as usize] > 0) {
                         cmd_r[(i) as usize] = (hd[(i) as usize] - (cmg_k_null * (zh[(i) as usize] - rot_h0[(i) as usize])));
                     }
@@ -490,9 +490,9 @@ pub fn alloc_idle(cmd_r0: [f64; 8], nr: i64, zh: [f64; 8], h_t_rot: [f64; 8], ro
     let mut cmd_r: [f64; 8] = [0.0; 8];
     cmd_r = cmd_r0;
     {
-        let __end129: i64 = nr;
+        let __end130: i64 = nr;
         let mut i: i64 = 0;
-        while i < __end129 {
+        while i < __end130 {
             cmd_r[(i) as usize] = ((-(0.2)) * (zh[(i) as usize] - h_t_rot[(i) as usize]));
             if ((zero_cmg && (rot_gi[(i) as usize] > 0)) && (rot_kind[(i) as usize] == 2)) {
                 cmd_r[(i) as usize] = 0.0;

@@ -53,17 +53,17 @@ pub fn css_new(d: CssDesc, disp: &mut rt::Stream, noise: rt::Stream) -> CssUnit 
     let mut u: CssUnit = CssUnit::default();
     u = CssUnit::default();
     {
-        let __end105: i64 = crate::gen::css::SENS_NS;
+        let __end106: i64 = crate::gen::css::SENS_NS;
         let mut i: i64 = 0;
-        while i < __end105 {
+        while i < __end106 {
             u.scale[(i) as usize] = 1.0;
             i += 1;
         }
     }
     {
-        let __end106: i64 = d.n;
+        let __end107: i64 = d.n;
         let mut j: i64 = 0;
-        while j < __end106 {
+        while j < __end107 {
             let mut z: f64 = rt::normal(&mut (*disp));
             u.scale[(j) as usize] = (1.0 + (d.scale_sigma * z));
             j += 1;
@@ -93,9 +93,9 @@ pub fn css_sample(u: &mut CssUnit, d: CssDesc, s_b: [f64; 3], nu: f64, nadir_b: 
     let mut iv: [f64; 8] = [0.0; 8];
     let mut g: rt::Stream = (*u).g;
     {
-        let __end107: i64 = d.n;
+        let __end108: i64 = d.n;
         let mut j: i64 = 0;
-        while j < __end107 {
+        while j < __end108 {
             let mut cs: f64 = rt::dot(d.normals[(j) as usize], s_b);
             let mut ce: f64 = rt::dot(d.normals[(j) as usize], nadir_b);
             let mut z: f64 = rt::normal(&mut g);
@@ -109,15 +109,15 @@ pub fn css_sample(u: &mut CssUnit, d: CssDesc, s_b: [f64; 3], nu: f64, nadir_b: 
     (*u).g = g;
     let mut est: [f64; 3] = [0.0; 3];
     {
-        let __end108: i64 = 3;
+        let __end109: i64 = 3;
         let mut ax: i64 = 0;
-        while ax < __end108 {
+        while ax < __end109 {
             let mut p: i64 = (-(1));
             let mut m: i64 = (-(1));
             {
-                let __end109: i64 = d.n;
+                let __end110: i64 = d.n;
                 let mut k: i64 = 0;
-                while k < __end109 {
+                while k < __end110 {
                     if ((p < 0) && (d.normals[(k) as usize][(ax) as usize] > 0.9)) {
                         p = k;
                     }

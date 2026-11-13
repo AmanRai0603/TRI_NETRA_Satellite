@@ -31,6 +31,9 @@ static const char *const NOT_IN_C[][2] = {
 static const char *const BY_NAME[][2] = {
     {"modes::spin_guards", "called only by the generated modes_step"},
     {"frames::mod360", "called only by the generated sun_model"},
+    {"frames::nut00b", "called only by the generated eci2ecef"},
+    {"frames::fw06", "called only by the generated eci2ecef"},
+    {"frames::npb", "called only by the generated eci2ecef"},
     {"control::mtq_err", "called only by the generated magnetic laws (Lovera, Celani, Avanzini, TANGO)"},
     {"estimation::update3", "called only by the generated mekf_vector and mekf_quat"},
     {"drivers::rd16", "called only by the generated drv_read"},
@@ -326,7 +329,7 @@ static int call(const char *name, const double *x, int nx, out_t *o)
     }
     else if (!strcmp(name, "frames::gmst_rot")) { double m[3][3]; adcs_gmst_rot(F(&a), m); OM3(o, m); }
     else if (!strcmp(name, "frames::prec_rot")) { double m[3][3]; adcs_prec_rot(F(&a), m); OM3(o, m); }
-    else if (!strcmp(name, "frames::eci2ecef")) { double m[3][3]; adcs_eci2ecef(F(&a), m); OM3(o, m); }
+    else if (!strcmp(name, "frames::eci2ecef")) { double m[3][3], jd, eop[3]; jd = F(&a); V(&a, eop, 3); adcs_eci2ecef(jd, eop, m); OM3(o, m); }
     else if (!strcmp(name, "frames::decyear")) { O(o, adcs_decyear(F(&a))); }
     else if (!strcmp(name, "frames::sun_model")) { double s3[3]; adcs_sun_model(F(&a), s3); OV(o, s3, 3); }
     else if (!strcmp(name, "frames::geodetic")) { double r[3], la, lo, h; V(&a, r, 3); adcs_geodetic(r, &la, &lo, &h); O(o, la); O(o, lo); O(o, h); }
@@ -337,9 +340,9 @@ static int call(const char *name, const double *x, int nx, out_t *o)
         adcs_igrf_ned(gh, la, lo, alt, n, b); OV(o, b, 3);
     }
     else if (!strcmp(name, "frames::field_eci")) {
-        double r[3], jd, gh[195], b[3]; int n;
-        V(&a, r, 3); jd = F(&a); V(&a, gh, 195); n = (int)F(&a);
-        adcs_field_eci(r, jd, gh, n, b); OV(o, b, 3);
+        double r[3], jd, eop[3], gh[195], b[3]; int n;
+        V(&a, r, 3); jd = F(&a); V(&a, eop, 3); V(&a, gh, 195); n = (int)F(&a);
+        adcs_field_eci(r, jd, eop, gh, n, b); OV(o, b, 3);
     }
     else if (!strcmp(name, "modes::modes_enter")) { memset(&S, 0, sizeof S); get_modes(&a); adcs_modes_enter(&S, (uint8_t)F(&a)); put_modes(o); }
     else if (!strcmp(name, "modes::modes_feasible")) {
@@ -406,11 +409,11 @@ static int call(const char *name, const double *x, int nx, out_t *o)
     }
     else if (!strcmp(name, "steplaws::orbit_acc")) { double r[3], mu, acc[3]; V(&a, r, 3); mu = F(&a); adcs_orbit_acc(r, mu, acc); OV(o, acc, 3); }
     else if (!strcmp(name, "navorbit::onboard_orbit")) {
-        double r0[3], v0[3], rf[3], vf[3], lat, jd, dt, mu, r[3], v[3];
+        double r0[3], v0[3], rf[3], vf[3], lat, jd, dt, mu, eop[3], r[3], v[3];
         int have, ok, ecef, have_r;
         V(&a, r0, 3); V(&a, v0, 3); have = F(&a) != 0; ok = F(&a) != 0; V(&a, rf, 3); V(&a, vf, 3); ecef = F(&a) != 0;
-        lat = F(&a); jd = F(&a); dt = F(&a); mu = F(&a);
-        adcs_onboard_orbit(r0, v0, have, ok, rf, vf, ecef, lat, jd, dt, mu, r, v, &have_r);
+        lat = F(&a); jd = F(&a); dt = F(&a); mu = F(&a); V(&a, eop, 3);
+        adcs_onboard_orbit(r0, v0, have, ok, rf, vf, ecef, lat, jd, dt, mu, eop, r, v, &have_r);
         OV(o, r, 3); OV(o, v, 3); O(o, have_r);
     }
     else if (!strcmp(name, "estimation::latency")) { double q[4], w[3], l, r[4]; V(&a, q, 4); V(&a, w, 3); l = F(&a); adcs_latency(q, w, l, r); OV(o, r, 4); }

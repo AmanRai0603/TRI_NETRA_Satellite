@@ -230,5 +230,6 @@ impl Gps {
     /// The fix with its noise.
     pub fn sample(&mut self, r: &V3, v: &V3) -> (V3, V3) { gnss::gps_sample(*r, *v, self.d.pos_sigma, self.d.vel_sigma, &mut self.g) }
     /// The truth (r, v; J2000) at the epoch te [s] of a run that starts at the Julian date jd0, in ECEF (WGS-84).
-    pub fn ecef(jd0: f64, te: f64, r: &V3, v: &V3) -> (V3, V3) { gnss::gnss_ecef(jd0, te, *r, *v) }
+    /// The truth (J2000) in ECEF by the truth's frame `c` at the fix's epoch and the Earth's rate `w` in J2000 (gnss_ecef, S12.5).
+    pub fn ecef(c: &M3, w: &V3, r: &V3, v: &V3) -> (V3, V3) { gnss::gnss_ecef(*c, *w, *r, *v) }
 }

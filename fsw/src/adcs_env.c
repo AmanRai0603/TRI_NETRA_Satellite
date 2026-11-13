@@ -11,9 +11,10 @@ void adcs_gmst_rot(double jd, adcs_real C[3][3]) { gl_om33(frames_gmst_rot(jd), 
 /* written from the design: frames::prec_rot (fsw/alg) */
 void adcs_prec_rot(double jd, adcs_real P[3][3]) { gl_om33(frames_prec_rot(jd), &P[0][0]); }
 
-/* J2000 -> ECEF: precession to the mean equator of date, then GMST (nutation and polar motion omitted) */
+/* J2000 -> ECEF at the UTC Julian date jd with the Earth orientation eop = {UT1 - UTC [s], xp ["], yp ["]} (the flight parameters
+ * eop_dut1, eop_xp, eop_yp): IAU 2006 precession, IAU 2000B nutation, the equation of the equinoxes, UT1 and the pole */
 /* written from the design: frames::eci2ecef (fsw/alg) */
-void adcs_eci2ecef(double jd, adcs_real C[3][3]) { gl_om33(frames_eci2ecef(jd), &C[0][0]); }
+void adcs_eci2ecef(double jd, const adcs_real eop[3], adcs_real C[3][3]) { gl_om33(frames_eci2ecef(jd, gl_v3(eop)), &C[0][0]); }
 
 /* written from the design: frames::decyear (fsw/alg) */
 double adcs_decyear(double jd) { return frames_decyear(jd); }
@@ -46,10 +47,10 @@ void adcs_igrf_ned(const adcs_real gh[195], adcs_real lat, adcs_real lon, adcs_r
 }
 
 /* written from the design: frames::field_eci (fsw/alg) */
-void adcs_field_eci(const adcs_real r_eci[3], double jd, const adcs_real gh[195], int nmax, adcs_real B[3])
+void adcs_field_eci(const adcs_real r_eci[3], double jd, const adcs_real eop[3], const adcs_real gh[195], int nmax, adcs_real B[3])
 {
     pc_a195f g;
     int k;
     for (k = 0; k < 195; k++) g.v[k] = gh[k];
-    gl_o3(frames_field_eci(gl_v3(r_eci), jd, g, nmax), B);
+    gl_o3(frames_field_eci(gl_v3(r_eci), jd, gl_v3(eop), g, nmax), B);
 }

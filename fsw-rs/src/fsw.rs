@@ -247,11 +247,12 @@ impl Fsw {
         self.jd = p.jd0 + self.t/86400.0;
         self.fdir_sensors(&mut z, dt);
         self.z = z;
+        let eop = [self.p.eop_dut1, self.p.eop_xp, self.p.eop_yp];       // the Earth orientation the ground uplinked (TC 0x02), at this tick
 
         // 1 onboard orbit (02): nav's (navorbit::onboard_orbit, src/alg): the GNSS fix (a fix inside the Earth is none; one
         // in ECEF taken to J2000 at its epoch; a late one carried forward by its age), else two-body + J2 by velocity Verlet
         (self.r, self.v, self.have_r) = navorbit::onboard_orbit(self.r, self.v, self.have_r, z.gps_ok, z.r, z.v, p.gnss_ecef != 0,
-                                                                p.gps_latency, self.jd, dt, p.mu);
+                                                                p.gps_latency, self.jd, dt, p.mu, eop);
 
         // 2 estimation
         self.gd.sun_eci = env::sun_model(self.jd);
@@ -263,7 +264,7 @@ impl Fsw {
         if first && self.have_r && (self.k_bref < 0 || self.tick as i64 - self.k_bref >= self.n_bref as i64) {
             if self.gh.is_none() || fabs(self.jd - self.gh_jd) > 1.0 { self.gh = Some(env::igrf_gh(env::decyear(self.jd))); self.gh_jd = self.jd; }
             let gh = self.gh.as_ref().unwrap();
-            self.bref = Some(env::field_eci(&self.r, self.jd, gh, p.igrf_nmax as i32));
+            self.bref = Some(env::field_eci(&self.r, self.jd, &eop, gh, p.igrf_nmax as i32));
             self.k_bref = self.tick as i64;
         }
         let m = self.mode;
@@ -615,6 +616,19 @@ impl Fsw {
     pub fn command(&mut self, tc: &[u8]) -> i32 {
         if !self.ready || tc.len() < 2 { return -1; }
         if tc[0] == 0x01 && tc[1] < MODE_COUNT { if !feasible(&self.p, tc[1]) { return -3; } self.enter(tc[1]); return 0; }
+        // TC 0x02: the Earth orientation (UT1 - UTC [s], xp ["], yp ["]) of the onboard frame, three little-endian IEEE doubles after the
+        // id; each inside the rule of its parameter in params.toml (Params::validate) or the whole command is refused (-4) and the
+        // parameters stay as they were
+        if tc[0] == 0x02 {
+            if tc.len() < 1 + 3*8 { return -1; }
+            let mut e = [0.0f64; 3];
+            for i in 0..3 { let mut b = [0u8; 8]; b.copy_from_slice(&tc[1 + i*8..9 + i*8]); e[i] = f64::from_le_bytes(b); }
+            let mut np = self.p;
+            (np.eop_dut1, np.eop_xp, np.eop_yp) = (e[0], e[1], e[2]);
+            if np.validate().is_err() { return -4; }
+            self.p = np;
+            return 0;
+        }
         -2
     }
 

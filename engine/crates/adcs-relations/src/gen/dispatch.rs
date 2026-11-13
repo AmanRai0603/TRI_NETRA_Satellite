@@ -415,19 +415,28 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             for v in r.0.iter() { let v = *v; out.push(v); }
             out.push(r.1);
         }
-        "nav::gmst_rot" => {
+        "nav::fw06" => {
             if x.len() != 1 { return None; }
-            let r = crate::nav::gmst_rot(x[0]);
-            for v in r.iter() { let v = *v; for v in v.iter() { let v = *v; out.push(v); } }
+            let r = crate::nav::fw06(x[0]);
+            out.push(r.0);
+            out.push(r.1);
+            out.push(r.2);
+            out.push(r.3);
         }
-        "nav::prec_rot" => {
+        "nav::nut00b" => {
             if x.len() != 1 { return None; }
-            let r = crate::nav::prec_rot(x[0]);
+            let r = crate::nav::nut00b(x[0]);
+            out.push(r.0);
+            out.push(r.1);
+        }
+        "nav::npb" => {
+            if x.len() != 4 { return None; }
+            let r = crate::nav::npb(x[0], x[1], x[2], x[3]);
             for v in r.iter() { let v = *v; for v in v.iter() { let v = *v; out.push(v); } }
         }
         "nav::eci2ecef" => {
-            if x.len() != 1 { return None; }
-            let r = crate::nav::eci2ecef(x[0]);
+            if x.len() != 4 { return None; }
+            let r = crate::nav::eci2ecef(x[0], [x[1], x[2], x[3]]);
             for v in r.iter() { let v = *v; for v in v.iter() { let v = *v; out.push(v); } }
         }
         "nav::triad" => {

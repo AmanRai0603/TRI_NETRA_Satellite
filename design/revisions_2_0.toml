@@ -4644,3 +4644,46 @@ behaviour = "stated"
 question = "Between which UTC Julian dates [first, last] is the flight's own data (IGRF-14 and its secular variation) valid, so that a flight blob's date outside them is refused by name?"
 content = [["value", "list", "[2460676.5, 2462502.5]"], ["value", "source", "DR-env-002 (the developer's reading, S12.4, unsigned): 2025.0 (2025-01-01 0 h UTC, MJD 60676, IGRF-14's epoch) to 2030.0 (MJD 62502, the end of its secular variation). The flight takes dUT1 and the pole (xp, yp) by telecommand, not from the EOP and leap-second files, so their expiry does not bear on it"]]
 why = "the flight's epoch span as a stated node (DR-env-002), which the flight parameter rule for jd0 reads by name (tools/gen_fsw_params.py)"
+
+[[revision]]
+id = "S12.5a"
+at = "2026-11-13T09:00:00Z"
+by = "the developer"
+about = "T5/E3's onboard side of docs/S12_INVENTORY.md (S12.5; decision DR-env-002, owner question 4, the default): the flight's Earth frame (env_time_frames eci2ecef) is the IAU 2006 precession and frame bias with the IAU 2000B nutation (the 77 luni-solar terms of McCarthy and Luzum 2003, the table of ERFA 2.0.1.5's nut00b; the planetary terms as the abridgement's two fixed offsets), the equation of the equinoxes (dpsi cos eps_A), UT1 = UTC + dUT1 and the polar motion xp, yp; dUT1, xp and yp are three new flight parameters (eop_dut1 [s], eop_xp and eop_yp [arcsec]) set by telecommand 0x02, the truth's loading them from env_eop_snapshot at the run's epoch as a ground uplink would. The onboard orbit takes an Earth-fixed GNSS fix to J2000 by that frame (nav_onboard_orbit's fix_eci and onboard_orbit, field_eci take the three values), and the truth GNSS fix is made on the truth's frame (gnss_ecef takes the truth's C and Earth rate), no longer on the GMST-after-IAU-1976-precession frame the pair shared. The toolbox is unchanged: nothing the series needs is new (fmod, sin, cos). Unsigned: the developer's revision"
+
+[[revision.method]]
+node = "env_time_frames"
+pseudocode = "design/revisions/S12.5a/frames.pc"
+path = "fsw/pseudocode/02_time_frames_models.pc"
+transcribes = "fsw/pseudocode/02_time_frames_models.pc as S7.3 left it, with eci2ecef (and field_eci, which calls it) taking the Earth orientation eop = [UT1 - UTC, xp, yp] and built on the IAU 2006 precession, the IAU 2000B nutation (nut00b, its 77-term table NUT00B), the equation of the equinoxes and the polar motion (fw06, npb); gmst_rot, prec_rot, the Sun, the geodetic coordinates and the IGRF are unchanged"
+source = "McCarthy and Luzum (2003), An abridged model of the precession-nutation of the celestial pole, Celestial Mechanics and Dynamical Astronomy 85:37-49 (the 77 luni-solar terms and the fixed planetary offsets; IERS Conventions 2010, TN36, section 5.5.1), the coefficients taken from the nut00b table of ERFA 2.0.1.5 (pyerfa 2.0.1.5) and recomputed to the bit against erfa.nut00b, the printed paper not checked; the IAU 2006 precession (Capitaine, Wallace and Chapront 2003, A&A 412:567; Wallace and Capitaine 2006, A&A 459:981) as ERFA's pfw06 and obl06 hold it; the IAU 2006 mean sidereal time (Capitaine, Wallace and Chapront 2005, A&A 432:355) as ERFA's gmst06; the polar motion of ERFA's pom00 (without s'); the papers were not to hand and are cited as ERFA names them; Vallado algorithm 29 (the Sun); WGS-84 (NIMA TR8350.2); IGRF-13 (Alken et al. 2021) by the Standard Code's env.igrf recursion"
+generate = ["flight"]
+uses = ["fsw/pseudocode/01_math.pc", "fsw/pseudocode/02_igrf13.pc"]
+why = "the onboard Earth frame as the design's: nutation, the equation of the equinoxes, UT1 and the pole, which the IAU 1982 GMST after the IAU 1976 precession left out (up to about 25 arcseconds between the onboard frame and the tracker's J2000); the flight build takes it from the design"
+
+[[revision.method]]
+node = "nav_onboard_orbit"
+pseudocode = "design/revisions/S12.5a/navorbit.pc"
+path = "fsw/pseudocode/03_onboard_orbit.pc"
+transcribes = "design/revisions/S7.19b/navorbit.pc as S7.19b left it, with fix_eci and onboard_orbit taking the Earth orientation eop = [UT1 - UTC, xp, yp] the flight parameters hold and handing it to eci2ecef"
+source = "WGS-84 (NIMA TR8350.2: R_E 6378137 m); Vallado (2013) (the Earth's rate 7.2921158553e-5 rad/s, IAU-76/FK5); the transport theorem; Swope, Andersen, Berens and Wilson (1982), J. Chem. Phys. 76:637 (velocity Verlet); DR-env-002 (the Earth orientation by telecommand)"
+generate = ["flight"]
+uses = ["fsw/pseudocode/01_math.pc", "fsw/pseudocode/02_time_frames_models.pc", "fsw/pseudocode/06_step_laws.pc"]
+why = "the GNSS fix is taken to J2000 by the onboard Earth frame with its dUT1 and pole (T5/E3)"
+
+[[revision.method]]
+node = "l3_sens_row_14"
+pseudocode = "design/revisions/S12.5a/gnss.pc"
+path = "sens/gnss.pc"
+transcribes = "design/revisions/S7.8/gnss.pc as S7.8 left it, with gnss_ecef taking the truth's J2000 to ECEF matrix at the fix's epoch and the Earth's rate in J2000 (v_e = C (v - w x r)) where it computed the GMST-after-precession matrix of env_calendar_time and a rate about the z axis; the history, the delay and the noise are unchanged"
+source = "NIMA TR8350.2 (WGS-84, the receiver's frame); the transport theorem; DR-env-002 (the truth on the IAU 2006/2000A build A)"
+generate = ["adcs-sim-core"]
+uses = []
+why = "a receiver reports ITRF: the truth fix is made on the frame the truth orbit flies, so the onboard conversion carries the nutation, UT1 and polar motion it omits (S12.4's open list)"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_eop_dut1", "fsw_param_eop_xp", "fsw_param_eop_yp"] }
+from = "stated"
+to = "stated"
+content = [["value", "source", "DR-env-002 (the developer's proposal, unsigned): the Earth orientation the flight cannot compute, UT1 - UTC [s] and the pole xp, yp [arcsec], set by telecommand 0x02 (adcs_fsw_command); a run's blob holds the values of env_eop_snapshot at the run's epoch, as a ground uplink would load them, so the design holds no one value: engine/crates/adcs-sim/src/config.rs (fsw_eop_uplink)"]]
+why = "flight parameters the ground sets (DR-env-002); the engine and the twin load the snapshot's values at the epoch into the blob"

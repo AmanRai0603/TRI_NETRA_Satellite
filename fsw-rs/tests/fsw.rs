@@ -318,3 +318,27 @@ fn a_silent_magnetometer_brings_safe_mode() {
     assert!(matches!(f.init(ABI_VERSION, &blob, 0), Err(adcs_fsw::fsw::InitError::Infeasible(_))));
     assert_eq!(mode59, Some(Mode::NadirMtq as u16));
 }
+
+/// TC 0x02 sets the Earth orientation (UT1 - UTC, xp, yp) of the onboard frame: three little-endian doubles after the id, each inside
+/// the rule of its parameter in params.toml, or the whole command is refused and nothing changes (T5/E3, DR-env-002; = t_eop_tc).
+#[test]
+fn a_telecommand_sets_the_earth_orientation_inside_its_rules() {
+    let mut p = Params::default();
+    p.jd0 = 2461407.25; p.dt = 0.1; p.mu = 3.986004418e14; p.start_mode = Mode::NadirMtq as u8; p.auto_next = 255;
+    p.mtq_period = 1.0; p.mtq_meas = 0.2; p.m_max = 0.2; p.bdot_k = 1e-3; p.has_gyro = 1;
+    p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042; p.igrf_nmax = 10; p.rate_lpf_s = 0.3;
+    p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005; p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0;
+    p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0; p.gyro_stale_ticks = 3; p.st_norm_tol = 1e-3; p.triad_sin_min = 0.2;
+    let mut blob = vec![0u8; adcs_fsw::params::BLOB_SIZE];
+    p.encode(&mut blob);
+    let mut f = Fsw::new();
+    f.init(ABI_VERSION, &blob, 0).expect("init");
+    let tc = |e: [f64; 3]| { let mut v = vec![0x02u8]; for x in e { v.extend_from_slice(&x.to_le_bytes()); } v };
+    assert_eq!(f.command(&tc([-0.0123, 0.12, 0.34])), 0);
+    assert_eq!((f.p.eop_dut1, f.p.eop_xp, f.p.eop_yp), (-0.0123, 0.12, 0.34), "an accepted command sets the three parameters");
+    assert_eq!(f.command(&tc([-0.0123, 0.12, 0.34])[..24]), -1, "a short command is refused");
+    for bad in [[0.95, 0.0, 0.0], [0.0, 1.5, 0.0], [0.0, 0.0, -1.5], [f64::NAN, 0.0, 0.0], [0.0, f64::INFINITY, 0.0]] {
+        assert_eq!(f.command(&tc(bad)), -4, "{bad:?} breaks the rule of its parameter");
+        assert_eq!((f.p.eop_dut1, f.p.eop_xp, f.p.eop_yp), (-0.0123, 0.12, 0.34), "a refused command changes nothing ({bad:?})");
+    }
+}

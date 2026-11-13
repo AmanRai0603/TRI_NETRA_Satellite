@@ -38,10 +38,10 @@ void adcs_orbit_acc(const adcs_real r[3], adcs_real mu, adcs_real a[3]) { gl_o3(
  * held carried one tick dt (two-body + J2 by velocity Verlet), else none */
 /* written from the design: navorbit::onboard_orbit (fsw/alg) */
 void adcs_onboard_orbit(const adcs_real r0[3], const adcs_real v0[3], int have, int ok, const adcs_real r_fix[3], const adcs_real v_fix[3],
-                        int ecef, double lat, double jd, double dt, double mu, adcs_real r[3], adcs_real v[3], int *have_r)
+                        int ecef, double lat, double jd, double dt, double mu, const adcs_real eop[3], adcs_real r[3], adcs_real v[3], int *have_r)
 {
     navorbit_onboard_orbit_out o = navorbit_onboard_orbit(gl_v3(r0), gl_v3(v0), have != 0, ok != 0, gl_v3(r_fix), gl_v3(v_fix), ecef != 0,
-                                                          lat, jd, dt, mu);
+                                                          lat, jd, dt, mu, gl_v3(eop));
     gl_o3(o.r, r); gl_o3(o.v, v); *have_r = o.have_r ? 1 : 0;
 }
 
@@ -196,9 +196,10 @@ int32_t adcs_fsw_step(uint64_t now_ns)
     adcs_meas_t *z = &S.z;
     double dt;
     int mi, first, i, nr, ng;
-    adcs_real m_body[3], cmd_r[NR], cmd_g[NG], duty[NC];
+    adcs_real m_body[3], cmd_r[NR], cmd_g[NG], duty[NC], eop[3];
     if (!S.ready) return -1;
     dt = p->dt; nr = p->nr; ng = p->ng;
+    eop[0] = p->eop_dut1; eop[1] = p->eop_xp; eop[2] = p->eop_yp;       /* the Earth orientation the ground uplinked (TC 0x02), at this tick */
     adcs_drv_read(p, z);
     /* 0 the onboard clock (clocktime): the time since the blob's date is the clock's step, held when it goes back and refused when
      * it jumps past the bound (the first reading is the baseline, taken as it comes), then the fix's date when it holds one; the
@@ -222,7 +223,7 @@ int32_t adcs_fsw_step(uint64_t now_ns)
 
     /* 1 onboard orbit (02): nav's (navorbit::onboard_orbit): the GNSS fix (a fix inside the Earth is none; one in ECEF
      * taken to J2000 at its epoch; a late one carried forward by its age), else two-body + J2 by velocity Verlet */
-    adcs_onboard_orbit(S.r, S.v, S.have_r, z->gps_ok, z->r, z->v, p->gnss_ecef, p->gps_latency, S.jd, dt, p->mu, S.r, S.v, &S.have_r);
+    adcs_onboard_orbit(S.r, S.v, S.have_r, z->gps_ok, z->r, z->v, p->gnss_ecef, p->gps_latency, S.jd, dt, p->mu, eop, S.r, S.v, &S.have_r);
 
     /* 2 estimation */
     adcs_sun_model(S.jd, S.gd.sun_eci);
@@ -233,7 +234,7 @@ int32_t adcs_fsw_step(uint64_t now_ns)
     if (z->es_ok) { adcs_copy3(z->nadir, S.es_n); S.k_es = (int64_t)S.tick; }
     if (first && S.have_r && (S.k_bref < 0 || (int64_t)S.tick - S.k_bref >= S.n_bref)) {
         if (!S.gh_ok || fabs(S.jd - S.gh_jd) > 1.0) { adcs_igrf_gh(adcs_decyear(S.jd), S.gh); S.gh_ok = 1; S.gh_jd = S.jd; }
-        adcs_field_eci(S.r, S.jd, S.gh, p->igrf_nmax, S.Bref); S.bref_ok = 1; S.k_bref = (int64_t)S.tick;
+        adcs_field_eci(S.r, S.jd, eop, S.gh, p->igrf_nmax, S.Bref); S.bref_ok = 1; S.k_bref = (int64_t)S.tick;
     }
     if (!(S.mode == ADCS_MODE_DETUMBLE || S.mode == ADCS_MODE_DETUMBLE_RCS || S.mode == ADCS_MODE_SPINUP || S.mode == ADCS_MODE_SUN_SPIN)) {
         if (!S.ad_ok) {
@@ -579,6 +580,18 @@ int32_t adcs_fsw_command(const uint8_t *tc, size_t len)
     /* TC 0x01: set controller state (tc[1]) */
     if (!S.ready || !tc || len < 2) return -1;
     if (tc[0] == 0x01 && tc[1] < ADCS_MODE_COUNT) { if (!adcs_modes_feasible(&S.p, tc[1])) return -3; adcs_modes_enter(&S, tc[1]); return 0; }
+    /* TC 0x02: the Earth orientation (UT1 - UTC [s], xp ["], yp ["]) of the onboard frame, three little-endian IEEE doubles after the
+     * id; each inside the rule of its parameter in params.toml (adcs_params_validate) or the whole command is refused (-4) and the
+     * parameters stay as they were */
+    if (tc[0] == 0x02) {
+        double e[3], o[3]; int i;
+        if (len < 1 + 3*sizeof(double)) return -1;
+        for (i = 0; i < 3; i++) memcpy(&e[i], tc + 1 + i*sizeof(double), sizeof(double));      /* the OBC is little-endian */
+        o[0] = S.p.eop_dut1; o[1] = S.p.eop_xp; o[2] = S.p.eop_yp;
+        S.p.eop_dut1 = e[0]; S.p.eop_xp = e[1]; S.p.eop_yp = e[2];
+        if (adcs_params_validate(&S.p) != 0) { S.p.eop_dut1 = o[0]; S.p.eop_xp = o[1]; S.p.eop_yp = o[2]; return -4; }
+        return 0;
+    }
     return -2;
 }
 

@@ -107,7 +107,8 @@ function rec = run(scenarioId, caseFile, varargin)
 
         %% sensors -> bytes; the flight software; bytes -> commands
         mark = asils.faults.bus_mark(bus);
-        [U, bus, z] = asils.devices.sense(U, dev, bus, x, sky, a.m_coil, nu, t, k, rt, r, v, P.jd0, dt, H.scale);
+        frame = @(te) deal(asils.orbit.eci2ecef(O.W, asils.models.timescales.addsec(O.W.epoch, te)), O.W.omega_eci);
+        [U, bus, z] = asils.devices.sense(U, dev, bus, x, sky, a.m_coil, nu, t, k, rt, r, v, P.jd0, dt, H.scale, frame);
         [U_bf, bus] = asils.faults.bus_sensors(U_bf, t, bus, mark);      % the bus faults: what the devices' bytes suffer before the flight software reads them
         % the time source the flight software reads: the clock since it booted (the run's time and its age at the start), the
         % faults' steps and each timestamp's jitter (the amplitude, signed, from the fault's time on)

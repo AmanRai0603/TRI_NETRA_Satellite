@@ -9,9 +9,9 @@ control_control_law_out control_control_law(pc_a4f q, pc_a3f w, pc_a4f q_ref, pc
     pc_a4f qe = math_qerr(q_ref, q);
     pc_a3f e = ((pc_a3f){0});
     {
-        int64_t end__94 = INT64_C(3);
+        int64_t end__97 = INT64_C(3);
         int64_t i = INT64_C(0);
-        while (i < end__94) {
+        while (i < end__97) {
             e.v[(i)] = pc_clamp(qe.v[(i)], (-(err_max)), err_max);
             i += 1;
         }
@@ -24,9 +24,9 @@ control_control_law_out control_control_law(pc_a4f q, pc_a3f w, pc_a4f q_ref, pc
     i_q = i_q0;
     if ((law == INT64_C(1))) {
         {
-            int64_t end__95 = INT64_C(3);
+            int64_t end__98 = INT64_C(3);
             int64_t i = INT64_C(0);
-            while (i < end__95) {
+            while (i < end__98) {
                 i_q.v[(i)] = pc_clamp((i_q.v[(i)] + ((2.0 * e.v[(i)]) * dt)), (-(int_max)), int_max);
                 tau.v[(i)] = (-((((klqr.v[(i)].v[0] * i_q.v[(i)]) + (klqr.v[(i)].v[1] * (2.0 * e.v[(i)]))) + (klqr.v[(i)].v[2] * we.v[(i)]))));
                 i += 1;
@@ -36,9 +36,9 @@ control_control_law_out control_control_law(pc_a4f q, pc_a3f w, pc_a4f q_ref, pc
         pc_a3f c = pc_cross_a3f(e, we);
         pc_a3f x = ((pc_a3f){0});
         {
-            int64_t end__96 = INT64_C(3);
+            int64_t end__99 = INT64_C(3);
             int64_t i = INT64_C(0);
-            while (i < end__96) {
+            while (i < end__99) {
                 double s = (we.v[(i)] + (lambda * e.v[(i)]));
                 double sat = pc_clamp((s / phi), (-(1.0)), 1.0);
                 double ed = (0.5 * ((qe.v[3] * we.v[(i)]) + c.v[(i)]));
@@ -49,9 +49,9 @@ control_control_law_out control_control_law(pc_a4f q, pc_a3f w, pc_a4f q_ref, pc
         tau = pc_scale_a3f(pc_mv_a3a3f(j, x), (-(1.0)));
     } else {
         {
-            int64_t end__97 = INT64_C(3);
+            int64_t end__100 = INT64_C(3);
             int64_t i = INT64_C(0);
-            while (i < end__97) {
+            while (i < end__100) {
                 i_q.v[(i)] = pc_clamp((i_q.v[(i)] + (e.v[(i)] * dt)), (-(int_max)), int_max);
                 tau.v[(i)] = ((((-(kp.v[(i)])) * e.v[(i)]) - (kd.v[(i)] * we.v[(i)])) - (ki.v[(i)] * i_q.v[(i)]));
                 i += 1;
@@ -59,9 +59,9 @@ control_control_law_out control_control_law(pc_a4f q, pc_a3f w, pc_a4f q_ref, pc
         }
     }
     {
-        int64_t end__98 = INT64_C(3);
+        int64_t end__101 = INT64_C(3);
         int64_t i = INT64_C(0);
-        while (i < end__98) {
+        while (i < end__101) {
             tau.v[(i)] = (tau.v[(i)] + (gyro.v[(i)] + ff.v[(i)]));
             i += 1;
         }
@@ -83,9 +83,9 @@ pc_a3f control_mtq_pd(pc_a4f q, pc_a3f w, pc_a4f q_ref, pc_a3f w_ref, pc_a3f kp,
     }
     pc_a3f wr = pc_mv_a3a3f(math_dcm(qe), w_ref);
     {
-        int64_t end__99 = INT64_C(3);
+        int64_t end__102 = INT64_C(3);
         int64_t i = INT64_C(0);
-        while (i < end__99) {
+        while (i < end__102) {
             tau.v[(i)] = (((-(kp.v[(i)])) * (s * qe.v[(i)])) - (kd.v[(i)] * (w.v[(i)] - wr.v[(i)])));
             i += 1;
         }
@@ -97,9 +97,9 @@ pc_a3f control_sat_dipole(pc_a3f m, double m_max) {
     pc_a3f r = ((pc_a3f){0});
     double a = 1.0;
     {
-        int64_t end__100 = INT64_C(3);
+        int64_t end__103 = INT64_C(3);
         int64_t i = INT64_C(0);
-        while (i < end__100) {
+        while (i < end__103) {
             double d = pc_fabs(m.v[(i)]);
             if ((d < 1.0e-30)) {
                 d = 1.0e-30;
@@ -131,9 +131,9 @@ pc_a3f control_bdot(pc_a3f b1, pc_a3f b2, double dt, double bn, double k, double
     pc_a3f u2 = pc_unit_a3f(b2);
     pc_a3f r = ((pc_a3f){0});
     {
-        int64_t end__101 = INT64_C(3);
+        int64_t end__104 = INT64_C(3);
         int64_t i = INT64_C(0);
-        while (i < end__101) {
+        while (i < end__104) {
             r.v[(i)] = (((-((k / bn))) * (u2.v[(i)] - u1.v[(i)])) / dt);
             i += 1;
         }
@@ -146,9 +146,9 @@ pc_a3f control_gen_bdot(pc_a3f b, pc_a3f bd, pc_a3f wd, double k) {
     pc_a3f m0 = ((pc_a3f){0});
     pc_a3f c = pc_cross_a3f(wd, b);
     {
-        int64_t end__102 = INT64_C(3);
+        int64_t end__105 = INT64_C(3);
         int64_t i = INT64_C(0);
-        while (i < end__102) {
+        while (i < end__105) {
             m0.v[(i)] = ((-(k)) * (bd.v[(i)] + c.v[(i)]));
             i += 1;
         }
@@ -169,9 +169,9 @@ pc_a3f control_sun_spin(pc_a3f b, pc_a3f w, pc_a3f s, bool eclipse, pc_a3a3f j, 
         pc_a3f h = pc_mv_a3a3f(j, w);
         pc_a3f ht = ((pc_a3f){0});
         {
-            int64_t end__103 = INT64_C(3);
+            int64_t end__106 = INT64_C(3);
             int64_t i = INT64_C(0);
-            while (i < end__103) {
+            while (i < end__106) {
                 double hd = (((sg * j.v[2].v[2]) * ws) * s.v[(i)]);
                 ht.v[(i)] = (h.v[(i)] - hd);
                 i += 1;
@@ -186,9 +186,9 @@ pc_a3f control_sun_spin(pc_a3f b, pc_a3f w, pc_a3f s, bool eclipse, pc_a3a3f j, 
         }
         pc_a3f x = ((pc_a3f){0});
         {
-            int64_t end__104 = INT64_C(3);
+            int64_t end__107 = INT64_C(3);
             int64_t i = INT64_C(0);
-            while (i < end__104) {
+            while (i < end__107) {
                 x.v[(i)] = ((k1 * ht.v[(i)]) + ((k2 * rz.v[(i)]) * w.v[(i)]));
                 i += 1;
             }
@@ -197,9 +197,9 @@ pc_a3f control_sun_spin(pc_a3f b, pc_a3f w, pc_a3f s, bool eclipse, pc_a3a3f j, 
         double bs = pc_dot_a3f(b, b);
         if ((bs >= 1.0e-18)) {
             {
-                int64_t end__105 = INT64_C(3);
+                int64_t end__108 = INT64_C(3);
                 int64_t i = INT64_C(0);
-                while (i < end__105) {
+                while (i < end__108) {
                     m0.v[(i)] = ((-(aa.v[(i)])) / bs);
                     i += 1;
                 }
@@ -233,16 +233,16 @@ control_mtq_err_out control_mtq_err(pc_a4f q, pc_a3f w, pc_a4f q_ref, pc_a3f w_r
 
 pc_a3f control_mtq_lovera(pc_a4f q, pc_a3f w, pc_a4f q_ref, pc_a3f w_ref, pc_a3a3f j, double eps, double kp, double kv) {
     pc_a3f tau = ((pc_a3f){0});
-    control_mtq_err_out t__106 = control_mtq_err(q, w, q_ref, w_ref);
-    pc_a4f qe = t__106.qe;
-    double s = t__106.s;
-    pc_a3f wr = t__106.wr;
-    pc_a3f we = t__106.we;
+    control_mtq_err_out t__109 = control_mtq_err(q, w, q_ref, w_ref);
+    pc_a4f qe = t__109.qe;
+    double s = t__109.s;
+    pc_a3f wr = t__109.wr;
+    pc_a3f we = t__109.we;
     pc_a3f jw = pc_mv_a3a3f(j, we);
     {
-        int64_t end__107 = INT64_C(3);
+        int64_t end__110 = INT64_C(3);
         int64_t i = INT64_C(0);
-        while (i < end__107) {
+        while (i < end__110) {
             tau.v[(i)] = (-(((((eps * eps) * kp) * (s * qe.v[(i)])) + ((eps * kv) * jw.v[(i)]))));
             i += 1;
         }
@@ -252,15 +252,15 @@ pc_a3f control_mtq_lovera(pc_a4f q, pc_a3f w, pc_a4f q_ref, pc_a3f w_ref, pc_a3a
 
 pc_a3f control_mtq_celani(pc_a4f q, pc_a3f w, pc_a4f q_ref, pc_a3f w_ref, double eps, double k1, double k2) {
     pc_a3f tau = ((pc_a3f){0});
-    control_mtq_err_out t__108 = control_mtq_err(q, w, q_ref, w_ref);
-    pc_a4f qe = t__108.qe;
-    double s = t__108.s;
-    pc_a3f wr = t__108.wr;
-    pc_a3f we = t__108.we;
+    control_mtq_err_out t__111 = control_mtq_err(q, w, q_ref, w_ref);
+    pc_a4f qe = t__111.qe;
+    double s = t__111.s;
+    pc_a3f wr = t__111.wr;
+    pc_a3f we = t__111.we;
     {
-        int64_t end__109 = INT64_C(3);
+        int64_t end__112 = INT64_C(3);
         int64_t i = INT64_C(0);
-        while (i < end__109) {
+        while (i < end__112) {
             tau.v[(i)] = (-(((((eps * eps) * k1) * (s * qe.v[(i)])) + ((eps * k2) * we.v[(i)]))));
             i += 1;
         }
@@ -275,16 +275,16 @@ control_mtq_avanzini_out control_mtq_avanzini(pc_a4f q, pc_a3f w, pc_a4f q_ref, 
     double n = pc_norm_a3f(w_ref);
     ok = (n >= 1.0e-9);
     if (ok) {
-        control_mtq_err_out t__110 = control_mtq_err(q, w, q_ref, w_ref);
-        pc_a4f qe = t__110.qe;
-        double s = t__110.s;
-        pc_a3f wr = t__110.wr;
-        pc_a3f we = t__110.we;
+        control_mtq_err_out t__113 = control_mtq_err(q, w, q_ref, w_ref);
+        pc_a4f qe = t__113.qe;
+        double s = t__113.s;
+        pc_a3f wr = t__113.wr;
+        pc_a3f we = t__113.we;
         pc_a3f ep = ((pc_a3f){0});
         {
-            int64_t end__111 = INT64_C(3);
+            int64_t end__114 = INT64_C(3);
             int64_t i = INT64_C(0);
-            while (i < end__111) {
+            while (i < end__114) {
                 ep.v[(i)] = (w_ref.v[(i)] / n);
                 i += 1;
             }
@@ -296,9 +296,9 @@ control_mtq_avanzini_out control_mtq_avanzini(pc_a4f q, pc_a3f w, pc_a4f q_ref, 
         double eta = ((jp * n) * (1.0 - (lam * th)));
         pc_a3f jw = pc_mv_a3a3f(j, w);
         {
-            int64_t end__112 = INT64_C(3);
+            int64_t end__115 = INT64_C(3);
             int64_t i = INT64_C(0);
-            while (i < end__112) {
+            while (i < end__115) {
                 tau.v[(i)] = ((k * ((eta * sg.v[(i)]) - jw.v[(i)])) + (k * ((eta * ep.v[(i)]) - jw.v[(i)])));
                 i += 1;
             }
@@ -316,9 +316,9 @@ pc_a3f control_mtq_boresight(pc_a3f e3, pc_a3f a, pc_a3f we, double kp, double k
     pc_a3f tau = ((pc_a3f){0});
     pc_a3f c = pc_cross_a3f(e3, a);
     {
-        int64_t end__113 = INT64_C(3);
+        int64_t end__116 = INT64_C(3);
         int64_t i = INT64_C(0);
-        while (i < end__113) {
+        while (i < end__116) {
             tau.v[(i)] = ((kp * c.v[(i)]) - (kd * we.v[(i)]));
             i += 1;
         }
@@ -328,16 +328,16 @@ pc_a3f control_mtq_boresight(pc_a3f e3, pc_a3f a, pc_a3f we, double kp, double k
 
 pc_a3f control_mtq_tango(pc_a4f q, pc_a3f w, pc_a4f q_ref, pc_a3f w_ref, pc_a3a3f pth, pc_a3a3f pw) {
     pc_a3f tau = ((pc_a3f){0});
-    control_mtq_err_out t__114 = control_mtq_err(q, w, q_ref, w_ref);
-    pc_a4f qe = t__114.qe;
-    double s = t__114.s;
-    pc_a3f wr = t__114.wr;
-    pc_a3f we = t__114.we;
+    control_mtq_err_out t__117 = control_mtq_err(q, w, q_ref, w_ref);
+    pc_a4f qe = t__117.qe;
+    double s = t__117.s;
+    pc_a3f wr = t__117.wr;
+    pc_a3f we = t__117.we;
     pc_a3f th = ((pc_a3f){0});
     {
-        int64_t end__115 = INT64_C(3);
+        int64_t end__118 = INT64_C(3);
         int64_t i = INT64_C(0);
-        while (i < end__115) {
+        while (i < end__118) {
             th.v[(i)] = ((2.0 * s) * qe.v[(i)]);
             i += 1;
         }
@@ -345,9 +345,9 @@ pc_a3f control_mtq_tango(pc_a4f q, pc_a3f w, pc_a4f q_ref, pc_a3f w_ref, pc_a3a3
     pc_a3f aa = pc_mv_a3a3f(pth, th);
     pc_a3f bb = pc_mv_a3a3f(pw, we);
     {
-        int64_t end__116 = INT64_C(3);
+        int64_t end__119 = INT64_C(3);
         int64_t i = INT64_C(0);
-        while (i < end__116) {
+        while (i < end__119) {
             tau.v[(i)] = (-((aa.v[(i)] + bb.v[(i)])));
             i += 1;
         }
@@ -368,9 +368,9 @@ pc_a3f control_sun_spin_deruiter(pc_a3f b, pc_a3f w, pc_a3f s, bool eclipse, pc_
         double ehz = (h.v[2] - ((sg * j.v[2].v[2]) * ws));
         pc_a3f x = ((pc_a3f){0});
         {
-            int64_t end__117 = INT64_C(3);
+            int64_t end__120 = INT64_C(3);
             int64_t i = INT64_C(0);
-            while (i < end__117) {
+            while (i < end__120) {
                 x.v[(i)] = (h.v[(i)] + (((sg * j.v[2].v[2]) * ws) * s.v[(i)]));
                 i += 1;
             }
@@ -382,9 +382,9 @@ pc_a3f control_sun_spin_deruiter(pc_a3f b, pc_a3f w, pc_a3f s, bool eclipse, pc_
         double bs = pc_dot_a3f(b, b);
         if ((bs >= 1.0e-18)) {
             {
-                int64_t end__118 = INT64_C(3);
+                int64_t end__121 = INT64_C(3);
                 int64_t i = INT64_C(0);
-                while (i < end__118) {
+                while (i < end__121) {
                     m0.v[(i)] = (((-(k)) * aa.v[(i)]) / bs);
                     i += 1;
                 }

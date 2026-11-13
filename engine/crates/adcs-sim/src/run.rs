@@ -75,6 +75,18 @@ impl Truth {
             }
         }
     }
+    /// The truth's Earth frame at t seconds from the epoch and the Earth's rate in J2000 that frame turns with: what a receiver's fix
+    /// at that instant is made in (gnss_ecef; S12.5, T5/E3). POP's build (A with the EOP snapshot), or for the fast analytic
+    /// orbit its own GMST frame about the z axis.
+    pub fn earth_frame(&self, t: f64) -> (M3, V3) {
+        match self {
+            Truth::Pop(o) => (o.world.earth_frame(t), o.world.omega_eci),
+            Truth::Fast(_, jd0) => {
+                let c = time::eci2ecef(jd0 + t/86400.0);
+                (c, mv(&transpose(&c), &[0.0, 0.0, adcs_sim_core::gen::orbitfast::FAST_OMEGA_E]))
+            }
+        }
+    }
     pub fn set_attitude(&mut self, r_bi: M3) { if let Truth::Pop(o) = self { o.set_attitude(r_bi); } }
     /// What the run records of the Earth frame and of the data's validity at the end of its span (S12.4a, P9; DR-env-002):
     /// the frame build, the EOP table's extrapolation flag, the leap-second table's status. None for the fast analytic orbit.
@@ -379,7 +391,8 @@ struct Sky { b_b: V3, sb: V3, mb: V3, nb: V3, earth_ang: f64 }
 /// Every sensor sampled and written onto the bus as its device's bytes (registers, UART frames,
 /// CAN telemetry), in the order the units draw their noise.
 #[allow(clippy::too_many_arguments)]
-fn sense(u: &mut Units, c: &Config, bus: &mut Bus, x: &State, sky: &Sky, m_b: &V3, nu: f64, t: f64, k: u64, rt: &Rates, r: &V3, v: &V3) -> Sensed {
+fn sense(u: &mut Units, c: &Config, bus: &mut Bus, x: &State, sky: &Sky, m_b: &V3, nu: f64, t: f64, k: u64, rt: &Rates, r: &V3, v: &V3,
+         frame: &dyn Fn(f64) -> (M3, V3)) -> Sensed {
     let (d, dt) = (&c.dev, c.dt);
     bus.now_ns = (t*1e9).round() as u64;
     let w_meas = match u.gyro.as_mut() { Some(g) => g.sample(&x.w, dt), None => x.w };
@@ -411,7 +424,8 @@ fn sense(u: &mut Units, c: &Config, bus: &mut Bus, x: &State, sky: &Sky, m_b: &V
         // a receiver fixes in ECEF (WGS-84): r_e = C r, v_e = C v - w_E x r_e; the fix it reports
         // now solves for the epoch `latency` ago
         let (te, r, v) = u.gps.delayed(t);
-        let (re_, ve_) = Gps::ecef(c.jd0, te, &r, &v);
+        let (ce, w) = frame(te);       // the truth's frame at the fix's epoch (S12.5)
+        let (re_, ve_) = Gps::ecef(&ce, &w, &r, &v);
         let (rg, vg) = u.gps.sample(&re_, &ve_);
         let mut buf = [0u8; 64];
         let len = emu::gps_frame(true, &rg, &vg, Some(c.jd0 + t/86400.0), &mut buf, &u.scale);
@@ -589,7 +603,7 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
 
         // ---- sensors -> bytes ----
         let mark = crate::busfault::BusFaults::mark(&bus);
-        let z = sense(&mut u, c, &mut bus, &x, &sky, &a.m_coil, nu, t, k, &rt, &r, &v);
+        let z = sense(&mut u, c, &mut bus, &x, &sky, &a.m_coil, nu, t, k, &rt, &r, &v, &|te| orb.earth_frame(te));
         u.bf.sensors(t, &mut bus, mark);      // the bus faults: what the devices' bytes suffer before the flight software reads them
 
         // ---- flight software ----

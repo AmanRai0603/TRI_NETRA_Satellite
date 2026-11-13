@@ -41,6 +41,24 @@ type = "f64"
 doc = "Earth gravitational parameter [m^3/s^2]"
 positive = true
 [[field]]
+name = "eop_dut1"
+type = "f64"
+doc = "UT1 - UTC [s] of the onboard Earth frame (the IERS value, set by telecommand 0x02; env_time_frames eci2ecef)"
+min = -0.9
+max = 0.9
+[[field]]
+name = "eop_xp"
+type = "f64"
+doc = "polar motion xp [arcsec] of the onboard Earth frame (set by telecommand 0x02)"
+min = -1.0
+max = 1.0
+[[field]]
+name = "eop_yp"
+type = "f64"
+doc = "polar motion yp [arcsec] of the onboard Earth frame (set by telecommand 0x02)"
+min = -1.0
+max = 1.0
+[[field]]
 name = "start_mode"
 type = "u8"
 doc = "controller state at init (adcs_mode_t)"

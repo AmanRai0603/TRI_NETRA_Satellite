@@ -236,14 +236,17 @@ function y = call(name, x)
         case 'nav::quest'
             [o1, o2] = asils.relations.nav.quest(reshape(x(1:48), 3, 16).', reshape(x(49:96), 3, 16).', reshape(x(97:112), 16, 1), x(113));
             y = [reshape(o1, [], 1); double(o2)];
-        case 'nav::gmst_rot'
-            [o1] = asils.relations.nav.gmst_rot(x(1));
-            y = [reshape((o1).', [], 1)];
-        case 'nav::prec_rot'
-            [o1] = asils.relations.nav.prec_rot(x(1));
+        case 'nav::fw06'
+            [o1, o2, o3, o4] = asils.relations.nav.fw06(x(1));
+            y = [double(o1); double(o2); double(o3); double(o4)];
+        case 'nav::nut00b'
+            [o1, o2] = asils.relations.nav.nut00b(x(1));
+            y = [double(o1); double(o2)];
+        case 'nav::npb'
+            [o1] = asils.relations.nav.npb(x(1), x(2), x(3), x(4));
             y = [reshape((o1).', [], 1)];
         case 'nav::eci2ecef'
-            [o1] = asils.relations.nav.eci2ecef(x(1));
+            [o1] = asils.relations.nav.eci2ecef(x(1), reshape(x(2:4), 3, 1));
             y = [reshape((o1).', [], 1)];
         case 'nav::triad'
             [o1, o2] = asils.relations.nav.triad(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), reshape(x(7:9), 3, 1), reshape(x(10:12), 3, 1), x(13));

@@ -315,6 +315,33 @@ static void t_safe(void)
     CHECK(mode59 == ADCS_MODE_NADIR_MTQ, "a pointing state holds through the first 59 s of the dropout (%d)", mode59);
 }
 
+static void t_eop_tc(void)
+{
+    /* TC 0x02 sets the Earth orientation (UT1 - UTC, xp, yp) of the onboard frame: three little-endian doubles after the id, each inside
+     * the rule of its parameter in params.toml, or the whole command is refused and nothing changes (T5/E3, DR-env-002) */
+    static adcs_params_t p; static uint8_t blob[ADCS_PARAMS_BLOB_SIZE];
+    adcs_fsw_init_t in; uint8_t tc[25]; double e[3] = {-0.0123, 0.12, 0.34};
+    memset(&p, 0, sizeof p);
+    p.jd0 = 2461407.25; p.dt = 0.1; p.mu = 3.986004418e14; p.auto_next = ADCS_MODE_NONE; p.start_mode = ADCS_MODE_NADIR_MTQ;
+    p.mtq_period = 1.0; p.mtq_meas = 0.2; p.m_max = 0.2; p.bdot_k = 1e-3; p.has_gyro = 1;
+    p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042; p.igrf_nmax = 10; p.rate_lpf_s = 0.3;
+    p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005; p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0;
+    p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0; p.gyro_stale_ticks = 3; p.st_norm_tol = 1e-3; p.triad_sin_min = 0.2;
+    adcs_params_encode(&p, blob, sizeof blob);
+    hal_stub_reset();
+    in.abi_version = ADCS_FSW_ABI_VERSION; in.config_blob = blob; in.config_len = sizeof blob; in.start_ns = 0;
+    CHECK(adcs_fsw_init(&in) == 0, "init (Earth orientation test)");
+    tc[0] = 0x02; memcpy(tc + 1, e, sizeof e);
+    CHECK(adcs_fsw_command(tc, 25) == 0, "an Earth orientation inside the rules is accepted");
+    CHECK(adcs_fsw_command(tc, 24) == -1, "a short Earth orientation command is refused");
+    e[0] = 0.95; memcpy(tc + 1, e, sizeof e);
+    CHECK(adcs_fsw_command(tc, 25) == -4, "|UT1 - UTC| above 0.9 s is refused");
+    e[0] = 0.5; e[1] = 1.5; memcpy(tc + 1, e, sizeof e);
+    CHECK(adcs_fsw_command(tc, 25) == -4, "a pole above 1 arcsecond is refused");
+    e[1] = 0.0/0.0; memcpy(tc + 1, e, sizeof e);
+    CHECK(adcs_fsw_command(tc, 25) == -4, "a NaN is refused");
+}
+
 static void t_nonfinite(void)
 {
     /* a NaN or an infinite command drives nothing: zero PWM, zero rotor word, closed valve */
@@ -404,6 +431,7 @@ static void tk_jitter_5ms(void) { tk_jitter_changes_no_command(5e-3); }
  * attitude TK_Q (ECI to body): a circular orbit, the field and the Sun from the models */
 static adcs_real TK_Q[4];
 static adcs_real TK_GH[195];
+static const adcs_real TK_EOP[3] = {0, 0, 0};       /* the blobs of these scenes hold no Earth orientation: dUT1, xp, yp = 0 */
 
 static void tk_scene_init(void)
 {
@@ -429,7 +457,7 @@ static void tk_feed_at(double t, double jd, const adcs_real r[3], const adcs_rea
     double ds = (jd - 2451545.0)*86400.0, ws = floor(ds);
     (void)t;        /* the fix's date after its velocity: seconds and microseconds from J2000.0 */
     adcs_dcm(TK_Q, A);
-    adcs_field_eci(r, jd, TK_GH, 10, B); adcs_mat3_vec(A, B, Bb);
+    adcs_field_eci(r, jd, TK_EOP, TK_GH, 10, B); adcs_mat3_vec(A, B, Bb);
     adcs_sun_model(jd, S); adcs_mat3_vec(A, S, Sb);
     HS.mag[0] = 1; for (i = 0; i < 3; i++) put16(HS.mag + 1 + 2*i, Bb[i]/ADCS_MAG_LSB_T);
     HS.sun[0] = 1; for (i = 0; i < 3; i++) put16(HS.sun + 1 + 2*i, Sb[i]*ADCS_Q15);
@@ -669,7 +697,7 @@ static void tk_no_head_none_selected(void)
 static double tk_sun_field_deg(const adcs_real r[3])
 {
     adcs_real s[3], b[3], c;
-    adcs_sun_model(TK_JD0, s); adcs_field_eci(r, TK_JD0, TK_GH, 10, b);
+    adcs_sun_model(TK_JD0, s); adcs_field_eci(r, TK_JD0, TK_EOP, TK_GH, 10, b);
     c = adcs_dot(s, b)/(adcs_norm3(s)*adcs_norm3(b));
     if (c > 1) c = 1;
     if (c < -1) c = -1;
@@ -868,7 +896,7 @@ static void t_skipped(void)
 
 int main(void)
 {
-    t_math(); t_env(); t_estimation(); t_laws(); t_alloc(); t_rcs(); t_abi(); t_st_frame(); t_nonfinite(); t_safe(); t_ticks(); t_skipped();
+    t_math(); t_env(); t_estimation(); t_laws(); t_alloc(); t_rcs(); t_abi(); t_st_frame(); t_eop_tc(); t_nonfinite(); t_safe(); t_ticks(); t_skipped();
     printf("%d checks passed, %d failed (%s)\n", n_pass, n_fail, adcs_fsw_build_id());
     return n_fail ? 1 : 0;
 }

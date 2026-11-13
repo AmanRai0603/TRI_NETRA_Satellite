@@ -70,9 +70,9 @@ pub fn guidance(kind: i64, r: [f64; 3], v: [f64; 3], t: f64, q_off: [f64; 4], ro
     let mut ram: [f64; 3] = rt::unit(rt::cross(mr, nrm));
     let mut rr: [[f64; 3]; 3] = [[0.0; 3]; 3];
     {
-        let __end67: i64 = 3;
+        let __end68: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end67 {
+        while i < __end68 {
             rr[0][(i) as usize] = (-(ram[(i) as usize]));
             rr[1][(i) as usize] = (-(rh[(i) as usize]));
             rr[2][(i) as usize] = (-(nrm[(i) as usize]));
@@ -113,9 +113,9 @@ pub fn guidance(kind: i64, r: [f64; 3], v: [f64; 3], t: f64, q_off: [f64; 4], ro
         let mut wo: [f64; 3] = rt::mv(crate::gen::math::dcm(q_ref), w_orb);
         let mut tr: [f64; 3] = rt::cross(rt::vscale(ax, (ph * sd)), wo);
         {
-            let __end68: i64 = 3;
+            let __end69: i64 = 3;
             let mut i: i64 = 0;
-            while i < __end68 {
+            while i < __end69 {
                 w_ref[(i) as usize] = (wo[(i) as usize] + ((ax[(i) as usize] * ph) * sd));
                 wd_ref[(i) as usize] = (((ax[(i) as usize] * ph) * sdd) - tr[(i) as usize]);
                 i += 1;
@@ -135,9 +135,9 @@ pub fn guidance(kind: i64, r: [f64; 3], v: [f64; 3], t: f64, q_off: [f64; 4], ro
         }
         let mut ab: f64 = rt::dot(a, b);
         {
-            let __end69: i64 = 3;
+            let __end70: i64 = 3;
             let mut i: i64 = 0;
-            while i < __end69 {
+            while i < __end70 {
                 b[(i) as usize] = (b[(i) as usize] - (ab * a[(i) as usize]));
                 i += 1;
             }
@@ -149,9 +149,9 @@ pub fn guidance(kind: i64, r: [f64; 3], v: [f64; 3], t: f64, q_off: [f64; 4], ro
         let mut s: [f64; 3] = rt::unit(sun_eci);
         let mut e2: [f64; 3] = [0.0; 3];
         {
-            let __end70: i64 = 3;
+            let __end71: i64 = 3;
             let mut i: i64 = 0;
-            while i < __end70 {
+            while i < __end71 {
                 e2[(i) as usize] = (nrm[(i) as usize] - (rt::dot(nrm, s) * s[(i) as usize]));
                 i += 1;
             }
@@ -164,13 +164,13 @@ pub fn guidance(kind: i64, r: [f64; 3], v: [f64; 3], t: f64, q_off: [f64; 4], ro
         let mut e3: [f64; 3] = rt::cross(s, e2);
         let mut m: [[f64; 3]; 3] = [[0.0; 3]; 3];
         {
-            let __end71: i64 = 3;
+            let __end72: i64 = 3;
             let mut i: i64 = 0;
-            while i < __end71 {
+            while i < __end72 {
                 {
-                    let __end72: i64 = 3;
+                    let __end73: i64 = 3;
                     let mut j: i64 = 0;
-                    while j < __end72 {
+                    while j < __end73 {
                         m[(i) as usize][(j) as usize] = (((a[(i) as usize] * s[(j) as usize]) + (b[(i) as usize] * e2[(j) as usize])) + (b3[(i) as usize] * e3[(j) as usize]));
                         j += 1;
                     }
@@ -240,13 +240,13 @@ pub fn boresight_offset(bs_in: [f64; 3]) -> [f64; 4] {
         let mut k2: [[f64; 3]; 3] = rt::mm(kk, kk);
         let mut a: [[f64; 3]; 3] = [[0.0; 3]; 3];
         {
-            let __end73: i64 = 3;
+            let __end74: i64 = 3;
             let mut i: i64 = 0;
-            while i < __end73 {
+            while i < __end74 {
                 {
-                    let __end74: i64 = 3;
+                    let __end75: i64 = 3;
                     let mut j: i64 = 0;
-                    while j < __end74 {
+                    while j < __end75 {
                         a[(i) as usize][(j) as usize] = (((if (i == j) { 1.0 } else { 0.0 }) + (s * kk[(i) as usize][(j) as usize])) + ((1.0 - c) * k2[(i) as usize][(j) as usize]));
                         j += 1;
                     }

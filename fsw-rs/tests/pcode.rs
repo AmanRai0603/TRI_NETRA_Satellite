@@ -55,6 +55,9 @@ const BY_NAME: &[(&str, &str)] = &[
     ("navorbit::gnss_usable", "called only by the generated onboard_orbit"),
     ("navorbit::verlet", "called only by the generated onboard_orbit"),
     ("navorbit::fix_eci", "called only by the generated onboard_orbit"),
+    ("frames::nut00b", "called only by the generated eci2ecef"),
+    ("frames::fw06", "called only by the generated eci2ecef"),
+    ("frames::npb", "called only by the generated eci2ecef"),
     ("modes::bdot_rate", "the runtime calls it in the tick's step 4 (fsw.rs Fsw::step): no public signature"),
     ("estimation::st_coasting", "the runtime calls it in the tick's step 2 (fsw.rs Fsw::step): no public signature"),
     ("estimation::att_rate", "the runtime calls it in the tick's step 2 (fsw.rs Fsw::step): no public signature"),
@@ -283,7 +286,7 @@ fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
         }
         "frames::gmst_rot" => { o.m(&env::gmst_rot(a.f())); }
         "frames::prec_rot" => { o.m(&env::prec_rot(a.f())); }
-        "frames::eci2ecef" => { o.m(&env::eci2ecef(a.f())); }
+        "frames::eci2ecef" => { let jd = a.f(); o.m(&env::eci2ecef(jd, &a.v3())); }
         "frames::decyear" => { o.f(env::decyear(a.f())); }
         "frames::sun_model" => { o.s(&env::sun_model(a.f())); }
         "frames::geodetic" => { let (la, lo, h) = env::geodetic(&a.v3()); o.f(la).f(lo).f(h); }
@@ -293,8 +296,8 @@ fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             o.s(&env::igrf_ned(&gh, la, lo, alt, n));
         }
         "frames::field_eci" => {
-            let (r, jd) = (a.v3(), a.f()); let gh = a.fs::<195>(); let n = a.i() as i32;
-            o.s(&env::field_eci(&r, jd, &gh, n));
+            let (r, jd, eop) = (a.v3(), a.f(), a.v3()); let gh = a.fs::<195>(); let n = a.i() as i32;
+            o.s(&env::field_eci(&r, jd, &eop, &gh, n));
         }
         "estimation::latency" => { let (q, w, l) = (a.q(), a.v3(), a.f()); o.s(&est::latency(&q, &w, l)); }
         "drivers::crc16" => { let b = a.u8s::<64>(); let n = a.i() as usize; o.f(drv::crc16(&b[..n]) as f64); }

@@ -60,11 +60,11 @@ def _j(v):
 
 # ------------------------------------------------------------------ pseudocode, with what it calls
 
-DECL = re.compile(r"^(fn|record|table|const)\s+([A-Za-z_][A-Za-z0-9_]*)")
+DECL = re.compile(r"^(fn|record|table|const|data)\s+([A-Za-z_][A-Za-z0-9_]*)")
 
 
 def pc_blocks(files):
-    """Every top-level declaration of the .pc files: name -> (kind, file, text with its comments)."""
+    """Every top-level declaration of the .pc files (a data table too: a function that reads one is carried with it, S12.5a): name -> (kind, file, text with its comments)."""
     out = {}
     for f in files:
         lines = pathlib.Path(f).read_text(encoding="utf-8").split("\n")

@@ -2280,8 +2280,17 @@ function y = call(name, x)
         case 'frames::prec_rot'
             [o1] = asils.models.frames.prec_rot(x(1));
             y = [reshape((o1).', [], 1)];
+        case 'frames::nut00b'
+            [o1, o2] = asils.models.frames.nut00b(x(1));
+            y = [double(o1); double(o2)];
+        case 'frames::fw06'
+            [o1, o2, o3, o4] = asils.models.frames.fw06(x(1));
+            y = [double(o1); double(o2); double(o3); double(o4)];
+        case 'frames::npb'
+            [o1] = asils.models.frames.npb(x(1), x(2), x(3), x(4));
+            y = [reshape((o1).', [], 1)];
         case 'frames::eci2ecef'
-            [o1] = asils.models.frames.eci2ecef(x(1));
+            [o1] = asils.models.frames.eci2ecef(x(1), reshape(x(2:4), 3, 1));
             y = [reshape((o1).', [], 1)];
         case 'frames::decyear'
             [o1] = asils.models.frames.decyear(x(1));
@@ -2302,7 +2311,7 @@ function y = call(name, x)
             [o1] = asils.models.frames.igrf_ned(reshape(x(1:195), 195, 1), x(196), x(197), x(198), x(199));
             y = [reshape(o1, [], 1)];
         case 'frames::field_eci'
-            [o1] = asils.models.frames.field_eci(reshape(x(1:3), 3, 1), x(4), reshape(x(5:199), 195, 1), x(200));
+            [o1] = asils.models.frames.field_eci(reshape(x(1:3), 3, 1), x(4), reshape(x(5:7), 3, 1), reshape(x(8:202), 195, 1), x(203));
             y = [reshape(o1, [], 1)];
         case 'guidance::guid_kind'
             [o1] = asils.models.guidance.guid_kind(x(1));
@@ -3011,7 +3020,7 @@ function y = call(name, x)
             [o1, o2, io5] = asils.models.gnss.gps_sample(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), x(7), x(8), reshape(x(9:14), 6, 1));
             y = [reshape(o1, [], 1); reshape(o2, [], 1); reshape(io5, [], 1)];
         case 'gnss::gnss_ecef'
-            [o1, o2] = asils.models.gnss.gnss_ecef(x(1), x(2), reshape(x(3:5), 3, 1), reshape(x(6:8), 3, 1));
+            [o1, o2] = asils.models.gnss.gnss_ecef(reshape(x(1:9), 3, 3).', reshape(x(10:12), 3, 1), reshape(x(13:15), 3, 1), reshape(x(16:18), 3, 1));
             y = [reshape(o1, [], 1); reshape(o2, [], 1)];
         case 'gyro::gyro_new'
             [o1, io2] = asils.models.gyro.gyro_new(struct('arw', {x(1)}, 'rrw', {x(2)}, 'range', {x(3)}, 'bias_sigma', {x(4)}, 'sf_sigma', {x(5)}, 'misalign', {x(6)}), reshape(x(7:12), 6, 1), reshape(x(13:18), 6, 1));

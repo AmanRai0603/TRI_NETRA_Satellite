@@ -1,4 +1,4 @@
-function [r, v, have_r] = onboard_orbit(r0, v0, have, ok, r_fix, v_fix, ecef, lat, jd, dt, mu)
+function [r, v, have_r] = onboard_orbit(r0, v0, have, ok, r_fix, v_fix, ecef, lat, jd, dt, mu, eop)
 %ONBOARD_ORBIT  The onboard orbit after the tick's step 1, from the orbit it held (r0, v0; have: whether it holds one) and the
 %   receiver's fix (ok, r_fix, v_fix; in ECEF when ecef; lat seconds old) at the Julian date jd: a usable fix, taken from
 %   ECEF at its epoch jd - lat when it is Earth-fixed, carried forward to now by one Verlet step of lat when lat > 0; else
@@ -15,6 +15,7 @@ function [r, v, have_r] = onboard_orbit(r0, v0, have, ok, r_fix, v_fix, ecef, la
 %   jd: real[1] (passed a plain number)
 %   dt: real[1] (passed a plain number)
 %   mu: real[1] (passed a plain number)
+%   eop: real[1][3] (passed a plain number)
 %   returns r: real[1][3] (passed a plain number)
 %   returns v: real[1][3] (passed a plain number)
 %   returns have_r: bool (passed true or false)
@@ -27,7 +28,7 @@ function [r, v, have_r] = onboard_orbit(r0, v0, have, ok, r_fix, v_fix, ecef, la
     have_r = have;
     if asils.alg.navorbit.gnss_usable(ok, r_fix)
         if ecef
-            [t__10, t__11] = asils.alg.navorbit.fix_eci(r_fix, v_fix, (jd - (lat / 86400)));
+            [t__10, t__11] = asils.alg.navorbit.fix_eci(r_fix, v_fix, (jd - (lat / 86400)), eop);
             r = t__10;
             v = t__11;
         else

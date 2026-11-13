@@ -123,7 +123,7 @@ fn fly(fault: Option<(Dev, Kind)>) -> (u16, u32) {
         let r = [rr*u.cos(), rr*u.sin()*inc.cos(), rr*u.sin()*inc.sin()];
         let v = [-rr*n*u.sin(), rr*n*u.cos()*inc.cos(), rr*n*u.cos()*inc.sin()];
         let jd = JD0 + t/86400.0;
-        let bf = mat3_vec(&a, &env::field_eci(&r, jd, &gh, 10));
+        let bf = mat3_vec(&a, &env::field_eci(&r, jd, &[0.0; 3], &gh, 10));
         let s = mat3_vec(&a, &env::sun_model(jd));
         hal.mag[0] = 1; for i in 0..3 { put16(&mut hal.mag[1 + 2*i..], bf[i]/MAG_LSB_T); }
         hal.sun[0] = 1; for i in 0..3 { put16(&mut hal.sun[1 + 2*i..], s[i]*ADCS_Q15); }

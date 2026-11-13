@@ -8,9 +8,10 @@ pub fn gmst_rot(jd: f64) -> M3 { alg::gmst_rot(jd) }
 /// J2000 -> mean of date (IAU-76 precession): P = R3(-z) R2(theta) R3(-zeta).
 /// Written from the design: frames::prec_rot (src/alg).
 pub fn prec_rot(jd: f64) -> M3 { alg::prec_rot(jd) }
-/// J2000 -> ECEF: precession to the mean equator of date, then GMST (nutation and polar motion omitted).
+/// J2000 -> ECEF at the UTC Julian date jd with the Earth orientation eop = [UT1 - UTC [s], xp ["], yp ["]] (the flight parameters
+/// eop_dut1, eop_xp, eop_yp): IAU 2006 precession, IAU 2000B nutation, the equation of the equinoxes, UT1 and the pole.
 /// Written from the design: frames::eci2ecef (src/alg).
-pub fn eci2ecef(jd: f64) -> M3 { alg::eci2ecef(jd) }
+pub fn eci2ecef(jd: f64, eop: &V3) -> M3 { alg::eci2ecef(jd, *eop) }
 /// Written from the design: frames::decyear (src/alg).
 pub fn decyear(jd: f64) -> f64 { alg::decyear(jd) }
 
@@ -32,4 +33,4 @@ pub fn igrf_ned(gh: &[f64; 195], lat: f64, lon: f64, alt_km: f64, nmax: i32) -> 
 
 /// Field in ECI [T] at r_eci [m].
 /// Written from the design: frames::field_eci (src/alg).
-pub fn field_eci(r_eci: &V3, jd: f64, gh: &[f64; 195], nmax: i32) -> V3 { alg::field_eci(*r_eci, jd, *gh, nmax as i64) }
+pub fn field_eci(r_eci: &V3, jd: f64, eop: &V3, gh: &[f64; 195], nmax: i32) -> V3 { alg::field_eci(*r_eci, jd, *eop, *gh, nmax as i64) }

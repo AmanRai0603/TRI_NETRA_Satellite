@@ -7,26 +7,26 @@ pc_a3a8f allocation_rotor_axes(int64_t nr, pc_a8a3f rot_a0, pc_a8i rot_gi, pc_a4
     pc_a3a8f a = ((pc_a3a8f){0});
     a = ((pc_a3a8f){0});
     {
-        int64_t end__141 = nr;
+        int64_t end__144 = nr;
         int64_t i = INT64_C(0);
-        while (i < end__141) {
+        while (i < end__144) {
             pc_a3f a0 = rot_a0.v[(i)];
             if ((rot_gi.v[(i)] > INT64_C(0))) {
                 int64_t j = (rot_gi.v[(i)] - INT64_C(1));
                 pc_a3f t0 = pc_cross_a3f(gim_axis.v[(j)], a0);
                 {
-                    int64_t end__142 = INT64_C(3);
+                    int64_t end__145 = INT64_C(3);
                     int64_t k = INT64_C(0);
-                    while (k < end__142) {
+                    while (k < end__145) {
                         a.v[(k)].v[(i)] = ((cos(delta.v[(j)]) * a0.v[(k)]) + (sin(delta.v[(j)]) * t0.v[(k)]));
                         k += 1;
                     }
                 }
             } else {
                 {
-                    int64_t end__143 = INT64_C(3);
+                    int64_t end__146 = INT64_C(3);
                     int64_t k = INT64_C(0);
-                    while (k < end__143) {
+                    while (k < end__146) {
                         a.v[(k)].v[(i)] = a0.v[(k)];
                         k += 1;
                     }
@@ -44,16 +44,16 @@ allocation_steer_sr_out allocation_steer_sr(pc_a3f tau, pc_a3a8f a, pc_a8f h, in
     pc_a3a4f jg = ((pc_a3a4f){0});
     double h0 = 0.0;
     {
-        int64_t end__144 = nr;
+        int64_t end__147 = nr;
         int64_t i = INT64_C(0);
-        while (i < end__144) {
+        while (i < end__147) {
             if ((rot_gi.v[(i)] > INT64_C(0))) {
                 int64_t j = (rot_gi.v[(i)] - INT64_C(1));
                 pc_a3f c = pc_cross_a3f(gim_axis.v[(j)], ((pc_a3f){ { a.v[0].v[(i)], a.v[1].v[(i)], a.v[2].v[(i)] } }));
                 {
-                    int64_t end__145 = INT64_C(3);
+                    int64_t end__148 = INT64_C(3);
                     int64_t k = INT64_C(0);
-                    while (k < end__145) {
+                    while (k < end__148) {
                         jg.v[(k)].v[(j)] = ((-(h.v[(i)])) * c.v[(k)]);
                         k += 1;
                     }
@@ -67,18 +67,18 @@ allocation_steer_sr_out allocation_steer_sr(pc_a3f tau, pc_a3a8f a, pc_a8f h, in
     }
     pc_a3a3f m = ((pc_a3a3f){0});
     {
-        int64_t end__146 = INT64_C(3);
+        int64_t end__149 = INT64_C(3);
         int64_t i = INT64_C(0);
-        while (i < end__146) {
+        while (i < end__149) {
             {
-                int64_t end__147 = INT64_C(3);
+                int64_t end__150 = INT64_C(3);
                 int64_t j = INT64_C(0);
-                while (j < end__147) {
+                while (j < end__150) {
                     m.v[(i)].v[(j)] = 0.0;
                     {
-                        int64_t end__148 = ng;
+                        int64_t end__151 = ng;
                         int64_t k = INT64_C(0);
-                        while (k < end__148) {
+                        while (k < end__151) {
                             m.v[(i)].v[(j)] = (m.v[(i)].v[(j)] + (jg.v[(i)].v[(k)] * jg.v[(j)].v[(k)]));
                             k += 1;
                         }
@@ -96,22 +96,22 @@ allocation_steer_sr_out allocation_steer_sr(pc_a3f tau, pc_a3a8f a, pc_a8f h, in
     int64_t n = (wheels ? (ng + nr) : ng);
     pc_a3a12f jj = ((pc_a3a12f){0});
     {
-        int64_t end__149 = INT64_C(3);
+        int64_t end__152 = INT64_C(3);
         int64_t i = INT64_C(0);
-        while (i < end__149) {
+        while (i < end__152) {
             {
-                int64_t end__150 = ng;
+                int64_t end__153 = ng;
                 int64_t j = INT64_C(0);
-                while (j < end__150) {
+                while (j < end__153) {
                     jj.v[(i)].v[(j)] = jg.v[(i)].v[(j)];
                     j += 1;
                 }
             }
             if (wheels) {
                 {
-                    int64_t end__151 = nr;
+                    int64_t end__154 = nr;
                     int64_t j = INT64_C(0);
-                    while (j < end__151) {
+                    while (j < end__154) {
                         jj.v[(i)].v[((ng + j))] = (-(a.v[(i)].v[(j)]));
                         j += 1;
                     }
@@ -122,27 +122,27 @@ allocation_steer_sr_out allocation_steer_sr(pc_a3f tau, pc_a3a8f a, pc_a8f h, in
     }
     pc_a12f w = ((pc_a12f){0});
     {
-        int64_t end__152 = n;
+        int64_t end__155 = n;
         int64_t j = INT64_C(0);
-        while (j < end__152) {
+        while (j < end__155) {
             w.v[(j)] = ((j < ng) ? 1.0 : (0.01 + (2.0 * exp(((-(10.0)) * ms)))));
             j += 1;
         }
     }
     double lam = (cmg_lam0 * exp(((-(cmg_mu)) * ms)));
     {
-        int64_t end__153 = INT64_C(3);
+        int64_t end__156 = INT64_C(3);
         int64_t i = INT64_C(0);
-        while (i < end__153) {
+        while (i < end__156) {
             {
-                int64_t end__154 = INT64_C(3);
+                int64_t end__157 = INT64_C(3);
                 int64_t j = INT64_C(0);
-                while (j < end__154) {
+                while (j < end__157) {
                     m.v[(i)].v[(j)] = ((i == j) ? lam : 0.0);
                     {
-                        int64_t end__155 = n;
+                        int64_t end__158 = n;
                         int64_t k = INT64_C(0);
-                        while (k < end__155) {
+                        while (k < end__158) {
                             m.v[(i)].v[(j)] = (m.v[(i)].v[(j)] + ((jj.v[(i)].v[(k)] * w.v[(k)]) * jj.v[(j)].v[(k)]));
                             k += 1;
                         }
@@ -153,15 +153,15 @@ allocation_steer_sr_out allocation_steer_sr(pc_a3f tau, pc_a3a8f a, pc_a8f h, in
             i += 1;
         }
     }
-    math_inv3_out t__156 = math_inv3(m);
-    pc_a3a3f mi = t__156.r;
-    bool ok = t__156.ok;
+    math_inv3_out t__159 = math_inv3(m);
+    pc_a3a3f mi = t__159.r;
+    bool ok = t__159.ok;
     pc_a3f x = pc_mv_a3a3f(mi, tau);
     pc_a12f u = ((pc_a12f){0});
     {
-        int64_t end__157 = n;
+        int64_t end__160 = n;
         int64_t k = INT64_C(0);
-        while (k < end__157) {
+        while (k < end__160) {
             u.v[(k)] = (w.v[(k)] * (((jj.v[0].v[(k)] * x.v[0]) + (jj.v[1].v[(k)] * x.v[1])) + (jj.v[2].v[(k)] * x.v[2])));
             k += 1;
         }
@@ -169,9 +169,9 @@ allocation_steer_sr_out allocation_steer_sr(pc_a3f tau, pc_a3a8f a, pc_a8f h, in
     double s = 1.0;
     gdot = ((pc_a4f){0});
     {
-        int64_t end__158 = ng;
+        int64_t end__161 = ng;
         int64_t j = INT64_C(0);
-        while (j < end__158) {
+        while (j < end__161) {
             gdot.v[(j)] = u.v[(j)];
             if (((pc_fabs(u.v[(j)]) / gim_rate_max) > s)) {
                 s = (pc_fabs(u.v[(j)]) / gim_rate_max);
@@ -180,18 +180,18 @@ allocation_steer_sr_out allocation_steer_sr(pc_a3f tau, pc_a3a8f a, pc_a8f h, in
         }
     }
     {
-        int64_t end__159 = ng;
+        int64_t end__162 = ng;
         int64_t j = INT64_C(0);
-        while (j < end__159) {
+        while (j < end__162) {
             gdot.v[(j)] = (gdot.v[(j)] / s);
             j += 1;
         }
     }
     hdot = ((pc_a8f){0});
     {
-        int64_t end__160 = nr;
+        int64_t end__163 = nr;
         int64_t i = INT64_C(0);
-        while (i < end__160) {
+        while (i < end__163) {
             hdot.v[(i)] = (wheels ? (u.v[((ng + i))] / s) : 0.0);
             i += 1;
         }
@@ -221,9 +221,9 @@ allocation_rcs_duty_out allocation_rcs_duty(pc_a3f req, int64_t nc, pc_a6a3f rcs
     duty = ((pc_a6f){0});
     tau = ((pc_a3f){0});
     {
-        int64_t end__161 = INT64_C(3);
+        int64_t end__164 = INT64_C(3);
         int64_t ax = INT64_C(0);
-        while (ax < end__161) {
+        while (ax < end__164) {
             double u = req.v[(ax)];
             if ((u != 0.0)) {
                 int64_t k = ((u > 0.0) ? (INT64_C(2) * ax) : ((INT64_C(2) * ax) + INT64_C(1)));
@@ -237,9 +237,9 @@ allocation_rcs_duty_out allocation_rcs_duty(pc_a3f req, int64_t nc, pc_a6a3f rcs
                         on = (round((on / rcs_res)) * rcs_res);
                         duty.v[(k)] = (on / t);
                         {
-                            int64_t end__162 = INT64_C(3);
+                            int64_t end__165 = INT64_C(3);
                             int64_t i = INT64_C(0);
-                            while (i < end__162) {
+                            while (i < end__165) {
                                 tau.v[(i)] = (tau.v[(i)] + (rcs_tau.v[(k)].v[(i)] * duty.v[(k)]));
                                 i += 1;
                             }

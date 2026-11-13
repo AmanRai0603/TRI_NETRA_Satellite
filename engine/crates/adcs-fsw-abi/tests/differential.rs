@@ -114,6 +114,13 @@ fn c_and_rust_agree_bit_for_bit_on_random_inputs() {
                 let tc = [0x01, r.below(12) as u8];
                 assert_eq!(c.command(&tc), rs.command(&tc), "cfg {cfg} tick {k}: telecommand {tc:?} answered differently");
             }
+            if r.chance(0.02) {
+                // TC 0x02, the Earth orientation (UT1 - UTC, xp, yp): in the rules or a little outside them, C and Rust answer alike
+                // and fly on with the same frame
+                let mut tc = vec![0x02u8];
+                for lim in [1.0f64, 1.2, 1.2] { tc.extend_from_slice(&r.uniform(-lim, lim).to_le_bytes()); }
+                assert_eq!(c.command(&tc), rs.command(&tc), "cfg {cfg} tick {k}: telecommand {tc:?} answered differently");
+            }
             let now = k*100_000_000 + 1;
             bc.now_ns = now; br.now_ns = now;
             let (sc, sr) = (c.step(&mut bc, now), rs.step(&mut br, now));

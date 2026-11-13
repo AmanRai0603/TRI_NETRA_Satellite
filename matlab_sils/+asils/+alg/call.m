@@ -53,8 +53,17 @@ function y = call(name, x)
         case 'frames::prec_rot'
             [o1] = asils.alg.frames.prec_rot(x(1));
             y = [reshape((o1).', [], 1)];
+        case 'frames::nut00b'
+            [o1, o2] = asils.alg.frames.nut00b(x(1));
+            y = [double(o1); double(o2)];
+        case 'frames::fw06'
+            [o1, o2, o3, o4] = asils.alg.frames.fw06(x(1));
+            y = [double(o1); double(o2); double(o3); double(o4)];
+        case 'frames::npb'
+            [o1] = asils.alg.frames.npb(x(1), x(2), x(3), x(4));
+            y = [reshape((o1).', [], 1)];
         case 'frames::eci2ecef'
-            [o1] = asils.alg.frames.eci2ecef(x(1));
+            [o1] = asils.alg.frames.eci2ecef(x(1), reshape(x(2:4), 3, 1));
             y = [reshape((o1).', [], 1)];
         case 'frames::decyear'
             [o1] = asils.alg.frames.decyear(x(1));
@@ -75,7 +84,7 @@ function y = call(name, x)
             [o1] = asils.alg.frames.igrf_ned(reshape(x(1:195), 195, 1), x(196), x(197), x(198), x(199));
             y = [reshape(o1, [], 1)];
         case 'frames::field_eci'
-            [o1] = asils.alg.frames.field_eci(reshape(x(1:3), 3, 1), x(4), reshape(x(5:199), 195, 1), x(200));
+            [o1] = asils.alg.frames.field_eci(reshape(x(1:3), 3, 1), x(4), reshape(x(5:7), 3, 1), reshape(x(8:202), 195, 1), x(203));
             y = [reshape(o1, [], 1)];
         case 'estimation::mekf_init'
             [o1, o2, o3] = asils.alg.estimation.mekf_init(reshape(x(1:4), 4, 1), x(5), x(6));
@@ -126,10 +135,10 @@ function y = call(name, x)
             [o1, o2] = asils.alg.navorbit.verlet(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), x(7), x(8));
             y = [reshape(o1, [], 1); reshape(o2, [], 1)];
         case 'navorbit::fix_eci'
-            [o1, o2] = asils.alg.navorbit.fix_eci(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), x(7));
+            [o1, o2] = asils.alg.navorbit.fix_eci(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), x(7), reshape(x(8:10), 3, 1));
             y = [reshape(o1, [], 1); reshape(o2, [], 1)];
         case 'navorbit::onboard_orbit'
-            [o1, o2, o3] = asils.alg.navorbit.onboard_orbit(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), (x(7) ~= 0), (x(8) ~= 0), reshape(x(9:11), 3, 1), reshape(x(12:14), 3, 1), (x(15) ~= 0), x(16), x(17), x(18), x(19));
+            [o1, o2, o3] = asils.alg.navorbit.onboard_orbit(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), (x(7) ~= 0), (x(8) ~= 0), reshape(x(9:11), 3, 1), reshape(x(12:14), 3, 1), (x(15) ~= 0), x(16), x(17), x(18), x(19), reshape(x(20:22), 3, 1));
             y = [reshape(o1, [], 1); reshape(o2, [], 1); double(o3)];
         case 'guidance::guid_kind'
             [o1] = asils.alg.guidance.guid_kind(x(1));

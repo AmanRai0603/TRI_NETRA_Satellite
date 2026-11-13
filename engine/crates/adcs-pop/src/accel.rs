@@ -158,6 +158,18 @@ impl World {
     }
 
     /// The context of op.accel at t (time scales, ephemeris inputs, ECI->ECEF).
+    /// The Earth frame (GCRF to ITRF on build A) at t seconds from the epoch, as `context` takes it: what a receiver's fix at that
+    /// instant is made in (S12.5, T5/E3).
+    pub fn earth_frame(&self, t: f64) -> M3 {
+        let utc = time::addsec(self.epoch, t);
+        if self.build == Build::Gmst {
+            let times = time::convert_utc(utc[0], utc[1], utc[2], utc[3], utc[4], utc[5], self.frame.dut1);
+            let mut fo = self.frame.clone();
+            fo.gmst_rad = Some(times.gmst_rad);
+            frames::eci2ecef(utc, self.build, &fo).0
+        } else { frames::eci2ecef(utc, self.build, &self.frame).0 }
+    }
+
     pub fn context(&self, t: f64, r: &V3, v: &V3) -> Ctx {
         let utc = time::addsec(self.epoch, t);
         let times = time::convert_utc(utc[0], utc[1], utc[2], utc[3], utc[4], utc[5], self.frame.dut1);

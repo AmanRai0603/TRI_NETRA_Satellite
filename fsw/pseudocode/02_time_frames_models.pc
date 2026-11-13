@@ -1,6 +1,7 @@
-## 02 - Time, frames and onboard models (02_time_frames_models.md): sidereal time, precession, the
-## Sun, geodetic coordinates and the IGRF field, operation for operation as fsw/src/adcs_env.c and
-## fsw-rs/src/env.rs. Times are Julian dates; the field is in nT from igrf_ned and in T from field_eci.
+## 02 - Time, frames and onboard models (02_time_frames_models.md): sidereal time, precession, the Earth-fixed frame of
+## the onboard clock with the IAU 2000B nutation, the Sun, geodetic coordinates and the IGRF field, operation for operation
+## as fsw/src/adcs_env.c and fsw-rs/src/env.rs. Times are Julian dates; the field is in nT from igrf_ned and in T from
+## field_eci. The developer's revision S12.5a (T5/E3, DR-env-002), unsigned.
 module frames
 
 ## The Earth's rotation about z by the Greenwich mean sidereal time (IAU 1982).
@@ -30,10 +31,185 @@ fn prec_rot(jd: real[1] in 2459000 .. 2463000) -> p: mat3[1]
     p = [[cc*ct*cz - sc*sz, -cc*ct*sz - sc*cz, -cc*st], [sc*ct*cz + cc*sz, -sc*ct*sz + cc*cz, -sc*st], [st*cz, -st*sz, ct]]
 end
 
-## J2000 to the Earth-fixed frame: precession to the mean equator of date, then GMST (nutation and
-## polar motion left out).
-fn eci2ecef(jd: real[1] in 2459000 .. 2463000) -> c: mat3[1]
-    c = gmst_rot(jd)*prec_rot(jd)
+## The IAU 2000B luni-solar nutation series: the 77 terms of McCarthy and Luzum (2003), An abridged model of the
+## precession-nutation of the celestial pole, Celestial Mechanics and Dynamical Astronomy 85:37-49 (the abridgement of the
+## IAU 2000A series of the IERS Conventions 2003; IERS Conventions 2010, TN36, section 5.5.1). A row: the integer multipliers of
+## the Delaunay arguments l, l', F, D, Omega, then the coefficients of the nutation in longitude (sin, t sin, cos) and in
+## obliquity (cos, t cos, sin), in units of 0.1 microarcsecond (per Julian century for the t columns). The rows are those of
+## the nut00b table of ERFA 2.0.1.5 (the open version of the IAU SOFA library; pyerfa 2.0.1.5, taken from its compiled
+## table), the first 77 rows of its IAU 2000A luni-solar table; the printed paper was not to hand, so the transcription is
+## not checked against it. The developer's transcription (S12.5a), unsigned.
+data NUT00B: real[1][11][77]
+    0.0, 0.0, 0.0, 0.0, 1.0, -172064161.0, -174666.0, 33386.0, 92052331.0, 9086.0, 15377.0
+    0.0, 0.0, 2.0, -2.0, 2.0, -13170906.0, -1675.0, -13696.0, 5730336.0, -3015.0, -4587.0
+    0.0, 0.0, 2.0, 0.0, 2.0, -2276413.0, -234.0, 2796.0, 978459.0, -485.0, 1374.0
+    0.0, 0.0, 0.0, 0.0, 2.0, 2074554.0, 207.0, -698.0, -897492.0, 470.0, -291.0
+    0.0, 1.0, 0.0, 0.0, 0.0, 1475877.0, -3633.0, 11817.0, 73871.0, -184.0, -1924.0
+    0.0, 1.0, 2.0, -2.0, 2.0, -516821.0, 1226.0, -524.0, 224386.0, -677.0, -174.0
+    1.0, 0.0, 0.0, 0.0, 0.0, 711159.0, 73.0, -872.0, -6750.0, 0.0, 358.0
+    0.0, 0.0, 2.0, 0.0, 1.0, -387298.0, -367.0, 380.0, 200728.0, 18.0, 318.0
+    1.0, 0.0, 2.0, 0.0, 2.0, -301461.0, -36.0, 816.0, 129025.0, -63.0, 367.0
+    0.0, -1.0, 2.0, -2.0, 2.0, 215829.0, -494.0, 111.0, -95929.0, 299.0, 132.0
+    0.0, 0.0, 2.0, -2.0, 1.0, 128227.0, 137.0, 181.0, -68982.0, -9.0, 39.0
+    -1.0, 0.0, 2.0, 0.0, 2.0, 123457.0, 11.0, 19.0, -53311.0, 32.0, -4.0
+    -1.0, 0.0, 0.0, 2.0, 0.0, 156994.0, 10.0, -168.0, -1235.0, 0.0, 82.0
+    1.0, 0.0, 0.0, 0.0, 1.0, 63110.0, 63.0, 27.0, -33228.0, 0.0, -9.0
+    -1.0, 0.0, 0.0, 0.0, 1.0, -57976.0, -63.0, -189.0, 31429.0, 0.0, -75.0
+    -1.0, 0.0, 2.0, 2.0, 2.0, -59641.0, -11.0, 149.0, 25543.0, -11.0, 66.0
+    1.0, 0.0, 2.0, 0.0, 1.0, -51613.0, -42.0, 129.0, 26366.0, 0.0, 78.0
+    -2.0, 0.0, 2.0, 0.0, 1.0, 45893.0, 50.0, 31.0, -24236.0, -10.0, 20.0
+    0.0, 0.0, 0.0, 2.0, 0.0, 63384.0, 11.0, -150.0, -1220.0, 0.0, 29.0
+    0.0, 0.0, 2.0, 2.0, 2.0, -38571.0, -1.0, 158.0, 16452.0, -11.0, 68.0
+    0.0, -2.0, 2.0, -2.0, 2.0, 32481.0, 0.0, 0.0, -13870.0, 0.0, 0.0
+    -2.0, 0.0, 0.0, 2.0, 0.0, -47722.0, 0.0, -18.0, 477.0, 0.0, -25.0
+    2.0, 0.0, 2.0, 0.0, 2.0, -31046.0, -1.0, 131.0, 13238.0, -11.0, 59.0
+    1.0, 0.0, 2.0, -2.0, 2.0, 28593.0, 0.0, -1.0, -12338.0, 10.0, -3.0
+    -1.0, 0.0, 2.0, 0.0, 1.0, 20441.0, 21.0, 10.0, -10758.0, 0.0, -3.0
+    2.0, 0.0, 0.0, 0.0, 0.0, 29243.0, 0.0, -74.0, -609.0, 0.0, 13.0
+    0.0, 0.0, 2.0, 0.0, 0.0, 25887.0, 0.0, -66.0, -550.0, 0.0, 11.0
+    0.0, 1.0, 0.0, 0.0, 1.0, -14053.0, -25.0, 79.0, 8551.0, -2.0, -45.0
+    -1.0, 0.0, 0.0, 2.0, 1.0, 15164.0, 10.0, 11.0, -8001.0, 0.0, -1.0
+    0.0, 2.0, 2.0, -2.0, 2.0, -15794.0, 72.0, -16.0, 6850.0, -42.0, -5.0
+    0.0, 0.0, -2.0, 2.0, 0.0, 21783.0, 0.0, 13.0, -167.0, 0.0, 13.0
+    1.0, 0.0, 0.0, -2.0, 1.0, -12873.0, -10.0, -37.0, 6953.0, 0.0, -14.0
+    0.0, -1.0, 0.0, 0.0, 1.0, -12654.0, 11.0, 63.0, 6415.0, 0.0, 26.0
+    -1.0, 0.0, 2.0, 2.0, 1.0, -10204.0, 0.0, 25.0, 5222.0, 0.0, 15.0
+    0.0, 2.0, 0.0, 0.0, 0.0, 16707.0, -85.0, -10.0, 168.0, -1.0, 10.0
+    1.0, 0.0, 2.0, 2.0, 2.0, -7691.0, 0.0, 44.0, 3268.0, 0.0, 19.0
+    -2.0, 0.0, 2.0, 0.0, 0.0, -11024.0, 0.0, -14.0, 104.0, 0.0, 2.0
+    0.0, 1.0, 2.0, 0.0, 2.0, 7566.0, -21.0, -11.0, -3250.0, 0.0, -5.0
+    0.0, 0.0, 2.0, 2.0, 1.0, -6637.0, -11.0, 25.0, 3353.0, 0.0, 14.0
+    0.0, -1.0, 2.0, 0.0, 2.0, -7141.0, 21.0, 8.0, 3070.0, 0.0, 4.0
+    0.0, 0.0, 0.0, 2.0, 1.0, -6302.0, -11.0, 2.0, 3272.0, 0.0, 4.0
+    1.0, 0.0, 2.0, -2.0, 1.0, 5800.0, 10.0, 2.0, -3045.0, 0.0, -1.0
+    2.0, 0.0, 2.0, -2.0, 2.0, 6443.0, 0.0, -7.0, -2768.0, 0.0, -4.0
+    -2.0, 0.0, 0.0, 2.0, 1.0, -5774.0, -11.0, -15.0, 3041.0, 0.0, -5.0
+    2.0, 0.0, 2.0, 0.0, 1.0, -5350.0, 0.0, 21.0, 2695.0, 0.0, 12.0
+    0.0, -1.0, 2.0, -2.0, 1.0, -4752.0, -11.0, -3.0, 2719.0, 0.0, -3.0
+    0.0, 0.0, 0.0, -2.0, 1.0, -4940.0, -11.0, -21.0, 2720.0, 0.0, -9.0
+    -1.0, -1.0, 0.0, 2.0, 0.0, 7350.0, 0.0, -8.0, -51.0, 0.0, 4.0
+    2.0, 0.0, 0.0, -2.0, 1.0, 4065.0, 0.0, 6.0, -2206.0, 0.0, 1.0
+    1.0, 0.0, 0.0, 2.0, 0.0, 6579.0, 0.0, -24.0, -199.0, 0.0, 2.0
+    0.0, 1.0, 2.0, -2.0, 1.0, 3579.0, 0.0, 5.0, -1900.0, 0.0, 1.0
+    1.0, -1.0, 0.0, 0.0, 0.0, 4725.0, 0.0, -6.0, -41.0, 0.0, 3.0
+    -2.0, 0.0, 2.0, 0.0, 2.0, -3075.0, 0.0, -2.0, 1313.0, 0.0, -1.0
+    3.0, 0.0, 2.0, 0.0, 2.0, -2904.0, 0.0, 15.0, 1233.0, 0.0, 7.0
+    0.0, -1.0, 0.0, 2.0, 0.0, 4348.0, 0.0, -10.0, -81.0, 0.0, 2.0
+    1.0, -1.0, 2.0, 0.0, 2.0, -2878.0, 0.0, 8.0, 1232.0, 0.0, 4.0
+    0.0, 0.0, 0.0, 1.0, 0.0, -4230.0, 0.0, 5.0, -20.0, 0.0, -2.0
+    -1.0, -1.0, 2.0, 2.0, 2.0, -2819.0, 0.0, 7.0, 1207.0, 0.0, 3.0
+    -1.0, 0.0, 2.0, 0.0, 0.0, -4056.0, 0.0, 5.0, 40.0, 0.0, -2.0
+    0.0, -1.0, 2.0, 2.0, 2.0, -2647.0, 0.0, 11.0, 1129.0, 0.0, 5.0
+    -2.0, 0.0, 0.0, 0.0, 1.0, -2294.0, 0.0, -10.0, 1266.0, 0.0, -4.0
+    1.0, 1.0, 2.0, 0.0, 2.0, 2481.0, 0.0, -7.0, -1062.0, 0.0, -3.0
+    2.0, 0.0, 0.0, 0.0, 1.0, 2179.0, 0.0, -2.0, -1129.0, 0.0, -2.0
+    -1.0, 1.0, 0.0, 1.0, 0.0, 3276.0, 0.0, 1.0, -9.0, 0.0, 0.0
+    1.0, 1.0, 0.0, 0.0, 0.0, -3389.0, 0.0, 5.0, 35.0, 0.0, -2.0
+    1.0, 0.0, 2.0, 0.0, 0.0, 3339.0, 0.0, -13.0, -107.0, 0.0, 1.0
+    -1.0, 0.0, 2.0, -2.0, 1.0, -1987.0, 0.0, -6.0, 1073.0, 0.0, -2.0
+    1.0, 0.0, 0.0, 0.0, 2.0, -1981.0, 0.0, 0.0, 854.0, 0.0, 0.0
+    -1.0, 0.0, 0.0, 1.0, 0.0, 4026.0, 0.0, -353.0, -553.0, 0.0, -139.0
+    0.0, 0.0, 2.0, 1.0, 2.0, 1660.0, 0.0, -5.0, -710.0, 0.0, -2.0
+    -1.0, 0.0, 2.0, 4.0, 2.0, -1521.0, 0.0, 9.0, 647.0, 0.0, 4.0
+    -1.0, 1.0, 0.0, 1.0, 1.0, 1314.0, 0.0, 0.0, -700.0, 0.0, 0.0
+    0.0, -2.0, 2.0, -2.0, 1.0, -1283.0, 0.0, 0.0, 672.0, 0.0, 0.0
+    1.0, 0.0, 2.0, 2.0, 1.0, -1331.0, 0.0, 8.0, 663.0, 0.0, 4.0
+    -2.0, 0.0, 2.0, 2.0, 2.0, 1383.0, 0.0, -2.0, -594.0, 0.0, -2.0
+    -1.0, 0.0, 0.0, 0.0, 2.0, 1405.0, 0.0, 4.0, -610.0, 0.0, 2.0
+    1.0, 1.0, 2.0, -2.0, 2.0, 1290.0, 0.0, 0.0, -556.0, 0.0, 0.0
+end
+
+## The IAU 2000B nutation in longitude and in obliquity [rad] at t TT centuries since J2000: the 77 luni-solar terms
+## summed smallest first, the Delaunay arguments linear in t (McCarthy and Luzum 2003: 485868.249036 + 1717915923.2178 t
+## and the like, arcseconds), and the fixed offsets that stand for the planetary terms (-0.135 and +0.388 milliarcseconds).
+## What is left out of the 2000A series: its 601 other luni-solar terms, its planetary terms, and the small J2-rate
+## scaling of the IAU 2006 adaptation (the nut06a factor, about 1e-6 of the nutation, 1e-5 arcsecond); the abridgement's own
+## error is 1 milliarcsecond.
+fn nut00b(t: real[1] in -1 .. 1) -> (dpsi: real[1], deps: real[1])
+    let as_ = pi/(180.0*3600.0)
+    let el = fmod(485868.249036 + 1717915923.2178*t, 1296000.0)*as_
+    let elp = fmod(1287104.79305 + 129596581.0481*t, 1296000.0)*as_
+    let f = fmod(335779.526232 + 1739527262.8478*t, 1296000.0)*as_
+    let d = fmod(1072260.70369 + 1602961601.2090*t, 1296000.0)*as_
+    let om = fmod(450160.398036 - 6962890.5431*t, 1296000.0)*as_
+    dpsi = 0.0
+    deps = 0.0
+    for k in 0 .. 77
+        let j = 76 - k
+        let arg = fmod(NUT00B[j][0]*el + NUT00B[j][1]*elp + NUT00B[j][2]*f + NUT00B[j][3]*d + NUT00B[j][4]*om, 2.0*pi)
+        let sa = sin(arg)
+        let ca = cos(arg)
+        dpsi = dpsi + (NUT00B[j][5] + NUT00B[j][6]*t)*sa + NUT00B[j][7]*ca
+        deps = deps + (NUT00B[j][8] + NUT00B[j][9]*t)*ca + NUT00B[j][10]*sa
+    end
+    dpsi = dpsi*(1e-7*as_) - 0.135e-3*as_
+    deps = deps*(1e-7*as_) + 0.388e-3*as_
+end
+
+## The IAU 2006 precession as Fukushima-Williams angles [rad] at t TT centuries: gamma_bar, the difference dphi = phi_bar -
+## epsilon_A of the other two (phi_bar is the angle between the ecliptic pole of J2000 and the pole of date, epsilon_A the
+## mean obliquity, and the two differ by a few milliarcseconds: the polynomial of the difference is the difference of the
+## polynomials, so it carries no rounding of two angles of 0.41 rad), psi_bar (the frame bias with the precession of the
+## equator and the ecliptic) and epsilon_A itself. The polynomials are those ERFA 2.0.1.5's pfw06 and obl06 hold (the IAU 2006
+## precession, the P03 solution of Capitaine, Wallace and Chapront, A&A 412:567 (2003), in the Fukushima-Williams form of
+## Wallace and Capitaine, A&A 459:981 (2006): the sources ERFA names; the papers were not to hand and this citation is not
+## checked against them). phi_bar of ERFA's pfw06 is dphi + epsilon_A here to 1.2e-16 rad (the rounding of the angle) over 2025.0
+## to 2030.0 (tests/test_onboard_frame_oracle.py).
+fn fw06(t: real[1] in -1 .. 1) -> (gam: real[1], dphi: real[1], psi: real[1], eps: real[1])
+    let as_ = pi/(180.0*3600.0)
+    gam = (-0.052928 + (10.556378 + (0.4932044 + (-0.00031238 + (-0.000002788 + 0.0000000260*t)*t)*t)*t)*t)*as_
+    dphi = (0.006819 + (0.025753 + (0.0513099 + (-0.00147051 + (0.000000136 + 0.0000000258*t)*t)*t)*t)*t)*as_
+    psi = (-0.041775 + (5038.481484 + (1.5584175 + (-0.00018522 + (-0.000026452 - 0.0000000148*t)*t)*t)*t)*t)*as_
+    eps = (84381.406 + (-46.836769 + (-0.0001831 + (0.00200340 + (-0.000000576 - 0.0000000434*t)*t)*t)*t)*t)*as_
+end
+
+## The matrix R1(-eps) R3(-psi) R1(eps + dphi) R3(gam) (ERFA's fw2m of the angles gam, eps + dphi, psi, eps): from the J2000
+## frame to the true equator and equinox of date when psi and eps carry the nutation. R1(-eps) R3(-psi) R1(eps) is written out
+## (its elements with 1 - cos(psi) as 2 sin^2(psi/2)) and the small rotation R1(dphi) R3(gam) applied after it, so that the
+## small elements of the product (the pole's offset from the J2000 pole, 1e-5 to 1e-3) are sums of small terms, not the
+## difference of terms of order 1.
+fn npb(gam: real[1] in -0.1 .. 0.1, dphi: real[1] in -0.001 .. 0.001, psi: real[1] in -0.1 .. 0.1, eps: real[1] in 0.3 .. 0.5) -> r: mat3[1]
+    let q = 2.0*sin(psi/2.0)*sin(psi/2.0)
+    let ce = cos(eps)
+    let se = sin(eps)
+    let a = [[1.0 - q, -sin(psi)*ce, -sin(psi)*se], [ce*sin(psi), 1.0 - ce*ce*q, -ce*se*q], [se*sin(psi), -ce*se*q, 1.0 - se*se*q]]
+    let rd = [[1, 0, 0], [0, cos(dphi), sin(dphi)], [0, -sin(dphi), cos(dphi)]]
+    let rg = [[cos(gam), sin(gam), 0], [-sin(gam), cos(gam), 0], [0, 0, 1]]
+    r = a*rd*rg
+end
+
+## J2000 to the Earth-fixed frame of the onboard clock, at the UTC Julian date jd and the Earth orientation eop = [UT1 - UTC
+## [s], pole xp ["], pole yp ["]] the flight parameters hold (set by telecommand): C = W R3(GAST) N P, the IAU 2006
+## precession and frame bias with the IAU 2000B nutation (fw06, nut00b, npb), the Greenwich apparent sidereal time GAST = the
+## IAU 2006 mean sidereal time (the Earth rotation angle of UT1 = UTC + (UT1 - UTC) plus the polynomial ERFA 2.0.1.5's gmst06
+## holds, Capitaine, Wallace and Chapront, A&A 432:355 (2005), the source it names, not checked against the paper) plus the equation of the equinoxes dpsi cos(epsilon_A), and the
+## polar motion W = R1(-yp) R2(-xp). The Earth rotation angle takes the whole days and the fraction of the date apart and adds
+## UT1 - UTC to the fraction, as ERFA's era00 takes its two-part date, so that a date held to 4e-5 s (a double of 2.46e6 days)
+## does not round the change of UT1 - UTC. TT = UTC + 69.184 s (TAI - UTC 37 s since 2017-01-01 plus 32.184 s) is a constant here:
+## 1 s of TT moves the precession and nutation by about 1e-6 arcsecond, and the next leap second moves the clock's UTC, not
+## the frame. Left out: the complementary terms of the equation of the equinoxes (at most 2.7 milliarcseconds), the TIO
+## locator s' (about 1e-5 arcsecond), and the free core nutation and the celestial-pole offsets dX, dY (the IERS publishes
+## them; a fraction of a milliarcsecond): all far below an arcsecond. Over 2025.0 to 2030.0 it is within 3 milliarcseconds of the
+## IAU 2006/2000A chain of ERFA's c2t06a (2.6 at the eight epochs of tests/test_onboard_frame_oracle.py).
+fn eci2ecef(jd: real[1] in 2459000 .. 2463000, eop: real[1][3] in -1 .. 1) -> c: mat3[1]
+    let as_ = pi/(180.0*3600.0)
+    let t = (jd + 69.184/86400.0 - 2451545.0)/36525.0
+    let du = eop[0]/86400.0
+    let gam, dphi, psi, eps = fw06(t)
+    let dpsi, deps = nut00b(t)
+    let rn = npb(gam, dphi - deps, psi + dpsi, eps + deps)
+    let era = fmod(fmod(jd, 1.0) + du + 0.7790572732640 + 0.00273781191135448*(jd - 2451545.0 + du), 1.0)
+    if era < 0
+        era = era + 1.0
+    end
+    let gmst = 2.0*pi*era + (0.014506 + (4612.156534 + (1.3915817 + (-0.00000044 + (-0.000029956 - 0.0000000368*t)*t)*t)*t)*t)*as_
+    let g = gmst + dpsi*cos(eps)
+    let rg = [[cos(g), sin(g), 0], [-sin(g), cos(g), 0], [0, 0, 1]]
+    let xp = eop[1]*as_
+    let yp = eop[2]*as_
+    let ry = [[cos(xp), 0, sin(xp)], [0, 1, 0], [-sin(xp), 0, cos(xp)]]
+    let rx = [[1, 0, 0], [0, cos(yp), -sin(yp)], [0, sin(yp), cos(yp)]]
+    c = rx*ry*rg*rn
 end
 
 ## The decimal year of a Julian date.
@@ -194,11 +370,11 @@ fn igrf_ned(gh: real[1][195] in -30000 .. 30000, lat: real[1] in -1.5 .. 1.5, lo
     b = [bx*cd + bz*sd, by, bz*cd - bx*sd]
 end
 
-## The field [T] at an inertial position at a Julian date: to the Earth-fixed frame, geodetic
+## The field [T] at an inertial position at a Julian date and Earth orientation eop: to the Earth-fixed frame, geodetic
 ## coordinates, IGRF in north-east-down, back to J2000.
-fn field_eci(r_eci: vec3[m] in -7.2e6 .. 7.2e6, jd: real[1] in 2459000 .. 2463000, gh: real[1][195] in -30000 .. 30000, \
-             nmax: int in 1 .. 13) -> b: vec3[1]
-    let c = eci2ecef(jd)
+fn field_eci(r_eci: vec3[m] in -7.2e6 .. 7.2e6, jd: real[1] in 2459000 .. 2463000, eop: real[1][3] in -1 .. 1, \
+             gh: real[1][195] in -30000 .. 30000, nmax: int in 1 .. 13) -> b: vec3[1]
+    let c = eci2ecef(jd, eop)
     let re = c*r_eci
     let lat, lon, h = geodetic(re)
     let bn = igrf_ned(gh, lat, lon, h/(1000.0 [m]), nmax)

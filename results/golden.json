@@ -6,7 +6,7 @@
  "fingerprint": {
   "rustc": "rustc 1.94.1 (e408947bf 2026-03-25)",
   "engine": "adcs-engine-rs/1.0.0 (adcs-case/1, POP v51 port in-loop, adcs-design, soft OILS)",
-  "fsw": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg de1905be024c8a82",
+  "fsw": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg 4dcd4576bcf3eb3b",
   "machine": "x86_64"
  },
  "campaign_relative_tolerance": 0.05,
@@ -31,7 +31,7 @@
     },
     "ape_los_on_target_p9973": {
      "kind": "ape_los",
-     "value": 0.0045509137882321065,
+     "value": 0.004495370643990259,
      "pass": 1,
      "rel_tol": 1e-06
     },
@@ -62,13 +62,13 @@
     },
     "ape_los_on_target_p9973": {
      "kind": "ape_los",
-     "value": 0.006645423728929299,
+     "value": 0.0066692871469723695,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "wheel_momentum_peak": {
      "kind": "wheel_momentum_peak",
-     "value": 0.001016514021557388,
+     "value": 0.0010165064994062183,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -93,13 +93,13 @@
     },
     "ape_los_on_target_p9973": {
      "kind": "ape_los",
-     "value": 0.006673307552873611,
+     "value": 0.006700980821797839,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "wheel_momentum_peak": {
      "kind": "wheel_momentum_peak",
-     "value": 0.007235813446611678,
+     "value": 0.007235813445771567,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -124,13 +124,13 @@
     },
     "ape_los_on_target_p9973": {
      "kind": "ape_los",
-     "value": 0.006578165662631014,
+     "value": 0.00656583913976873,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "wheel_momentum_peak": {
      "kind": "wheel_momentum_peak",
-     "value": 0.0035648840606390775,
+     "value": 0.0035648841224494676,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -155,13 +155,13 @@
     },
     "ape_los_on_target_p9973": {
      "kind": "ape_los",
-     "value": 0.009607284885502679,
+     "value": 0.009613100465331722,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "wheel_momentum_peak": {
      "kind": "wheel_momentum_peak",
-     "value": 0.008099223080236806,
+     "value": 0.008099404279301161,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -323,13 +323,13 @@
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 0.02420264437150836,
+     "value": 0.0242047855592534,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.005767983042004007,
+     "value": 0.00575514655104798,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -354,13 +354,13 @@
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 0.02420264437150836,
+     "value": 0.0242047855592534,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.005719361983365708,
+     "value": 0.005723821548401999,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -385,13 +385,13 @@
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 0.02420264437150836,
+     "value": 0.0242047855592534,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.005719361983365708,
+     "value": 0.005723821548401999,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -416,13 +416,13 @@
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 0.02420264437150836,
+     "value": 0.0242047855592534,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.005601770642783732,
+     "value": 0.005611747862251325,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -447,13 +447,13 @@
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 0.02420264437150836,
+     "value": 0.0242047855592534,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.005601770642783732,
+     "value": 0.005611747862251325,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -478,13 +478,13 @@
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 0.02420264437150836,
+     "value": 0.0242047855592534,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.005601770642783732,
+     "value": 0.005611747862251325,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -509,13 +509,13 @@
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 0.02420264437150836,
+     "value": 0.0242047855592534,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 8.816864426214538,
+     "value": 8.81686817736908,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -540,13 +540,13 @@
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 0.035858528010850335,
+     "value": 0.03585879409224421,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.02729430848926507,
+     "value": 0.02728716626860643,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -571,13 +571,13 @@
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 0.02420264437150836,
+     "value": 0.0242047855592534,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.00599621941355878,
+     "value": 0.005990288796855013,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -602,13 +602,13 @@
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 0.035858528010850335,
+     "value": 0.03585879409224421,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.02729430848926507,
+     "value": 0.02728716626860643,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -633,13 +633,13 @@
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 0.035858528010850335,
+     "value": 0.03585879409224421,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.02729430848926507,
+     "value": 0.02728716626860643,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -664,13 +664,13 @@
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 0.02420264437150836,
+     "value": 0.0242047855592534,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.005771371300667006,
+     "value": 0.0057606299589185875,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -695,13 +695,13 @@
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 0.02420264437150836,
+     "value": 0.0242047855592534,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.005771371300667006,
+     "value": 0.0057606299589185875,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -726,13 +726,13 @@
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 0.02420264437150836,
+     "value": 0.0242047855592534,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.005794259822658975,
+     "value": 0.005787516371259936,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -757,13 +757,13 @@
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 0.02420264437150836,
+     "value": 0.0242047855592534,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 5.92088933461116,
+     "value": 5.920808196145725,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -788,13 +788,13 @@
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 0.02420264437150836,
+     "value": 0.0242047855592534,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 36.682019887037775,
+     "value": 37.01361490256002,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -819,13 +819,13 @@
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 0.02420264437150836,
+     "value": 0.0242047855592534,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 36.682019887037775,
+     "value": 37.01361490256002,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -850,13 +850,13 @@
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 0.02420264437150836,
+     "value": 0.0242047855592534,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 36.682019887037775,
+     "value": 37.01361490256002,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -881,13 +881,13 @@
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 0.20074606280536683,
+     "value": 0.2007449549707808,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.20157294070458992,
+     "value": 0.2015769548089077,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -912,13 +912,13 @@
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 0.3418111510872761,
+     "value": 0.3417857925881689,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.34070996447410823,
+     "value": 0.34068098270539837,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -943,13 +943,13 @@
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 0.3418111510872761,
+     "value": 0.3417857925881689,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.34070996447410823,
+     "value": 0.34068098270539837,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -974,13 +974,13 @@
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 177.57037058727363,
+     "value": 177.57093122150576,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 178.1769736151755,
+     "value": 178.17750459904613,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -1005,13 +1005,13 @@
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 0.02420264437150836,
+     "value": 0.0242047855592534,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.005750551691666273,
+     "value": 0.0057412021403962996,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -1036,13 +1036,13 @@
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 0.02420264437150836,
+     "value": 0.0242047855592534,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.005750551691666273,
+     "value": 0.0057412021403962996,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -1067,13 +1067,13 @@
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 0.02420264437150836,
+     "value": 0.0242047855592534,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.005750551691666273,
+     "value": 0.0057412021403962996,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -1098,13 +1098,13 @@
     },
     "ape_los_p9973": {
      "kind": "ape_los",
-     "value": 0.0045918971646516865,
+     "value": 0.004617730408075931,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "ake_los_p9973": {
      "kind": "ake_los",
-     "value": 0.002288625260463019,
+     "value": 0.002289463720013138,
      "pass": 1,
      "rel_tol": 1e-06
     }
@@ -1129,13 +1129,13 @@
     },
     "ape_los_p9973": {
      "kind": "ape_los",
-     "value": 0.00461108484594042,
+     "value": 0.00459318986134705,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "ake_los_p9973": {
      "kind": "ake_los",
-     "value": 0.0022872960883078756,
+     "value": 0.0022857496193085377,
      "pass": 1,
      "rel_tol": 1e-06
     }
@@ -1154,13 +1154,13 @@
    "metrics": {
     "ape_los_last_orbit": {
      "kind": "ape_los",
-     "value": 11.91827939558986,
+     "value": 11.846907456233494,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ake_los_last_orbit": {
      "kind": "ake_los",
-     "value": 1.1614512788340503,
+     "value": 1.1625698324516114,
      "pass": 1,
      "rel_tol": 1e-06
     },
@@ -1191,13 +1191,13 @@
    "metrics": {
     "ape_los_last_orbit": {
      "kind": "ape_los",
-     "value": 11.91827939558986,
+     "value": 11.846907456233494,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ake_los_last_orbit": {
      "kind": "ake_los",
-     "value": 1.161451282360161,
+     "value": 1.1625698359702543,
      "pass": 1,
      "rel_tol": 1e-06
     },
@@ -1259,13 +1259,13 @@
    "metrics": {
     "ape_los_last_orbit": {
      "kind": "ape_los",
-     "value": 8.833245770767055,
+     "value": 8.828010833511343,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ake_los_last_orbit": {
      "kind": "ake_los",
-     "value": 1.0442854633143268,
+     "value": 1.0459025821329648,
      "pass": 1,
      "rel_tol": 1e-06
     },
@@ -1296,31 +1296,31 @@
    "metrics": {
     "ape_los_p9973": {
      "kind": "ape_los",
-     "value": 0.0050109074341424115,
+     "value": 0.004985289086959395,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.005631369947026887,
+     "value": 0.00559316167033992,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_3ax_p9973": {
      "kind": "ape",
-     "value": 0.006636336366045936,
+     "value": 0.0066168854462796125,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ake_los_p9973": {
      "kind": "ake_los",
-     "value": 0.0028591929771368133,
+     "value": 0.002860607812186771,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "rate_stability_p9973": {
      "kind": "rate_stability",
-     "value": 0.0032956318138971496,
+     "value": 0.003304069258626542,
      "pass": 1,
      "rel_tol": 1e-06
     },
@@ -1338,7 +1338,7 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 5.110063970588828,
+     "value": 5.110063941240524,
      "pass": 0,
      "rel_tol": 1e-06
     }
@@ -1357,19 +1357,19 @@
    "metrics": {
     "ape_los_p9973": {
      "kind": "ape_los",
-     "value": 0.010395019427768016,
+     "value": 0.010388936655834137,
      "pass": 0,
      "rel_tol": 1e-06
     },
     "ake_los_p9973": {
      "kind": "ake_los",
-     "value": 0.002832663605602216,
+     "value": 0.0028378801574557105,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 5.059320469501111,
+     "value": 5.0593204252384165,
      "pass": 0,
      "rel_tol": 1e-06
     }
@@ -1388,25 +1388,25 @@
    "metrics": {
     "ape_3axis_last_orbit": {
      "kind": "ape",
-     "value": 141.97382459767803,
+     "value": 141.80103018929458,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_last_orbit": {
      "kind": "ape_los",
-     "value": 11.571534213244291,
+     "value": 11.588299048141824,
      "pass": 0,
      "rel_tol": 1e-06
     },
     "ake_los_last_orbit": {
      "kind": "ake_los",
-     "value": 1.0415028542195677,
+     "value": 1.043125761300188,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 1.510819334303169,
+     "value": 1.510819082723504,
      "pass": 0,
      "rel_tol": 1e-06
     }
@@ -1425,13 +1425,13 @@
    "metrics": {
     "ake_3ax_max": {
      "kind": "ake",
-     "value": 0.024210961393177688,
+     "value": 0.024213097179155704,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "ake_los_max": {
      "kind": "ake_los",
-     "value": 0.02420264437150836,
+     "value": 0.0242047855592534,
      "pass": null,
      "rel_tol": 1e-06
     },
@@ -1456,7 +1456,7 @@
    "metrics": {
     "rate_max_blind": {
      "kind": "rate_stability",
-     "value": 0.09558737929851745,
+     "value": 0.0956989541259154,
      "pass": 1,
      "rel_tol": 1e-06
     }
@@ -1475,31 +1475,31 @@
    "metrics": {
     "ape_los_p9973": {
      "kind": "ape_los",
-     "value": 0.005497262411301789,
+     "value": 0.005512406590876157,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.0069066648044708535,
+     "value": 0.006913983819753729,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_3ax_p9973": {
      "kind": "ape",
-     "value": 0.007395209116692649,
+     "value": 0.007411237990914559,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ake_los_p9973": {
      "kind": "ake_los",
-     "value": 0.003058983404046589,
+     "value": 0.003062070817417167,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "rate_stability_p9973": {
      "kind": "rate_stability",
-     "value": 0.003545497866051598,
+     "value": 0.003552832339226482,
      "pass": 1,
      "rel_tol": 1e-06
     },
@@ -1511,13 +1511,13 @@
     },
     "wheel_momentum_peak": {
      "kind": "wheel_momentum_peak",
-     "value": 0.0026153320380319744,
+     "value": 0.0026153320332164545,
      "pass": null,
      "rel_tol": 1e-06
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 5.059323003800764,
+     "value": 5.059323007899532,
      "pass": 0,
      "rel_tol": 1e-06
     }
@@ -1536,19 +1536,19 @@
    "metrics": {
     "ape_los_p9973": {
      "kind": "ape_los",
-     "value": 1.2212992763793038,
+     "value": 1.2213156695400422,
      "pass": 0,
      "rel_tol": 1e-06
     },
     "ake_los_p9973": {
      "kind": "ake_los",
-     "value": 0.0027499249966488467,
+     "value": 0.0027530899962073755,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 5.013014393326634,
+     "value": 5.0130143805347,
      "pass": 0,
      "rel_tol": 1e-06
     }
@@ -1567,31 +1567,31 @@
    "metrics": {
     "ape_los_p9973": {
      "kind": "ape_los",
-     "value": 0.47247317768496216,
+     "value": 0.47259871457921676,
      "pass": 0,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.490907643580065,
+     "value": 0.491027175565124,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_3ax_p9973": {
      "kind": "ape",
-     "value": 0.47247317831331187,
+     "value": 0.4725987159694698,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ake_los_p9973": {
      "kind": "ake_los",
-     "value": 0.002989387444541737,
+     "value": 0.002985945015189389,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "rate_stability_p9973": {
      "kind": "rate_stability",
-     "value": 0.0401549046938779,
+     "value": 0.040145169636190484,
      "pass": 0,
      "rel_tol": 1e-06
     },
@@ -1603,13 +1603,13 @@
     },
     "wheel_momentum_peak": {
      "kind": "wheel_momentum_peak",
-     "value": 0.0025957422467362797,
+     "value": 0.0025957422429605864,
      "pass": null,
      "rel_tol": 1e-06
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 4.640837827472181,
+     "value": 4.640825429951762,
      "pass": 0,
      "rel_tol": 1e-06
     }
@@ -1628,31 +1628,31 @@
    "metrics": {
     "ape_los_p9973": {
      "kind": "ape_los",
-     "value": 0.0040880305719745,
+     "value": 0.004077979641973752,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.0049164704994758696,
+     "value": 0.004879823623003149,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_3ax_p9973": {
      "kind": "ape",
-     "value": 0.005830580444074152,
+     "value": 0.0058385169570660716,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ake_los_p9973": {
      "kind": "ake_los",
-     "value": 0.002606043327749564,
+     "value": 0.0026087521441700693,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "rate_stability_p9973": {
      "kind": "rate_stability",
-     "value": 0.002670471781151526,
+     "value": 0.0026772182937198287,
      "pass": 1,
      "rel_tol": 1e-06
     },
@@ -1670,7 +1670,7 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 5.110075455461794,
+     "value": 5.110075496454015,
      "pass": 0,
      "rel_tol": 1e-06
     }
@@ -1689,31 +1689,31 @@
    "metrics": {
     "ape_los_p9973": {
      "kind": "ape_los",
-     "value": 0.004904623226829622,
+     "value": 0.004903962413862571,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.006275284393008858,
+     "value": 0.006272495497691608,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_3ax_p9973": {
      "kind": "ape",
-     "value": 0.006108952036687011,
+     "value": 0.006106981720658257,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ake_los_p9973": {
      "kind": "ake_los",
-     "value": 0.002589829019125385,
+     "value": 0.0025921507148889524,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "rate_stability_p9973": {
      "kind": "rate_stability",
-     "value": 0.004958995566581821,
+     "value": 0.004963511444213047,
      "pass": 1,
      "rel_tol": 1e-06
     },
@@ -1731,7 +1731,7 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 3.601010981073819,
+     "value": 3.6010654640875743,
      "pass": 0,
      "rel_tol": 1e-06
     }
@@ -1750,31 +1750,31 @@
    "metrics": {
     "ape_los_p9973": {
      "kind": "ape_los",
-     "value": 0.004904623226829622,
+     "value": 0.004903962413862571,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.006275284393008858,
+     "value": 0.006272495497691608,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_3ax_p9973": {
      "kind": "ape",
-     "value": 0.006108952036687011,
+     "value": 0.006106981720658257,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ake_los_p9973": {
      "kind": "ake_los",
-     "value": 0.002589829019125385,
+     "value": 0.0025921507148889524,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "rate_stability_p9973": {
      "kind": "rate_stability",
-     "value": 0.004958995566581821,
+     "value": 0.004963511444213047,
      "pass": 1,
      "rel_tol": 1e-06
     },
@@ -1792,7 +1792,7 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 3.601010981073819,
+     "value": 3.6010654640875743,
      "pass": 0,
      "rel_tol": 1e-06
     }
@@ -1811,31 +1811,31 @@
    "metrics": {
     "ape_los_p9973": {
      "kind": "ape_los",
-     "value": 0.00521087818105148,
+     "value": 0.005216693358825723,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.005992904700675626,
+     "value": 0.006024188856711027,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_3ax_p9973": {
      "kind": "ape",
-     "value": 0.006208449408103432,
+     "value": 0.006214703467106506,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ake_los_p9973": {
      "kind": "ake_los",
-     "value": 0.002621509443773936,
+     "value": 0.002618155875942543,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "rate_stability_p9973": {
      "kind": "rate_stability",
-     "value": 0.003663253474093627,
+     "value": 0.0036550865054342046,
      "pass": 1,
      "rel_tol": 1e-06
     },
@@ -1847,43 +1847,43 @@
     },
     "wheel_momentum_peak": {
      "kind": "wheel_momentum_peak",
-     "value": 0.0026153309243770522,
+     "value": 0.0026153399799435377,
      "pass": null,
      "rel_tol": 1e-06
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 5.064943883403668,
+     "value": 5.064943884252562,
      "pass": 0,
      "rel_tol": 1e-06
     },
     "rpe_los_10s_p9973": {
      "kind": "rpe_los",
-     "value": 0.003875946763613592,
+     "value": 0.0038685841431953887,
      "pass": null,
      "rel_tol": 1e-06
     },
     "pde_los_10s_60s_max": {
      "kind": "pde_los",
-     "value": 0.005452481652601836,
+     "value": 0.005453356776429035,
      "pass": null,
      "rel_tol": 1e-06
     },
     "rke_los_10s_p9973": {
      "kind": "rke_los",
-     "value": 0.0018347278382662244,
+     "value": 0.0018344525945594397,
      "pass": null,
      "rel_tol": 1e-06
     },
     "power_margin_last_orbit": {
      "kind": "power_margin",
-     "value": -1.8661124537826825,
+     "value": -1.86611262354134,
      "pass": 0,
      "rel_tol": 1e-06
     },
     "battery_dod_last_orbit": {
      "kind": "battery_dod",
-     "value": 26.773235379630258,
+     "value": 26.773237179145347,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -1902,31 +1902,31 @@
    "metrics": {
     "ape_los_p9973": {
      "kind": "ape_los",
-     "value": 0.004129488046092765,
+     "value": 0.004133610951461771,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.006408195677094278,
+     "value": 0.006401405838096238,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_3ax_p9973": {
      "kind": "ape",
-     "value": 0.006694983731446592,
+     "value": 0.006689418895106789,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ake_los_p9973": {
      "kind": "ake_los",
-     "value": 0.0026475856663375668,
+     "value": 0.002647160678050549,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "rate_stability_p9973": {
      "kind": "rate_stability",
-     "value": 0.00666739292465511,
+     "value": 0.006673346067389492,
      "pass": 0,
      "rel_tol": 1e-06
     },
@@ -1944,7 +1944,7 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 5.065521836941337,
+     "value": 5.065521886255713,
      "pass": 0,
      "rel_tol": 1e-06
     }
@@ -1963,31 +1963,31 @@
    "metrics": {
     "ape_los_p9973": {
      "kind": "ape_los",
-     "value": 0.010768686309979852,
+     "value": 0.010767105232632905,
      "pass": 0,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.013058241342633083,
+     "value": 0.013062163658975268,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_3ax_p9973": {
      "kind": "ape",
-     "value": 0.010989053237397215,
+     "value": 0.010977830710923333,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ake_los_p9973": {
      "kind": "ake_los",
-     "value": 0.002594355560393134,
+     "value": 0.0025935459668788644,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "rate_stability_p9973": {
      "kind": "rate_stability",
-     "value": 0.0034770909151270986,
+     "value": 0.0034739712743929183,
      "pass": 1,
      "rel_tol": 1e-06
     },
@@ -1999,13 +1999,13 @@
     },
     "wheel_momentum_peak": {
      "kind": "wheel_momentum_peak",
-     "value": 0.0026157501349908952,
+     "value": 0.002615747133087782,
      "pass": null,
      "rel_tol": 1e-06
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 5.064934878071105,
+     "value": 5.064934903612146,
      "pass": 0,
      "rel_tol": 1e-06
     }
@@ -2024,31 +2024,31 @@
    "metrics": {
     "ape_los_p9973": {
      "kind": "ape_los",
-     "value": 0.005194248423922743,
+     "value": 0.00519133118440525,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.005976671104245434,
+     "value": 0.0060119629698248975,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_3ax_p9973": {
      "kind": "ape",
-     "value": 0.00616901791677923,
+     "value": 0.006196129406527528,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ake_los_p9973": {
      "kind": "ake_los",
-     "value": 0.0026062363186661022,
+     "value": 0.0026180985221728147,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "rate_stability_p9973": {
      "kind": "rate_stability",
-     "value": 0.0036388733759957046,
+     "value": 0.0036466546709565495,
      "pass": 1,
      "rel_tol": 1e-06
     },
@@ -2060,13 +2060,13 @@
     },
     "wheel_momentum_peak": {
      "kind": "wheel_momentum_peak",
-     "value": 0.0028211181118187063,
+     "value": 0.0028211181099762066,
      "pass": null,
      "rel_tol": 1e-06
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 5.037341823594263,
+     "value": 5.037341809686364,
      "pass": 0,
      "rel_tol": 1e-06
     }
@@ -2085,31 +2085,31 @@
    "metrics": {
     "ape_los_p9973": {
      "kind": "ape_los",
-     "value": 0.006415580650087425,
+     "value": 0.006397337442902039,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "ape_los_max": {
      "kind": "ape_los",
-     "value": 0.008882593897480251,
+     "value": 0.008849053597025262,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_3ax_p9973": {
      "kind": "ape",
-     "value": 0.006851145978425136,
+     "value": 0.006849851025762112,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ake_los_p9973": {
      "kind": "ake_los",
-     "value": 0.0026278306813284666,
+     "value": 0.0026321535507375774,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "rate_stability_p9973": {
      "kind": "rate_stability",
-     "value": 0.004648287595247625,
+     "value": 0.004639635159920841,
      "pass": 1,
      "rel_tol": 1e-06
     },
@@ -2127,7 +2127,7 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 5.514642445193488,
+     "value": 5.5146385414952945,
      "pass": 0,
      "rel_tol": 1e-06
     }
@@ -2152,31 +2152,31 @@
     },
     "ape_los_last_orbit": {
      "kind": "ape_los",
-     "value": 10.936027541171173,
+     "value": 10.93614254684919,
      "pass": 0,
      "rel_tol": 1e-06
     },
     "ape_3axis_last_orbit": {
      "kind": "ape",
-     "value": 140.83019909255432,
+     "value": 140.8320847159579,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ake_los_last_orbit": {
      "kind": "ake_los",
-     "value": 1.2988529204250683,
+     "value": 1.295622663488505,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "power_margin_last_orbit": {
      "kind": "power_margin",
-     "value": 4.987861323440636,
+     "value": 4.988366158424866,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "battery_dod_last_orbit": {
      "kind": "battery_dod",
-     "value": 4.7145074139464445,
+     "value": 4.714503113462099,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -2201,7 +2201,7 @@
     },
     "ape_los_last_half_orbit_p9973": {
      "kind": "ape_los",
-     "value": 0.0043115096609161645,
+     "value": 0.004303164520464098,
      "pass": 1,
      "rel_tol": 1e-06
     }
@@ -2226,7 +2226,7 @@
     },
     "ape_los_last_half_orbit_p9973": {
      "kind": "ape_los",
-     "value": 0.004891491936110574,
+     "value": 0.004874021165640989,
      "pass": 1,
      "rel_tol": 1e-06
     }
@@ -2251,7 +2251,7 @@
     },
     "ape_los_last_half_orbit_p9973": {
      "kind": "ape_los",
-     "value": 0.004891491936110574,
+     "value": 0.004874021165640989,
      "pass": 1,
      "rel_tol": 1e-06
     }
@@ -2276,19 +2276,19 @@
     },
     "ape_los_last_half_orbit_p9973": {
      "kind": "ape_los",
-     "value": 0.005443631847147735,
+     "value": 0.005430120939397411,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "power_margin_last_orbit": {
      "kind": "power_margin",
-     "value": -1.865948234680328,
+     "value": -1.8659482644861312,
      "pass": 0,
      "rel_tol": 1e-06
     },
     "battery_dod_last_orbit": {
      "kind": "battery_dod",
-     "value": 32.60014744218801,
+     "value": 32.600148969842316,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -2313,7 +2313,7 @@
     },
     "ape_los_last_half_orbit_p9973": {
      "kind": "ape_los",
-     "value": 0.005367189545343582,
+     "value": 0.005379215613691949,
      "pass": 1,
      "rel_tol": 1e-06
     }
@@ -2338,7 +2338,7 @@
     },
     "ape_los_last_half_orbit_p9973": {
      "kind": "ape_los",
-     "value": 0.006878736118102699,
+     "value": 0.006909413627371829,
      "pass": 1,
      "rel_tol": 1e-06
     }
@@ -2357,37 +2357,37 @@
    "metrics": {
     "ape_3axis_last_orbit": {
      "kind": "ape",
-     "value": 141.03207568210263,
+     "value": 141.00747367427292,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_last_orbit": {
      "kind": "ape_los",
-     "value": 10.594768863832462,
+     "value": 10.590645498950952,
      "pass": 0,
      "rel_tol": 1e-06
     },
     "ake_los_last_orbit": {
      "kind": "ake_los",
-     "value": 1.590233830127777,
+     "value": 1.5908006285696876,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 1.5106018107098993,
+     "value": 1.5106020461273901,
      "pass": 0,
      "rel_tol": 1e-06
     },
     "power_margin_last_orbit": {
      "kind": "power_margin",
-     "value": 4.934861154944357,
+     "value": 4.932826120990094,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "battery_dod_last_orbit": {
      "kind": "battery_dod",
-     "value": 4.715874161383848,
+     "value": 4.715871574433428,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -2406,25 +2406,25 @@
    "metrics": {
     "ape_3axis_last_orbit": {
      "kind": "ape",
-     "value": 179.9701116581868,
+     "value": 179.99497747206303,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_last_orbit": {
      "kind": "ape_los",
-     "value": 9.710271725579632,
+     "value": 9.711083386528424,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "ake_los_last_orbit": {
      "kind": "ake_los",
-     "value": 1.5687989133537006,
+     "value": 1.5679638652320367,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 1.230983170818623,
+     "value": 1.2309839989174103,
      "pass": 0,
      "rel_tol": 1e-06
     }
@@ -2449,13 +2449,13 @@
     },
     "recovery_to_ape": {
      "kind": "time_to_threshold",
-     "value": 86.72333333333336,
+     "value": 86.67333333333336,
      "pass": null,
      "rel_tol": 0.01
     },
     "ape_los_last_orbit": {
      "kind": "ape_los",
-     "value": 12.299338058796037,
+     "value": 12.286354659906928,
      "pass": 0,
      "rel_tol": 1e-06
     }
@@ -2474,13 +2474,13 @@
    "metrics": {
     "settle_time_after_slew": {
      "kind": "time_to_threshold",
-     "value": 5.699999999999989,
+     "value": 5.800000000000011,
      "pass": 1,
      "rel_tol": 0.01
     },
     "ape_los_on_target_p9973": {
      "kind": "ape_los",
-     "value": 0.003656292394120877,
+     "value": 0.0036692242327496095,
      "pass": 1,
      "rel_tol": 1e-06
     },
@@ -2511,13 +2511,13 @@
     },
     "ape_los_on_target_p9973": {
      "kind": "ape_los",
-     "value": 0.006004947616256008,
+     "value": 0.006035702902230678,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "wheel_momentum_peak": {
      "kind": "wheel_momentum_peak",
-     "value": 0.00010571910769427867,
+     "value": 0.00010570200967895406,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -2542,13 +2542,13 @@
     },
     "ape_los_on_target_p9973": {
      "kind": "ape_los",
-     "value": 0.006004947616256008,
+     "value": 0.006035702902230678,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "wheel_momentum_peak": {
      "kind": "wheel_momentum_peak",
-     "value": 0.00010571910769427867,
+     "value": 0.00010570200967895406,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -2573,13 +2573,13 @@
     },
     "ape_los_on_target_p9973": {
      "kind": "ape_los",
-     "value": 0.00627403823393867,
+     "value": 0.006279690897718261,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "wheel_momentum_peak": {
      "kind": "wheel_momentum_peak",
-     "value": 0.0027590458322871193,
+     "value": 0.002759045826315093,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -2604,13 +2604,13 @@
     },
     "ape_los_on_target_p9973": {
      "kind": "ape_los",
-     "value": 0.004678718765819426,
+     "value": 0.004695183147759004,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "wheel_momentum_peak": {
      "kind": "wheel_momentum_peak",
-     "value": 0.0027591501903406774,
+     "value": 0.002759147105975824,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -2635,13 +2635,13 @@
     },
     "ape_los_on_target_p9973": {
      "kind": "ape_los",
-     "value": 0.010948972611099873,
+     "value": 0.010983447368913556,
      "pass": 0,
      "rel_tol": 1e-06
     },
     "wheel_momentum_peak": {
      "kind": "wheel_momentum_peak",
-     "value": 0.002758947527465606,
+     "value": 0.0027589475254713755,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -2666,13 +2666,13 @@
     },
     "ape_los_on_target_p9973": {
      "kind": "ape_los",
-     "value": 0.006253439591198469,
+     "value": 0.006248683580439136,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "wheel_momentum_peak": {
      "kind": "wheel_momentum_peak",
-     "value": 0.002795501995225482,
+     "value": 0.002795501993648241,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -2697,7 +2697,7 @@
     },
     "ape_los_on_target_p9973": {
      "kind": "ape_los",
-     "value": 0.007246462761422633,
+     "value": 0.007226353865130228,
      "pass": 1,
      "rel_tol": 1e-06
     },
@@ -2728,13 +2728,13 @@
     },
     "power_margin_orbit": {
      "kind": "power_margin",
-     "value": 0.9352432713365638,
+     "value": 0.9352375107241967,
      "pass": null,
      "rel_tol": 1e-06
     },
     "battery_dod_orbit": {
      "kind": "battery_dod",
-     "value": 10.544584368024212,
+     "value": 10.544583811223529,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -2753,19 +2753,19 @@
    "metrics": {
     "sun_angle_p95": {
      "kind": "sun_angle",
-     "value": 0.005968701459833939,
+     "value": 0.005968506972129317,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "power_margin_orbit": {
      "kind": "power_margin",
-     "value": -1.2024346309480185,
+     "value": -1.2024346195442073,
      "pass": 0,
      "rel_tol": 1e-06
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 5.025921014240539,
+     "value": 5.025920963050653,
      "pass": 0,
      "rel_tol": 1e-06
     }
@@ -2784,19 +2784,19 @@
    "metrics": {
     "sun_angle_last_orbit_p95": {
      "kind": "sun_angle",
-     "value": 87.28503425865365,
+     "value": 87.28358383933862,
      "pass": 0,
      "rel_tol": 1e-06
     },
     "power_margin_last_orbit": {
      "kind": "power_margin",
-     "value": 4.8256821129995915,
+     "value": 4.825683744134119,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 1.5111289684520328,
+     "value": 1.5111289569683877,
      "pass": 0,
      "rel_tol": 1e-06
     }
@@ -2858,19 +2858,19 @@
    "metrics": {
     "ape_los_p9973": {
      "kind": "ape_los",
-     "value": 0.011361974281160403,
+     "value": 0.011341529424541362,
      "pass": 0,
      "rel_tol": 1e-06
     },
     "ake_los_p9973": {
      "kind": "ake_los",
-     "value": 0.011078657452244876,
+     "value": 0.011064117395567426,
      "pass": 0,
      "rel_tol": 1e-06
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 5.064443538553259,
+     "value": 5.064443523915846,
      "pass": 0,
      "rel_tol": 1e-06
     }

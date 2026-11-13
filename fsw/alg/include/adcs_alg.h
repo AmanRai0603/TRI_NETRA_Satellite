@@ -16,6 +16,8 @@ typedef struct { int64_t v[6]; } pc_a6i;
 typedef struct { double v[26]; } pc_a26f;
 typedef struct { double v[195]; } pc_a195f;
 typedef struct { pc_a195f v[26]; } pc_a26a195f;
+typedef struct { double v[11]; } pc_a11f;
+typedef struct { pc_a11f v[77]; } pc_a77a11f;
 typedef struct { double v[14]; } pc_a14f;
 typedef struct { double v[120]; } pc_a120f;
 typedef struct { double v[6]; } pc_a6f;
@@ -268,11 +270,77 @@ pc_a3a3f frames_gmst_rot(double jd);
 /* - returns p */
 pc_a3a3f frames_prec_rot(double jd);
 
-/* J2000 to the Earth-fixed frame: precession to the mean equator of date, then GMST (nutation and */
-/* polar motion left out). */
+/* The IAU 2000B luni-solar nutation series: the 77 terms of McCarthy and Luzum (2003), An abridged model of the */
+/* precession-nutation of the celestial pole, Celestial Mechanics and Dynamical Astronomy 85:37-49 (the abridgement of the */
+/* IAU 2000A series of the IERS Conventions 2003; IERS Conventions 2010, TN36, section 5.5.1). A row: the integer multipliers of */
+/* the Delaunay arguments l, l', F, D, Omega, then the coefficients of the nutation in longitude (sin, t sin, cos) and in */
+/* obliquity (cos, t cos, sin), in units of 0.1 microarcsecond (per Julian century for the t columns). The rows are those of */
+/* the nut00b table of ERFA 2.0.1.5 (the open version of the IAU SOFA library; pyerfa 2.0.1.5, taken from its compiled */
+/* table), the first 77 rows of its IAU 2000A luni-solar table; the printed paper was not to hand, so the transcription is */
+/* not checked against it. The developer's transcription (S12.5a), unsigned. */
+/* Data: NUT00B, its values from the design. */
+extern const pc_a77a11f frames_DATA_NUT00B;
+
+typedef struct { double dpsi; double deps; } frames_nut00b_out;
+
+/* The IAU 2000B nutation in longitude and in obliquity [rad] at t TT centuries since J2000: the 77 luni-solar terms */
+/* summed smallest first, the Delaunay arguments linear in t (McCarthy and Luzum 2003: 485868.249036 + 1717915923.2178 t */
+/* and the like, arcseconds), and the fixed offsets that stand for the planetary terms (-0.135 and +0.388 milliarcseconds). */
+/* What is left out of the 2000A series: its 601 other luni-solar terms, its planetary terms, and the small J2-rate */
+/* scaling of the IAU 2006 adaptation (the nut06a factor, about 1e-6 of the nutation, 1e-5 arcsecond); the abridgement's own */
+/* error is 1 milliarcsecond. */
+/* - t */
+/* - returns dpsi */
+/* - returns deps */
+frames_nut00b_out frames_nut00b(double t);
+
+typedef struct { double gam; double dphi; double psi; double eps; } frames_fw06_out;
+
+/* The IAU 2006 precession as Fukushima-Williams angles [rad] at t TT centuries: gamma_bar, the difference dphi = phi_bar - */
+/* epsilon_A of the other two (phi_bar is the angle between the ecliptic pole of J2000 and the pole of date, epsilon_A the */
+/* mean obliquity, and the two differ by a few milliarcseconds: the polynomial of the difference is the difference of the */
+/* polynomials, so it carries no rounding of two angles of 0.41 rad), psi_bar (the frame bias with the precession of the */
+/* equator and the ecliptic) and epsilon_A itself. The polynomials are those ERFA 2.0.1.5's pfw06 and obl06 hold (the IAU 2006 */
+/* precession, the P03 solution of Capitaine, Wallace and Chapront, A&A 412:567 (2003), in the Fukushima-Williams form of */
+/* Wallace and Capitaine, A&A 459:981 (2006): the sources ERFA names; the papers were not to hand and this citation is not */
+/* checked against them). phi_bar of ERFA's pfw06 is dphi + epsilon_A here to 1.2e-16 rad (the rounding of the angle) over 2025.0 */
+/* to 2030.0 (tests/test_onboard_frame_oracle.py). */
+/* - t */
+/* - returns gam */
+/* - returns dphi */
+/* - returns psi */
+/* - returns eps */
+frames_fw06_out frames_fw06(double t);
+
+/* The matrix R1(-eps) R3(-psi) R1(eps + dphi) R3(gam) (ERFA's fw2m of the angles gam, eps + dphi, psi, eps): from the J2000 */
+/* frame to the true equator and equinox of date when psi and eps carry the nutation. R1(-eps) R3(-psi) R1(eps) is written out */
+/* (its elements with 1 - cos(psi) as 2 sin^2(psi/2)) and the small rotation R1(dphi) R3(gam) applied after it, so that the */
+/* small elements of the product (the pole's offset from the J2000 pole, 1e-5 to 1e-3) are sums of small terms, not the */
+/* difference of terms of order 1. */
+/* - gam */
+/* - dphi */
+/* - psi */
+/* - eps */
+/* - returns r */
+pc_a3a3f frames_npb(double gam, double dphi, double psi, double eps);
+
+/* J2000 to the Earth-fixed frame of the onboard clock, at the UTC Julian date jd and the Earth orientation eop = [UT1 - UTC */
+/* [s], pole xp ["], pole yp ["]] the flight parameters hold (set by telecommand): C = W R3(GAST) N P, the IAU 2006 */
+/* precession and frame bias with the IAU 2000B nutation (fw06, nut00b, npb), the Greenwich apparent sidereal time GAST = the */
+/* IAU 2006 mean sidereal time (the Earth rotation angle of UT1 = UTC + (UT1 - UTC) plus the polynomial ERFA 2.0.1.5's gmst06 */
+/* holds, Capitaine, Wallace and Chapront, A&A 432:355 (2005), the source it names, not checked against the paper) plus the equation of the equinoxes dpsi cos(epsilon_A), and the */
+/* polar motion W = R1(-yp) R2(-xp). The Earth rotation angle takes the whole days and the fraction of the date apart and adds */
+/* UT1 - UTC to the fraction, as ERFA's era00 takes its two-part date, so that a date held to 4e-5 s (a double of 2.46e6 days) */
+/* does not round the change of UT1 - UTC. TT = UTC + 69.184 s (TAI - UTC 37 s since 2017-01-01 plus 32.184 s) is a constant here: */
+/* 1 s of TT moves the precession and nutation by about 1e-6 arcsecond, and the next leap second moves the clock's UTC, not */
+/* the frame. Left out: the complementary terms of the equation of the equinoxes (at most 2.7 milliarcseconds), the TIO */
+/* locator s' (about 1e-5 arcsecond), and the free core nutation and the celestial-pole offsets dX, dY (the IERS publishes */
+/* them; a fraction of a milliarcsecond): all far below an arcsecond. Over 2025.0 to 2030.0 it is within 3 milliarcseconds of the */
+/* IAU 2006/2000A chain of ERFA's c2t06a (2.6 at the eight epochs of tests/test_onboard_frame_oracle.py). */
 /* - jd */
+/* - eop */
 /* - returns c */
-pc_a3a3f frames_eci2ecef(double jd);
+pc_a3a3f frames_eci2ecef(double jd, pc_a3f eop);
 
 /* The decimal year of a Julian date. */
 /* - jd */
@@ -316,14 +384,15 @@ pc_a195f frames_igrf_gh(double dy);
 /* - returns b */
 pc_a3f frames_igrf_ned(pc_a195f gh, double lat, double lon, double alt_km, int64_t nmax0);
 
-/* The field [T] at an inertial position at a Julian date: to the Earth-fixed frame, geodetic */
+/* The field [T] at an inertial position at a Julian date and Earth orientation eop: to the Earth-fixed frame, geodetic */
 /* coordinates, IGRF in north-east-down, back to J2000. */
 /* - r_eci */
 /* - jd */
+/* - eop */
 /* - gh */
 /* - nmax */
 /* - returns b */
-pc_a3f frames_field_eci(pc_a3f r_eci, double jd, pc_a195f gh, int64_t nmax);
+pc_a3f frames_field_eci(pc_a3f r_eci, double jd, pc_a3f eop, pc_a195f gh, int64_t nmax);
 
 typedef struct { pc_a4f q; pc_a3f b; pc_a6a6f p; } estimation_mekf_init_out;
 
@@ -527,13 +596,14 @@ navorbit_verlet_out navorbit_verlet(pc_a3f r0, pc_a3f v0, double h, double mu);
 typedef struct { pc_a3f r; pc_a3f v; } navorbit_fix_eci_out;
 
 /* An Earth-fixed fix taken to J2000 at the Julian date jd: r = C' r_e, v = C' (v_e + w_E x r_e), C the onboard */
-/* eci2ecef at jd. */
+/* eci2ecef at jd and the Earth orientation eop. */
 /* - r_e */
 /* - v_e */
 /* - jd */
+/* - eop */
 /* - returns r */
 /* - returns v */
-navorbit_fix_eci_out navorbit_fix_eci(pc_a3f r_e, pc_a3f v_e, double jd);
+navorbit_fix_eci_out navorbit_fix_eci(pc_a3f r_e, pc_a3f v_e, double jd, pc_a3f eop);
 
 typedef struct { pc_a3f r; pc_a3f v; bool have_r; } navorbit_onboard_orbit_out;
 
@@ -553,10 +623,11 @@ typedef struct { pc_a3f r; pc_a3f v; bool have_r; } navorbit_onboard_orbit_out;
 /* - jd */
 /* - dt */
 /* - mu */
+/* - eop */
 /* - returns r */
 /* - returns v */
 /* - returns have_r */
-navorbit_onboard_orbit_out navorbit_onboard_orbit(pc_a3f r0, pc_a3f v0, bool have, bool ok, pc_a3f r_fix, pc_a3f v_fix, bool ecef, double lat, double jd, double dt, double mu);
+navorbit_onboard_orbit_out navorbit_onboard_orbit(pc_a3f r0, pc_a3f v0, bool have, bool ok, pc_a3f r_fix, pc_a3f v_fix, bool ecef, double lat, double jd, double dt, double mu, pc_a3f eop);
 
 /* The guidance a controller state flies: 0 nadir, 1 target, 2 slew, 4 Sun (states as adcs_params.h: */
 /* 3 target_fine, 4 slew_fine, 9 sun_mtq, 10 sun_fine). */

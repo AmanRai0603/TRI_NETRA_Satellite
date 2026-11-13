@@ -206,6 +206,19 @@ pub fn set_override(s: &mut Value, k: &str, v: &str) -> Result<(), Error> {
 /// env_epoch_span (E14, DR-env-002): the dates the design's data covers. The EOP snapshot, the leap-second table and the
 /// field (IGRF-14) are valid between its two Julian dates; an epoch outside them is refused by name, not flown on values the
 /// data does not hold (the field and the EOP would be extrapolated, TAI - UTC a guess).
+/// The Earth orientation a ground uplink would load into the flight software at the run's epoch (DR-env-002, S12.5; the blob's
+/// `eop_dut1` [s], `eop_xp` and `eop_yp` [arcsec], what telecommand 0x02 sets): UT1 - UTC and the pole of env_eop_snapshot at the
+/// epoch, linearly interpolated as the truth's frame takes them. A flight blob carries one value for the run; the day's change
+/// (about a millisecond of UT1 - UTC, a tenth of a milliarcsecond of pole) is below the onboard frame's own error.
+pub fn fsw_eop_uplink(epoch_utc: &[f64; 6]) -> Result<[f64; 3], Error> {
+    static EOP: std::sync::OnceLock<adcs_pop::eop::Eop> = std::sync::OnceLock::new();
+    let e = EOP.get_or_init(adcs_pop::eop::Eop::from_snapshot);
+    let t = adcs_pop::time::convert_utc(epoch_utc[0], epoch_utc[1], epoch_utc[2], epoch_utc[3], epoch_utc[4], epoch_utc[5], 0.0);
+    let a = e.at(t.utc_mjd, adcs_pop::frames::Build::A, false).map_err(|x| Error::refused(format!("the Earth orientation of the flight blob at MJD {}: {x}", t.utc_mjd)))?;
+    let as_ = std::f64::consts::PI/648000.0;
+    Ok([a.dut1, a.xp/as_, a.yp/as_])
+}
+
 fn check_epoch_span(what: &str, shown: f64, jd: f64, span: [f64; 2]) -> Result<(), Error> {
     if jd >= span[0] && jd <= span[1] { return Ok(()); }
     Err(Error::refused(format!("{what} = {shown} (UTC Julian date {jd}) is outside env_epoch_span, Julian dates {} to {}: the design's EOP, leap-second and field data do not cover it", span[0], span[1])))
@@ -786,6 +799,8 @@ impl Config {
             return Err(Error::refused(format!("time.fsw_boot_age_s = {}: a number of seconds, not negative", cfg.fsw_boot_age_s)));
         }
         cfg.params.jd0 -= cfg.fsw_boot_age_s/86400.0;       // its blob holds the date it booted at
+        // the Earth orientation of the flight's frame: what the ground's uplink holds at the run's epoch (env_eop_snapshot)
+        [cfg.params.eop_dut1, cfg.params.eop_xp, cfg.params.eop_yp] = fsw_eop_uplink(&cfg.epoch_utc)?;
         cfg.check()?;
         // the flexible mode on the truth body (dyn_truth_plant): |delta|^2 is mpart of the coupled axis's inertia
         if cfg.case.get("flex.fmode").is_finite() {

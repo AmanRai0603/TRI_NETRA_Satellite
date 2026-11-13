@@ -6,7 +6,7 @@
 
 void adcs_gmst_rot(double jd, adcs_real C[3][3]);          /* mean of date -> ECEF (GMST) */
 void adcs_prec_rot(double jd, adcs_real P[3][3]);          /* J2000 -> mean of date (IAU-76) */
-void adcs_eci2ecef(double jd, adcs_real C[3][3]);          /* J2000 -> ECEF */
+void adcs_eci2ecef(double jd, const adcs_real eop[3], adcs_real C[3][3]);   /* J2000 -> ECEF; eop = UT1 - UTC [s], xp ["], yp ["] */
 double adcs_decyear(double jd);
 void adcs_sun_model(double jd, adcs_real s[3]);             /* unit, J2000 */
 void adcs_geodetic(const adcs_real r_ecef[3], adcs_real *lat, adcs_real *lon, adcs_real *h);
@@ -14,6 +14,6 @@ void adcs_geodetic(const adcs_real r_ecef[3], adcs_real *lat, adcs_real *lon, ad
 void adcs_igrf_gh(double decyear, adcs_real gh[195]);
 void adcs_igrf_ned(const adcs_real gh[195], adcs_real lat, adcs_real lon, adcs_real alt_km, int nmax, adcs_real B[3]);
 /* field in ECI [T] at r_eci [m] */
-void adcs_field_eci(const adcs_real r_eci[3], double jd, const adcs_real gh[195], int nmax, adcs_real B[3]);
+void adcs_field_eci(const adcs_real r_eci[3], double jd, const adcs_real eop[3], const adcs_real gh[195], int nmax, adcs_real B[3]);
 
 #endif
