@@ -3,22 +3,22 @@
  "images": [
   {
    "file": "design-today-2026-10-06.posix.tnfsw",
-   "bytes": 1138688,
+   "bytes": 1208320,
    "target": "posix",
    "design_version": "today 2026-10-06",
-   "design_fingerprint": "bcadf29b5fdb195a9e02d192a86fb11ca32785294be0c001a578c5be1d0e813b",
-   "runtime_version": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg de1905be024c8a82",
+   "design_fingerprint": "b25aba885f8f2244281cc23962d24f3c9af80fe54148011c416ba31203ef93fd",
+   "runtime_version": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg 01e2e89cb3b39b4f",
    "toolchain": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0; GNU ar (GNU Binutils for Ubuntu) 2.42",
-   "built_at": "2026-11-07T15:40:32Z",
+   "built_at": "2026-11-13T03:53:59Z",
    "built_by": "root",
-   "image_sha256": "ff58a69be404e9f8fb320c47ee976c0ea332d3421d7c204414dde4084671c159",
+   "image_sha256": "f22f81c566188fde61744551cf1d8fd8db26d46b8d9e0d0dd074ebc0b7aa46d9",
    "files": 111,
    "signed": false,
    "checks": [
     {
      "name": "flight_build gen --check",
      "passed": true,
-     "note": "every generated source is what the design gives (algorithms de1905be024c8a82)"
+     "note": "every generated source is what the design gives (algorithms 01e2e89cb3b39b4f)"
     },
     {
      "name": "from_design: the flight algorithm blocks",
@@ -33,33 +33,33 @@
     {
      "name": "vectors",
      "passed": true,
-     "note": "pcode: 96 functions (27 by name through the dispatcher), 3270 calls, 49409 values, 49351 bit for bit, worst relative difference 6.6e-15; 0 failure(s); on the host build of these sources (fsw/build/test_pcode, the library posix seals)"
+     "note": "pcode: 101 functions (32 by name through the dispatcher), 3430 calls, 50113 values, 50027 bit for bit, worst relative difference 5.7e-14; 0 failure(s); on the host build of these sources (fsw/build/test_pcode, the library posix seals)"
     },
     {
      "name": "build id",
      "passed": true,
-     "note": "the image carries 'trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg de1905be024c8a82'"
+     "note": "the image carries 'trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg 01e2e89cb3b39b4f'"
     }
    ]
   },
   {
    "file": "design-today-2026-10-06.posix-rs.tnfsw",
-   "bytes": 8921088,
+   "bytes": 8986624,
    "target": "posix-rs",
    "design_version": "today 2026-10-06",
-   "design_fingerprint": "bcadf29b5fdb195a9e02d192a86fb11ca32785294be0c001a578c5be1d0e813b",
-   "runtime_version": "trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1) alg de1905be024c8a82",
+   "design_fingerprint": "b25aba885f8f2244281cc23962d24f3c9af80fe54148011c416ba31203ef93fd",
+   "runtime_version": "trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1) alg 01e2e89cb3b39b4f",
    "toolchain": "rustc 1.94.1 (e408947bf 2026-03-25); cargo 1.94.1 (29ea6fb6a 2026-03-24)",
-   "built_at": "2026-11-07T15:40:42Z",
+   "built_at": "2026-11-13T03:54:05Z",
    "built_by": "root",
-   "image_sha256": "77559f5e43cd4d1de6c2741e86d6648113975fa9c8637e2a5c45ab688f4b07e3",
+   "image_sha256": "131f6d47d39f2fa55296db9e125aba1242799f7b2c59f1699da43baf6c70bdaa",
    "files": 111,
    "signed": false,
    "checks": [
     {
      "name": "flight_build gen --check",
      "passed": true,
-     "note": "every generated source is what the design gives (algorithms de1905be024c8a82)"
+     "note": "every generated source is what the design gives (algorithms 01e2e89cb3b39b4f)"
     },
     {
      "name": "from_design: the flight algorithm blocks",
@@ -69,33 +69,33 @@
     {
      "name": "vectors",
      "passed": true,
-     "note": "96 functions (42 by name through the dispatcher), 3270 calls, 49409 values, 49351 bit for bit, worst relative difference 6.592861854817441e-15; on the host build of these sources (cargo test --test pcode, std)"
+     "note": "101 functions (47 by name through the dispatcher), 3430 calls, 50113 values, 50027 bit for bit, worst relative difference 5.6630434964908815e-14; on the host build of these sources (cargo test --test pcode, std)"
     },
     {
      "name": "build id",
      "passed": true,
-     "note": "the image carries 'trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1) alg de1905be024c8a82'"
+     "note": "the image carries 'trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1) alg 01e2e89cb3b39b4f'"
     }
    ]
   },
   {
    "file": "design-today-2026-10-06.qemu.tnfsw",
-   "bytes": 1118208,
+   "bytes": 1179648,
    "target": "qemu",
    "design_version": "today 2026-10-06",
-   "design_fingerprint": "bcadf29b5fdb195a9e02d192a86fb11ca32785294be0c001a578c5be1d0e813b",
-   "runtime_version": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg de1905be024c8a82",
+   "design_fingerprint": "b25aba885f8f2244281cc23962d24f3c9af80fe54148011c416ba31203ef93fd",
+   "runtime_version": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg 01e2e89cb3b39b4f",
    "toolchain": "arm-none-eabi-gcc (15:13.2.rel1-2) 13.2.1 20231009",
-   "built_at": "2026-11-07T15:40:52Z",
+   "built_at": "2026-11-13T03:54:12Z",
    "built_by": "root",
-   "image_sha256": "cc11ed0af565d857cb42dab5fbae4e1958b15af88c99331f1fb373babeedd479",
+   "image_sha256": "4f2662b718f684f305c3bc3248f595f530c5efa16c9532e687f04954595f01ad",
    "files": 111,
    "signed": false,
    "checks": [
     {
      "name": "flight_build gen --check",
      "passed": true,
-     "note": "every generated source is what the design gives (algorithms de1905be024c8a82)"
+     "note": "every generated source is what the design gives (algorithms 01e2e89cb3b39b4f)"
     },
     {
      "name": "from_design: the flight algorithm blocks",
@@ -110,38 +110,38 @@
     {
      "name": "vectors",
      "passed": true,
-     "note": "pcode: 96 functions (27 by name through the dispatcher), 3270 calls, 49409 values, 49351 bit for bit, worst relative difference 6.6e-15; 0 failure(s); on the host build of these sources (fsw/build/test_pcode, the library posix seals); the Cortex-M image is not run on its vectors here"
+     "note": "pcode: 101 functions (32 by name through the dispatcher), 3430 calls, 50113 values, 50027 bit for bit, worst relative difference 5.7e-14; 0 failure(s); on the host build of these sources (fsw/build/test_pcode, the library posix seals); the Cortex-M image is not run on its vectors here"
     },
     {
      "name": "stack",
      "passed": true,
-     "note": "deepest stack 13560 bytes of the 32768 reserved (41 %) (tools/fsw_stack.py)"
+     "note": "deepest stack 13576 bytes of the 32768 reserved (41 %) (tools/fsw_stack.py)"
     },
     {
      "name": "build id",
      "passed": true,
-     "note": "the image carries 'trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg de1905be024c8a82'"
+     "note": "the image carries 'trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg 01e2e89cb3b39b4f'"
     }
    ]
   },
   {
    "file": "design-today-2026-10-06.qemu-rs.tnfsw",
-   "bytes": 1835008,
+   "bytes": 1892352,
    "target": "qemu-rs",
    "design_version": "today 2026-10-06",
-   "design_fingerprint": "bcadf29b5fdb195a9e02d192a86fb11ca32785294be0c001a578c5be1d0e813b",
-   "runtime_version": "trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1) alg de1905be024c8a82",
+   "design_fingerprint": "b25aba885f8f2244281cc23962d24f3c9af80fe54148011c416ba31203ef93fd",
+   "runtime_version": "trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1) alg 01e2e89cb3b39b4f",
    "toolchain": "rustc 1.94.1 (e408947bf 2026-03-25); arm-none-eabi-gcc (15:13.2.rel1-2) 13.2.1 20231009",
-   "built_at": "2026-11-07T15:40:54Z",
+   "built_at": "2026-11-13T03:54:15Z",
    "built_by": "root",
-   "image_sha256": "1daba1f20c8143aff3674ed9a7c710a682abd4c3e3a09bc764a0b6905aeb9cc5",
+   "image_sha256": "d467cb132c8be92d989d1f31ae14a8819997534d3719793f699611ca353a23e3",
    "files": 111,
    "signed": false,
    "checks": [
     {
      "name": "flight_build gen --check",
      "passed": true,
-     "note": "every generated source is what the design gives (algorithms de1905be024c8a82)"
+     "note": "every generated source is what the design gives (algorithms 01e2e89cb3b39b4f)"
     },
     {
      "name": "from_design: the flight algorithm blocks",
@@ -151,7 +151,7 @@
     {
      "name": "vectors",
      "passed": true,
-     "note": "96 functions (42 by name through the dispatcher), 3270 calls, 49409 values, 49351 bit for bit, worst relative difference 6.592861854817441e-15; on the host build of these sources (cargo test --test pcode, std); the Cortex-M image is not run on its vectors here"
+     "note": "101 functions (47 by name through the dispatcher), 3430 calls, 50113 values, 50027 bit for bit, worst relative difference 5.6630434964908815e-14; on the host build of these sources (cargo test --test pcode, std); the Cortex-M image is not run on its vectors here"
     },
     {
      "name": "stack",
@@ -161,7 +161,7 @@
     {
      "name": "build id",
      "passed": true,
-     "note": "the image carries 'trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1) alg de1905be024c8a82'"
+     "note": "the image carries 'trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1) alg 01e2e89cb3b39b4f'"
     }
    ]
   }
