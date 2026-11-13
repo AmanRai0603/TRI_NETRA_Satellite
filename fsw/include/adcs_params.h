@@ -5,8 +5,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define ADCS_PARAMS_PAYLOAD 2282u
-#define ADCS_PARAMS_BLOB_SIZE 2298u
+#define ADCS_PARAMS_PAYLOAD 2283u
+#define ADCS_PARAMS_BLOB_SIZE 2299u
 #define ADCS_MAX_ROTORS 8
 #define ADCS_MAX_GIMBALS 4
 #define ADCS_MAX_COUPLES 6
@@ -36,6 +36,7 @@ typedef struct {
     double eop_dut1;  /* UT1 - UTC [s] of the onboard Earth frame (the IERS value, set by telecommand 0x02; env_time_frames eci2ecef) */
     double eop_xp;  /* polar motion xp [arcsec] of the onboard Earth frame (set by telecommand 0x02) */
     double eop_yp;  /* polar motion yp [arcsec] of the onboard Earth frame (set by telecommand 0x02) */
+    uint8_t aberration_source;  /* aberration of starlight taken out of the star tracker's attitude: 0 none, 1 the GNSS velocity plus the Earth's from the Sun model's derivative (DR-nav-001) */
     uint8_t start_mode;  /* controller state at init (adcs_mode_t) */
     uint8_t auto_next;  /* state entered when detumble / rotor Sun acquisition completes (255 = none) */
     uint8_t n_sched;  /* number of commanded mode changes */

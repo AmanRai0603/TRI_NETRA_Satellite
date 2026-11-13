@@ -4687,3 +4687,76 @@ from = "stated"
 to = "stated"
 content = [["value", "source", "DR-env-002 (the developer's proposal, unsigned): the Earth orientation the flight cannot compute, UT1 - UTC [s] and the pole xp, yp [arcsec], set by telecommand 0x02 (adcs_fsw_command); a run's blob holds the values of env_eop_snapshot at the run's epoch, as a ground uplink would load them, so the design holds no one value: engine/crates/adcs-sim/src/config.rs (fsw_eop_uplink)"]]
 why = "flight parameters the ground sets (DR-env-002); the engine and the twin load the snapshot's values at the epoch into the blob"
+
+[[revision]]
+id = "S12.5b"
+at = "2026-11-13T15:00:00Z"
+by = "the developer"
+about = "E2 of docs/S12_INVENTORY.md (S12.5; decision DR-nav-001, owner question 5, the default): the aberration of starlight, truth and onboard. The truth tracker applies it by the spacecraft's geometric velocity relative to the solar-system barycentre (its orbital velocity plus the Earth's from the truth's ephemeris, DE440's Earth state): starcat's st_aberrate gives a star's apparent direction to first order in v/c, sttracker's QUEST model (st_quest_head) and strender's rendered frame (st_render, through stimage's chain) take the stars displaced, and the noise model (st_noise_head), which has no stars, turns the attitude it reports by the equivalent rotation (the boresight crossed with v/c), so the three models report the same shift of the field. The onboard estimator corrects the tracker's attitude (fsw_estimation's st_corrected, called at the filter's start and at each update) with the GNSS velocity (the onboard orbit's, when it holds one) plus the Earth's from the Sun model's derivative (env_time_frames' earth_velocity), selected by the new stated flight parameter fsw_param_aberration_source (1; 0 takes no correction). The toolbox is unchanged. Unsigned: the developer's revision"
+
+[[revision.method]]
+node = "sens_star_catalogue"
+pseudocode = "design/revisions/S12.5b/starcat.pc"
+path = "sens/starcat.pc"
+transcribes = "design/revisions/S7.9/starcat.pc as S7.9 left it, with st_aberrate (a star's apparent direction for an observer's velocity relative to the barycentre) added; the catalogue is unchanged"
+source = "the aberration of starlight to first order in v/c: p = unit(s + v/c - s (s . v/c)); the exact special-relativistic form is that of the Explanatory Supplement to the Astronomical Almanac (Urban and Seidelmann (eds.), 3rd edition, 2013, the section on aberration, which was not to hand: quoted from memory, edition and section not verified) and of ERFA's ab (the IAU SOFA library), from which the first-order form differs by less than 2e-8 rad at 37.4 km/s (tests/test_aberration_oracle.py); c = 299792458 m/s (SI)"
+generate = ["adcs-sim-core"]
+uses = ["env/facets.pc", "spec/physics/constants.pc"]
+why = "the apparent direction of a star as a relation of sens, which the QUEST model and the rendered frame both take (E2)"
+
+[[revision.method]]
+node = "sens_star_tracker"
+pseudocode = "design/revisions/S12.5b/sttracker.pc"
+path = "sens/sttracker.pc"
+transcribes = "design/revisions/S11.7/sttracker.pc as S11.7 left it, with the velocity vb relative to the barycentre an input of st_sample, st_quest_head (each star through st_aberrate) and st_noise_head (the equivalent rotation of the attitude)"
+source = "DR-nav-001 (design/decisions/DR-nav-001.toml): the truth tracker includes the aberration by the geometric velocity; starcat's st_aberrate"
+generate = ["adcs-sim-core"]
+uses = ["sens/stattitude.pc", "sens/starcat.pc", "act/coilsat.pc", "env/facets.pc", "spec/physics/constants.pc", "fsw/pseudocode/01_math.pc"]
+why = "the truth tracker sees the stars where the spacecraft's velocity puts them (E2)"
+
+[[revision.method]]
+node = "l3_sens_row_09"
+pseudocode = "design/revisions/S12.5b/strender.pc"
+path = "sens/strender.pc"
+transcribes = "design/revisions/S7.10/strender.pc as S7.10 left it, with st_render taking the observer's velocity vb relative to the barycentre and projecting each star through st_aberrate"
+source = "DR-nav-001; Liebe (2002), IEEE Aerospace and Electronic Systems Magazine 17(6):10 (the pinhole camera); starcat's st_aberrate"
+generate = ["adcs-sim-core"]
+uses = ["sens/starcat.pc"]
+why = "the rendered frame shows the stars where the spacecraft's velocity puts them (E2)"
+
+[[revision.method]]
+node = "sens_star_image"
+pseudocode = "design/revisions/S12.5b/stimage.pc"
+path = "sens/stimage.pc"
+transcribes = "design/revisions/S7.10/stimage.pc as S7.10 left it, with st_chain and st_image taking the observer's velocity vb and handing it to st_render"
+source = "DR-nav-001; the chain of l3_sens_row_09 to 12"
+generate = ["adcs-sim-core"]
+uses = ["sens/strender.pc", "sens/stcentroid.pc", "sens/stidentify.pc", "sens/stattitude.pc", "sens/sttracker.pc", "sens/starcat.pc", "sens/sunquad.pc", "env/facets.pc", "fsw/pseudocode/01_math.pc"]
+why = "the image model's chain over the aberrated frame (E2)"
+
+[[revision.method]]
+node = "env_time_frames"
+pseudocode = "design/revisions/S12.5b/frames.pc"
+path = "fsw/pseudocode/02_time_frames_models.pc"
+transcribes = "design/revisions/S12.5a/frames.pc as S12.5a left it, with earth_velocity added: the Earth's velocity relative to the barycentre from the central difference of the Sun model over half a day each side at 1 AU"
+source = "the Sun model of env_time_frames (Vallado algorithm 29); the astronomical unit, 149597870700 m (IAU 2012 resolution B2); DR-nav-001 (the onboard correction by the GNSS velocity plus the Sun model's derivative)"
+generate = ["flight"]
+uses = ["fsw/pseudocode/01_math.pc", "fsw/pseudocode/02_igrf13.pc"]
+why = "the Earth's velocity the onboard aberration correction needs, from the Sun model the flight already holds (E2)"
+
+[[revision.method]]
+node = "fsw_estimation"
+pseudocode = "design/revisions/S12.5b/estimation.pc"
+path = "fsw/pseudocode/03_estimation.pc"
+transcribes = "fsw/pseudocode/03_estimation.pc as S11.6 left it, with st_corrected added (the tracker's attitude turned back by the boresight crossed with v/c, v the onboard orbit's velocity plus the Earth's from the Sun model's derivative)"
+source = "DR-nav-001; the first-order aberration of starlight (starcat's st_aberrate): a star displaced by eps x s, eps = u x v/c, the fit of a field about the boresight u"
+generate = ["flight"]
+uses = ["01_math.pc", "02_time_frames_models.pc", "02_igrf13.pc"]
+why = "the estimator takes the aberration out of the tracker's attitude (E2); the tick hands it the velocity and the source"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_aberration_source"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "1"], ["value", "source", "DR-nav-001 (design/decisions/DR-nav-001.toml), the owner's default: the onboard correction of the star tracker's attitude takes the GNSS velocity plus the Earth's velocity from the Sun model's derivative, 1; 0 takes none; the developer's, unsigned"]]
+why = "the aberration source as a stated flight parameter (DR-nav-001, S12.5b)"

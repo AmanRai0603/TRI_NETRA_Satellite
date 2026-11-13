@@ -15,17 +15,17 @@ function [lo, pa] = st_first_not_below(pa, np, x)
             mid = (lo + fix(((hi - lo)) / (2)));
             left = (pa((mid) + 1) < x);
             if left
-                h__740 = (mid + 1);
+                h__742 = (mid + 1);
             else
-                h__740 = lo;
+                h__742 = lo;
             end
-            lo = h__740;
+            lo = h__742;
             if left
-                h__741 = hi;
+                h__743 = hi;
             else
-                h__741 = mid;
+                h__743 = mid;
             end
-            hi = h__741;
+            hi = h__743;
         end
         k__647 = k__647 + 1;
         if (~(lo < hi)), break; end

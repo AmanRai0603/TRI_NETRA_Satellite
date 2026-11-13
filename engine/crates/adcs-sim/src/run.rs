@@ -17,7 +17,9 @@ use adcs_sim_core::torques::{self, Facets};
 use adcs_sim_core::{ephem, field, time, NC, NG, NR};
 
 /// The environment the attitude loop reads at an env tick.
-pub struct Env { pub b_eci: V3, pub sun_rel: V3, pub moon_rel: V3, pub nu: f64, pub v_rel: V3, pub rho: f64, pub p_srp: f64 }
+/// `v_earth`: the geocentre's velocity w.r.t. the solar-system barycentre [m/s], which the star tracker's aberration adds to the
+/// spacecraft's (S12.5b, E2); zero for the fast analytic orbit, which has no ephemeris.
+pub struct Env { pub b_eci: V3, pub sun_rel: V3, pub moon_rel: V3, pub nu: f64, pub v_rel: V3, pub rho: f64, pub p_srp: f64, pub v_earth: V3 }
 
 /// The truth orbit and environment. `Pop`: the Rust port of POP stepped as asils.orbit
 /// does (bit-identical to the MATLAB twin's orbit, Sun, Moon, density, frame). `Fast`:
@@ -65,13 +67,13 @@ impl Truth {
                 let (lat, lon, h) = adcs_pop::geodetic::geodetic(&re);
                 let w = o.omega_e;
                 Env { b_eci: field::eci_at(lat, lon, h, &cp, gh, nmax), sun_rel: sub(&x.sun_eci, r), moon_rel: sub(&x.moon_eci, r), nu: ephem::shadow(r, &x.sun_eci),
-                      v_rel: adcs_sim_core::gen::orbitfast::corotating_velocity(*r, *v, w), rho: x.rho, p_srp: x.p_srp }
+                      v_rel: adcs_sim_core::gen::orbitfast::corotating_velocity(*r, *v, w), rho: x.rho, p_srp: x.p_srp, v_earth: x.v_earth }
             }
             Truth::Fast(o, jd0) => {
                 let xc = o.context(t);
                 let cm = time::eci2ecef(jd0 + t/86400.0);
                 Env { b_eci: field::eci(&mv(&cm, r), &cm, gh, nmax), sun_rel: sub(&xc.sun, r), moon_rel: sub(&xc.moon, r), nu: ephem::shadow(r, &xc.sun),
-                      v_rel: orbit::corotating(r, v), rho: xc.rho, p_srp: xc.p_srp }
+                      v_rel: orbit::corotating(r, v), rho: xc.rho, p_srp: xc.p_srp, v_earth: [0.0; 3] }
             }
         }
     }
@@ -392,7 +394,7 @@ struct Sky { b_b: V3, sb: V3, mb: V3, nb: V3, earth_ang: f64 }
 /// CAN telemetry), in the order the units draw their noise.
 #[allow(clippy::too_many_arguments)]
 fn sense(u: &mut Units, c: &Config, bus: &mut Bus, x: &State, sky: &Sky, m_b: &V3, nu: f64, t: f64, k: u64, rt: &Rates, r: &V3, v: &V3,
-         frame: &dyn Fn(f64) -> (M3, V3)) -> Sensed {
+         v_earth: &V3, frame: &dyn Fn(f64) -> (M3, V3)) -> Sensed {
     let (d, dt) = (&c.dev, c.dt);
     bus.now_ns = (t*1e9).round() as u64;
     let w_meas = match u.gyro.as_mut() { Some(g) => g.sample(&x.w, dt), None => x.w };
@@ -407,7 +409,9 @@ fn sense(u: &mut Units, c: &Config, bus: &mut Bus, x: &State, sky: &Sky, m_b: &V
         s.history(t, &x.q);
         if k % rt.st == 0 {
             let mut work = u.st_frame.as_mut().map(|f| f.work());
-            let heads = s.sample_with(&x.q, t, &x.w, &sky.sb, &sky.mb, &sky.nb, sky.earth_ang, work.as_mut());
+            // the stars are aberrated by the spacecraft's velocity relative to the solar-system barycentre: its own plus the Earth's (E2)
+            let vb = [v[0] + v_earth[0], v[1] + v_earth[1], v[2] + v_earth[2]];
+            let heads = s.sample_with(&x.q, t, &x.w, &sky.sb, &sky.mb, &sky.nb, sky.earth_ang, &vb, work.as_mut());
             let mut hv = [(false, [0.0, 0.0, 0.0, 1.0]); 2];
             for h in 0..d.st.nh { if let Some(q) = heads[h] { hv[h] = (true, q); st_ok = true; } }
             let mut buf = [0u8; 64];
@@ -576,7 +580,7 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
     let mut prop = 0.0;
     let mut eacc = [0.0; 3];
     let mut fault_done = vec![false; c.faults.len()];
-    let (mut b_eci, mut sun_rel, mut moon_rel, mut nu, mut v_rel, mut rho, mut psrp) = ([0.0; 3], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], 1.0, [0.0; 3], 0.0, 0.0);
+    let (mut b_eci, mut sun_rel, mut moon_rel, mut nu, mut v_rel, mut rho, mut psrp, mut v_earth) = ([0.0; 3], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], 1.0, [0.0; 3], 0.0, 0.0, [0.0; 3]);
     let mut last_print = std::time::Instant::now();
     let mut oils = o.oils.as_ref().map(|m| OilsStats { model: Some(m.clone()), ..Default::default() });
     if oils.is_some() && o.oils.as_ref().map(|m| m.fixed_s.is_none()).unwrap_or(false) && !matches!(o.fsw, Impl::Obc(_)) { return Err(Error::run("soft OILS needs the flight software on a virtual OBC (--fsw qemu | qemu-rs | obc-posix ...)")); }
@@ -592,7 +596,7 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
         let (r, v) = orb.state(t)?;
         if k % rt.env == 0 {
             let ev = orb.env(t, c.jd0, &r, &v, &gh, c.igrf_nmax);
-            b_eci = ev.b_eci; sun_rel = ev.sun_rel; moon_rel = ev.moon_rel; nu = ev.nu; v_rel = ev.v_rel; rho = ev.rho; psrp = ev.p_srp;
+            b_eci = ev.b_eci; sun_rel = ev.sun_rel; moon_rel = ev.moon_rel; nu = ev.nu; v_rel = ev.v_rel; rho = ev.rho; psrp = ev.p_srp; v_earth = ev.v_earth;
             orb.set_attitude(transpose(&dcm(&x.q)));      // attitude -> POP (box-wing / panel models read it)
         }
         u.faults(c, t, &mut fault_done, &mut log)?;
@@ -603,7 +607,7 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
 
         // ---- sensors -> bytes ----
         let mark = crate::busfault::BusFaults::mark(&bus);
-        let z = sense(&mut u, c, &mut bus, &x, &sky, &a.m_coil, nu, t, k, &rt, &r, &v, &|te| orb.earth_frame(te));
+        let z = sense(&mut u, c, &mut bus, &x, &sky, &a.m_coil, nu, t, k, &rt, &r, &v, &v_earth, &|te| orb.earth_frame(te));
         u.bf.sensors(t, &mut bus, mark);      // the bus faults: what the devices' bytes suffer before the flight software reads them
 
         // ---- flight software ----

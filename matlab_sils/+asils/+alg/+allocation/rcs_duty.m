@@ -19,17 +19,17 @@ function [duty, tau] = rcs_duty(req, nc, rcs_tau, rcs_mib, rcs_res, t)
         u = req((ax) + 1);
         if (u ~= 0)
             if (u > 0)
-                h__101 = (2 * ax);
+                h__103 = (2 * ax);
             else
-                h__101 = ((2 * ax) + 1);
+                h__103 = ((2 * ax) + 1);
             end
-            k = h__101;
+            k = h__103;
             if ((k < nc) && (asils.pc.fabs(rcs_tau((k) + 1, (ax) + 1)) > 0))
-                h__102 = u;
-                if h__102 < 0, h__102 = -h__102; elseif h__102 == 0, h__102 = 0; end
-                h__103 = rcs_tau((k) + 1, (ax) + 1);
-                if h__103 < 0, h__103 = -h__103; elseif h__103 == 0, h__103 = 0; end
-                on = (h__102 / h__103);
+                h__104 = u;
+                if h__104 < 0, h__104 = -h__104; elseif h__104 == 0, h__104 = 0; end
+                h__105 = rcs_tau((k) + 1, (ax) + 1);
+                if h__105 < 0, h__105 = -h__105; elseif h__105 == 0, h__105 = 0; end
+                on = (h__104 / h__105);
                 if (on > 1)
                     on = 1;
                 end

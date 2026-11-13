@@ -15,4 +15,5 @@ function E = env(O, t, jd0, r, v, gh, nmax)
     E.nu = asils.models.shadow.shadow_fraction(r, X.sun_eci);
     E.v_rel = asils.models.orbitfast.corotating_velocity(r, v, O.omega_e);
     E.rho = X.rho; E.p_srp = X.P_srp;
+    E.v_earth = X.v_earth;          % the geocentre's velocity from the solar-system barycentre [m/s]: the star tracker's aberration adds it to the spacecraft's
 end

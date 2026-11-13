@@ -75,7 +75,7 @@ function rec = run(scenarioId, caseFile, varargin)
     a = struct('m_b', zeros(3, 1), 'm_coil', zeros(3, 1), 'hdot', zeros(8, 1), 'gdot', zeros(4, 1), 'tau_rcs', zeros(3, 1), ...
                'p_mtq', 0, 'p_mex', 0, 'p_rcs', 0);
     prop = 0; eacc = [0 0 0];
-    b_eci = zeros(3, 1); sun_rel = [1; 0; 0]; moon_rel = [0; 1; 0]; nu = 1; v_rel = zeros(3, 1); rho = 0; psrp = 0;
+    b_eci = zeros(3, 1); sun_rel = [1; 0; 0]; moon_rel = [0; 1; 0]; nu = 1; v_rel = zeros(3, 1); rho = 0; psrp = 0; v_earth = zeros(3, 1);
     log = struct('t', {}, 'mode', {}); last_mode = modes{p.start_mode + 1};
     j = 0; tprint = 0;
     % a long run may be cut (a machine restarted): with o.checkpoint (a file) the loop's state is kept there every
@@ -86,7 +86,7 @@ function rec = run(scenarioId, caseFile, varargin)
         C_ = load(ckpt);
         k0 = C_.k + 1; wall0 = C_.wall;
         O = C_.O; U = C_.U; F = C_.F; bus = C_.bus; x = C_.x; R_ = C_.R_; a = C_.a; prop = C_.prop; eacc = C_.eacc;
-        b_eci = C_.b_eci; sun_rel = C_.sun_rel; moon_rel = C_.moon_rel; nu = C_.nu; v_rel = C_.v_rel; rho = C_.rho; psrp = C_.psrp;
+        b_eci = C_.b_eci; sun_rel = C_.sun_rel; moon_rel = C_.moon_rel; nu = C_.nu; v_rel = C_.v_rel; rho = C_.rho; psrp = C_.psrp; v_earth = C_.v_earth;
         log = C_.log; last_mode = C_.last_mode; j = C_.j; fdone = C_.fdone; ledger = C_.ledger; tau_prev = C_.tau_prev; t_prev = C_.t_prev;
         clear C_
         if ~o.quiet, fprintf('  resumed from %s at t = %.1f s\n', ckpt, k0*dt); end
@@ -96,7 +96,7 @@ function rec = run(scenarioId, caseFile, varargin)
         [r, v, O] = asils.orbit.state(O, t);
         if mod(k, rt.env) == 0
             E = asils.orbit.env(O, t, P.jd0, r, v, gh, P.env.igrf_nmax);
-            b_eci = E.b_eci; sun_rel = E.sun_rel; moon_rel = E.moon_rel; nu = E.nu; v_rel = E.v_rel; rho = E.rho; psrp = E.p_srp;
+            b_eci = E.b_eci; sun_rel = E.sun_rel; moon_rel = E.moon_rel; nu = E.nu; v_rel = E.v_rel; rho = E.rho; psrp = E.p_srp; v_earth = E.v_earth;
             O.W.sc.R_bi = asils.la.dcm(x.q).';               % attitude -> POP (box-wing / panel models read it)
         end
         if ~isempty(faults), [U, fdone, log] = asils.faults.apply(faults, t, U, fdone, log); end
@@ -108,7 +108,7 @@ function rec = run(scenarioId, caseFile, varargin)
         %% sensors -> bytes; the flight software; bytes -> commands
         mark = asils.faults.bus_mark(bus);
         frame = @(te) deal(asils.orbit.eci2ecef(O.W, asils.models.timescales.addsec(O.W.epoch, te)), O.W.omega_eci);
-        [U, bus, z] = asils.devices.sense(U, dev, bus, x, sky, a.m_coil, nu, t, k, rt, r, v, P.jd0, dt, H.scale, frame);
+        [U, bus, z] = asils.devices.sense(U, dev, bus, x, sky, a.m_coil, nu, t, k, rt, r, v, P.jd0, dt, H.scale, frame, v + v_earth);
         [U_bf, bus] = asils.faults.bus_sensors(U_bf, t, bus, mark);      % the bus faults: what the devices' bytes suffer before the flight software reads them
         % the time source the flight software reads: the clock since it booted (the run's time and its age at the start), the
         % faults' steps and each timestamp's jitter (the amplitude, signed, from the fault's time on)
@@ -195,7 +195,7 @@ function rec = run(scenarioId, caseFile, varargin)
         if ~isempty(ckpt) && toc(tcp) > ckpt_every
             wall = wall0 + toc(tic_all); %#ok<NASGU>
             save('-binary', [ckpt '.tmp'], 'k', 'wall', 'O', 'U', 'F', 'bus', 'x', 'R_', 'a', 'prop', 'eacc', 'b_eci', 'sun_rel', ...
-                 'moon_rel', 'nu', 'v_rel', 'rho', 'psrp', 'log', 'last_mode', 'j', 'fdone', 'ledger', 'tau_prev', 't_prev');
+                 'moon_rel', 'nu', 'v_rel', 'rho', 'psrp', 'v_earth', 'log', 'last_mode', 'j', 'fdone', 'ledger', 'tau_prev', 't_prev');
             movefile([ckpt '.tmp'], ckpt, 'f');
             tcp = tic;
         end

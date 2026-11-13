@@ -13,6 +13,7 @@ function E = ephem(jd_tdb)
         end
         p(:, s + 1) = ps; v(:, s + 1) = vs;
     end
-    [rs, vs, rm, vm] = asils.models.de440.geocentric(p(:, 1), v(:, 1), p(:, 2), v(:, 2), p(:, 3), v(:, 3), p(:, 4), v(:, 4));
+    [rs, vs, rm, vm, ~, ve] = asils.models.de440.geocentric(p(:, 1), v(:, 1), p(:, 2), v(:, 2), p(:, 3), v(:, 3), p(:, 4), v(:, 4));
     E = asils.models.de440.ephem_inputs(jd_tdb, rs, vs, rm, vm);
+    E.earth_ssb_vel = ve*1000;          % the geocentre's velocity from the solar-system barycentre [m/s] (the star tracker's aberration, S12.5b)
 end

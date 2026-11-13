@@ -269,11 +269,13 @@ pub struct InLoop {
 
 /// The node record of asils.orbit.node.
 #[derive(Clone, Debug)]
-pub struct Node { pub t: f64, pub r: V3, pub v: V3, pub a: V3, pub c: M3, pub sun_eci: V3, pub moon_eci: V3, pub p_srp: f64, pub rho: f64, pub parts: Parts }
+pub struct Node { pub t: f64, pub r: V3, pub v: V3, pub a: V3, pub c: M3, pub sun_eci: V3, pub moon_eci: V3, pub p_srp: f64, pub rho: f64, pub v_earth: V3, pub parts: Parts }
 
 /// asils.orbit.context at t.
 #[derive(Clone, Copy, Debug)]
-pub struct EnvCtx { pub sun_eci: V3, pub moon_eci: V3, pub p_srp: f64, pub rho: f64, pub c: M3 }
+/// `v_earth`: the geocentre's velocity w.r.t. the solar-system barycentre [m/s] (the star tracker's aberration, S12.5b); with no
+/// ephemeris the Sun is the fixed stand-in of env_force_model's no_ephem_env and the Earth does not move relative to it: zero.
+pub struct EnvCtx { pub sun_eci: V3, pub moon_eci: V3, pub p_srp: f64, pub rho: f64, pub c: M3, pub v_earth: V3 }
 
 impl InLoop {
     fn node(w: &mut World, t: f64, r: V3, v: V3) -> Result<Node, crate::PopError> {
@@ -282,7 +284,8 @@ impl InLoop {
             Some(e) => (e.sun_eci, e.p_srp, e.moon_eci),
             None => fm::no_ephem_env(),
         };
-        Ok(Node { t, r, v, a, c: ctx.c, sun_eci, moon_eci, p_srp, rho: info.map(|i| i.rho).unwrap_or(0.0), parts })
+        let v_earth = ctx.e.as_ref().map(|e| e.earth_ssb_vel).unwrap_or([0.0; 3]);
+        Ok(Node { t, r, v, a, c: ctx.c, sun_eci, moon_eci, p_srp, rho: info.map(|i| i.rho).unwrap_or(0.0), v_earth, parts })
     }
 
     fn advance(w: &mut World, n: &Node, h: f64) -> Result<Node, crate::PopError> {
@@ -339,7 +342,7 @@ impl InLoop {
         let s = (t - a.t)/(b.t - a.t);
         let lerp = |x: &V3, y: &V3| [x[0] + s*(y[0] - x[0]), x[1] + s*(y[1] - x[1]), x[2] + s*(y[2] - x[2])];
         let rho = if a.rho > 0.0 && b.rho > 0.0 { (a.rho.ln() + s*(b.rho.ln() - a.rho.ln())).exp() } else { a.rho + s*(b.rho - a.rho) };
-        EnvCtx { sun_eci: lerp(&a.sun_eci, &b.sun_eci), moon_eci: lerp(&a.moon_eci, &b.moon_eci), p_srp: a.p_srp + s*(b.p_srp - a.p_srp), rho, c: frac_rot(&a.c, &b.c, s) }
+        EnvCtx { sun_eci: lerp(&a.sun_eci, &b.sun_eci), moon_eci: lerp(&a.moon_eci, &b.moon_eci), p_srp: a.p_srp + s*(b.p_srp - a.p_srp), rho, c: frac_rot(&a.c, &b.c, s), v_earth: lerp(&a.v_earth, &b.v_earth) }
     }
 
     /// The last node's per-force accelerations (diagnostics).

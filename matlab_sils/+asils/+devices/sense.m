@@ -1,4 +1,4 @@
-function [U, bus, z] = sense(U, dev, bus, x, sky, m_coil, nu, t, k, rt, r, v, jd0, dt, scale, frame)
+function [U, bus, z] = sense(U, dev, bus, x, sky, m_coil, nu, t, k, rt, r, v, jd0, dt, scale, frame, vb)
 %ASILS.DEVICES.SENSE  Every sensor sampled and written onto the bus as its device's bytes (registers, UART frames, CAN
 %   telemetry), in the order the units draw their noise: the engine's run.rs sense, in MATLAB. The models are sens's and
 %   act's methods (+asils/+models: gyro_sample, mag_sample, sun_sample, css_sample, st_history, st_sample, st_image,
@@ -28,13 +28,13 @@ function [U, bus, z] = sense(U, dev, bus, x, sky, m_coil, nu, t, k, rt, r, v, jd
         [U.st_hn, U.st_ht, U.st_hq] = asils.models.sttracker.st_history(U.st_ht, U.st_hq, U.st_hn, t, x.q);
         if mod(k, rt.st) == 0
             [ok, q, valid, dq, q_old, U.st, U.st_ht, U.st_hq, U.st_cr, U.st_cm] = asils.models.sttracker.st_sample(U.st, dev.st.rec, ...
-                U.st_ht, U.st_hq, U.st_hn, U.st_cr, U.st_cm, x.q, t, x.w, sky.sb, sky.mb, sky.nb, sky.earth_ang);
+                U.st_ht, U.st_hq, U.st_hn, U.st_cr, U.st_cm, x.q, t, x.w, sky.sb, sky.mb, sky.nb, sky.earth_ang, vb);
             nh = dev.st.nh;
             if dev.st.model == 2 && any(valid(1:nh))
                 % COMPONENT LEVEL: each valid head's chain on a rendered frame (sens_star_image's st_image)
                 W = U.st_frame;
                 [okc, qc, U.st, U.st_cr, U.st_cm, W.img, W.work, W.ia, W.ib, W.pi, W.pj, W.pa] = asils.models.stimage.st_image(U.st, ...
-                    dev.st.rec, dev.st.cam, valid, dq, q_old, U.st_cr, U.st_cm, 4000, W.img, W.work, W.ia, W.ib, W.pi, W.pj, W.pa);
+                    dev.st.rec, dev.st.cam, valid, dq, q_old, U.st_cr, U.st_cm, 4000, W.img, W.work, W.ia, W.ib, W.pi, W.pj, W.pa, vb);
                 U.st_frame = W;
                 for h = 1:nh, if okc(h), ok(h) = true; q(h, :) = qc(h, :); end, end
             end

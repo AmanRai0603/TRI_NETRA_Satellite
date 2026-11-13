@@ -68,6 +68,7 @@
   "env_torque_gravity_gradient": 1.0,
   "env_torque_magnetic": 1.0,
   "env_torque_radiation": 1.0,
+  "fsw_param_aberration_source": 1.0,
   "fsw_param_auto_next": 255.0,
   "fsw_param_capture_deg": 3.0,
   "fsw_param_capture_rate_deg_s": 1.0,

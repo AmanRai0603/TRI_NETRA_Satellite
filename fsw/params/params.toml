@@ -59,6 +59,11 @@ doc = "polar motion yp [arcsec] of the onboard Earth frame (set by telecommand 0
 min = -1.0
 max = 1.0
 [[field]]
+name = "aberration_source"
+type = "u8"
+doc = "aberration of starlight taken out of the star tracker's attitude: 0 none, 1 the GNSS velocity plus the Earth's from the Sun model's derivative (DR-nav-001)"
+max = 1
+[[field]]
 name = "start_mode"
 type = "u8"
 doc = "controller state at init (adcs_mode_t)"

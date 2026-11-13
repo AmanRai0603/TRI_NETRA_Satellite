@@ -33,6 +33,8 @@ static const char *const BY_NAME[][2] = {
     {"frames::mod360", "called only by the generated sun_model"},
     {"frames::nut00b", "called only by the generated eci2ecef"},
     {"frames::fw06", "called only by the generated eci2ecef"},
+    {"frames::earth_velocity", "called only by the generated st_corrected"},
+    {"estimation::st_corrected", "called by the tick as the generated function, no signature of its own"},
     {"frames::npb", "called only by the generated eci2ecef"},
     {"control::mtq_err", "called only by the generated magnetic laws (Lovera, Celani, Avanzini, TANGO)"},
     {"estimation::update3", "called only by the generated mekf_vector and mekf_quat"},

@@ -1,8 +1,9 @@
-function [ok, q, valid, dq, q_old, u, ht, hq, cr, cm] = st_sample(u, d, ht, hq, hn, cr, cm, q_true, t, w, sun_b, moon_b, nadir_b, earth_ang)
+function [ok, q, valid, dq, q_old, u, ht, hq, cr, cm] = st_sample(u, d, ht, hq, hn, cr, cm, q_true, t, w, sun_b, moon_b, nadir_b, earth_ang, vb)
 %ST_SAMPLE  Each head's attitude (ECI to body) and whether it answers, for the true attitude q_true and body rate w [rad/s] at t,
 %   the Sun, the Moon and nadir (body, unit) and the Earth's half-angle earth_ang [rad], from the history (ht, hq, hn) and
 %   the catalogue (cr, cm). The image model's heads answer through the chain (comp.rs, S7.10): here only their validity
-%   (valid), their mount (dq) and the attitude the frame saw (q_old).
+%   (valid), their mount (dq) and the attitude the frame saw (q_old). vb: the spacecraft's velocity relative to the
+%   solar-system barycentre [m/s, J2000 axes], which aberrates the stars (S12.5b, E2).
 %   u: inout StUnit (passed rec)
 %   d: StDesc (passed rec)
 %   ht: inout real[1][ST_HIST] (passed a plain number)
@@ -17,6 +18,7 @@ function [ok, q, valid, dq, q_old, u, ht, hq, cr, cm] = st_sample(u, d, ht, hq, 
 %   moon_b: real[1][3] (passed a plain number)
 %   nadir_b: real[1][3] (passed a plain number)
 %   earth_ang: real[1] (passed a plain number)
+%   vb: real[m/s][3] (passed in m/s)
 %   returns ok: bool[ST_NH] (passed true or false)
 %   returns q: real[1][4][ST_NH] (passed a plain number)
 %   returns valid: bool[ST_NH] (passed true or false)
@@ -46,7 +48,7 @@ function [ok, q, valid, dq, q_old, u, ht, hq, cr, cm] = st_sample(u, d, ht, hq, 
         dq((h) + 1, :) = asils.models.math.qmult((u.q_mis((h) + 1, :)).', (u.q_bias((h) + 1, :)).').';
         g = u.g;
         if (d.model == 1)
-            [t__722, t__723, t__724, t__725, t__726] = asils.models.sttracker.st_quest_head(rold, (dq((h) + 1, :)).', (d.bs((h) + 1, :)).', d.fov, d.noise_cross, smear, cr, cm, valid((h) + 1), g);
+            [t__722, t__723, t__724, t__725, t__726] = asils.models.sttracker.st_quest_head(rold, (dq((h) + 1, :)).', (d.bs((h) + 1, :)).', d.fov, d.noise_cross, smear, cr, cm, valid((h) + 1), g, vb);
             qh = t__722;
             enough = t__723;
             cr = t__724;
@@ -57,7 +59,7 @@ function [ok, q, valid, dq, q_old, u, ht, hq, cr, cm] = st_sample(u, d, ht, hq, 
                 q((h) + 1, :) = qh.';
             end
         elseif (d.model == 0)
-            [t__727, t__728] = asils.models.sttracker.st_noise_head(q_old, (dq((h) + 1, :)).', (d.bs((h) + 1, :)).', d.noise_cross, d.noise_roll, smear, g);
+            [t__727, t__728] = asils.models.sttracker.st_noise_head(q_old, (dq((h) + 1, :)).', (d.bs((h) + 1, :)).', d.noise_cross, d.noise_roll, smear, g, vb);
             qn = t__727;
             g = t__728;
             if valid((h) + 1)

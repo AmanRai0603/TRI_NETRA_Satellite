@@ -29,11 +29,11 @@ function [v, s] = st_select(s, m, k)
                 s((i) + 1) = s((lt) + 1);
                 s((lt) + 1) = x;
                 if (x < p)
-                    h__718 = 1;
+                    h__720 = 1;
                 else
-                    h__718 = 0;
+                    h__720 = 0;
                 end
-                lt = (lt + h__718);
+                lt = (lt + h__720);
             end
             if (k < lt)
                 hi = (lt - 1);
@@ -46,11 +46,11 @@ function [v, s] = st_select(s, m, k)
                     s((i2) + 1) = s((eq) + 1);
                     s((eq) + 1) = y;
                     if (y > p)
-                        h__719 = 0;
+                        h__721 = 0;
                     else
-                        h__719 = 1;
+                        h__721 = 1;
                     end
-                    eq = (eq + h__719);
+                    eq = (eq + h__721);
                 end
                 if (k < eq)
                     found = true;

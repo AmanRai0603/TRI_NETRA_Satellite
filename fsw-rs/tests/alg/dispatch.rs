@@ -131,6 +131,11 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             let r = crate::frames::sun_model(x[0]);
             for v in r.iter() { let v = *v; out.push(v); }
         }
+        "frames::earth_velocity" => {
+            if x.len() != 1 { return None; }
+            let r = crate::frames::earth_velocity(x[0]);
+            for v in r.iter() { let v = *v; out.push(v); }
+        }
         "frames::geodetic" => {
             if x.len() != 3 { return None; }
             let r = crate::frames::geodetic([x[0], x[1], x[2]]);
@@ -239,6 +244,11 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
         "estimation::latency" => {
             if x.len() != 8 { return None; }
             let r = crate::estimation::latency([x[0], x[1], x[2], x[3]], [x[4], x[5], x[6]], x[7]);
+            for v in r.iter() { let v = *v; out.push(v); }
+        }
+        "estimation::st_corrected" => {
+            if x.len() != 13 { return None; }
+            let r = crate::estimation::st_corrected([x[0], x[1], x[2], x[3]], [x[4], x[5], x[6]], x[7], x[8] != 0.0, [x[9], x[10], x[11]], x[12] as i64);
             for v in r.iter() { let v = *v; out.push(v); }
         }
         "navorbit::gnss_usable" => {

@@ -34,9 +34,9 @@ static inline double pc_dot_a3f(pc_a3f a, pc_a3f b) { double s = a.v[0] * b.v[0]
 static inline double pc_norm_a3f(pc_a3f a) { return sqrt(pc_dot_a3f(a, a)); }
 static inline pc_a3a3f pc_mm_a3a3f_a3a3f(pc_a3a3f a, pc_a3a3f b) { pc_a3a3f r; int i, j, k; for (i = 0; i < 3; i++) { for (j = 0; j < 3; j++) { double s = a.v[i].v[0] * b.v[0].v[j]; for (k = 1; k < 3; k++) { s = s + a.v[i].v[k] * b.v[k].v[j]; } r.v[i].v[j] = s; } } return r; }
 static inline pc_a3f pc_unit_a3f(pc_a3f a) { double n = pc_fmax(pc_norm_a3f(a), 1e-30); pc_a3f r = a; int i; for (i = 0; i < 3; i++) { r.v[i] = a.v[i] / n; } return r; }
-static inline pc_a3f pc_mv_a3a3f(pc_a3a3f a, pc_a3f v) { pc_a3f r; int i; for (i = 0; i < 3; i++) { r.v[i] = pc_dot_a3f(a.v[i], v); } return r; }
-static inline pc_a3f pc_sub_a3f(pc_a3f a, pc_a3f b) { pc_a3f r = a; int i; for (i = 0; i < 3; i++) { r.v[i] = a.v[i] - b.v[i]; } return r; }
 static inline pc_a3f pc_scale_a3f(pc_a3f a, double s) { pc_a3f r = a; int i; for (i = 0; i < 3; i++) { r.v[i] = a.v[i] * s; } return r; }
+static inline pc_a3f pc_sub_a3f(pc_a3f a, pc_a3f b) { pc_a3f r = a; int i; for (i = 0; i < 3; i++) { r.v[i] = a.v[i] - b.v[i]; } return r; }
+static inline pc_a3f pc_mv_a3a3f(pc_a3a3f a, pc_a3f v) { pc_a3f r; int i; for (i = 0; i < 3; i++) { r.v[i] = pc_dot_a3f(a.v[i], v); } return r; }
 static inline pc_a3f pc_cross_a3f(pc_a3f a, pc_a3f b) { pc_a3f r; r.v[0] = a.v[1] * b.v[2] - a.v[2] * b.v[1]; r.v[1] = a.v[2] * b.v[0] - a.v[0] * b.v[2]; r.v[2] = a.v[0] * b.v[1] - a.v[1] * b.v[0]; return r; }
 static inline pc_a3f pc_add_a3f(pc_a3f a, pc_a3f b) { pc_a3f r = a; int i; for (i = 0; i < 3; i++) { r.v[i] = a.v[i] + b.v[i]; } return r; }
 static inline pc_a3f pc_div_a3f(pc_a3f a, double s) { pc_a3f r = a; int i; for (i = 0; i < 3; i++) { r.v[i] = a.v[i] / s; } return r; }

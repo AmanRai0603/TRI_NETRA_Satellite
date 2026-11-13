@@ -1,8 +1,10 @@
-function [q_body, ok, spots, identified, used, cr, cm, img, work, ia, ib, pi, pj, pa, g] = st_chain(q_true, r_body2head, r_head_nominal, cr, cm, nc, cam, img, work, ia, ib, pi, pj, pa, noisy, g)
+function [q_body, ok, spots, identified, used, cr, cm, img, work, ia, ib, pi, pj, pa, g] = st_chain(q_true, r_body2head, r_head_nominal, cr, cm, nc, cam, img, work, ia, ib, pi, pj, pa, noisy, g, vb)
 %ST_CHAIN  The whole chain for one head: the frame rendered at the true attitude q_true (ECI to body, at the exposure) through the
 %   head's true mount r_body2head (misalignment included), its spots, their directions through the pinhole and magnitudes
 %   from their fluxes, identified, and the attitude with the residual check reported through the head's nominal mount
-%   r_head_nominal: (q_body, solved, how many spots, identified, used); q_true when not solved.
+%   r_head_nominal: (q_body, solved, how many spots, identified, used); q_true when not solved. The stars appear where the
+%   observer's velocity vb [m/s] relative to the barycentre shows them (st_render's aberration); the identification and the fit
+%   take the catalogue's geometric directions, as a tracker without the velocity does.
 %   length: 576
 %   q_true: real[1][4] (passed a plain number)
 %   r_body2head: real[1][3][3] (passed a plain number)
@@ -20,6 +22,7 @@ function [q_body, ok, spots, identified, used, cr, cm, img, work, ia, ib, pi, pj
 %   pa: inout real[1][*] (passed a plain number)
 %   noisy: bool (passed true or false)
 %   g: inout stream (passed a random stream, as six numbers)
+%   vb: real[m/s][3] (passed in m/s)
 %   returns q_body: real[1][4] (passed a plain number)
 %   returns ok: bool (passed true or false)
 %   returns spots: int (passed a whole number)
@@ -39,7 +42,7 @@ function [q_body, ok, spots, identified, used, cr, cm, img, work, ia, ib, pi, pj
     tx = zeros(1, 1);
     ty = zeros(1, 1);
     tk = zeros(1, 1);
-    [t__658, t__659, t__660, t__661, t__662, t__663, t__664, t__665] = asils.models.strender.st_render(r_eh, cr, cm, nc, cam, img, noisy, g, tx, ty, tk);
+    [t__658, t__659, t__660, t__661, t__662, t__663, t__664, t__665] = asils.models.strender.st_render(r_eh, cr, cm, nc, cam, img, noisy, g, tx, ty, tk, vb);
     drawn = t__658;
     cr = t__659;
     cm = t__660;
@@ -61,12 +64,12 @@ function [q_body, ok, spots, identified, used, cr, cm, img, work, ia, ib, pi, pj
         mag = zeros(32, 1);
         for k = (0):((ns) - 1)
             b((k) + 1, :) = asils.models.facets.unit_or_zero([((sp((k) + 1, 1) - cam.c) / cam.f); ((sp((k) + 1, 2) - cam.c) / cam.f); 1]).';
-            h__760 = sp((k) + 1, 3);
-            h__761 = 1;
-            if h__761 > h__760, h__760 = h__761; end
-            h__762 = log10((h__760 / cam.flux0));
-            if ~isreal(h__762), h__762 = NaN; end
-            mag((k) + 1) = (6 - (2.5 * h__762));
+            h__762 = sp((k) + 1, 3);
+            h__763 = 1;
+            if h__763 > h__762, h__762 = h__763; end
+            h__764 = log10((h__762 / cam.flux0));
+            if ~isreal(h__764), h__764 = NaN; end
+            mag((k) + 1) = (6 - (2.5 * h__764));
         end
         [t__672, t__673, t__674, t__675, t__676, t__677, t__678] = asils.models.stidentify.st_identify(b, mag, ns, pi, pj, pa, cr, cm, nc, cam.id_tol, cam.mag_tol);
         id = t__672;

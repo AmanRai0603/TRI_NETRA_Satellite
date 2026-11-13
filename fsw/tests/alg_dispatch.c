@@ -544,6 +544,20 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
     }
         return 0;
     }
+    if (strcmp(name, "frames::earth_velocity") == 0) {
+        if (nx != 1) { return -1; }
+    {
+        double a0;
+        a0 = x[0];
+        {
+            pc_a3f r = frames_earth_velocity(a0);
+            out[(*ny)++] = r.v[0];
+            out[(*ny)++] = r.v[1];
+            out[(*ny)++] = r.v[2];
+        }
+    }
+        return 0;
+    }
     if (strcmp(name, "frames::geodetic") == 0) {
         if (nx != 3) { return -1; }
     {
@@ -2100,6 +2114,38 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
         a2 = x[7];
         {
             pc_a4f r = estimation_latency(a0, a1, a2);
+            out[(*ny)++] = r.v[0];
+            out[(*ny)++] = r.v[1];
+            out[(*ny)++] = r.v[2];
+            out[(*ny)++] = r.v[3];
+        }
+    }
+        return 0;
+    }
+    if (strcmp(name, "estimation::st_corrected") == 0) {
+        if (nx != 13) { return -1; }
+    {
+        pc_a4f a0;
+        pc_a3f a1;
+        double a2;
+        bool a3;
+        pc_a3f a4;
+        int64_t a5;
+        a0.v[0] = x[0];
+        a0.v[1] = x[1];
+        a0.v[2] = x[2];
+        a0.v[3] = x[3];
+        a1.v[0] = x[4];
+        a1.v[1] = x[5];
+        a1.v[2] = x[6];
+        a2 = x[7];
+        a3 = x[8] != 0.0;
+        a4.v[0] = x[9];
+        a4.v[1] = x[10];
+        a4.v[2] = x[11];
+        a5 = (int64_t)x[12];
+        {
+            pc_a4f r = estimation_st_corrected(a0, a1, a2, a3, a4, a5);
             out[(*ny)++] = r.v[0];
             out[(*ny)++] = r.v[1];
             out[(*ny)++] = r.v[2];

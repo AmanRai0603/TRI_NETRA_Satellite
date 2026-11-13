@@ -34,6 +34,15 @@ static int ticks_of(double seconds, double dt) { int n = (int)floor(seconds/dt +
 /* written from the design: steplaws::orbit_acc (fsw/alg) */
 void adcs_orbit_acc(const adcs_real r[3], adcs_real mu, adcs_real a[3]) { gl_o3(steplaws_orbit_acc(gl_v3(r), mu), a); }
 
+/* the star tracker's attitude with the aberration of starlight taken out (E2, DR-nav-001): estimation::st_corrected, the head's
+ * boresight bs (body), the onboard orbit's velocity when it holds one, the Earth's from the Sun model's derivative, per
+ * the flight parameter aberration_source (0: the attitude as it came) */
+/* written from the design: estimation::st_corrected (fsw/alg) */
+static void st_corrected(const adcs_real q[4], const adcs_real bs[3], double jd, int have_v, const adcs_real v[3], int source, adcs_real qc[4])
+{
+    gl_o4(estimation_st_corrected(gl_v4(q), gl_v3(bs), jd, have_v != 0, gl_v3(v), (int64_t)source), qc);
+}
+
 /* nav's onboard orbit after the tick's step 1: the receiver's fix taken in (its gate, its frame, its age), else the orbit
  * held carried one tick dt (two-body + J2 by velocity Verlet), else none */
 /* written from the design: navorbit::onboard_orbit (fsw/alg) */
@@ -250,8 +259,9 @@ int32_t adcs_fsw_step(uint64_t now_ns)
             }
             S.rej[0] = S.rej[1] = S.rej[2] = 0;
             if (found) {
-                adcs_real q0[4];
-                adcs_latency(z->q_st[h], z->w, p->st_latency, q0);
+                adcs_real q0[4], qa[4];
+                st_corrected(z->q_st[h], p->st_bs[h], S.jd, S.have_r, S.v, p->aberration_source, qa);
+                adcs_latency(qa, z->w, p->st_latency, q0);
                 adcs_mekf_init(&S.K, q0, 1e-3, 2e-4, p->gyro_arw, p->gyro_rrw);
                 S.ad_ok = 1; S.t_st = S.t;
             } else if (z->sun_ok && z->mag_ok && S.clean && S.bref_ok) {
@@ -273,10 +283,11 @@ int32_t adcs_fsw_step(uint64_t now_ns)
                     int plausible = estimation_st_plausible(gl_v4(z->q_st[h]), z->st_valid[h] != 0, h, p->n_heads, p->st_norm_tol);
                     if (z->st_valid[h] && !plausible) S.st_refused++;                  /* counted, not taken */
                     if (plausible) {                                                    /* a unit quaternion, or no reading */
-                        adcs_real wb[3], ql[4], bs[3];
+                        adcs_real wb[3], ql[4], bs[3], qa[4];
                         adcs_sub3(z->w, S.K.b, wb);
-                        adcs_latency(z->q_st[h], wb, p->st_latency, ql);
                         for (i = 0; i < 3; i++) bs[i] = p->st_bs[h][i];
+                        st_corrected(z->q_st[h], bs, S.jd, S.have_r, S.v, p->aberration_source, qa);
+                        adcs_latency(qa, wb, p->st_latency, ql);
                         (void)adcs_mekf_quat(&S.K, ql, p->st_noise_cross*p->mekf_meas_scale, p->st_noise_roll*p->mekf_meas_scale, bs, 0.0);
                     }
                 }

@@ -278,7 +278,9 @@ impl Fsw {
                 }
                 self.rej = [0.0; 3];
                 if found {
-                    let q0 = est::latency(&z.q_st[h], &z.w, p.st_latency);
+                    // the aberration of starlight out of the tracker's attitude (estimation::st_corrected, E2, DR-nav-001)
+                    let qa = crate::alg::estimation::st_corrected(z.q_st[h], p.st_bs[h], self.jd, self.have_r, self.v, p.aberration_source as i64);
+                    let q0 = est::latency(&qa, &z.w, p.st_latency);
                     self.k = Mekf::new(&q0, 1e-3, 2e-4, p.gyro_arw, p.gyro_rrw);
                     self.ad_ok = true;
                     self.t_st = self.t;
@@ -301,7 +303,8 @@ impl Fsw {
                         if z.st_valid[h] && !plausible { self.st_refused += 1; }     // counted, not taken
                         if plausible {                                              // a unit quaternion, or no reading
                             let wb = sub3(&z.w, &self.k.b);
-                            let ql = est::latency(&z.q_st[h], &wb, p.st_latency);
+                            let qa = crate::alg::estimation::st_corrected(z.q_st[h], p.st_bs[h], self.jd, self.have_r, self.v, p.aberration_source as i64);
+                            let ql = est::latency(&qa, &wb, p.st_latency);
                             self.k.quat(&ql, p.st_noise_cross*p.mekf_meas_scale, p.st_noise_roll*p.mekf_meas_scale, &p.st_bs[h], 0.0);
                         }
                     }

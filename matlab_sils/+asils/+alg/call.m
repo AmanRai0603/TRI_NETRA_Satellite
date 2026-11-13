@@ -74,6 +74,9 @@ function y = call(name, x)
         case 'frames::sun_model'
             [o1] = asils.alg.frames.sun_model(x(1));
             y = [reshape(o1, [], 1)];
+        case 'frames::earth_velocity'
+            [o1] = asils.alg.frames.earth_velocity(x(1));
+            y = [reshape(o1, [], 1)];
         case 'frames::geodetic'
             [o1, o2, o3] = asils.alg.frames.geodetic(reshape(x(1:3), 3, 1));
             y = [double(o1); double(o2); double(o3)];
@@ -127,6 +130,9 @@ function y = call(name, x)
             y = [reshape(o1, [], 1); double(o2)];
         case 'estimation::latency'
             [o1] = asils.alg.estimation.latency(reshape(x(1:4), 4, 1), reshape(x(5:7), 3, 1), x(8));
+            y = [reshape(o1, [], 1)];
+        case 'estimation::st_corrected'
+            [o1] = asils.alg.estimation.st_corrected(reshape(x(1:4), 4, 1), reshape(x(5:7), 3, 1), x(8), (x(9) ~= 0), reshape(x(10:12), 3, 1), x(13));
             y = [reshape(o1, [], 1)];
         case 'navorbit::gnss_usable'
             [o1] = asils.alg.navorbit.gnss_usable((x(1) ~= 0), reshape(x(2:4), 3, 1));

@@ -43,10 +43,10 @@ function [s] = modes_step(st, mp, zw, sun_ok, sun, dt, has_gyro, wbd, wbd_ok)
             s.s_prop_ok = true;
         elseif s.s_prop_ok
             a = asils.alg.math.dcm(asils.alg.math.fromrotvec((s.w_est * dt)));
-            h__107 = [a(1, 1)*s.s_prop(1) + a(1, 2)*s.s_prop(2) + a(1, 3)*s.s_prop(3); a(2, 1)*s.s_prop(1) + a(2, 2)*s.s_prop(2) + a(2, 3)*s.s_prop(3); a(3, 1)*s.s_prop(1) + a(3, 2)*s.s_prop(2) + a(3, 3)*s.s_prop(3)];
-            h__108 = sqrt(h__107(1)*h__107(1) + h__107(2)*h__107(2) + h__107(3)*h__107(3));
-            if 1e-30 > h__108, h__108 = 1e-30; end
-            s.s_prop = (h__107 / h__108);
+            h__109 = [a(1, 1)*s.s_prop(1) + a(1, 2)*s.s_prop(2) + a(1, 3)*s.s_prop(3); a(2, 1)*s.s_prop(1) + a(2, 2)*s.s_prop(2) + a(2, 3)*s.s_prop(3); a(3, 1)*s.s_prop(1) + a(3, 2)*s.s_prop(2) + a(3, 3)*s.s_prop(3)];
+            h__110 = sqrt(h__109(1)*h__109(1) + h__109(2)*h__109(2) + h__109(3)*h__109(3));
+            if 1e-30 > h__110, h__110 = 1e-30; end
+            s.s_prop = (h__109 / h__110);
         end
     end
     if ((s.mode == 8) && (mp.auto_next ~= 255))

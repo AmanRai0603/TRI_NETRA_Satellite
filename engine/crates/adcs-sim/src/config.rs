@@ -458,6 +458,7 @@ fn sensor_params(p: &mut Params, k: &Knowns) -> Result<(), Error> {
     p.mekf_gate = k.param("mekf_gate", "mekf_gate")?; p.mekf_rej_max = k.param("mekf_rej_max", "mekf_rej_max")?;
     p.mekf_meas_scale = k.constant("mekf_meas_scale")?;
     p.gnss_ecef = k.st.whole("fsw_param_gnss_ecef", 0, 1)? as u8;
+    p.aberration_source = k.st.whole("fsw_param_aberration_source", 0, 1)? as u8;       // DR-nav-001: GNSS velocity plus the Sun model's derivative
     p.gps_latency = fse::fsw_gnss_latency(d.gps.fitted, d.gps.latency);
     p.clock_step_max_s = k.constant("clock_step_max_s")?;       // DR-fsw-001: the design states the onboard clock's forward bound
     p.gyro_stale_ticks = k.st.whole("fsw_param_gyro_stale_ticks", 1, 100)? as u8;       // DR-fdir-002: the design states the quiet gyro's limit

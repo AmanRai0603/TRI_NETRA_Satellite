@@ -1,6 +1,7 @@
 ## 03 - Estimation (03_estimation.md): the multiplicative extended Kalman filter, TRIAD, the q-method
 ## and the star-tracker latency, operation for operation as fsw/src/adcs_est.c and fsw-rs/src/est.rs.
-## The filter's record (adcs_mekf_t, est::Mekf) is passed as its parts: q, b, P.
+## The filter's record (adcs_mekf_t, est::Mekf) is passed as its parts: q, b, P. The star tracker's aberration correction
+## (st_corrected) is the developer's revision S12.5b (E2, DR-nav-001), unsigned.
 module estimation
 
 ## A filter at q0, bias zero, attitude and bias variances sa^2 and sb^2.
@@ -350,4 +351,26 @@ end
 ## A star-tracker attitude carried from t - lat to t with the gyro: q_st fromrotvec(w lat), unit.
 fn latency(q_st: quat in -1 .. 1, w: vec3[1] in -0.1 .. 0.1, lat: real[1] in 0 .. 0.5) -> q: quat
     q = qnorm(qmult(q_st, fromrotvec(w*lat)))
+end
+
+## The star tracker's attitude q (ECI to body) with the aberration of starlight taken out (E2; DR-nav-001, the owner's
+## default: the GNSS velocity plus the Sun model's derivative). The tracker fits the stars it sees, each displaced towards
+## the direction of the observer's motion v (relative to the solar-system barycentre) by v/c across the line of sight, to the
+## catalogue's geometric directions, and so reports the true attitude turned, from the inertial side, by the rotation
+## eps = u x v/c, u the head's boresight in the inertial frame (the displacement of a star s is eps x s to first order and
+## about the boresight; the stars' radial scale term, (v . u)/c across the field, turns the fit by nothing). The correction
+## turns it back: q_corrected = fromrotvec(eps) (the attitude), in the product's order. v is the Earth's velocity from the
+## Sun model's derivative (frames' earth_velocity: the 1 AU mean distance, so its transverse part is good to the
+## eccentricity's 1.7 per cent, 0.35 arcsecond) plus the spacecraft's, the onboard orbit's velocity when it holds one
+## (have_v; without it the correction is the Earth's alone). source 0: no correction (the attitude as it came); 1: this.
+## The first-order form (the exact one differs from it by (v/c)^2, 1e-8 rad); c = 299792458 m/s.
+fn st_corrected(q: quat in -1 .. 1, bs: vec3[1] in -1 .. 1, jd: real[1] in 2459000 .. 2463000, have_v: bool, \
+                v_sc: vec3[1] in -1e4 .. 1e4, source: int in 0 .. 1) -> qc: quat
+    qc = q
+    if source == 1
+        let ve = earth_velocity(jd)
+        let v = if have_v then ve + v_sc else ve
+        let u = mat3t_vec(dcm(q), bs)
+        qc = qnorm(qmult(fromrotvec(cross(u, v/299792458.0)), q))
+    end
 end

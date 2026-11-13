@@ -2301,6 +2301,9 @@ function y = call(name, x)
         case 'frames::sun_model'
             [o1] = asils.models.frames.sun_model(x(1));
             y = [reshape(o1, [], 1)];
+        case 'frames::earth_velocity'
+            [o1] = asils.models.frames.earth_velocity(x(1));
+            y = [reshape(o1, [], 1)];
         case 'frames::geodetic'
             [o1, o2, o3] = asils.models.frames.geodetic(reshape(x(1:3), 3, 1));
             y = [double(o1); double(o2); double(o3)];
@@ -3076,6 +3079,9 @@ function y = call(name, x)
         case 'starcat::star_catalogue'
             [o1, io1, io2] = asils.models.starcat.star_catalogue(reshape(x(1:12000), 3, 4000).', reshape(x(12001:16000), 4000, 1));
             y = [double(o1); reshape((io1).', [], 1); reshape(io2, [], 1)];
+        case 'starcat::st_aberrate'
+            [o1] = asils.models.starcat.st_aberrate(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1));
+            y = [reshape(o1, [], 1)];
         case 'stattitude::st_qmethod'
             [o1] = asils.models.stattitude.st_qmethod(reshape(x(1:96), 3, 32).', reshape(x(97:192), 3, 32).', x(193));
             y = [reshape(o1, [], 1)];
@@ -3337,7 +3343,10 @@ function y = call(name, x)
             xa = x(at + 1:end);
             a16 = reshape(xa(1:6), 6, 1);
             at = at + 6;
-            [o1, o2, o3, o4, o5, io4, io5, io8, io9, io10, io11, io12, io13, io14, io16] = asils.models.stimage.st_chain(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16);
+            xa = x(at + 1:end);
+            a17 = reshape(xa(1:3), 3, 1);
+            at = at + 3;
+            [o1, o2, o3, o4, o5, io4, io5, io8, io9, io10, io11, io12, io13, io14, io16] = asils.models.stimage.st_chain(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17);
             y = [reshape(o1, [], 1); double(o2); double(o3); double(o4); double(o5); reshape((io4).', [], 1); reshape(io5, [], 1); numel(io8); reshape(io8, [], 1); numel(io9); reshape(io9, [], 1); numel(io10); reshape(io10, [], 1); numel(io11); reshape(io11, [], 1); numel(io12); reshape(io12, [], 1); numel(io13); reshape(io13, [], 1); numel(io14); reshape(io14, [], 1); reshape(io16, [], 1)];
         case 'stimage::st_image'
             at = 0;
@@ -3389,7 +3398,10 @@ function y = call(name, x)
             n16 = x(at + 1);
             a16 = reshape(x(at + 2:at + 1 + n16), [], 1);
             at = at + 1 + n16;
-            [o1, o2, io1, io7, io8, io10, io11, io12, io13, io14, io15, io16] = asils.models.stimage.st_image(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16);
+            xa = x(at + 1:end);
+            a17 = reshape(xa(1:3), 3, 1);
+            at = at + 3;
+            [o1, o2, io1, io7, io8, io10, io11, io12, io13, io14, io15, io16] = asils.models.stimage.st_image(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17);
             y = [reshape(o1, [], 1); reshape((o2).', [], 1); [reshape((io1.q_bias).', [], 1); reshape((io1.q_mis).', [], 1); reshape(io1.dead, [], 1); reshape(io1.blind_until, [], 1); reshape(io1.g, [], 1)]; reshape((io7).', [], 1); reshape(io8, [], 1); numel(io10); reshape(io10, [], 1); numel(io11); reshape(io11, [], 1); numel(io12); reshape(io12, [], 1); numel(io13); reshape(io13, [], 1); numel(io14); reshape(io14, [], 1); numel(io15); reshape(io15, [], 1); numel(io16); reshape(io16, [], 1)];
         case 'strender::st_focal'
             [o1, o2] = asils.models.strender.st_focal(x(1), x(2));
@@ -3429,7 +3441,10 @@ function y = call(name, x)
             n11 = x(at + 1);
             a11 = reshape(x(at + 2:at + 1 + n11), [], 1);
             at = at + 1 + n11;
-            [o1, io2, io3, io6, io8, io9, io10, io11] = asils.models.strender.st_render(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+            xa = x(at + 1:end);
+            a12 = reshape(xa(1:3), 3, 1);
+            at = at + 3;
+            [o1, io2, io3, io6, io8, io9, io10, io11] = asils.models.strender.st_render(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
             y = [double(o1); reshape((io2).', [], 1); reshape(io3, [], 1); numel(io6); reshape(io6, [], 1); reshape(io8, [], 1); numel(io9); reshape(io9, [], 1); numel(io10); reshape(io10, [], 1); numel(io11); reshape(io11, [], 1)];
         case 'sttracker::st_new'
             [o1, io2] = asils.models.sttracker.st_new(struct('nh', {x(1)}, 'bs', {reshape(x(2:7), 3, 2).'}, 'noise_cross', {x(8)}, 'noise_roll', {x(9)}, 'latency', {x(10)}, 'max_rate', {x(11)}, 'sun_excl', {x(12)}, 'earth_excl', {x(13)}, 'fov', {x(14)}, 'model', {x(15)}, 'bias_sigma', {x(16)}, 'misalign_sigma', {x(17)}, 'moon_excl', {x(18)}, 'blind_s', {x(19)}, 'noise_rate_ref', {x(20)}), reshape(x(21:26), 6, 1), reshape(x(27:32), 6, 1));
@@ -3450,13 +3465,13 @@ function y = call(name, x)
             [o1, io1] = asils.models.sttracker.st_head_valid(struct('q_bias', {reshape(x(1:8), 4, 2).'}, 'q_mis', {reshape(x(9:16), 4, 2).'}, 'dead', {reshape(x(17:18), 2, 1)}, 'blind_until', {reshape(x(19:20), 2, 1)}, 'g', {reshape(x(21:26), 6, 1)}), struct('nh', {x(27)}, 'bs', {reshape(x(28:33), 3, 2).'}, 'noise_cross', {x(34)}, 'noise_roll', {x(35)}, 'latency', {x(36)}, 'max_rate', {x(37)}, 'sun_excl', {x(38)}, 'earth_excl', {x(39)}, 'fov', {x(40)}, 'model', {x(41)}, 'bias_sigma', {x(42)}, 'misalign_sigma', {x(43)}, 'moon_excl', {x(44)}, 'blind_s', {x(45)}, 'noise_rate_ref', {x(46)}), x(47), x(48), reshape(x(49:51), 3, 1), reshape(x(52:54), 3, 1), reshape(x(55:57), 3, 1), x(58), (x(59) ~= 0));
             y = [double(o1); [reshape((io1.q_bias).', [], 1); reshape((io1.q_mis).', [], 1); reshape(io1.dead, [], 1); reshape(io1.blind_until, [], 1); reshape(io1.g, [], 1)]];
         case 'sttracker::st_noise_head'
-            [o1, io7] = asils.models.sttracker.st_noise_head(reshape(x(1:4), 4, 1), reshape(x(5:8), 4, 1), reshape(x(9:11), 3, 1), x(12), x(13), x(14), reshape(x(15:20), 6, 1));
+            [o1, io7] = asils.models.sttracker.st_noise_head(reshape(x(1:4), 4, 1), reshape(x(5:8), 4, 1), reshape(x(9:11), 3, 1), x(12), x(13), x(14), reshape(x(15:20), 6, 1), reshape(x(21:23), 3, 1));
             y = [reshape(o1, [], 1); reshape(io7, [], 1)];
         case 'sttracker::st_quest_head'
-            [o1, o2, io7, io8, io10] = asils.models.sttracker.st_quest_head(reshape(x(1:9), 3, 3).', reshape(x(10:13), 4, 1), reshape(x(14:16), 3, 1), x(17), x(18), x(19), reshape(x(20:12019), 3, 4000).', reshape(x(12020:16019), 4000, 1), (x(16020) ~= 0), reshape(x(16021:16026), 6, 1));
+            [o1, o2, io7, io8, io10] = asils.models.sttracker.st_quest_head(reshape(x(1:9), 3, 3).', reshape(x(10:13), 4, 1), reshape(x(14:16), 3, 1), x(17), x(18), x(19), reshape(x(20:12019), 3, 4000).', reshape(x(12020:16019), 4000, 1), (x(16020) ~= 0), reshape(x(16021:16026), 6, 1), reshape(x(16027:16029), 3, 1));
             y = [reshape(o1, [], 1); double(o2); reshape((io7).', [], 1); reshape(io8, [], 1); reshape(io10, [], 1)];
         case 'sttracker::st_sample'
-            [o1, o2, o3, o4, o5, io1, io3, io4, io6, io7] = asils.models.sttracker.st_sample(struct('q_bias', {reshape(x(1:8), 4, 2).'}, 'q_mis', {reshape(x(9:16), 4, 2).'}, 'dead', {reshape(x(17:18), 2, 1)}, 'blind_until', {reshape(x(19:20), 2, 1)}, 'g', {reshape(x(21:26), 6, 1)}), struct('nh', {x(27)}, 'bs', {reshape(x(28:33), 3, 2).'}, 'noise_cross', {x(34)}, 'noise_roll', {x(35)}, 'latency', {x(36)}, 'max_rate', {x(37)}, 'sun_excl', {x(38)}, 'earth_excl', {x(39)}, 'fov', {x(40)}, 'model', {x(41)}, 'bias_sigma', {x(42)}, 'misalign_sigma', {x(43)}, 'moon_excl', {x(44)}, 'blind_s', {x(45)}, 'noise_rate_ref', {x(46)}), reshape(x(47:110), 64, 1), reshape(x(111:366), 4, 64).', x(367), reshape(x(368:12367), 3, 4000).', reshape(x(12368:16367), 4000, 1), reshape(x(16368:16371), 4, 1), x(16372), reshape(x(16373:16375), 3, 1), reshape(x(16376:16378), 3, 1), reshape(x(16379:16381), 3, 1), reshape(x(16382:16384), 3, 1), x(16385));
+            [o1, o2, o3, o4, o5, io1, io3, io4, io6, io7] = asils.models.sttracker.st_sample(struct('q_bias', {reshape(x(1:8), 4, 2).'}, 'q_mis', {reshape(x(9:16), 4, 2).'}, 'dead', {reshape(x(17:18), 2, 1)}, 'blind_until', {reshape(x(19:20), 2, 1)}, 'g', {reshape(x(21:26), 6, 1)}), struct('nh', {x(27)}, 'bs', {reshape(x(28:33), 3, 2).'}, 'noise_cross', {x(34)}, 'noise_roll', {x(35)}, 'latency', {x(36)}, 'max_rate', {x(37)}, 'sun_excl', {x(38)}, 'earth_excl', {x(39)}, 'fov', {x(40)}, 'model', {x(41)}, 'bias_sigma', {x(42)}, 'misalign_sigma', {x(43)}, 'moon_excl', {x(44)}, 'blind_s', {x(45)}, 'noise_rate_ref', {x(46)}), reshape(x(47:110), 64, 1), reshape(x(111:366), 4, 64).', x(367), reshape(x(368:12367), 3, 4000).', reshape(x(12368:16367), 4000, 1), reshape(x(16368:16371), 4, 1), x(16372), reshape(x(16373:16375), 3, 1), reshape(x(16376:16378), 3, 1), reshape(x(16379:16381), 3, 1), reshape(x(16382:16384), 3, 1), x(16385), reshape(x(16386:16388), 3, 1));
             y = [reshape(o1, [], 1); reshape((o2).', [], 1); reshape(o3, [], 1); reshape((o4).', [], 1); reshape(o5, [], 1); [reshape((io1.q_bias).', [], 1); reshape((io1.q_mis).', [], 1); reshape(io1.dead, [], 1); reshape(io1.blind_until, [], 1); reshape(io1.g, [], 1)]; reshape(io3, [], 1); reshape((io4).', [], 1); reshape((io6).', [], 1); reshape(io7, [], 1)];
         case 'sttracker::st_calibrated'
             [o1, o2] = asils.models.sttracker.st_calibrated(x(1), x(2), (x(3) ~= 0), x(4));

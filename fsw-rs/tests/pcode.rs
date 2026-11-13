@@ -57,6 +57,8 @@ const BY_NAME: &[(&str, &str)] = &[
     ("navorbit::fix_eci", "called only by the generated onboard_orbit"),
     ("frames::nut00b", "called only by the generated eci2ecef"),
     ("frames::fw06", "called only by the generated eci2ecef"),
+    ("frames::earth_velocity", "called only by the generated st_corrected"),
+    ("estimation::st_corrected", "the runtime calls it at the filter's start and updates (fsw.rs Fsw::step): no public signature"),
     ("frames::npb", "called only by the generated eci2ecef"),
     ("modes::bdot_rate", "the runtime calls it in the tick's step 4 (fsw.rs Fsw::step): no public signature"),
     ("estimation::st_coasting", "the runtime calls it in the tick's step 2 (fsw.rs Fsw::step): no public signature"),

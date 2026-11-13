@@ -15,10 +15,10 @@ function [med, s] = st_median(s, m)
     else
         b = Inf;
         for l = ((k + 1)):((m) - 1)
-            h__720 = b;
-            h__721 = s((l) + 1);
-            if h__721 < h__720, h__720 = h__721; end
-            b = h__720;
+            h__722 = b;
+            h__723 = s((l) + 1);
+            if h__723 < h__722, h__722 = h__723; end
+            b = h__722;
         end
         med = ((a + b) / 2);
     end

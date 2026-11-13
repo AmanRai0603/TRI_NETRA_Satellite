@@ -1,7 +1,7 @@
 ## 02 - Time, frames and onboard models (02_time_frames_models.md): sidereal time, precession, the Earth-fixed frame of
 ## the onboard clock with the IAU 2000B nutation, the Sun, geodetic coordinates and the IGRF field, operation for operation
 ## as fsw/src/adcs_env.c and fsw-rs/src/env.rs. Times are Julian dates; the field is in nT from igrf_ned and in T from
-## field_eci. The developer's revision S12.5a (T5/E3, DR-env-002), unsigned.
+## field_eci. The developer's revision S12.5a (T5/E3, DR-env-002), unsigned; earth_velocity is S12.5b (E2, DR-nav-001).
 module frames
 
 ## The Earth's rotation about z by the Greenwich mean sidereal time (IAU 1982).
@@ -243,6 +243,19 @@ fn sun_model(jd: real[1] in 2459000 .. 2463000) -> s: vec3[1]
     let b: vec3[1] = [cos(-th)*a[0] - sin(-th)*a[2], a[1], sin(-th)*a[0] + cos(-th)*a[2]]
     let r: vec3[1] = [cos(zeta)*b[0] + sin(zeta)*b[1], -sin(zeta)*b[0] + cos(zeta)*b[1], b[2]]
     s = unit(r)
+end
+
+## The Earth's velocity relative to the solar-system barycentre [m/s, J2000] from the Sun model's derivative (E2, DR-nav-001,
+## the owner's default for the onboard aberration): the Sun's direction s moves as the Earth goes round it, and the Earth's
+## velocity is -d(distance x s)/dt; at the mean distance of 1 AU (149597870700 m, IAU 2012 resolution B2) and with no radial
+## term, the central difference of the Sun model over half a day each side, v = -AU (s(jd + 1/4) - s(jd - 1/4))/(2 x 1/4 day).
+## The transverse speed is good to the eccentricity of the orbit (the distance is 1 AU to 1.7 per cent: 0.5 km/s of 29.8) and
+## the radial 0.5 km/s are not in it; the Sun's own motion about the barycentre (12 m/s) is left out.
+fn earth_velocity(jd: real[1] in 2459000 .. 2463000) -> v: vec3[1]
+    let h = 0.25
+    let s1 = sun_model(jd + h)
+    let s0 = sun_model(jd - h)
+    v = (s0 - s1)*(149597870700.0/(2.0*h*86400.0))
 end
 
 ## Geodetic latitude, longitude and height on WGS-84 of an Earth-fixed position (three fixed-point

@@ -164,17 +164,18 @@ impl St {
     /// The onboard star table as the generated chain takes it (by reference).
     pub fn catalogue_mut(&mut self) -> (&mut [V3; N_STARS], &mut [f64; N_STARS]) { (&mut self.cr, &mut self.cm) }
     /// Per head: Some(q_meas) when valid. `moon_b`: the Moon's direction in the body.
-    /// Models 0 and 1; model 2 needs [`St::sample_with`].
-    pub fn sample(&mut self, q_true: &Q, t: f64, w: &V3, sun_b: &V3, moon_b: &V3, nadir_b: &V3, earth_ang: f64) -> [Option<Q>; NH] {
-        self.sample_with(q_true, t, w, sun_b, moon_b, nadir_b, earth_ang, None)
+    /// Models 0 and 1; model 2 needs [`St::sample_with`]. `vb`: the spacecraft's velocity relative to the solar-system barycentre
+    /// [m/s, J2000], which aberrates the stars (S12.5b, E2).
+    pub fn sample(&mut self, q_true: &Q, t: f64, w: &V3, sun_b: &V3, moon_b: &V3, nadir_b: &V3, earth_ang: f64, vb: &V3) -> [Option<Q>; NH] {
+        self.sample_with(q_true, t, w, sun_b, moon_b, nadir_b, earth_ang, vb, None)
     }
     /// As [`St::sample`], with the frame buffers model 2 renders into (it panics without them:
     /// a run never flies the image model on nothing). Model 2 renders a frame only for a head
     /// that is valid (its noise is drawn from this unit's stream); a frame the chain cannot
     /// solve gives no attitude.
-    pub fn sample_with(&mut self, q_true: &Q, t: f64, w: &V3, sun_b: &V3, moon_b: &V3, nadir_b: &V3, earth_ang: f64, work: Option<&mut stc::Work>) -> [Option<Q>; NH] {
+    pub fn sample_with(&mut self, q_true: &Q, t: f64, w: &V3, sun_b: &V3, moon_b: &V3, nadir_b: &V3, earth_ang: f64, vb: &V3, work: Option<&mut stc::Work>) -> [Option<Q>; NH] {
         let (ok, q, valid, dq, q_old) = sttracker::st_sample(&mut self.s, self.dg, &mut self.ht, &mut self.hq, self.hn as i64, &mut self.cr, &mut self.cm,
-                                                             *q_true, t, *w, *sun_b, *moon_b, *nadir_b, earth_ang);
+                                                             *q_true, t, *w, *sun_b, *moon_b, *nadir_b, earth_ang, *vb);
         let mut out = [None; NH];
         for h in 0..self.d.nh { if ok[h] { out[h] = Some(q[h]); } }
         if self.d.model == 2 && (0..self.d.nh).any(|h| valid[h]) {
@@ -182,7 +183,7 @@ impl St {
             // attitude through its nominal mount (sens_star_image's st_image)
             let wk = work.expect("the image star-tracker model needs its frame buffers (St::sample_with)");
             let (okc, qc) = stimage::st_image(&mut self.s, self.dg, self.d.cam.rec(), valid, dq, q_old, &mut self.cr, &mut self.cm, N_STARS as i64,
-                                              wk.img, wk.work, wk.ia, wk.ib, wk.pi, wk.pj, wk.pa);
+                                              wk.img, wk.work, wk.ia, wk.ib, wk.pi, wk.pj, wk.pa, *vb);
             for h in 0..self.d.nh { if okc[h] { out[h] = Some(qc[h]); } }
         }
         out

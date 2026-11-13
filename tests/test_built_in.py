@@ -86,7 +86,7 @@ class BuiltIn(unittest.TestCase):
                  "env_time_scales", "env_geodetic", "env_earth_frames", "env_iau2006", "env_tidal_eop"}
         # a later revision may replace a method (S12.4a: the leap-second status in env_time_scales): the method's origin then
         # names that revision, and the node's history still says S7.3 transcribed it, unsigned
-        replaced = {"env_time_scales": "S12.4a", "env_time_frames": "S12.5a"}
+        replaced = {"env_time_scales": "S12.4a", "env_time_frames": "S12.5b"}
         for nid in moved:
             _k, x = self.nodes[nid]
             self.assertEqual(self.beh(nid), "method", nid)
@@ -310,7 +310,7 @@ class BuiltIn(unittest.TestCase):
             rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
             self.assertEqual(self.beh(nid), "method", nid)
             self.assertEqual(x["body"]["node"]["group_id"], "sens", nid)
-            self.assertTrue(any(f"the developer's revision {r}" in rows[("code", "pseudocode")][1] for r in ("S7.9", "S11.7")), nid)   # S11.7 named the history's span (M9)
+            self.assertTrue(any(f"the developer's revision {r}" in rows[("code", "pseudocode")][1] for r in ("S7.9", "S11.7", "S12.5b")), nid)   # S11.7 named the history's span (M9); S12.5b the aberration of starlight (E2)
             self.assertTrue(rows[("code", "transcribes")][0], nid)
             self.assertEqual(rows[("code", "generate")][0], "adcs-sim-core", nid)
             self.assertEqual(x["sealed_as"], "unconfirmed", nid)
@@ -328,7 +328,7 @@ class BuiltIn(unittest.TestCase):
             rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
             self.assertEqual(self.beh(nid), "method", nid)
             self.assertEqual(x["body"]["node"]["group_id"], "sens", nid)
-            self.assertIn("the developer's revision S7.10", rows[("code", "pseudocode")][1], nid)
+            self.assertIn(f"the developer's revision {'S12.5b' if nid in ('l3_sens_row_09', 'sens_star_image') else 'S7.10'}", rows[("code", "pseudocode")][1], nid)   # S12.5b: the aberration of starlight (E2)
             self.assertTrue(rows[("code", "transcribes")][0], nid)
             self.assertEqual(rows[("code", "generate")][0], "adcs-sim-core", nid)
             self.assertEqual(x["sealed_as"], "unconfirmed", nid)
@@ -469,7 +469,7 @@ end
             self.assertNotIn(gone, emu, gone)
 
     def test_the_flight_parameters_are_the_designs(self):
-        """S7.13 (closes S6's finding): every one of the 154 fsw_param_* nodes has its value from the design (147 at S7.13; S11.4b added fsw_param_clock_step_max_s, S11.5 fsw_param_gyro_stale_ticks, S11.6 fsw_param_st_norm_tol and fsw_param_triad_sin_min; S12.5a the three of the Earth orientation, which the ground uplinks and the design states no one value of). 77 are methods
+        """S7.13 (closes S6's finding): every one of the 155 fsw_param_* nodes has its value from the design (147 at S7.13; S11.4b added fsw_param_clock_step_max_s, S11.5 fsw_param_gyro_stale_ticks, S11.6 fsw_param_st_norm_tol and fsw_param_triad_sin_min; S12.5a the three of the Earth orientation, which the ground uplinks and the design states no one value of; S12.5b fsw_param_aberration_source). 77 are methods
         of fsw, the developer's unsigned transcriptions generated into adcs-sim (the laws, the choices of law, the copies of
         the product's, the case's and the constants' values); 67 are stated as the 1.0.0 code gave them (the constants, and
         the value a run takes when its scenario states none); the schedule's three state none (a run whose scenario states
@@ -477,7 +477,7 @@ end
         the engine held with no node are stated too; the engine reads them from data/stated.json, and config.rs holds no
         law and no constant of the flight software."""
         params = sorted(n for n in self.nodes if n.startswith("fsw_param_"))
-        self.assertEqual(len(params), 154)
+        self.assertEqual(len(params), 155)
         stated = self.stated_file()
         methods, values, none, later, uplink = [], [], [], [], []
         for nid in params:
@@ -511,7 +511,8 @@ end
                     none.append(nid)
         self.assertEqual((len(methods), len(values)), (77, 67))
         self.assertEqual(uplink, ["fsw_param_eop_dut1", "fsw_param_eop_xp", "fsw_param_eop_yp"])
-        self.assertEqual(later, ["fsw_param_clock_step_max_s", "fsw_param_gyro_stale_ticks", "fsw_param_st_norm_tol", "fsw_param_triad_sin_min"])
+        self.assertEqual(later, ["fsw_param_aberration_source", "fsw_param_clock_step_max_s", "fsw_param_gyro_stale_ticks", "fsw_param_st_norm_tol", "fsw_param_triad_sin_min"])
+        self.assertEqual(stated["fsw_param_aberration_source"], 1.0)
         self.assertEqual(stated["fsw_param_clock_step_max_s"], 60.0)
         self.assertEqual(stated["fsw_param_gyro_stale_ticks"], 3.0)
         self.assertEqual(stated["fsw_param_st_norm_tol"], 1e-3)

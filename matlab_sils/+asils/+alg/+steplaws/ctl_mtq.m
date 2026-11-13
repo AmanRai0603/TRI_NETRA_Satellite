@@ -14,8 +14,8 @@ function [s] = ctl_mtq(st, cp)
         s.tau_req = asils.alg.control.mtq_pd(s.q, s.w_est, s.q_ref, s.w_ref, cp.g_kp, cp.g_kd);
     elseif (law == 3)
         qe = asils.alg.math.qmult(asils.alg.math.qconj(s.q_ref), s.q);
-        h__72 = asils.alg.math.dcm(qe);
-        wr = [h__72(1, 1)*s.w_ref(1) + h__72(1, 2)*s.w_ref(2) + h__72(1, 3)*s.w_ref(3); h__72(2, 1)*s.w_ref(1) + h__72(2, 2)*s.w_ref(2) + h__72(2, 3)*s.w_ref(3); h__72(3, 1)*s.w_ref(1) + h__72(3, 2)*s.w_ref(2) + h__72(3, 3)*s.w_ref(3)];
+        h__74 = asils.alg.math.dcm(qe);
+        wr = [h__74(1, 1)*s.w_ref(1) + h__74(1, 2)*s.w_ref(2) + h__74(1, 3)*s.w_ref(3); h__74(2, 1)*s.w_ref(1) + h__74(2, 2)*s.w_ref(2) + h__74(2, 3)*s.w_ref(3); h__74(3, 1)*s.w_ref(1) + h__74(3, 2)*s.w_ref(2) + h__74(3, 3)*s.w_ref(3)];
         i = ((0):((3) - 1)).';
         s.tau_req((i) + 1) = ((-(reshape(cp.g_kd((i) + 1), [], 1))) .* (reshape(s.w_est((i) + 1), [], 1) - reshape(wr((i) + 1), [], 1)));
     elseif (law == 4)
@@ -38,17 +38,17 @@ function [s] = ctl_mtq(st, cp)
         wr = [a(1, 1)*s.w_ref(1) + a(1, 2)*s.w_ref(2) + a(1, 3)*s.w_ref(3); a(2, 1)*s.w_ref(1) + a(2, 2)*s.w_ref(2) + a(2, 3)*s.w_ref(3); a(3, 1)*s.w_ref(1) + a(3, 2)*s.w_ref(2) + a(3, 3)*s.w_ref(3)];
         we = (s.w_est - wr);
         if (s.mode == 9)
-            h__73 = cp.sun_axis;
+            h__75 = cp.sun_axis;
         else
-            h__73 = cp.roll_axis;
+            h__75 = cp.roll_axis;
         end
-        e3 = h__73;
+        e3 = h__75;
         tgt = [a(1, 1)*e3(1) + a(1, 2)*e3(2) + a(1, 3)*e3(3); a(2, 1)*e3(1) + a(2, 2)*e3(2) + a(2, 3)*e3(3); a(3, 1)*e3(1) + a(3, 2)*e3(2) + a(3, 3)*e3(3)];
         if ((s.mode == 9) && s.s_prop_ok)
-            h__74 = s.s_prop;
-            h__75 = sqrt(h__74(1)*h__74(1) + h__74(2)*h__74(2) + h__74(3)*h__74(3));
-            if 1e-30 > h__75, h__75 = 1e-30; end
-            tgt = (h__74 / h__75);
+            h__76 = s.s_prop;
+            h__77 = sqrt(h__76(1)*h__76(1) + h__76(2)*h__76(2) + h__76(3)*h__76(3));
+            if 1e-30 > h__77, h__77 = 1e-30; end
+            tgt = (h__76 / h__77);
         end
         s.tau_req = asils.alg.control.mtq_boresight(e3, tgt, we, cp.sb_kp, cp.sb_kd);
         if (((s.mode == 1) && (cp.sb_kroll > 0)) && ((e3(1)*tgt(1) + e3(2)*tgt(2) + e3(3)*tgt(3)) > cp.sb_roll_gate))
@@ -57,9 +57,9 @@ function [s] = ctl_mtq(st, cp)
             i = ((0):((3) - 1)).';
             pa((i) + 1) = (reshape(cp.sun_axis((i) + 1), [], 1) - (d .* reshape(e3((i) + 1), [], 1)));
             if (sqrt(pa(1)*pa(1) + pa(2)*pa(2) + pa(3)*pa(3)) > 0.000001)
-                h__76 = sqrt(pa(1)*pa(1) + pa(2)*pa(2) + pa(3)*pa(3));
-                if 1e-30 > h__76, h__76 = 1e-30; end
-                pa = (pa / h__76);
+                h__78 = sqrt(pa(1)*pa(1) + pa(2)*pa(2) + pa(3)*pa(3));
+                if 1e-30 > h__78, h__78 = 1e-30; end
+                pa = (pa / h__78);
                 pd = [a(1, 1)*pa(1) + a(1, 2)*pa(2) + a(1, 3)*pa(3); a(2, 1)*pa(1) + a(2, 2)*pa(2) + a(2, 3)*pa(3); a(3, 1)*pa(1) + a(3, 2)*pa(2) + a(3, 3)*pa(3)];
                 c = [pa(2)*pd(3) - pa(3)*pd(2); pa(3)*pd(1) - pa(1)*pd(3); pa(1)*pd(2) - pa(2)*pd(1)];
                 r = ((cp.sb_kroll * atan2((c(1)*e3(1) + c(2)*e3(2) + c(3)*e3(3)), (pa(1)*pd(1) + pa(2)*pd(2) + pa(3)*pd(3)))) - (cp.sb_kdroll * (we(1)*e3(1) + we(2)*e3(2) + we(3)*e3(3))));

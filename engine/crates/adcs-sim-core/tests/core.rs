@@ -376,17 +376,17 @@ fn a_star_tracker_refuses_inside_the_moon_exclusion_and_recovers_after_its_blind
     let q = [0.0, 0.0, 0.0, 1.0];
     let (sun, nadir) = ([1.0, 0.0, 0.0], [0.0, 0.0, -1.0]);
     let moon_at = |deg: f64| { let a = deg.to_radians(); [a.sin(), 0.0, a.cos()] };
-    assert!(s.sample(&q, 0.0, &[0.0; 3], &sun, &moon_at(40.0), &nadir, 1.0)[0].is_some());
+    assert!(s.sample(&q, 0.0, &[0.0; 3], &sun, &moon_at(40.0), &nadir, 1.0, &[0.0; 3])[0].is_some());
     // inside the Moon's 15 deg cone: no attitude
-    assert!(s.sample(&q, 1.0, &[0.0; 3], &sun, &moon_at(14.0), &nadir, 1.0)[0].is_none());
+    assert!(s.sample(&q, 1.0, &[0.0; 3], &sun, &moon_at(14.0), &nadir, 1.0, &[0.0; 3])[0].is_none());
     // the Moon has left the cone, the head is still blind for 5 s after it was last in it
-    assert!(s.sample(&q, 1.2, &[0.0; 3], &sun, &moon_at(16.0), &nadir, 1.0)[0].is_none());
-    assert!(s.sample(&q, 5.9, &[0.0; 3], &sun, &moon_at(20.0), &nadir, 1.0)[0].is_none());
-    assert!(s.sample(&q, 6.0, &[0.0; 3], &sun, &moon_at(20.0), &nadir, 1.0)[0].is_some());
+    assert!(s.sample(&q, 1.2, &[0.0; 3], &sun, &moon_at(16.0), &nadir, 1.0, &[0.0; 3])[0].is_none());
+    assert!(s.sample(&q, 5.9, &[0.0; 3], &sun, &moon_at(20.0), &nadir, 1.0, &[0.0; 3])[0].is_none());
+    assert!(s.sample(&q, 6.0, &[0.0; 3], &sun, &moon_at(20.0), &nadir, 1.0, &[0.0; 3])[0].is_some());
     // the Sun blinds it the same way (its own cone), and with no blind time it is back at once
     let mut s = tracker(0.0);
-    assert!(s.sample(&q, 0.0, &[0.0; 3], &moon_at(25.0), &moon_at(90.0), &nadir, 1.0)[0].is_none());
-    assert!(s.sample(&q, 0.2, &[0.0; 3], &moon_at(35.0), &moon_at(90.0), &nadir, 1.0)[0].is_some());
+    assert!(s.sample(&q, 0.0, &[0.0; 3], &moon_at(25.0), &moon_at(90.0), &nadir, 1.0, &[0.0; 3])[0].is_none());
+    assert!(s.sample(&q, 0.2, &[0.0; 3], &moon_at(35.0), &moon_at(90.0), &nadir, 1.0, &[0.0; 3])[0].is_some());
 }
 
 #[test]
@@ -397,7 +397,7 @@ fn a_star_trackers_noise_grows_with_the_body_rate() {
         let mut s = tracker(0.0);
         let (mut ss, n) = (0.0, 4000);
         for i in 0..n {
-            let z = s.sample(&q, i as f64*0.2, &[0.0, 0.0, w], &[1.0, 0.0, 0.0], &[-1.0, 0.0, 0.0], &[0.0, 0.0, -1.0], 1.0)[0].unwrap();
+            let z = s.sample(&q, i as f64*0.2, &[0.0, 0.0, w], &[1.0, 0.0, 0.0], &[-1.0, 0.0, 0.0], &[0.0, 0.0, -1.0], 1.0, &[0.0; 3])[0].unwrap();
             let e = [2.0*z[0], 2.0*z[1]];          // small rotation: twice the vector part
             ss += e[0]*e[0] + e[1]*e[1];
         }

@@ -34,6 +34,26 @@ epoch into the blob, as a ground uplink would. It is within 0.003 arcsec of the 
 `engine/crates/adcs-sim/tests/onboard_frame.rs` (8 to 9 arcsec for the IAU-76 precession and GMST it replaced), and
 within 3 milliarcseconds of ERFA's `c2t06a` (`tests/test_onboard_frame_oracle.py`). TT − UTC is the constant 69.184 s.
 
+## Aberration of starlight (E2, DR-nav-001; S12.5b)
+
+The estimator (`estimation::st_corrected`, fsw_estimation, called at the filter's start and at each tracker update) takes the
+aberration out of the star tracker's attitude, with the flight parameter `aberration_source` (1: this; 0: none):
+
+```
+earth_velocity(jd) = (sun_model(jd − ¼ d) − sun_model(jd + ¼ d)) · AU / (½ d)     # barycentric, J2000, m/s; AU = 149597870700 m, no radial term
+st_corrected(q, bs, jd, have_v, v_sc, 1):
+    v = earth_velocity(jd) [+ v_sc, the onboard orbit's velocity, when it holds one]
+    u = dcm(q)ᵀ bs                                          # the head's boresight, inertial
+    return qnorm(qmult(fromrotvec(u × v / c), q))           # c = 299792458 m/s, first order in v/c
+```
+
+The tracker fits the stars it sees, each displaced by v/c across the line of sight, to the catalogue's geometric
+directions, so it reports the true attitude turned by `u × v/c` from the inertial side (up to 1.2e-4 rad). The Earth's
+velocity from the Sun model's derivative at 1 AU is good to the eccentricity's 1.7 per cent of the transverse speed
+(0.5 km/s, 0.35 arcsecond). Against the truth tracker (QUEST on stars aberrated by the barycentric velocity, the Earth's
+from DE440), `engine/crates/adcs-sim/tests/aberration.rs`: the report is shifted by up to 6.3e-3 deg and corrected to
+3.2e-4 deg (limit 5e-4).
+
 ## Onboard Sun model (Vallado alg. 29, precessed to J2000)
 
 ```

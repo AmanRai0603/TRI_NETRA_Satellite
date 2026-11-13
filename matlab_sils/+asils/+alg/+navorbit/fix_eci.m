@@ -11,8 +11,8 @@ function [r, v] = fix_eci(r_e, v_e, jd, eop)
     r = zeros(3, 1);
     v = zeros(3, 1);
     c = asils.alg.frames.eci2ecef(jd, eop);
-    h__39 = [0; 0; 0.000072921158553];
-    ve = (v_e + [h__39(2)*r_e(3) - h__39(3)*r_e(2); h__39(3)*r_e(1) - h__39(1)*r_e(3); h__39(1)*r_e(2) - h__39(2)*r_e(1)]);
+    h__41 = [0; 0; 0.000072921158553];
+    ve = (v_e + [h__41(2)*r_e(3) - h__41(3)*r_e(2); h__41(3)*r_e(1) - h__41(1)*r_e(3); h__41(1)*r_e(2) - h__41(2)*r_e(1)]);
     r = asils.alg.math.mat3t_vec(c, r_e);
     v = asils.alg.math.mat3t_vec(c, ve);
 end

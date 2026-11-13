@@ -1,6 +1,6 @@
 //! The flight algorithms' identity, written by tools/flight_build.py; do not edit.
 //! sha256 (first 16 hex) over the generated algorithm sources, C and Rust (fsw/alg, fsw-rs/src/alg), this file and its twin excepted. Both build ids end with it.
 /// The identity as a literal (for `concat!`, which takes literals only).
-macro_rules! adcs_alg_id { () => { "4dcd4576bcf3eb3b" } }
+macro_rules! adcs_alg_id { () => { "01e2e89cb3b39b4f" } }
 /// The identity of the flight algorithms this crate carries.
 pub const ALG_ID: &str = adcs_alg_id!();

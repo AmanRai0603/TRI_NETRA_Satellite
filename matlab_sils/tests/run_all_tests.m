@@ -371,7 +371,7 @@ function m = t_st_chain()
     for k = 1:4
         q = asils.quat.norm(randn(4,1));
         [qm, ok, ~, ~, ~, cr, cm, W.img, W.work, W.ia, W.ib, W.pi, W.pj, W.pa, g] = asils.models.stimage.st_chain(q, eye(3), eye(3), ...
-            cr, cm, 4000, cam, W.img, W.work, W.ia, W.ib, W.pi, W.pj, W.pa, true, g);
+            cr, cm, 4000, cam, W.img, W.work, W.ia, W.ib, W.pi, W.pj, W.pa, true, g, zeros(3, 1));
         assert(ok, 'frame %d not solved', k);
         E(k) = asils.quat.angle(q, qm)*180/pi*3600;
     end
@@ -398,7 +398,7 @@ end
 function m = t_blob_decode()
 %T_BLOB_DECODE  The engine's blob (adcs params) decodes field by field; a changed byte fails its CRC.
     P = asils.config('fine_hold_img', 'cases/ais_img_3u.csv', struct()); b = P.blob; p = P.fsw;
-    assert(numel(b) == 2274 && p.dt == 0.1 && p.nr == 3 && abs(p.jd0 - P.jd0) < 1e-9 && isequal(p.rot_a0(1:3, :), eye(3)), 'fields');
+    assert(numel(b) == 2299 && p.dt == 0.1 && p.nr == 3 && abs(p.jd0 - P.jd0) < 1e-9 && isequal(p.rot_a0(1:3, :), eye(3)), 'fields');
     b(100) = bitxor(b(100), 1); refused = false;
     try, asils.fsw.params_decode(b); catch e, refused = ~isempty(strfind(e.message, 'CRC')); end
     assert(refused, 'a changed byte was not refused');
@@ -688,7 +688,7 @@ function [ok, u, ht, hq, hn] = see_(u, d, ht, hq, hn, t, sun, moon)
     q = [0;0;0;1];
     [hn, ht, hq] = asils.models.sttracker.st_history(ht, hq, hn, t, q);
     [okv, ~, ~, ~, ~, u, ht, hq] = asils.models.sttracker.st_sample(u, d, ht, hq, hn, zeros(4000, 3), zeros(4000, 1), q, t, ...
-        zeros(3,1), sun, moon, [0;0;-1], 1);
+        zeros(3,1), sun, moon, [0;0;-1], 1, zeros(3, 1));
     ok = okv(1);
 end
 

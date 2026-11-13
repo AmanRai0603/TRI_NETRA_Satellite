@@ -94,18 +94,18 @@ pub mod star_tracker {
     /// a pinhole (head z the boresight), spread by a Gaussian PSF over 9 x 9 pixels, on the
     /// background; with `noise`, shot noise sqrt(signal) and read noise on every pixel.
     /// `truth` receives (x, y, catalogue index) of the stars drawn, as far as it holds them (up to [`TRUTH`]);
-    /// returns how many were drawn.
-    pub fn render(r_eh: &M3, cr: &mut [V3; N_STARS], cm: &mut [f64; N_STARS], cam: &Camera, img: &mut [f64], noise: Option<&mut Rng>, truth: &mut [(f64, f64, usize)]) -> usize {
+    /// returns how many were drawn. `vb`: the observer's velocity relative to the solar-system barycentre [m/s], J2000 (S12.5b: the stars are aberrated).
+    pub fn render(r_eh: &M3, cr: &mut [V3; N_STARS], cm: &mut [f64; N_STARS], cam: &Camera, img: &mut [f64], noise: Option<&mut Rng>, truth: &mut [(f64, f64, usize)], vb: &V3) -> usize {
         let k = truth.len().min(TRUTH);
         let (mut tx, mut ty, mut tk) = ([0.0; TRUTH], [0.0; TRUTH], [0i64; TRUTH]);
         let drawn = match noise {
             Some(r) => {
                 let mut g = r.stream();
-                let d = strender::st_render(*r_eh, cr, cm, N_STARS as i64, cam.rec(), img, true, &mut g, &mut tx[..k], &mut ty[..k], &mut tk[..k]);
+                let d = strender::st_render(*r_eh, cr, cm, N_STARS as i64, cam.rec(), img, true, &mut g, &mut tx[..k], &mut ty[..k], &mut tk[..k], *vb);
                 *r = Rng::from_stream(&g);
                 d
             }
-            None => strender::st_render(*r_eh, cr, cm, N_STARS as i64, cam.rec(), img, false, &mut Rng::new(0, 0).stream(), &mut tx[..k], &mut ty[..k], &mut tk[..k]),
+            None => strender::st_render(*r_eh, cr, cm, N_STARS as i64, cam.rec(), img, false, &mut Rng::new(0, 0).stream(), &mut tx[..k], &mut ty[..k], &mut tk[..k], *vb),
         } as usize;
         for m in 0..k.min(drawn) { truth[m] = (tx[m], ty[m], tk[m] as usize); }
         drawn
@@ -157,18 +157,19 @@ pub mod star_tracker {
     /// The whole chain for one head (asils.comp.star_tracker.chain): render -> centroid ->
     /// identify -> attitude. `q_true` the true ECI -> body attitude at the exposure,
     /// `r_body2head` the head's TRUE mount (misalignment included), `r_head_nominal` the mount
-    /// the unit reports through. (q_body, solved, info); q_true when not solved.
+    /// the unit reports through. `vb`: the observer's velocity relative to the barycentre [m/s] (the stars are aberrated, S12.5b).
+    /// (q_body, solved, info); q_true when not solved.
     #[allow(clippy::too_many_arguments)]
-    pub fn chain(q_true: &Q, r_body2head: &M3, r_head_nominal: &M3, cr: &mut [V3; N_STARS], cm: &mut [f64; N_STARS], cam: &Camera, w: &mut Work, noise: Option<&mut Rng>) -> (Q, bool, Info) {
+    pub fn chain(q_true: &Q, r_body2head: &M3, r_head_nominal: &M3, cr: &mut [V3; N_STARS], cm: &mut [f64; N_STARS], cam: &Camera, w: &mut Work, noise: Option<&mut Rng>, vb: &V3) -> (Q, bool, Info) {
         let (q, ok, spots, identified, used) = match noise {
             Some(r) => {
                 let mut g = r.stream();
-                let a = stimage::st_chain(*q_true, *r_body2head, *r_head_nominal, cr, cm, N_STARS as i64, cam.rec(), w.img, w.work, w.ia, w.ib, w.pi, w.pj, w.pa, true, &mut g);
+                let a = stimage::st_chain(*q_true, *r_body2head, *r_head_nominal, cr, cm, N_STARS as i64, cam.rec(), w.img, w.work, w.ia, w.ib, w.pi, w.pj, w.pa, true, &mut g, *vb);
                 *r = Rng::from_stream(&g);
                 a
             }
             None => stimage::st_chain(*q_true, *r_body2head, *r_head_nominal, cr, cm, N_STARS as i64, cam.rec(), w.img, w.work, w.ia, w.ib, w.pi, w.pj, w.pa, false,
-                                      &mut Rng::new(0, 0).stream()),
+                                      &mut Rng::new(0, 0).stream(), *vb),
         };
         (q, ok, Info { spots: spots as usize, identified: identified as usize, used: used as usize })
     }

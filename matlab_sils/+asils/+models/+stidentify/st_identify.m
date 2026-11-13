@@ -34,12 +34,12 @@ function [id, ok, pi, pj, pa, cr, cm] = st_identify(b, mag, n, pi, pj, pa, cr, c
             votes = zeros(4000, 1);
             t__651 = ((0):((n) - 1)).';
             for q = t__651(logical((t__651 ~= p))).'
-                h__744 = (b((p) + 1, 1)*b((q) + 1, 1) + b((p) + 1, 2)*b((q) + 1, 2) + b((p) + 1, 3)*b((q) + 1, 3));
-                h__745 = 1;
-                if h__745 < h__744, h__744 = h__745; end
-                h__746 = acos(h__744);
-                if ~isreal(h__746), h__746 = NaN; end
-                th = h__746;
+                h__746 = (b((p) + 1, 1)*b((q) + 1, 1) + b((p) + 1, 2)*b((q) + 1, 2) + b((p) + 1, 3)*b((q) + 1, 3));
+                h__747 = 1;
+                if h__747 < h__746, h__746 = h__747; end
+                h__748 = acos(h__746);
+                if ~isreal(h__748), h__748 = NaN; end
+                th = h__748;
                 [t__652, t__653] = asils.models.stidentify.st_first_not_below(pa, np, (th - id_tol));
                 lo = t__652;
                 pa = t__653;
@@ -48,10 +48,10 @@ function [id, ok, pi, pj, pa, cr, cm] = st_identify(b, mag, n, pi, pj, pa, cr, c
                 pa = t__655;
                 mp = mag((p) + 1);
                 mq = mag((q) + 1);
-                h__747 = hi;
-                h__748 = lo;
-                if h__748 > h__747, h__747 = h__748; end
-                for k = (lo):((h__747) - 1)
+                h__749 = hi;
+                h__750 = lo;
+                if h__750 > h__749, h__749 = h__750; end
+                for k = (lo):((h__749) - 1)
                     i = pi((k) + 1);
                     j = pj((k) + 1);
                     mi = cm((i) + 1);
@@ -60,16 +60,16 @@ function [id, ok, pi, pj, pa, cr, cm] = st_identify(b, mag, n, pi, pj, pa, cr, c
                     djq = (mj - mq);
                     djp = (mj - mp);
                     diq = (mi - mq);
-                    h__749 = dip;
-                    h__750 = (-(dip));
-                    if h__750 > h__749, h__749 = h__750; end
-                    if ((h__749 < mag_tol) && (asils.pc.fmax(djq, (-(djq))) < mag_tol))
+                    h__751 = dip;
+                    h__752 = (-(dip));
+                    if h__752 > h__751, h__751 = h__752; end
+                    if ((h__751 < mag_tol) && (asils.pc.fmax(djq, (-(djq))) < mag_tol))
                         votes((i) + 1) = (votes((i) + 1) + 1);
                     end
-                    h__751 = djp;
-                    h__752 = (-(djp));
-                    if h__752 > h__751, h__751 = h__752; end
-                    if ((h__751 < mag_tol) && (asils.pc.fmax(diq, (-(diq))) < mag_tol))
+                    h__753 = djp;
+                    h__754 = (-(djp));
+                    if h__754 > h__753, h__753 = h__754; end
+                    if ((h__753 < mag_tol) && (asils.pc.fmax(diq, (-(diq))) < mag_tol))
                         votes((j) + 1) = (votes((j) + 1) + 1);
                     end
                 end
@@ -96,21 +96,21 @@ function [id, ok, pi, pj, pa, cr, cm] = st_identify(b, mag, n, pi, pj, pa, cr, c
                 good = 0;
                 for q3 = (0):((n) - 1)
                     if ((q3 ~= p3) && keep((q3) + 1))
-                        h__753 = (b((p3) + 1, 1)*b((q3) + 1, 1) + b((p3) + 1, 2)*b((q3) + 1, 2) + b((p3) + 1, 3)*b((q3) + 1, 3));
-                        h__754 = 1;
-                        if h__754 < h__753, h__753 = h__754; end
-                        h__755 = acos(h__753);
-                        if ~isreal(h__755), h__755 = NaN; end
-                        th3 = h__755;
-                        h__756 = (cr((cand((p3) + 1)) + 1, 1)*cr((cand((q3) + 1)) + 1, 1) + cr((cand((p3) + 1)) + 1, 2)*cr((cand((q3) + 1)) + 1, 2) + cr((cand((p3) + 1)) + 1, 3)*cr((cand((q3) + 1)) + 1, 3));
-                        h__757 = 1;
-                        if h__757 < h__756, h__756 = h__757; end
-                        h__758 = acos(h__756);
-                        if ~isreal(h__758), h__758 = NaN; end
-                        tc = h__758;
-                        h__759 = (th3 - tc);
-                        if h__759 < 0, h__759 = -h__759; elseif h__759 == 0, h__759 = 0; end
-                        if (h__759 < (3 * id_tol))
+                        h__755 = (b((p3) + 1, 1)*b((q3) + 1, 1) + b((p3) + 1, 2)*b((q3) + 1, 2) + b((p3) + 1, 3)*b((q3) + 1, 3));
+                        h__756 = 1;
+                        if h__756 < h__755, h__755 = h__756; end
+                        h__757 = acos(h__755);
+                        if ~isreal(h__757), h__757 = NaN; end
+                        th3 = h__757;
+                        h__758 = (cr((cand((p3) + 1)) + 1, 1)*cr((cand((q3) + 1)) + 1, 1) + cr((cand((p3) + 1)) + 1, 2)*cr((cand((q3) + 1)) + 1, 2) + cr((cand((p3) + 1)) + 1, 3)*cr((cand((q3) + 1)) + 1, 3));
+                        h__759 = 1;
+                        if h__759 < h__758, h__758 = h__759; end
+                        h__760 = acos(h__758);
+                        if ~isreal(h__760), h__760 = NaN; end
+                        tc = h__760;
+                        h__761 = (th3 - tc);
+                        if h__761 < 0, h__761 = -h__761; elseif h__761 == 0, h__761 = 0; end
+                        if (h__761 < (3 * id_tol))
                             good = (good + 1);
                         end
                     end

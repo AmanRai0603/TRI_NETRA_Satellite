@@ -6,6 +6,7 @@ function x = context(O, t)
     x.sun_eci  = O.x0.sun_eci + s*(O.x1.sun_eci - O.x0.sun_eci);
     x.moon_eci = O.x0.moon_eci + s*(O.x1.moon_eci - O.x0.moon_eci);
     x.P_srp    = O.x0.P_srp + s*(O.x1.P_srp - O.x0.P_srp);
+    x.v_earth  = O.x0.v_earth + s*(O.x1.v_earth - O.x0.v_earth);
     if O.x0.rho > 0 && O.x1.rho > 0
         x.rho = exp(log(O.x0.rho) + s*(log(O.x1.rho) - log(O.x0.rho)));
     else

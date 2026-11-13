@@ -56,9 +56,9 @@ function [cmd_r, cmd_g] = alloc_rotors(tau_rot, a, cmd_r0, cmd_g0, nr, ng, rot_g
                 ki = fixed((i) + 1);
                 cmd_r((ki) + 1) = c;
                 if ((rot_tmax((ki) + 1) > 0) && (asils.pc.fabs(c) > (sc * rot_tmax((ki) + 1))))
-                    h__92 = c;
-                    if h__92 < 0, h__92 = -h__92; elseif h__92 == 0, h__92 = 0; end
-                    sc = (h__92 / rot_tmax((ki) + 1));
+                    h__94 = c;
+                    if h__94 < 0, h__94 = -h__94; elseif h__94 == 0, h__94 = 0; end
+                    sc = (h__94 / rot_tmax((ki) + 1));
                 end
                 if (((rot_hmax((ki) + 1) > 0) && (asils.pc.fabs(zh((ki) + 1)) >= rot_hmax((ki) + 1))) && ((c * zh((ki) + 1)) > 0))
                     drop((ki) + 1) = 1;

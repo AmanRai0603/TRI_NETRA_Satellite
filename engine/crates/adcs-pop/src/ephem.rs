@@ -223,6 +223,9 @@ pub struct EphemInputs {
     pub earth_helio_pos: V3,
     /// `E.earth_helio_vel = -sun_vel` [m/s].
     pub earth_helio_vel: V3,
+    /// The geocentre's velocity w.r.t. the solar-system barycentre [m/s] (the `ve` of de440's geocentric, km/s, times 1000): what the
+    /// star tracker's aberration takes of the Earth's motion (S12.5b, E2).
+    pub earth_ssb_vel: V3,
     /// `E.sun_ra = atan2(y, x)` [rad].
     pub sun_ra: f64,
     /// `E.sun_dec = asin(z/d)` [rad].
@@ -240,7 +243,7 @@ pub fn inputs(eph: &Ephem, jd_tdb: f64) -> EphemInputs {
     let (br, bv) = eph.seg(de::DESEGMENT_SSB_EMB, et);
     let (sr, sv) = eph.seg(de::DESEGMENT_SSB_SUN, et);
     let (mr, mv) = eph.seg(de::DESEGMENT_EMB_MOON, et);
-    let (rs, vs, rm, vm, _re, _ve) = de::geocentric(sr, sv, br, bv, er, ev, mr, mv);
+    let (rs, vs, rm, vm, _re, ve) = de::geocentric(sr, sv, br, bv, er, ev, mr, mv);
     let e = de::ephem_inputs(jd_tdb, rs, vs, rm, vm);
     EphemInputs {
         jd_tdb: e.jd_tdb,
@@ -259,6 +262,7 @@ pub fn inputs(eph: &Ephem, jd_tdb: f64) -> EphemInputs {
         albedo_sun_unit: e.sun_unit,
         earth_helio_pos: e.earth_helio_pos,
         earth_helio_vel: e.earth_helio_vel,
+        earth_ssb_vel: [ve[0]*1000.0, ve[1]*1000.0, ve[2]*1000.0],
         sun_ra: e.sun_ra,
         sun_dec: e.sun_dec,
         constants: eph.constants,

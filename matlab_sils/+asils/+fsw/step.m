@@ -70,7 +70,9 @@ function [F, bus] = step(F, bus)
             end
             F.rej = [0 0 0];
             if found
-                q0 = asils.alg.estimation.latency(z.q_st(h + 1, :).', z.w, p.st_latency);
+                % the aberration of starlight out of the tracker's attitude (estimation::st_corrected, E2, DR-nav-001)
+                qa = asils.alg.estimation.st_corrected(z.q_st(h + 1, :).', p.st_bs(h + 1, :).', F.jd, F.have_r, F.v, p.aberration_source);
+                q0 = asils.alg.estimation.latency(qa, z.w, p.st_latency);
                 F.K = mekf_new_(q0, 1e-3, 2e-4, p.gyro_arw, p.gyro_rrw);
                 F.ad_ok = true;
                 F.t_st = F.t;
@@ -96,7 +98,8 @@ function [F, bus] = step(F, bus)
                     if z.st_valid(h) && ~plausible, F.st_refused = F.st_refused + 1; end       % counted, not taken
                     if plausible                                                                % a unit quaternion, or no reading
                         wb = z.w - F.K.b;
-                        ql = asils.alg.estimation.latency(qs.', wb, p.st_latency);
+                        qa = asils.alg.estimation.st_corrected(qs.', p.st_bs(h, :).', F.jd, F.have_r, F.v, p.aberration_source);
+                        ql = asils.alg.estimation.latency(qa, wb, p.st_latency);
                         [F.K.q, F.K.b, F.K.P] = asils.alg.estimation.mekf_quat(F.K.q, F.K.b, F.K.P, ql, ...
                             p.st_noise_cross*p.mekf_meas_scale, p.st_noise_roll*p.mekf_meas_scale, p.st_bs(h, :).', 0.0);
                     end

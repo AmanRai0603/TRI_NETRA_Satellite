@@ -358,6 +358,16 @@ double frames_mod360(double x);
 /* - returns s */
 pc_a3f frames_sun_model(double jd);
 
+/* The Earth's velocity relative to the solar-system barycentre [m/s, J2000] from the Sun model's derivative (E2, DR-nav-001, */
+/* the owner's default for the onboard aberration): the Sun's direction s moves as the Earth goes round it, and the Earth's */
+/* velocity is -d(distance x s)/dt; at the mean distance of 1 AU (149597870700 m, IAU 2012 resolution B2) and with no radial */
+/* term, the central difference of the Sun model over half a day each side, v = -AU (s(jd + 1/4) - s(jd - 1/4))/(2 x 1/4 day). */
+/* The transverse speed is good to the eccentricity of the orbit (the distance is 1 AU to 1.7 per cent: 0.5 km/s of 29.8) and */
+/* the radial 0.5 km/s are not in it; the Sun's own motion about the barycentre (12 m/s) is left out. */
+/* - jd */
+/* - returns v */
+pc_a3f frames_earth_velocity(double jd);
+
 typedef struct { double lat; double lon; double h; } frames_geodetic_out;
 
 /* Geodetic latitude, longitude and height on WGS-84 of an Earth-fixed position (three fixed-point */
@@ -574,6 +584,26 @@ estimation_quest_out estimation_quest(pc_a16a3f bv, pc_a16a3f rv, pc_a16f w, int
 /* - lat */
 /* - returns q */
 pc_a4f estimation_latency(pc_a4f q_st, pc_a3f w, double lat);
+
+/* The star tracker's attitude q (ECI to body) with the aberration of starlight taken out (E2; DR-nav-001, the owner's */
+/* default: the GNSS velocity plus the Sun model's derivative). The tracker fits the stars it sees, each displaced towards */
+/* the direction of the observer's motion v (relative to the solar-system barycentre) by v/c across the line of sight, to the */
+/* catalogue's geometric directions, and so reports the true attitude turned, from the inertial side, by the rotation */
+/* eps = u x v/c, u the head's boresight in the inertial frame (the displacement of a star s is eps x s to first order and */
+/* about the boresight; the stars' radial scale term, (v . u)/c across the field, turns the fit by nothing). The correction */
+/* turns it back: q_corrected = fromrotvec(eps) (the attitude), in the product's order. v is the Earth's velocity from the */
+/* Sun model's derivative (frames' earth_velocity: the 1 AU mean distance, so its transverse part is good to the */
+/* eccentricity's 1.7 per cent, 0.35 arcsecond) plus the spacecraft's, the onboard orbit's velocity when it holds one */
+/* (have_v; without it the correction is the Earth's alone). source 0: no correction (the attitude as it came); 1: this. */
+/* The first-order form (the exact one differs from it by (v/c)^2, 1e-8 rad); c = 299792458 m/s. */
+/* - q */
+/* - bs */
+/* - jd */
+/* - have_v */
+/* - v_sc */
+/* - source */
+/* - returns qc */
+pc_a4f estimation_st_corrected(pc_a4f q, pc_a3f bs, double jd, bool have_v, pc_a3f v_sc, int64_t source);
 
 /* Whether a GNSS fix may be taken: the receiver's flag, and the fix outside 0.9 R_E. */
 /* - ok */
