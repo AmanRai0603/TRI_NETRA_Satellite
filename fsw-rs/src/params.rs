@@ -790,7 +790,7 @@ impl Params {
 impl Params {
     /// Every rule of params.toml, checked after decoding: Err names the first field that breaks one.
     pub fn validate(&self) -> Result<(), &'static str> {
-        if !self.jd0.is_finite() || self.jd0 > 1e15 || self.jd0 < -1e15 || (self.jd0 != 0.0 && self.jd0 < 1e-30 && self.jd0 > -1e-30) || !(self.jd0 > 0.0) { return Err("jd0"); }
+        if !self.jd0.is_finite() || self.jd0 > 1e15 || self.jd0 < -1e15 || (self.jd0 != 0.0 && self.jd0 < 1e-30 && self.jd0 > -1e-30) || !(self.jd0 > 0.0) || self.jd0 < 2460676.5 || self.jd0 > 2462502.5 { return Err("jd0"); }
         if !self.dt.is_finite() || self.dt > 1e15 || self.dt < -1e15 || (self.dt != 0.0 && self.dt < 1e-30 && self.dt > -1e-30) || !(self.dt > 0.0) { return Err("dt"); }
         if !self.mu.is_finite() || self.mu > 1e15 || self.mu < -1e15 || (self.mu != 0.0 && self.mu < 1e-30 && self.mu > -1e-30) || !(self.mu > 0.0) { return Err("mu"); }
         if self.start_mode >= 11 { return Err("start_mode"); }

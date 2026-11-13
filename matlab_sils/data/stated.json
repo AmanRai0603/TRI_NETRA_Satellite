@@ -43,10 +43,18 @@
   "env_earth_frame_build": 1.0,
   "env_eop_finals_expiry_mjd": 61714.0,
   "env_eop_snapshot_mjd": 61353.0,
+  "env_epoch_span": [
+   2460676.5,
+   2461584.5
+  ],
   "env_f107_default": 130.0,
   "env_f107a_default": 130.0,
   "env_fast_zonal_degree": 6.0,
   "env_field_degree": 13.0,
+  "env_flight_epoch_span": [
+   2460676.5,
+   2462502.5
+  ],
   "env_force_drag": 1.0,
   "env_force_srp": 1.0,
   "env_force_third_body": 1.0,

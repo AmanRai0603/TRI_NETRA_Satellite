@@ -228,7 +228,7 @@ static void t_abi(void)
     }
     {   /* a blob with a good CRC but a value outside its rule (params.toml) is refused at init */
         static adcs_params_t p; static uint8_t blob[ADCS_PARAMS_BLOB_SIZE]; adcs_fsw_init_t in; int k;
-        for (k = 0; k < 4; k++) {
+        for (k = 0; k < 7; k++) {
             memset(&p, 0, sizeof p);
             p.jd0 = 2461407.25; p.dt = 0.1; p.mu = 3.986004418e14; p.start_mode = ADCS_MODE_DETUMBLE; p.auto_next = ADCS_MODE_NONE;
             p.mtq_period = 1.0; p.mtq_meas = 0.2; p.m_max = 0.2; p.bdot_k = 1e-3; p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042;
@@ -237,13 +237,18 @@ static void t_abi(void)
             if (k == 1) p.nr = 9;                      /* more rotors than the arrays hold */
             if (k == 2) p.m_max = 0.0/0.0;             /* NaN */
             if (k == 3) p.start_mode = 11;             /* no such controller state */
+            if (k == 4) p.jd0 = 2466000.0;             /* 2039: outside env_epoch_span (E14), no EOP, leap-second or field data */
+            if (k == 5) p.jd0 = 2460000.0;             /* 2023: before it */
+            if (k == 6) p.jd0 = 2461750.25;            /* 2027-12-11: past the truth's data expiry, inside the flight's own span */
             adcs_params_encode(&p, blob, sizeof blob);
             in.abi_version = ADCS_FSW_ABI_VERSION; in.config_blob = blob; in.config_len = sizeof blob; in.start_ns = 0;
-            if (k == 0) CHECK(adcs_fsw_init(&in) == 0 && adcs_params_validate(&p) == 0, "a blob within every rule is accepted");
+            if (k == 0 || k == 6) CHECK(adcs_fsw_init(&in) == 0 && adcs_params_validate(&p) == 0, "a blob within every rule is accepted (jd0 on 2027-12-11 too)");
             else CHECK(adcs_fsw_init(&in) == -12, "a value outside its rule is refused at init");
         }
-        p.start_mode = ADCS_MODE_DETUMBLE; p.nr = 9;
+        p.start_mode = ADCS_MODE_DETUMBLE; p.nr = 9; p.jd0 = 2461407.25;
         CHECK(strcmp(adcs_params_field(adcs_params_validate(&p)), "nr") == 0, "the refused field is named");
+        p.nr = 0; p.jd0 = 2466000.0;
+        CHECK(strcmp(adcs_params_field(adcs_params_validate(&p)), "jd0") == 0, "a date outside env_epoch_span names jd0");
     }
 }
 

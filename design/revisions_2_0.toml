@@ -4618,3 +4618,29 @@ behaviour = "stated"
 question = "Which Earth-orientation build does the truth orbit's gravity, drag and field take, 0 the GMST-only rotation (IAU 1982 GMST about the pole of J2000, no precession), 1 build A (the IAU 2006/2000A CIO chain with the EOP of env_eop_snapshot, linear interpolation), 2 build B, 3 build C?"
 content = [["value", "number", "1"], ["value", "source", "DR-env-002 (the developer's proposal S12.1, unsigned): truth on IAU 2006/2000A build A with EOP, linear interpolation; build A is the one with published vectors (ERFA c2t06a, IERS TN36). Builds B and C need the EOP 20 C04 series, which the snapshot does not hold: the engine refuses them by name. 0 keeps the loop's former GMST-only frame, whose field is then given the precession in front of it as before"]]
 why = "the Earth frame's build as a stated node (DR-env-002), not a constant in the loop; the engine and the twin read it by name"
+
+[[revision]]
+id = "S12.4c"
+at = "2026-11-12T14:00:00Z"
+by = "the developer"
+about = "E14 of docs/S12_INVENTORY.md (S12.4; decision DR-env-002): the epoch spans the design's data is valid for, two stated env nodes. env_epoch_span (truth): 2025.0 to the earliest of 2030.0, the leap-second file's expiry and the EOP file's expiry (today 28 June 2027, Leap_Second.dat); the engine and the twin refuse the case's STATED mission.epoch outside it by name; a season shift (engine.epoch_days) or a dispersed epoch that carries a run past it is not refused, it warns and records (S12.4a: manifest frame.leap_status, eop_flag), as DR-env-002 says for a run past the expiry. env_flight_epoch_span (flight): 2025.0 to 2030.0, the span of the flight's own data (IGRF-14 and its secular variation); the flight takes dUT1 and the pole by telecommand, not from the files; the flight parameter rule for jd0 (fsw/params/params.toml, span = \"env_flight_epoch_span\", written into the C and Rust checks by tools/gen_fsw_params.py) refuses a blob outside it. Unsigned: the developer's reading of DR-env-002; the owner confirms or chooses otherwise"
+
+[[revision.node]]
+id = "env_epoch_span"
+group = "env"
+parent = "m3"
+label = "Valid epoch span of the truth's data"
+behaviour = "stated"
+question = "Between which UTC Julian dates [first, last] are the truth's EOP snapshot, leap-second table and field (IGRF-14) valid, so that a case's stated mission epoch outside them is refused by name?"
+content = [["value", "list", "[2460676.5, 2461584.5]"], ["value", "source", "DR-env-002 (the developer's reading, S12.4, unsigned): 2025.0 to the earliest of 2030.0 (MJD 62502, the end of IGRF-14's 2025-30 secular variation), the leap-second file's expiry (env_leap_second_expiry_mjd, MJD 61584, 28 June 2027, Leap_Second.dat) and the EOP file's last day of values (env_eop_finals_expiry_mjd, MJD 61714, 5 November 2027): Leap_Second.dat limits it, Julian date 2461584.5. First: 2025.0 = 2025-01-01 0 h UTC = MJD 60676. It holds the case's STATED mission.epoch only: a season shift (engine.epoch_days) or a dispersed epoch that carries a run past it is not refused, it warns and records (manifest frame.leap_status, eop_flag), as DR-env-002 says for a run past the expiry, because the sizing's season survey (the case's epoch plus 0, 91.3, 182.6 and 273.9 days) and the campaigns' season draws (up to about a year) pass the files' expiry within the mission year"]]
+why = "the truth's epoch span as a stated node (DR-env-002), which the engine and the twin read by name; tests/test_epoch_span.py holds it to the other stated expiries"
+
+[[revision.node]]
+id = "env_flight_epoch_span"
+group = "env"
+parent = "m3"
+label = "Valid epoch span of the flight's data"
+behaviour = "stated"
+question = "Between which UTC Julian dates [first, last] is the flight's own data (IGRF-14 and its secular variation) valid, so that a flight blob's date outside them is refused by name?"
+content = [["value", "list", "[2460676.5, 2462502.5]"], ["value", "source", "DR-env-002 (the developer's reading, S12.4, unsigned): 2025.0 (2025-01-01 0 h UTC, MJD 60676, IGRF-14's epoch) to 2030.0 (MJD 62502, the end of its secular variation). The flight takes dUT1 and the pole (xp, yp) by telecommand, not from the EOP and leap-second files, so their expiry does not bear on it"]]
+why = "the flight's epoch span as a stated node (DR-env-002), which the flight parameter rule for jd0 reads by name (tools/gen_fsw_params.py)"

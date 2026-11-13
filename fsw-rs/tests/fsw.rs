@@ -135,9 +135,16 @@ fn a_value_outside_its_rule_is_refused_at_init() {
     let good = detumble_blob();
     let mut f = Fsw::new();
     assert!(f.init(ABI_VERSION, &good, 0).is_ok());
+    // 2027-12-11 is past the truth's data expiry and inside the flight's own span: accepted
+    let mut late = Params::decode(&good).unwrap();
+    late.jd0 = 2461750.25;
+    assert!(late.validate().is_ok(), "jd0 on 2027-12-11");
     for (field, set) in [("nr", Box::new(|p: &mut Params| p.nr = 9) as Box<dyn Fn(&mut Params)>),
                          ("m_max", Box::new(|p: &mut Params| p.m_max = f64::NAN)),
                          ("start_mode", Box::new(|p: &mut Params| p.start_mode = 11)),
+                         // E14 (DR-env-002): a date outside env_flight_epoch_span, which the flight's own data (IGRF-14, 2025.0 to 2030.0) do not cover
+                         ("jd0", Box::new(|p: &mut Params| p.jd0 = 2466000.0)),
+                         ("jd0", Box::new(|p: &mut Params| p.jd0 = 2460000.0)),
                          ("rot_gi", Box::new(|p: &mut Params| { p.nr = 1; p.rot_a0[0] = [1.0, 0.0, 0.0]; p.rot_tmax[0] = 0.01; p.rot_gi[0] = 1; })),
                          // finite but no physical setting: it overflows inside the laws (fuzz.rs found it)
                          ("dump_k", Box::new(|p: &mut Params| p.dump_k = 2.8e272)),

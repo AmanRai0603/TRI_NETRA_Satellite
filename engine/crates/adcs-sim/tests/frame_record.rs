@@ -33,3 +33,14 @@ fn a_build_a_run_past_the_snapshots_validity_records_it_and_warns() {
     let j = f.json();
     assert_eq!((j["build"].as_str(), j["eop_flag"].as_i64(), j["leap_status"].as_i64(), j["eop_valid_to_mjd"].as_f64()), (Some("A"), Some(1), Some(1), Some(61714.0)));
 }
+
+/// E14: a case at 2027.0 whose season shift carries it to 2027-12-11 (engine.epoch_days 344.28) runs, warns and records.
+#[test]
+fn a_season_shifted_run_past_the_expiry_runs_warns_and_records() {
+    let (_, jd0) = adcs_sim::gen::caseorbit::shifted_epoch(adcs_sim::gen::caseorbit::mission_epoch(27.0).1, 344.28);
+    assert!(jd0 > 2461714.5, "2027-12-11 is past the EOP file's last day");
+    let t = truth([2027., 12., 11., 6., 0., 0.]);
+    let f = t.frame_record(3600.0).unwrap();
+    assert_eq!(f.leap_status, 1);
+    assert!(f.warning().unwrap().contains("leap-second table expired at MJD 61584"));
+}

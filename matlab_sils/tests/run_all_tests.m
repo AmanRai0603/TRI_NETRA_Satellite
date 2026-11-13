@@ -11,7 +11,7 @@ function ok = run_all_tests()
          @t_torques, @t_plant_conservation, @t_cmg_plant, @t_mekf, @t_quest, @t_lqr_blob, ...
          @t_fmr_spin_down, @t_cmg_steering, @t_hal_link, @t_hal_codec, @t_select, @t_gen_bdot, @t_sun_spin_law, @t_sun_guidance, ...
          @t_sun_model, @t_st_chain, @t_sun_chain, @t_blob_decode, ...
-         @t_sizing, @t_modes_table, @t_leap_status, @t_orbit_vs_pop, @t_short_runs, @t_campaign_draw, @t_metrics_evaluate, @t_flex_plant, ...
+         @t_sizing, @t_modes_table, @t_leap_status, @t_epoch_span, @t_orbit_vs_pop, @t_short_runs, @t_campaign_draw, @t_metrics_evaluate, @t_flex_plant, ...
          @t_solution_scenario, @t_coil_lag, @t_wheel_motor, @t_st_moon_blind, @t_gps_latency, @t_earth_radiation, ...
          @t_fidelity_refused, @t_chains_from_part, @t_streams, @t_checkpoint, @t_engine_parity, @t_physics_vectors, ...
          @test_trinetra_open};
@@ -475,6 +475,31 @@ function m = t_leap_status()
     f = asils.orbit.frame_record(O, 86400);
     assert(f.leap_status == 1 && f.eop_flag == 0 && strcmp(f.build, 'Gmst'), 'the run records the status at its end');
     m = 'tai_minus_utc: 37 s inside, 37 s with status 1 at 2036-01-01; the run record carries it';
+end
+
+function m = t_epoch_span()
+    % S12.4 (E14): the twin refuses an epoch the design's data do not cover (env_epoch_span: 2025.0 to 28 June 2027), by name, as
+    % the engine does, for the case's stated mission.epoch; a season shift past it is not refused (the run warns and records).
+    R = asils.util.root(); f = [tempname() '.csv']; c = onCleanup(@() delete(f));
+    base = fileread(fullfile(R, 'cases', 'ais_3u.csv'));
+    got = {};
+    for ep = {'36.5', '20', '28.0'}
+        txt = regexprep(base, '(mission,mission\.epoch,[^,]*,[^,]*,)[^,]*', ['$1' ep{1}]);
+        fid = fopen(f, 'w'); fwrite(fid, txt); fclose(fid);
+        try
+            asils.config('nadir_hold_ais', f, struct());
+            error('accepted');
+        catch e
+            assert(~isempty(strfind(e.message, sprintf('mission.epoch = %g', str2double(ep{1}))) ) && ~isempty(strfind(e.message, 'outside env_epoch_span')), ...
+                'epoch %s: %s', ep{1}, e.message);
+            got{end+1} = ep{1}; %#ok<AGROW>
+        end
+    end
+    P = asils.config('nadir_hold_ais', fullfile(R, 'cases', 'ais_3u.csv'), struct());       % 27.0: inside
+    assert(P.jd0 >= P.epoch_span(1) && P.jd0 <= P.epoch_span(2), 'the shipped case is inside the span');
+    P = asils.config('nadir_hold_ais', fullfile(R, 'cases', 'ais_3u.csv'), struct('set', struct('engine__epoch_days', 344.28)));
+    assert(P.jd0 > P.epoch_span(2), 'a season shift past the span is not refused');
+    m = sprintf('mission.epoch %s refused by name; engine.epoch_days = 344.28 (past the span) flown; 27.0 inside [%.1f, %.1f]', strjoin(got, ', '), P.epoch_span(1), P.epoch_span(2));
 end
 
 function m = t_orbit_vs_pop()
