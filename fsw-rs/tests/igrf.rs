@@ -6,6 +6,7 @@
 //! decimal year between its epochs (pyIGRF14 and this software do); ppigrf interpolates in calendar time, so its date is
 //! the calendar date that is the same fraction of the way between the two epochs' 1 January 0 h (the epochs' own dates).
 //! The two packages agree with each other to 0.0064 nT on these points (their WGS-84 constants differ in the seventh digit).
+//! The 50-point reference, at degree 13 and at degree 10 (the onboard degree), is `fifty_points_at_degree_13_and_10` below (S12.6, TS1(f)).
 use adcs_fsw::env::{igrf_gh, igrf_ned};
 
 // (lat deg, lon deg, alt km, decimal year, ppigrf [N, E, D], pyIGRF14 [X, Y, Z])
@@ -54,4 +55,37 @@ fn g10_at_2025_is_the_files() {
     let row = text.lines().find(|l| l.starts_with("g ") && l.split_whitespace().nth(1) == Some("1") && l.split_whitespace().nth(2) == Some("0")).unwrap();
     let want: f64 = row.split_whitespace().nth(3 + col).unwrap().parse().unwrap();
     assert_eq!(igrf_gh(2025.0)[0], want);
+}
+
+/// tests/data/igrf14_reference.txt (S12.6, TS1(f)): 50 points, 2025.0 to 2030.0, 300 to 800 km and near the poles, each computed by ppigrf 2.1.0
+/// and pyIGRF14 1.0.4 at degree 13 and cut to degree 10 (their versions and the grid are in the file's header and its generator). The
+/// software's field at degree 13 is held to the degree-13 values and at degree 10, the onboard degree (fsw_param_igrf_nmax), to the
+/// degree-10 values, each package and component within 1 nT; the packages within 0.01 nT of each other. (Degree 10 against the degree-13
+/// values would be up to 35.9 nT off: the truncation is the reference's, not allowed for by a wider limit.)
+#[test]
+fn fifty_points_at_degree_13_and_10() {
+    let text = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/../tests/data/igrf14_reference.txt")).unwrap();
+    let (mut n, mut bad, mut worst, mut spread) = (0, vec![], [0.0f64; 2], 0.0f64);
+    for l in text.lines().filter(|l| !l.starts_with('#') && !l.trim().is_empty()) {
+        let v: Vec<f64> = l.split_whitespace().map(|x| x.parse().unwrap()).collect();
+        assert_eq!(v.len(), 17, "{l}");
+        n += 1;
+        let gh = igrf_gh(v[1]);
+        for (deg, nmax) in [13i32, 10].into_iter().enumerate() {
+            let b = igrf_ned(&gh, v[2].to_radians(), v[3].to_radians(), v[4], nmax);
+            for who in 0..2 {
+                for k in 0..3 {
+                    let want = v[5 + 6 * deg + 3 * who + k];
+                    let d = (b[k] - want).abs();
+                    worst[deg] = worst[deg].max(d);
+                    if d >= 1.0 { bad.push(format!("point {} degree {nmax} package {who} component {k}: {} vs {want} nT", v[0], b[k])); }
+                }
+            }
+            for k in 0..3 { spread = spread.max((v[5 + 6 * deg + k] - v[5 + 6 * deg + 3 + k]).abs()); }
+        }
+    }
+    println!("worst difference from the references: {:.6} nT at degree 13, {:.6} nT at degree 10; the packages differ by {spread:.6} nT", worst[0], worst[1]);
+    assert_eq!(n, 50);
+    assert!(spread < 0.01, "the packages differ by {spread} nT");
+    assert!(bad.is_empty(), "{}", bad.join("\n"));
 }

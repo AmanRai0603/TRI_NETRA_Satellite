@@ -48,7 +48,7 @@ This is the working record of S12 (`docs/PLAN_2_0.md`, S12 Environment, frames, 
 
 ## S12.6 where it stands
 
-- Item 1 (IGRF-14 as the one table, revision S12.6a): design, generators, hand tests and the Octave suite done in the tree; golden, the stored runs' re-fly and the flight reseal follow it, then item 2 (E10) and item 3 (TS1(f)).
+- Items 1 (IGRF-14 as the one table, 9f1fc886), 2 (E10, 3967e901) and 3 (TS1(f), the 50-point reference) are committed; the stored engine runs and campaigns are flown again in the tree, and the twin's detumble_ais re-fly, the flight reseal and this record's table follow.
 
 ## Steps left, in order
 

@@ -102,7 +102,43 @@ function m = t_igrf()
     assert(ng >= 5 && nb >= 5, 'the design''s IGRF vectors were not found (%d table, %d field)', ng, nb);
     g2 = asils.alg.frames.igrf_gh(2025.0);
     assert(isequal(asils.models.frames.igrf_gh(2025.0), g2), 'the truth''s and the flight software''s IGRF coefficients are one table');
-    m = sprintf('%d table and %d synthesis vectors of the design (worst %.1e nT, %.1e nT)', ng, nb, dg, db);
+    % the twin's field against the committed IGRF-14 reference (tests/data/igrf14_reference.txt, S12.6, TS1(f)): 50 points of two
+    % independent implementations, ppigrf 2.1.0 and pyIGRF14 1.0.4, at degree 13 (the truth's package, asils.models) and cut to
+    % degree 10 (the flight software's, asils.alg), each within 1 nT, the packages within 0.01 nT of each other
+    R = read_igrf14_reference_(fullfile(here, '..', '..', 'tests', 'data', 'igrf14_reference.txt'));
+    assert(size(R, 1) == 50, 'the IGRF-14 reference has %d points, not 50', size(R, 1));
+    w13 = 0; w10 = 0; spread = 0;
+    fn = {@asils.models.frames.igrf_gh, @asils.models.frames.igrf_ned; @asils.alg.frames.igrf_gh, @asils.alg.frames.igrf_ned};
+    names = {'models', 'alg'};
+    for i = 1:size(R, 1)
+        yr = R(i, 1); lat = R(i, 2) * pi / 180; lon = R(i, 3) * pi / 180; alt = R(i, 4); c = R(i, 5:16);
+        for pk = 1:2
+            gh = fn{pk, 1}(yr);
+            b13 = fn{pk, 2}(gh, lat, lon, alt, 13); b10 = fn{pk, 2}(gh, lat, lon, alt, 10);
+            for who = 0:1
+                e13 = max(abs(b13(:) - c(1 + 3 * who:3 + 3 * who).')); e10 = max(abs(b10(:) - c(7 + 3 * who:9 + 3 * who).'));
+                assert(e13 < 1 && e10 < 1, 'point %d (%s): %.4f nT at degree 13, %.4f nT at degree 10 from package %d', i, names{pk}, e13, e10, who + 1);
+                w13 = max(w13, e13); w10 = max(w10, e10);
+            end
+        end
+        spread = max([spread, abs(c(1:3) - c(4:6)), abs(c(7:9) - c(10:12))]);
+    end
+    assert(spread < 0.01, 'the two packages differ by %.4f nT', spread);
+    m = sprintf('%d table and %d synthesis vectors of the design (worst %.1e nT, %.1e nT); IGRF-14 reference, 50 points: %.4f nT at degree 13, %.4f nT at degree 10', ng, nb, dg, db, w13, w10);
+end
+
+function R = read_igrf14_reference_(file)
+    % the rows of tests/data/igrf14_reference.txt (# lines are comments): year lat lon alt, then 12 numbers (north east down of ppigrf 13,
+    % pyIGRF14 13, ppigrf 10, pyIGRF14 10)
+    fid = fopen(file); assert(fid > 0, 'cannot open %s', file); c = onCleanup(@() fclose(fid));
+    R = zeros(0, 16);
+    while true
+        ln = fgetl(fid); if ~ischar(ln), break; end
+        if isempty(strtrim(ln)) || ln(1) == '#', continue; end
+        v = sscanf(ln, '%f').';
+        assert(numel(v) == 17, 'a row of the IGRF-14 reference holds %d numbers, not 17', numel(v));
+        R(end + 1, :) = v(2:end); %#ok<AGROW>
+    end
 end
 
 function L = vector_lines_(file, names)

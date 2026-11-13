@@ -14,12 +14,12 @@ note = "to ERFA's tolerances (1e-12 and finer), except c2t06a to 1e-11: ERFA tak
 
 [[ref]]
 id = "igrf14"
-what = "geomagnetic field, IGRF-14 (IAGA V-MOD, 2024): onboard to degree 10 and truth to degree 13 (flight software and truth); IGRF-13 retired (S12.6a)"
-where = "fsw/src/adcs_env.c, fsw-rs/src/env.rs, engine/crates/adcs-sim-core/src/field.rs, matlab_sils/+asils/+alg/+frames, the table env_igrf14_coefficients"
-reference = "ppigrf 2.1.0 and pyIGRF14 1.0.4 (PyPI, MIT; two independent implementations of IGRF-14: ppigrf reads IGRF14.shc with its own Legendre recursion and WGS-84 conversion, pyIGRF14 is the IAGA synthesis routine); the coefficients of the design are the IAGA file igrf14coeffs.txt, equal to ppigrf's IGRF14.shc (tests/test_igrf14.py)"
-test = "fsw-rs/tests/igrf.rs, tests/test_igrf14_flown.py, tests/test_igrf14.py"
+what = "geomagnetic field, IGRF-14 (IAGA V-MOD, 2024): onboard to degree 10 and truth to degree 13 (flight software in C and Rust, the engine's truth field, the twin); IGRF-13 retired (S12.6a)"
+where = "fsw/src/adcs_env.c, fsw-rs/src/env.rs, engine/crates/adcs-sim-core/src/field.rs, matlab_sils/+asils/+alg/+frames and +models/+frames, the table env_igrf14_coefficients"
+reference = "ppigrf 2.1.0 and pyIGRF14 1.0.4 (PyPI, MIT; two independent implementations of IGRF-14: ppigrf reads IGRF14.shc with its own Legendre recursion and its own WGS-84 conversion, pyIGRF14 is the IAGA synthesis routine with its own coefficient file; neither shares code with the other or with this repository); 50 points in tests/data/igrf14_reference.txt (2025.0-2030.0, 300-800 km, poles included; the grid and the date convention are in tests/data/igrf14_reference_make.py), at degree 13 and cut to degree 10; the design's coefficients are the IAGA file igrf14coeffs.txt, equal to ppigrf's IGRF14.shc (tests/test_igrf14.py)"
+test = "engine/crates/adcs-sim-core/tests/igrf14_reference.rs, fsw-rs/tests/igrf.rs, fsw/tests/test_igrf.c, matlab_sils/tests/run_all_tests.m, tests/test_igrf14_flown.py, tests/test_igrf14.py"
 status = "checked"
-note = "9 points 1985-2027 at degree 13 within 0.01 nT of both packages (the packages agree to 0.0064 nT: their WGS-84 constants differ in the seventh digit), 2027.0 45 N 105 E 500 km among them (IGRF-13 extrapolated was tens of nT away); g(1,0) at 2025.0 is the file's -29350.0; every generated table hashes equal to the design's. S12.6 TS1(f) widens it to 50 points and to the engine, C and the twin"
+note = "the engine's truth field (degree 13 and 10), the flight software in Rust and in C (degree 13 and the onboard degree 10, against the references cut to degree 10) and the twin (its truth and flight packages) are each within 1 nT of both packages on all 50 points (the worst is 0.0079 nT, the same at both degrees); the packages agree with each other to 0.0079 nT (their WGS-84 constants differ in the seventh digit: pyIGRF14's b^2 is the rounded 40408296.0). Degree 10 against the degree-13 values would be up to 35.9 nT off, so the references are cut, not the limit widened. Nine more points 1985-2027 at degree 13 in fsw-rs/tests/igrf.rs; g(1,0) at 2025.0 is the file's -29350.0; every generated table hashes equal to the design's. IGRF-13 extrapolated was 111 nT from the references at 2027.0, 45 N 105 E, 500 km"
 
 [[ref]]
 id = "lqr"

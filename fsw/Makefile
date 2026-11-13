@@ -13,7 +13,7 @@ ALG = $(sort $(wildcard alg/src/*.c))
 ALGFLAGS = -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-parameter
 OBJ = $(SRC:src/%.c=build/%.o) $(ALG:alg/src/%.c=build/alg_%.o)
 
-all: build/libadcs_fsw.a build/test_fsw build/test_pcode
+all: build/libadcs_fsw.a build/test_fsw build/test_pcode build/test_igrf
 
 build/%.o: src/%.c include/*.h src/*.h alg/include/*.h | build
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -33,12 +33,17 @@ build/test_fsw: tests/test_fsw.c tests/hal_stub.c build/libadcs_fsw.a
 build/test_pcode: tests/test_pcode.c tests/hal_stub.c tests/alg_dispatch.c build/libadcs_fsw.a
 	$(CC) $(CFLAGS) $(ALGFLAGS) -Isrc -Itests tests/test_pcode.c tests/hal_stub.c tests/alg_dispatch.c build/libadcs_fsw.a -lm -o $@
 
+# the field against the committed IGRF-14 reference of two independent implementations (tests/data/igrf14_reference.txt, S12.6)
+build/test_igrf: tests/test_igrf.c build/libadcs_fsw.a
+	$(CC) $(CFLAGS) tests/test_igrf.c build/libadcs_fsw.a -lm -o $@
+
 build:
 	mkdir -p build
 
-test: build/test_fsw build/test_pcode
+test: build/test_fsw build/test_pcode build/test_igrf
 	./build/test_fsw
 	./build/test_pcode
+	./build/test_igrf ../tests/data/igrf14_reference.txt
 
 check:
 	$(CC) $(CFLAGS) -Werror -fsyntax-only $(SRC)
