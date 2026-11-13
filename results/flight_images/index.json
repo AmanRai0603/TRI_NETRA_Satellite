@@ -3,22 +3,22 @@
  "images": [
   {
    "file": "design-today-2026-10-06.posix.tnfsw",
-   "bytes": 1208320,
+   "bytes": 1261568,
    "target": "posix",
    "design_version": "today 2026-10-06",
-   "design_fingerprint": "b25aba885f8f2244281cc23962d24f3c9af80fe54148011c416ba31203ef93fd",
-   "runtime_version": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg 01e2e89cb3b39b4f",
+   "design_fingerprint": "520d9ddff9576b1ff95429a5af33cbb69535bc6689f5e3b3e76f79129eb5969c",
+   "runtime_version": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg 5c93e3a477e117fa",
    "toolchain": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0; GNU ar (GNU Binutils for Ubuntu) 2.42",
-   "built_at": "2026-11-13T03:53:59Z",
+   "built_at": "2026-11-13T20:28:15Z",
    "built_by": "root",
-   "image_sha256": "f22f81c566188fde61744551cf1d8fd8db26d46b8d9e0d0dd074ebc0b7aa46d9",
+   "image_sha256": "44302a7411c170806511ca75cb3e035437e0588a066ff703cd4cb03dd595ada7",
    "files": 111,
    "signed": false,
    "checks": [
     {
      "name": "flight_build gen --check",
      "passed": true,
-     "note": "every generated source is what the design gives (algorithms 01e2e89cb3b39b4f)"
+     "note": "every generated source is what the design gives (algorithms 5c93e3a477e117fa)"
     },
     {
      "name": "from_design: the flight algorithm blocks",
@@ -38,28 +38,28 @@
     {
      "name": "build id",
      "passed": true,
-     "note": "the image carries 'trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg 01e2e89cb3b39b4f'"
+     "note": "the image carries 'trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg 5c93e3a477e117fa'"
     }
    ]
   },
   {
    "file": "design-today-2026-10-06.posix-rs.tnfsw",
-   "bytes": 8986624,
+   "bytes": 8998912,
    "target": "posix-rs",
    "design_version": "today 2026-10-06",
-   "design_fingerprint": "b25aba885f8f2244281cc23962d24f3c9af80fe54148011c416ba31203ef93fd",
-   "runtime_version": "trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1) alg 01e2e89cb3b39b4f",
+   "design_fingerprint": "520d9ddff9576b1ff95429a5af33cbb69535bc6689f5e3b3e76f79129eb5969c",
+   "runtime_version": "trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1) alg 5c93e3a477e117fa",
    "toolchain": "rustc 1.94.1 (e408947bf 2026-03-25); cargo 1.94.1 (29ea6fb6a 2026-03-24)",
-   "built_at": "2026-11-13T03:54:05Z",
+   "built_at": "2026-11-13T20:28:22Z",
    "built_by": "root",
-   "image_sha256": "131f6d47d39f2fa55296db9e125aba1242799f7b2c59f1699da43baf6c70bdaa",
+   "image_sha256": "093e260f59d8717010707fcc64dba178309635abc0cd632d4d3d813fc9da7bcc",
    "files": 111,
    "signed": false,
    "checks": [
     {
      "name": "flight_build gen --check",
      "passed": true,
-     "note": "every generated source is what the design gives (algorithms 01e2e89cb3b39b4f)"
+     "note": "every generated source is what the design gives (algorithms 5c93e3a477e117fa)"
     },
     {
      "name": "from_design: the flight algorithm blocks",
@@ -74,28 +74,28 @@
     {
      "name": "build id",
      "passed": true,
-     "note": "the image carries 'trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1) alg 01e2e89cb3b39b4f'"
+     "note": "the image carries 'trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1) alg 5c93e3a477e117fa'"
     }
    ]
   },
   {
    "file": "design-today-2026-10-06.qemu.tnfsw",
-   "bytes": 1179648,
+   "bytes": 1187840,
    "target": "qemu",
    "design_version": "today 2026-10-06",
-   "design_fingerprint": "b25aba885f8f2244281cc23962d24f3c9af80fe54148011c416ba31203ef93fd",
-   "runtime_version": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg 01e2e89cb3b39b4f",
+   "design_fingerprint": "520d9ddff9576b1ff95429a5af33cbb69535bc6689f5e3b3e76f79129eb5969c",
+   "runtime_version": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg 5c93e3a477e117fa",
    "toolchain": "arm-none-eabi-gcc (15:13.2.rel1-2) 13.2.1 20231009",
-   "built_at": "2026-11-13T03:54:12Z",
+   "built_at": "2026-11-13T20:28:29Z",
    "built_by": "root",
-   "image_sha256": "4f2662b718f684f305c3bc3248f595f530c5efa16c9532e687f04954595f01ad",
+   "image_sha256": "270b0195ff74e6e7b3f02372306af23b9876367ab92f0de346540f159fb29ee3",
    "files": 111,
    "signed": false,
    "checks": [
     {
      "name": "flight_build gen --check",
      "passed": true,
-     "note": "every generated source is what the design gives (algorithms 01e2e89cb3b39b4f)"
+     "note": "every generated source is what the design gives (algorithms 5c93e3a477e117fa)"
     },
     {
      "name": "from_design: the flight algorithm blocks",
@@ -120,28 +120,28 @@
     {
      "name": "build id",
      "passed": true,
-     "note": "the image carries 'trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg 01e2e89cb3b39b4f'"
+     "note": "the image carries 'trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg 5c93e3a477e117fa'"
     }
    ]
   },
   {
    "file": "design-today-2026-10-06.qemu-rs.tnfsw",
-   "bytes": 1892352,
+   "bytes": 1904640,
    "target": "qemu-rs",
    "design_version": "today 2026-10-06",
-   "design_fingerprint": "b25aba885f8f2244281cc23962d24f3c9af80fe54148011c416ba31203ef93fd",
-   "runtime_version": "trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1) alg 01e2e89cb3b39b4f",
+   "design_fingerprint": "520d9ddff9576b1ff95429a5af33cbb69535bc6689f5e3b3e76f79129eb5969c",
+   "runtime_version": "trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1) alg 5c93e3a477e117fa",
    "toolchain": "rustc 1.94.1 (e408947bf 2026-03-25); arm-none-eabi-gcc (15:13.2.rel1-2) 13.2.1 20231009",
-   "built_at": "2026-11-13T03:54:15Z",
+   "built_at": "2026-11-13T20:28:33Z",
    "built_by": "root",
-   "image_sha256": "d467cb132c8be92d989d1f31ae14a8819997534d3719793f699611ca353a23e3",
+   "image_sha256": "273ff0c8937f4bf38031b3322aa836845a1df59f1a1dbf3d30da4bb3099b58c6",
    "files": 111,
    "signed": false,
    "checks": [
     {
      "name": "flight_build gen --check",
      "passed": true,
-     "note": "every generated source is what the design gives (algorithms 01e2e89cb3b39b4f)"
+     "note": "every generated source is what the design gives (algorithms 5c93e3a477e117fa)"
     },
     {
      "name": "from_design: the flight algorithm blocks",
@@ -161,7 +161,7 @@
     {
      "name": "build id",
      "passed": true,
-     "note": "the image carries 'trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1) alg 01e2e89cb3b39b4f'"
+     "note": "the image carries 'trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1) alg 5c93e3a477e117fa'"
     }
    ]
   }
