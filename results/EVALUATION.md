@@ -4,7 +4,7 @@
 
 ## ais_3u
 
-From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1015 not computed, 177 stated. Closures: 34 blocked, 4 fail.
+From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1037 not computed, 184 stated. Closures: 34 blocked, 4 fail.
 
 | Closure | KPI | Answer | Why |
 |---|---|---|---|
@@ -78,14 +78,20 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1015 not 
 | `env_ap_default` | env | stated | 7 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (ap: 7.0) |
 | `env_case_orbit` | env | computed | 5738.99 (SI) | case_mean_motion(h) -> t |
 | `env_density_scale_default` | env | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (density_scale: 1.0) |
+| `env_earth_frame_build` | env | stated | 1 | the design, DR-env-002 (the developer's proposal S12.1, unsigned): truth on IAU 2006/2000A build A with EOP, linear interpolation; build A is the one with published vectors (ERFA c2t06a, IERS TN36). Builds B and C need the EOP 20 C04 series, which the snapshot does not hold: the engine refuses them by name. 0 keeps the loop's former GMST-only frame, whose field is then given the precession in front of it as before |
+| `env_eop_finals_expiry_mjd` | env | stated | 61714 | the design, finals2000A.all (astropy-iers-data 0.2026.11.9.0.35.9): the last row with Bulletin A pole and UT1 - UTC values is MJD 61714 (a prediction, flag P); its rows to MJD 61764 hold no values; the file states no expiry (not stated in the file), so this is the file's last day of data; MJD 61714 is a day in November 2027 |
+| `env_eop_snapshot_mjd` | env | stated | 61353 | the design, the developer's choice (DR-env-002 leaves the date to S12.2): 9 November 2026, the date in the version 0.2026.11.9.0.35.9 of the PyPI package astropy-iers-data that carries finals2000A.all and Leap_Second.dat; finals2000A.all states no date of its own (not stated in the file); MJD 61353 by the calendar |
+| `env_epoch_span` | env | stated | [2.46068e+06, 2.46158e+06] | the design, DR-env-002 (the developer's reading, S12.4, unsigned): 2025.0 to the earliest of 2030.0 (MJD 62502, the end of IGRF-14's 2025-30 secular variation), the leap-second file's expiry (env_leap_second_expiry_mjd, MJD 61584, 28 June 2027, Leap_Second.dat) and the EOP file's last day of values (env_eop_finals_expiry_mjd, MJD 61714, 5 November 2027): Leap_Second.dat limits it, Julian date 2461584.5. First: 2025.0 = 2025-01-01 0 h UTC = MJD 60676. It holds the case's STATED mission.epoch only: a season shift (engine.epoch_days) or a dispersed epoch that carries a run past it is not refused, it warns and records (manifest frame.leap_status, eop_flag), as DR-env-002 says for a run past the expiry, because the sizing's season survey (the case's epoch plus 0, 91.3, 182.6 and 273.9 days) and the campaigns' season draws (up to about a year) pass the files' expiry within the mission year |
 | `env_f107_default` | env | stated | 130 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (f107: 130.0) |
 | `env_f107a_default` | env | stated | 130 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (f107a: 130.0) |
 | `env_fast_zonal_degree` | env | stated | 6 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (zonal_max: 6) |
 | `env_field_degree` | env | stated | 13 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (igrf_nmax: 13) |
+| `env_flight_epoch_span` | env | stated | [2.46068e+06, 2.4625e+06] | the design, DR-env-002 (the developer's reading, S12.4, unsigned): 2025.0 (2025-01-01 0 h UTC, MJD 60676, IGRF-14's epoch) to 2030.0 (MJD 62502, the end of its secular variation). The flight takes dUT1 and the pole (xp, yp) by telecommand, not from the EOP and leap-second files, so their expiry does not bear on it |
 | `env_force_drag` | env | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (drag: true) |
 | `env_force_srp` | env | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (srp: true) |
 | `env_force_third_body` | env | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (third_body: true) |
 | `env_kp_default` | env | stated | 2 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (kp: 2.0) |
+| `env_leap_second_expiry_mjd` | env | stated | 61584 | the design, Leap_Second.dat (astropy-iers-data 0.2026.11.9.0.35.9), header: 'File expires on 28 June 2027', updated through IERS Bulletin 72 issued in July 2026; MJD 61584 by the calendar |
 | `env_orbit_precision_default` | env | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (orbit_model: "pop") |
 | `env_orbit_step` | env | stated | 10 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (orbit_step_s: 10.0) |
 | `env_refresh_step` | env | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (env_dt_s: 1.0) |
@@ -95,6 +101,7 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1015 not 
 | `env_torque_magnetic` | env | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (env_on: [true; 4], the fourth) |
 | `env_torque_radiation` | env | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (env_on: [true; 4], the third) |
 | `fsw_param_J` | fsw | computed | [[0.0067, 0, 0], [0, 0.042, 0], [0, 0, 0.042]] (SI) | fsw_body_model(j, m_res, sun_axis, boresight) -> jf |
+| `fsw_param_aberration_source` | fsw | stated | 1 | the design, DR-nav-001 (design/decisions/DR-nav-001.toml), the owner's default: the onboard correction of the star tracker's attitude takes the GNSS velocity plus the Earth's velocity from the Sun model's derivative, 1; 0 takes none; the developer's, unsigned |
 | `fsw_param_auto_next` | fsw | stated | 255 | the design, the scenario's fsw.auto_next; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs modes_and_laws (none when it names none: MODE_NONE, 255) |
 | `fsw_param_bdot_k` | fsw | computed | 8.76379e-05 (SI) | fsw_bdot_gain(scale, n, inc_deg, ii) |
 | `fsw_param_capture_deg` | fsw | stated | 3 | the design, the scenario's fsw.capture_deg; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs rw_gains (json::f(fsw, capture_deg, 3.0)) |
@@ -286,9 +293,9 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1015 not 
 | `vv_record_step_default` | vv | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(time, record_dt_s, 1.0)) |
 | `vv_run_duration_default` | vv | stated | 600 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(time, duration_s, 600.0)) |
 
-**Not computed (1015), by why:**
+**Not computed (1037), by why:**
 
-- no value, relation or pseudocode yet: 731 (act__cmg, act__vscmg, cas, cat, cf, cf_1, cf_4, cf_5, ci1, ci1_0, ci1_1, ci1_2, …)
+- no value, relation or pseudocode yet: 753 (act__cmg, act__vscmg, cas, cat, cf, cf_1, cf_4, cf_5, ci1, ci1_0, ci1_1, ci1_2, …)
 - computed during a run (generated into adcs-sim-core): 72 (act_cmg_model, act_rotor_set, act_rotor_telemetry, act_vscmg_gimbal_limits, act_vscmg_model, dyn_flexible_mode, dyn_initial_state, dyn_rigid_body, dyn_rotor_coupling, dyn_total_momentum, env_calendar_time, env_moon_fast, …)
 - computed during a run (generated into adcs-sim): 47 (env_orbit_start, fsw_param_alloc, fsw_param_bdot_law, fsw_param_es_noise, fsw_param_gim_axis, fsw_param_gim_rate_max, fsw_param_gps_latency, fsw_param_gyro_arw, fsw_param_gyro_rrw, fsw_param_has_es, fsw_param_has_gps, fsw_param_has_gyro, …)
 - computed during a run (generated into adcs-pop): 23 (env_de440, env_density_model, env_drag_force, env_dtm2020_operational, env_dtm2020_research, env_earth_frames, env_eop, env_erp_force, env_exponential_atmosphere, env_force_model, env_gas_surface, env_geodetic, …)
@@ -354,7 +361,7 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1015 not 
 
 ## ais_img_3u
 
-From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1007 not computed, 180 stated. Closures: 33 blocked, 4 fail, 1 pass.
+From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1029 not computed, 187 stated. Closures: 33 blocked, 4 fail, 1 pass.
 
 | Closure | KPI | Answer | Why |
 |---|---|---|---|
@@ -428,14 +435,20 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1007 not 
 | `env_ap_default` | env | stated | 7 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (ap: 7.0) |
 | `env_case_orbit` | env | computed | 5738.99 (SI) | case_mean_motion(h) -> t |
 | `env_density_scale_default` | env | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (density_scale: 1.0) |
+| `env_earth_frame_build` | env | stated | 1 | the design, DR-env-002 (the developer's proposal S12.1, unsigned): truth on IAU 2006/2000A build A with EOP, linear interpolation; build A is the one with published vectors (ERFA c2t06a, IERS TN36). Builds B and C need the EOP 20 C04 series, which the snapshot does not hold: the engine refuses them by name. 0 keeps the loop's former GMST-only frame, whose field is then given the precession in front of it as before |
+| `env_eop_finals_expiry_mjd` | env | stated | 61714 | the design, finals2000A.all (astropy-iers-data 0.2026.11.9.0.35.9): the last row with Bulletin A pole and UT1 - UTC values is MJD 61714 (a prediction, flag P); its rows to MJD 61764 hold no values; the file states no expiry (not stated in the file), so this is the file's last day of data; MJD 61714 is a day in November 2027 |
+| `env_eop_snapshot_mjd` | env | stated | 61353 | the design, the developer's choice (DR-env-002 leaves the date to S12.2): 9 November 2026, the date in the version 0.2026.11.9.0.35.9 of the PyPI package astropy-iers-data that carries finals2000A.all and Leap_Second.dat; finals2000A.all states no date of its own (not stated in the file); MJD 61353 by the calendar |
+| `env_epoch_span` | env | stated | [2.46068e+06, 2.46158e+06] | the design, DR-env-002 (the developer's reading, S12.4, unsigned): 2025.0 to the earliest of 2030.0 (MJD 62502, the end of IGRF-14's 2025-30 secular variation), the leap-second file's expiry (env_leap_second_expiry_mjd, MJD 61584, 28 June 2027, Leap_Second.dat) and the EOP file's last day of values (env_eop_finals_expiry_mjd, MJD 61714, 5 November 2027): Leap_Second.dat limits it, Julian date 2461584.5. First: 2025.0 = 2025-01-01 0 h UTC = MJD 60676. It holds the case's STATED mission.epoch only: a season shift (engine.epoch_days) or a dispersed epoch that carries a run past it is not refused, it warns and records (manifest frame.leap_status, eop_flag), as DR-env-002 says for a run past the expiry, because the sizing's season survey (the case's epoch plus 0, 91.3, 182.6 and 273.9 days) and the campaigns' season draws (up to about a year) pass the files' expiry within the mission year |
 | `env_f107_default` | env | stated | 130 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (f107: 130.0) |
 | `env_f107a_default` | env | stated | 130 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (f107a: 130.0) |
 | `env_fast_zonal_degree` | env | stated | 6 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (zonal_max: 6) |
 | `env_field_degree` | env | stated | 13 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (igrf_nmax: 13) |
+| `env_flight_epoch_span` | env | stated | [2.46068e+06, 2.4625e+06] | the design, DR-env-002 (the developer's reading, S12.4, unsigned): 2025.0 (2025-01-01 0 h UTC, MJD 60676, IGRF-14's epoch) to 2030.0 (MJD 62502, the end of its secular variation). The flight takes dUT1 and the pole (xp, yp) by telecommand, not from the EOP and leap-second files, so their expiry does not bear on it |
 | `env_force_drag` | env | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (drag: true) |
 | `env_force_srp` | env | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (srp: true) |
 | `env_force_third_body` | env | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (third_body: true) |
 | `env_kp_default` | env | stated | 2 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (kp: 2.0) |
+| `env_leap_second_expiry_mjd` | env | stated | 61584 | the design, Leap_Second.dat (astropy-iers-data 0.2026.11.9.0.35.9), header: 'File expires on 28 June 2027', updated through IERS Bulletin 72 issued in July 2026; MJD 61584 by the calendar |
 | `env_orbit_precision_default` | env | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (orbit_model: "pop") |
 | `env_orbit_step` | env | stated | 10 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (orbit_step_s: 10.0) |
 | `env_refresh_step` | env | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (env_dt_s: 1.0) |
@@ -445,6 +458,7 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1007 not 
 | `env_torque_magnetic` | env | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (env_on: [true; 4], the fourth) |
 | `env_torque_radiation` | env | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (env_on: [true; 4], the third) |
 | `fsw_param_J` | fsw | computed | [[0.0067, 0, 0], [0, 0.042, 0], [0, 0, 0.042]] (SI) | fsw_body_model(j, m_res, sun_axis, boresight) -> jf |
+| `fsw_param_aberration_source` | fsw | stated | 1 | the design, DR-nav-001 (design/decisions/DR-nav-001.toml), the owner's default: the onboard correction of the star tracker's attitude takes the GNSS velocity plus the Earth's velocity from the Sun model's derivative, 1; 0 takes none; the developer's, unsigned |
 | `fsw_param_auto_next` | fsw | stated | 255 | the design, the scenario's fsw.auto_next; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs modes_and_laws (none when it names none: MODE_NONE, 255) |
 | `fsw_param_bdot_k` | fsw | computed | 8.76379e-05 (SI) | fsw_bdot_gain(scale, n, inc_deg, ii) |
 | `fsw_param_capture_deg` | fsw | stated | 3 | the design, the scenario's fsw.capture_deg; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs rw_gains (json::f(fsw, capture_deg, 3.0)) |
@@ -644,9 +658,9 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1007 not 
 | `vv_record_step_default` | vv | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(time, record_dt_s, 1.0)) |
 | `vv_run_duration_default` | vv | stated | 600 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(time, duration_s, 600.0)) |
 
-**Not computed (1007), by why:**
+**Not computed (1029), by why:**
 
-- no value, relation or pseudocode yet: 731 (act__cmg, act__vscmg, cas, cat, cf, cf_1, cf_4, cf_5, ci1, ci1_0, ci1_1, ci1_2, …)
+- no value, relation or pseudocode yet: 753 (act__cmg, act__vscmg, cas, cat, cf, cf_1, cf_4, cf_5, ci1, ci1_0, ci1_1, ci1_2, …)
 - computed during a run (generated into adcs-sim-core): 72 (act_cmg_model, act_rotor_set, act_rotor_telemetry, act_vscmg_gimbal_limits, act_vscmg_model, dyn_flexible_mode, dyn_initial_state, dyn_rigid_body, dyn_rotor_coupling, dyn_total_momentum, env_calendar_time, env_moon_fast, …)
 - computed during a run (generated into adcs-sim): 47 (env_orbit_start, fsw_param_alloc, fsw_param_bdot_law, fsw_param_es_noise, fsw_param_gim_axis, fsw_param_gim_rate_max, fsw_param_gps_latency, fsw_param_gyro_arw, fsw_param_gyro_rrw, fsw_param_has_es, fsw_param_has_gps, fsw_param_has_gyro, …)
 - computed during a run (generated into adcs-pop): 23 (env_de440, env_density_model, env_drag_force, env_dtm2020_operational, env_dtm2020_research, env_earth_frames, env_eop, env_erp_force, env_exponential_atmosphere, env_force_model, env_gas_surface, env_geodetic, …)

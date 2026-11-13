@@ -835,6 +835,123 @@
     "why": "no value, relation or pseudocode yet"
    },
    {
+    "id": "dr_design_004",
+    "group": "design",
+    "label": "Blank requirements, and the developer's reference values",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_design_005",
+    "group": "design",
+    "label": "The slew profile the sizing assumes",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_env_001",
+    "group": "env",
+    "label": "Field model: IGRF-14 for the engine, both flight softwares and the twin",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_env_002",
+    "group": "env",
+    "label": "Earth frame, EOP and leap-second snapshot, and the data-validity guard",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_env_003",
+    "group": "env",
+    "label": "One stated solar and geomagnetic activity table",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_env_004",
+    "group": "env",
+    "label": "Space-weather indices in the loop, and the F10.7 lag on the dated path",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_env_005",
+    "group": "env",
+    "label": "Field error in the truth",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_env_006",
+    "group": "env",
+    "label": "Gravity field in the precise orbit",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_env_007",
+    "group": "env",
+    "label": "Orbit drag shape",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_env_008",
+    "group": "env",
+    "label": "Thermospheric wind in the truth",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_env_009",
+    "group": "env",
+    "label": "What LTAN means, and the mean-element start",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_env_010",
+    "group": "env",
+    "label": "Albedo and Earth IR for the torques",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_env_011",
+    "group": "env",
+    "label": "RK78 nodes in the loop",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
     "id": "dr_fdir_001",
     "group": "fdir",
     "label": "Safe-mode concept, independence and magnetometer redundancy",
@@ -907,6 +1024,15 @@
     "why": "no value, relation or pseudocode yet"
    },
    {
+    "id": "dr_nav_001",
+    "group": "nav",
+    "label": "Aberration of starlight, onboard",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
     "id": "dr_oils_001",
     "group": "oils",
     "label": "Which is the truth: the device map or the HAL header",
@@ -955,6 +1081,24 @@
     "id": "dr_vv_003",
     "group": "vv",
     "label": "The golden table's tolerance",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_vv_004",
+    "group": "vv",
+    "label": "The reference ledger's form, and the relations no row uses",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_vv_005",
+    "group": "vv",
+    "label": "Beta extremes",
     "state": "not computed",
     "si": null,
     "value": "",
@@ -1273,6 +1417,15 @@
     "why": "computed during a run (generated into adcs-pop): its module's 9 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
+    "id": "env_earth_frame_build",
+    "group": "env",
+    "label": "Earth frame build of the truth orbit",
+    "state": "stated",
+    "si": 1.0,
+    "value": "1",
+    "why": "the design, DR-env-002 (the developer's proposal S12.1, unsigned): truth on IAU 2006/2000A build A with EOP, linear interpolation; build A is the one with published vectors (ERFA c2t06a, IERS TN36). Builds B and C need the EOP 20 C04 series, which the snapshot does not hold: the engine refuses them by name. 0 keeps the loop's former GMST-only frame, whose field is then given the precession in front of it as before"
+   },
+   {
     "id": "env_earth_frames",
     "group": "env",
     "label": "Earth frames (GMST build) and the Earth's rate",
@@ -1289,6 +1442,45 @@
     "si": null,
     "value": "",
     "why": "computed during a run (generated into adcs-pop): its module's 11 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+   },
+   {
+    "id": "env_eop_finals_expiry_mjd",
+    "group": "env",
+    "label": "EOP table expiry (MJD)",
+    "state": "stated",
+    "si": 61714.0,
+    "value": "61714",
+    "why": "the design, finals2000A.all (astropy-iers-data 0.2026.11.9.0.35.9): the last row with Bulletin A pole and UT1 - UTC values is MJD 61714 (a prediction, flag P); its rows to MJD 61764 hold no values; the file states no expiry (not stated in the file), so this is the file's last day of data; MJD 61714 is a day in November 2027"
+   },
+   {
+    "id": "env_eop_snapshot",
+    "group": "env",
+    "label": "EOP and leap-second snapshot (IERS finals2000A, Leap_Second.dat)",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "env_eop_snapshot_mjd",
+    "group": "env",
+    "label": "EOP snapshot date (MJD)",
+    "state": "stated",
+    "si": 61353.0,
+    "value": "61353",
+    "why": "the design, the developer's choice (DR-env-002 leaves the date to S12.2): 9 November 2026, the date in the version 0.2026.11.9.0.35.9 of the PyPI package astropy-iers-data that carries finals2000A.all and Leap_Second.dat; finals2000A.all states no date of its own (not stated in the file); MJD 61353 by the calendar"
+   },
+   {
+    "id": "env_epoch_span",
+    "group": "env",
+    "label": "Valid epoch span of the truth's data",
+    "state": "stated",
+    "si": [
+     2460676.5,
+     2461584.5
+    ],
+    "value": "[2.46068e+06, 2.46158e+06]",
+    "why": "the design, DR-env-002 (the developer's reading, S12.4, unsigned): 2025.0 to the earliest of 2030.0 (MJD 62502, the end of IGRF-14's 2025-30 secular variation), the leap-second file's expiry (env_leap_second_expiry_mjd, MJD 61584, 28 June 2027, Leap_Second.dat) and the EOP file's last day of values (env_eop_finals_expiry_mjd, MJD 61714, 5 November 2027): Leap_Second.dat limits it, Julian date 2461584.5. First: 2025.0 = 2025-01-01 0 h UTC = MJD 60676. It holds the case's STATED mission.epoch only: a season shift (engine.epoch_days) or a dispersed epoch that carries a run past it is not refused, it warns and records (manifest frame.leap_status, eop_flag), as DR-env-002 says for a run past the expiry, because the sizing's season survey (the case's epoch plus 0, 91.3, 182.6 and 273.9 days) and the campaigns' season draws (up to about a year) pass the files' expiry within the mission year"
    },
    {
     "id": "env_erp_force",
@@ -1343,6 +1535,18 @@
     "si": 13.0,
     "value": "13",
     "why": "the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (igrf_nmax: 13)"
+   },
+   {
+    "id": "env_flight_epoch_span",
+    "group": "env",
+    "label": "Valid epoch span of the flight's data",
+    "state": "stated",
+    "si": [
+     2460676.5,
+     2462502.5
+    ],
+    "value": "[2.46068e+06, 2.4625e+06]",
+    "why": "the design, DR-env-002 (the developer's reading, S12.4, unsigned): 2025.0 (2025-01-01 0 h UTC, MJD 60676, IGRF-14's epoch) to 2030.0 (MJD 62502, the end of its secular variation). The flight takes dUT1 and the pole (xp, yp) by telecommand, not from the EOP and leap-second files, so their expiry does not bear on it"
    },
    {
     "id": "env_force_drag",
@@ -1435,6 +1639,15 @@
     "why": "no value, relation or pseudocode yet"
    },
    {
+    "id": "env_igrf14_coefficients",
+    "group": "env",
+    "label": "IGRF-14 coefficients",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
     "id": "env_jb2008",
     "group": "env",
     "label": "Thermosphere density: JB2008",
@@ -1469,6 +1682,15 @@
     "si": 2.0,
     "value": "2",
     "why": "the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (kp: 2.0)"
+   },
+   {
+    "id": "env_leap_second_expiry_mjd",
+    "group": "env",
+    "label": "Leap-second table expiry (MJD)",
+    "state": "stated",
+    "si": 61584.0,
+    "value": "61584",
+    "why": "the design, Leap_Second.dat (astropy-iers-data 0.2026.11.9.0.35.9), header: 'File expires on 28 June 2027', updated through IERS Bulletin 72 issued in July 2026; MJD 61584 by the calendar"
    },
    {
     "id": "env_leap_seconds",
@@ -1597,6 +1819,15 @@
     "why": "the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(initial, arg_lat_deg, 0.0))"
    },
    {
+    "id": "env_sw_all_table",
+    "group": "env",
+    "label": "Dated space-weather indices (CelesTrak SW-All)",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
     "id": "env_third_body",
     "group": "env",
     "label": "Third-body accelerations (the Sun and the Moon)",
@@ -1630,7 +1861,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (generated into flight): its module's 10 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+    "why": "computed during a run (generated into flight): its module's 14 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "env_time_scales",
@@ -2305,7 +2536,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (generated into flight): its module's 14 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+    "why": "computed during a run (generated into flight): its module's 15 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "fsw_guidance",
@@ -2349,6 +2580,15 @@
     ],
     "value": "[[0.0067, 0, 0], [0, 0.042, 0], [0, 0, 0.042]] (SI)",
     "why": "fsw_body_model(j, m_res, sun_axis, boresight) -> jf"
+   },
+   {
+    "id": "fsw_param_aberration_source",
+    "group": "fsw",
+    "label": "aberration of starlight taken out of the star tracker's attitude: 0 none, 1 the GNSS velocity plus the Earth's from the Sun model's derivative (DR-nav-001)",
+    "state": "stated",
+    "si": 1.0,
+    "value": "1",
+    "why": "the design, DR-nav-001 (design/decisions/DR-nav-001.toml), the owner's default: the onboard correction of the star tracker's attitude takes the GNSS velocity plus the Earth's velocity from the Sun model's derivative, 1; 0 takes none; the developer's, unsigned"
    },
    {
     "id": "fsw_param_alloc",
@@ -2475,6 +2715,33 @@
     "si": 0.002,
     "value": "0.002",
     "why": "the design, the scenario's fsw.dump_gain; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs rotor_params (json::f(fsw, dump_gain, 2e-3))"
+   },
+   {
+    "id": "fsw_param_eop_dut1",
+    "group": "fsw",
+    "label": "UT1 - UTC [s] of the onboard Earth frame (the IERS value, set by telecommand 0x02; env_time_frames eci2ecef)",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "fsw_param_eop_xp",
+    "group": "fsw",
+    "label": "polar motion xp [arcsec] of the onboard Earth frame (set by telecommand 0x02)",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "fsw_param_eop_yp",
+    "group": "fsw",
+    "label": "polar motion yp [arcsec] of the onboard Earth frame (set by telecommand 0x02)",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
    },
    {
     "id": "fsw_param_es_noise",
@@ -10767,7 +11034,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (generated into adcs-sim-core): its module's 3 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+    "why": "computed during a run (generated into adcs-sim-core): its module's 4 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "sens_star_image",
@@ -12471,6 +12738,123 @@
     "why": "no value, relation or pseudocode yet"
    },
    {
+    "id": "dr_design_004",
+    "group": "design",
+    "label": "Blank requirements, and the developer's reference values",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_design_005",
+    "group": "design",
+    "label": "The slew profile the sizing assumes",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_env_001",
+    "group": "env",
+    "label": "Field model: IGRF-14 for the engine, both flight softwares and the twin",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_env_002",
+    "group": "env",
+    "label": "Earth frame, EOP and leap-second snapshot, and the data-validity guard",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_env_003",
+    "group": "env",
+    "label": "One stated solar and geomagnetic activity table",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_env_004",
+    "group": "env",
+    "label": "Space-weather indices in the loop, and the F10.7 lag on the dated path",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_env_005",
+    "group": "env",
+    "label": "Field error in the truth",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_env_006",
+    "group": "env",
+    "label": "Gravity field in the precise orbit",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_env_007",
+    "group": "env",
+    "label": "Orbit drag shape",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_env_008",
+    "group": "env",
+    "label": "Thermospheric wind in the truth",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_env_009",
+    "group": "env",
+    "label": "What LTAN means, and the mean-element start",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_env_010",
+    "group": "env",
+    "label": "Albedo and Earth IR for the torques",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_env_011",
+    "group": "env",
+    "label": "RK78 nodes in the loop",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
     "id": "dr_fdir_001",
     "group": "fdir",
     "label": "Safe-mode concept, independence and magnetometer redundancy",
@@ -12543,6 +12927,15 @@
     "why": "no value, relation or pseudocode yet"
    },
    {
+    "id": "dr_nav_001",
+    "group": "nav",
+    "label": "Aberration of starlight, onboard",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
     "id": "dr_oils_001",
     "group": "oils",
     "label": "Which is the truth: the device map or the HAL header",
@@ -12591,6 +12984,24 @@
     "id": "dr_vv_003",
     "group": "vv",
     "label": "The golden table's tolerance",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_vv_004",
+    "group": "vv",
+    "label": "The reference ledger's form, and the relations no row uses",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "dr_vv_005",
+    "group": "vv",
+    "label": "Beta extremes",
     "state": "not computed",
     "si": null,
     "value": "",
@@ -12909,6 +13320,15 @@
     "why": "computed during a run (generated into adcs-pop): its module's 9 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
+    "id": "env_earth_frame_build",
+    "group": "env",
+    "label": "Earth frame build of the truth orbit",
+    "state": "stated",
+    "si": 1.0,
+    "value": "1",
+    "why": "the design, DR-env-002 (the developer's proposal S12.1, unsigned): truth on IAU 2006/2000A build A with EOP, linear interpolation; build A is the one with published vectors (ERFA c2t06a, IERS TN36). Builds B and C need the EOP 20 C04 series, which the snapshot does not hold: the engine refuses them by name. 0 keeps the loop's former GMST-only frame, whose field is then given the precession in front of it as before"
+   },
+   {
     "id": "env_earth_frames",
     "group": "env",
     "label": "Earth frames (GMST build) and the Earth's rate",
@@ -12925,6 +13345,45 @@
     "si": null,
     "value": "",
     "why": "computed during a run (generated into adcs-pop): its module's 11 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+   },
+   {
+    "id": "env_eop_finals_expiry_mjd",
+    "group": "env",
+    "label": "EOP table expiry (MJD)",
+    "state": "stated",
+    "si": 61714.0,
+    "value": "61714",
+    "why": "the design, finals2000A.all (astropy-iers-data 0.2026.11.9.0.35.9): the last row with Bulletin A pole and UT1 - UTC values is MJD 61714 (a prediction, flag P); its rows to MJD 61764 hold no values; the file states no expiry (not stated in the file), so this is the file's last day of data; MJD 61714 is a day in November 2027"
+   },
+   {
+    "id": "env_eop_snapshot",
+    "group": "env",
+    "label": "EOP and leap-second snapshot (IERS finals2000A, Leap_Second.dat)",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "env_eop_snapshot_mjd",
+    "group": "env",
+    "label": "EOP snapshot date (MJD)",
+    "state": "stated",
+    "si": 61353.0,
+    "value": "61353",
+    "why": "the design, the developer's choice (DR-env-002 leaves the date to S12.2): 9 November 2026, the date in the version 0.2026.11.9.0.35.9 of the PyPI package astropy-iers-data that carries finals2000A.all and Leap_Second.dat; finals2000A.all states no date of its own (not stated in the file); MJD 61353 by the calendar"
+   },
+   {
+    "id": "env_epoch_span",
+    "group": "env",
+    "label": "Valid epoch span of the truth's data",
+    "state": "stated",
+    "si": [
+     2460676.5,
+     2461584.5
+    ],
+    "value": "[2.46068e+06, 2.46158e+06]",
+    "why": "the design, DR-env-002 (the developer's reading, S12.4, unsigned): 2025.0 to the earliest of 2030.0 (MJD 62502, the end of IGRF-14's 2025-30 secular variation), the leap-second file's expiry (env_leap_second_expiry_mjd, MJD 61584, 28 June 2027, Leap_Second.dat) and the EOP file's last day of values (env_eop_finals_expiry_mjd, MJD 61714, 5 November 2027): Leap_Second.dat limits it, Julian date 2461584.5. First: 2025.0 = 2025-01-01 0 h UTC = MJD 60676. It holds the case's STATED mission.epoch only: a season shift (engine.epoch_days) or a dispersed epoch that carries a run past it is not refused, it warns and records (manifest frame.leap_status, eop_flag), as DR-env-002 says for a run past the expiry, because the sizing's season survey (the case's epoch plus 0, 91.3, 182.6 and 273.9 days) and the campaigns' season draws (up to about a year) pass the files' expiry within the mission year"
    },
    {
     "id": "env_erp_force",
@@ -12979,6 +13438,18 @@
     "si": 13.0,
     "value": "13",
     "why": "the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (igrf_nmax: 13)"
+   },
+   {
+    "id": "env_flight_epoch_span",
+    "group": "env",
+    "label": "Valid epoch span of the flight's data",
+    "state": "stated",
+    "si": [
+     2460676.5,
+     2462502.5
+    ],
+    "value": "[2.46068e+06, 2.4625e+06]",
+    "why": "the design, DR-env-002 (the developer's reading, S12.4, unsigned): 2025.0 (2025-01-01 0 h UTC, MJD 60676, IGRF-14's epoch) to 2030.0 (MJD 62502, the end of its secular variation). The flight takes dUT1 and the pole (xp, yp) by telecommand, not from the EOP and leap-second files, so their expiry does not bear on it"
    },
    {
     "id": "env_force_drag",
@@ -13071,6 +13542,15 @@
     "why": "no value, relation or pseudocode yet"
    },
    {
+    "id": "env_igrf14_coefficients",
+    "group": "env",
+    "label": "IGRF-14 coefficients",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
     "id": "env_jb2008",
     "group": "env",
     "label": "Thermosphere density: JB2008",
@@ -13105,6 +13585,15 @@
     "si": 2.0,
     "value": "2",
     "why": "the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (kp: 2.0)"
+   },
+   {
+    "id": "env_leap_second_expiry_mjd",
+    "group": "env",
+    "label": "Leap-second table expiry (MJD)",
+    "state": "stated",
+    "si": 61584.0,
+    "value": "61584",
+    "why": "the design, Leap_Second.dat (astropy-iers-data 0.2026.11.9.0.35.9), header: 'File expires on 28 June 2027', updated through IERS Bulletin 72 issued in July 2026; MJD 61584 by the calendar"
    },
    {
     "id": "env_leap_seconds",
@@ -13233,6 +13722,15 @@
     "why": "the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(initial, arg_lat_deg, 0.0))"
    },
    {
+    "id": "env_sw_all_table",
+    "group": "env",
+    "label": "Dated space-weather indices (CelesTrak SW-All)",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
     "id": "env_third_body",
     "group": "env",
     "label": "Third-body accelerations (the Sun and the Moon)",
@@ -13266,7 +13764,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (generated into flight): its module's 10 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+    "why": "computed during a run (generated into flight): its module's 14 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "env_time_scales",
@@ -13941,7 +14439,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (generated into flight): its module's 14 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+    "why": "computed during a run (generated into flight): its module's 15 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "fsw_guidance",
@@ -13985,6 +14483,15 @@
     ],
     "value": "[[0.0067, 0, 0], [0, 0.042, 0], [0, 0, 0.042]] (SI)",
     "why": "fsw_body_model(j, m_res, sun_axis, boresight) -> jf"
+   },
+   {
+    "id": "fsw_param_aberration_source",
+    "group": "fsw",
+    "label": "aberration of starlight taken out of the star tracker's attitude: 0 none, 1 the GNSS velocity plus the Earth's from the Sun model's derivative (DR-nav-001)",
+    "state": "stated",
+    "si": 1.0,
+    "value": "1",
+    "why": "the design, DR-nav-001 (design/decisions/DR-nav-001.toml), the owner's default: the onboard correction of the star tracker's attitude takes the GNSS velocity plus the Earth's velocity from the Sun model's derivative, 1; 0 takes none; the developer's, unsigned"
    },
    {
     "id": "fsw_param_alloc",
@@ -14111,6 +14618,33 @@
     "si": 0.002,
     "value": "0.002",
     "why": "the design, the scenario's fsw.dump_gain; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs rotor_params (json::f(fsw, dump_gain, 2e-3))"
+   },
+   {
+    "id": "fsw_param_eop_dut1",
+    "group": "fsw",
+    "label": "UT1 - UTC [s] of the onboard Earth frame (the IERS value, set by telecommand 0x02; env_time_frames eci2ecef)",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "fsw_param_eop_xp",
+    "group": "fsw",
+    "label": "polar motion xp [arcsec] of the onboard Earth frame (set by telecommand 0x02)",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
+   },
+   {
+    "id": "fsw_param_eop_yp",
+    "group": "fsw",
+    "label": "polar motion yp [arcsec] of the onboard Earth frame (set by telecommand 0x02)",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "no value, relation or pseudocode yet"
    },
    {
     "id": "fsw_param_es_noise",
@@ -22403,7 +22937,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (generated into adcs-sim-core): its module's 3 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+    "why": "computed during a run (generated into adcs-sim-core): its module's 4 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "sens_star_image",
