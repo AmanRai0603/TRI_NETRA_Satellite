@@ -1390,6 +1390,15 @@
     "why": "computed during a run (generated into adcs-pop): its module's 17 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
+    "id": "env_dst_default",
+    "group": "env",
+    "label": "Dst of a run (quiet default)",
+    "state": "stated",
+    "si": -10.0,
+    "value": "-10",
+    "why": "the design, S12.7b (E5; the developer's choice, unsigned): -10 nT, a quiet-time level (Gonzalez et al. 1994, J. Geophys. Res. 99(A4), 5771-5792 call Dst above -30 nT quiet, as I remember it; the paper was not to hand). The manual indices of env_f107_default, env_kp_default and env_ap_default are stated the same way: a scenario sets another value (engine.dst_nt; S12.15's storm levels use it, -200 nT being DR-env-005's storm case). The SW-All table (env_sw_all_table) holds no Dst and no Dst source is reachable here"
+   },
+   {
     "id": "env_dtm2020_coefficients",
     "group": "env",
     "label": "DTM2020 coefficients (operational and research)",
@@ -1528,6 +1537,15 @@
     "why": "the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (zonal_max: 6)"
    },
    {
+    "id": "env_field_crustal_rms",
+    "group": "env",
+    "label": "Crustal field's root-mean-square value at the orbit",
+    "state": "stated",
+    "si": 30.0,
+    "value": "30",
+    "why": "the design, S12.7b (E5; DR-env-005's magnitudes, the developer's, unsigned): 30 nT, inside the 20-50 nT the decision gives for the quiet field error; with the quiet Dst of env_dst_default (-10 nT) and the IGRF's own degrees 11 to 13 (9.5 nT RMS over an orbit) the quiet error is 32 nT RMS on average over 12 seeds (27 to 37 nT, measured over an orbit at 550 km by adcs-sim tests/field_error.rs), and at Dst -200 nT 201 nT (200 to 204). The roadmap's 20-50 nT is the whole quiet error; the split of it between the crust and the rest is the developer's"
+   },
+   {
     "id": "env_field_degree",
     "group": "env",
     "label": "Main field's degree along the orbit",
@@ -1535,6 +1553,33 @@
     "si": 13.0,
     "value": "13",
     "why": "the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (igrf_nmax: 13)"
+   },
+   {
+    "id": "env_field_error",
+    "group": "env",
+    "label": "Truth field error (ring current and crust)",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "its module has 4 functions and names none for this node (by its id or its output's symbol)"
+   },
+   {
+    "id": "env_field_error_on",
+    "group": "env",
+    "label": "Truth field error on",
+    "state": "stated",
+    "si": 1.0,
+    "value": "1",
+    "why": "the design, S12.7b (E5; the developer's decision, unsigned): on, at the quiet values of env_dst_default and env_field_crustal_rms, in nominal and in Monte Carlo scenarios alike. The crust is drawn from the run's seed, which a scenario states, so a nominal run is the same every time (the golden table holds); the done-when of E5 is that the magnetometer no longer measures the onboard model exactly, which off would not give. 0 is the truth as it was until S12.6"
+   },
+   {
+    "id": "env_field_interpolation",
+    "group": "env",
+    "label": "Truth field between refreshes",
+    "state": "stated",
+    "si": 1.0,
+    "value": "1",
+    "why": "the design, S12.7a (E8; the developer's choice, unsigned): 1, linear in J2000, b = b0 + (b1 - b0) f with f the fraction of the step gone (l3_dist_row_08's field_interp); b1 is the field at the next refresh's position and Earth frame, taken one step ahead of the orbit without advancing it. 0 holds the field as the engine did until S12.6. The Sun, the Moon, the shadow, the density and the solar pressure stay held at the refresh before: measured over the 1 s step at 550 km, the worst of an orbit sampled every 97 s (adcs-sim tests/field_interpolation.rs): the Sun's direction from the spacecraft turns 1.3e-5 deg, the Moon's 1.2e-3 deg, the density changes by 8.1e-4 of itself, the solar pressure by 2e-10 of itself, and the sunlit fraction is a step at the shadow's edge, which the samples did not cross; held, the field was 0.190 deg off at t = k + 0.9 s and interpolated it is 1.9e-6 deg (dt 0.1 s). The field at the next refresh is taken from the orbit's own interpolant continued one step past its end, without advancing the orbit: 3e-7 nT from the field at the position the orbit then has"
    },
    {
     "id": "env_flight_epoch_span",
@@ -5774,7 +5819,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (generated into adcs-sim-core): its module's 3 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+    "why": "computed during a run (generated into adcs-sim-core): its module's 6 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "l3_dist_row_09",
@@ -13302,6 +13347,15 @@
     "why": "computed during a run (generated into adcs-pop): its module's 17 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
+    "id": "env_dst_default",
+    "group": "env",
+    "label": "Dst of a run (quiet default)",
+    "state": "stated",
+    "si": -10.0,
+    "value": "-10",
+    "why": "the design, S12.7b (E5; the developer's choice, unsigned): -10 nT, a quiet-time level (Gonzalez et al. 1994, J. Geophys. Res. 99(A4), 5771-5792 call Dst above -30 nT quiet, as I remember it; the paper was not to hand). The manual indices of env_f107_default, env_kp_default and env_ap_default are stated the same way: a scenario sets another value (engine.dst_nt; S12.15's storm levels use it, -200 nT being DR-env-005's storm case). The SW-All table (env_sw_all_table) holds no Dst and no Dst source is reachable here"
+   },
+   {
     "id": "env_dtm2020_coefficients",
     "group": "env",
     "label": "DTM2020 coefficients (operational and research)",
@@ -13440,6 +13494,15 @@
     "why": "the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (zonal_max: 6)"
    },
    {
+    "id": "env_field_crustal_rms",
+    "group": "env",
+    "label": "Crustal field's root-mean-square value at the orbit",
+    "state": "stated",
+    "si": 30.0,
+    "value": "30",
+    "why": "the design, S12.7b (E5; DR-env-005's magnitudes, the developer's, unsigned): 30 nT, inside the 20-50 nT the decision gives for the quiet field error; with the quiet Dst of env_dst_default (-10 nT) and the IGRF's own degrees 11 to 13 (9.5 nT RMS over an orbit) the quiet error is 32 nT RMS on average over 12 seeds (27 to 37 nT, measured over an orbit at 550 km by adcs-sim tests/field_error.rs), and at Dst -200 nT 201 nT (200 to 204). The roadmap's 20-50 nT is the whole quiet error; the split of it between the crust and the rest is the developer's"
+   },
+   {
     "id": "env_field_degree",
     "group": "env",
     "label": "Main field's degree along the orbit",
@@ -13447,6 +13510,33 @@
     "si": 13.0,
     "value": "13",
     "why": "the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (igrf_nmax: 13)"
+   },
+   {
+    "id": "env_field_error",
+    "group": "env",
+    "label": "Truth field error (ring current and crust)",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "its module has 4 functions and names none for this node (by its id or its output's symbol)"
+   },
+   {
+    "id": "env_field_error_on",
+    "group": "env",
+    "label": "Truth field error on",
+    "state": "stated",
+    "si": 1.0,
+    "value": "1",
+    "why": "the design, S12.7b (E5; the developer's decision, unsigned): on, at the quiet values of env_dst_default and env_field_crustal_rms, in nominal and in Monte Carlo scenarios alike. The crust is drawn from the run's seed, which a scenario states, so a nominal run is the same every time (the golden table holds); the done-when of E5 is that the magnetometer no longer measures the onboard model exactly, which off would not give. 0 is the truth as it was until S12.6"
+   },
+   {
+    "id": "env_field_interpolation",
+    "group": "env",
+    "label": "Truth field between refreshes",
+    "state": "stated",
+    "si": 1.0,
+    "value": "1",
+    "why": "the design, S12.7a (E8; the developer's choice, unsigned): 1, linear in J2000, b = b0 + (b1 - b0) f with f the fraction of the step gone (l3_dist_row_08's field_interp); b1 is the field at the next refresh's position and Earth frame, taken one step ahead of the orbit without advancing it. 0 holds the field as the engine did until S12.6. The Sun, the Moon, the shadow, the density and the solar pressure stay held at the refresh before: measured over the 1 s step at 550 km, the worst of an orbit sampled every 97 s (adcs-sim tests/field_interpolation.rs): the Sun's direction from the spacecraft turns 1.3e-5 deg, the Moon's 1.2e-3 deg, the density changes by 8.1e-4 of itself, the solar pressure by 2e-10 of itself, and the sunlit fraction is a step at the shadow's edge, which the samples did not cross; held, the field was 0.190 deg off at t = k + 0.9 s and interpolated it is 1.9e-6 deg (dt 0.1 s). The field at the next refresh is taken from the orbit's own interpolant continued one step past its end, without advancing the orbit: 3e-7 nT from the field at the position the orbit then has"
    },
    {
     "id": "env_flight_epoch_span",
@@ -17686,7 +17776,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (generated into adcs-sim-core): its module's 3 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+    "why": "computed during a run (generated into adcs-sim-core): its module's 6 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "l3_dist_row_09",

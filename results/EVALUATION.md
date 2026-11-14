@@ -4,7 +4,7 @@
 
 ## ais_3u
 
-From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1038 not computed, 184 stated. Closures: 34 blocked, 4 fail.
+From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1039 not computed, 188 stated. Closures: 34 blocked, 4 fail.
 
 | Closure | KPI | Answer | Why |
 |---|---|---|---|
@@ -78,6 +78,7 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1038 not 
 | `env_ap_default` | env | stated | 7 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (ap: 7.0) |
 | `env_case_orbit` | env | computed | 5738.99 (SI) | case_mean_motion(h) -> t |
 | `env_density_scale_default` | env | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (density_scale: 1.0) |
+| `env_dst_default` | env | stated | -10 | the design, S12.7b (E5; the developer's choice, unsigned): -10 nT, a quiet-time level (Gonzalez et al. 1994, J. Geophys. Res. 99(A4), 5771-5792 call Dst above -30 nT quiet, as I remember it; the paper was not to hand). The manual indices of env_f107_default, env_kp_default and env_ap_default are stated the same way: a scenario sets another value (engine.dst_nt; S12.15's storm levels use it, -200 nT being DR-env-005's storm case). The SW-All table (env_sw_all_table) holds no Dst and no Dst source is reachable here |
 | `env_earth_frame_build` | env | stated | 1 | the design, DR-env-002 (the developer's proposal S12.1, unsigned): truth on IAU 2006/2000A build A with EOP, linear interpolation; build A is the one with published vectors (ERFA c2t06a, IERS TN36). Builds B and C need the EOP 20 C04 series, which the snapshot does not hold: the engine refuses them by name. 0 keeps the loop's former GMST-only frame, whose field is then given the precession in front of it as before |
 | `env_eop_finals_expiry_mjd` | env | stated | 61714 | the design, finals2000A.all (astropy-iers-data 0.2026.11.9.0.35.9): the last row with Bulletin A pole and UT1 - UTC values is MJD 61714 (a prediction, flag P); its rows to MJD 61764 hold no values; the file states no expiry (not stated in the file), so this is the file's last day of data; MJD 61714 is a day in November 2027 |
 | `env_eop_snapshot_mjd` | env | stated | 61353 | the design, the developer's choice (DR-env-002 leaves the date to S12.2): 9 November 2026, the date in the version 0.2026.11.9.0.35.9 of the PyPI package astropy-iers-data that carries finals2000A.all and Leap_Second.dat; finals2000A.all states no date of its own (not stated in the file); MJD 61353 by the calendar |
@@ -85,7 +86,10 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1038 not 
 | `env_f107_default` | env | stated | 130 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (f107: 130.0) |
 | `env_f107a_default` | env | stated | 130 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (f107a: 130.0) |
 | `env_fast_zonal_degree` | env | stated | 6 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (zonal_max: 6) |
+| `env_field_crustal_rms` | env | stated | 30 | the design, S12.7b (E5; DR-env-005's magnitudes, the developer's, unsigned): 30 nT, inside the 20-50 nT the decision gives for the quiet field error; with the quiet Dst of env_dst_default (-10 nT) and the IGRF's own degrees 11 to 13 (9.5 nT RMS over an orbit) the quiet error is 32 nT RMS on average over 12 seeds (27 to 37 nT, measured over an orbit at 550 km by adcs-sim tests/field_error.rs), and at Dst -200 nT 201 nT (200 to 204). The roadmap's 20-50 nT is the whole quiet error; the split of it between the crust and the rest is the developer's |
 | `env_field_degree` | env | stated | 13 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (igrf_nmax: 13) |
+| `env_field_error_on` | env | stated | 1 | the design, S12.7b (E5; the developer's decision, unsigned): on, at the quiet values of env_dst_default and env_field_crustal_rms, in nominal and in Monte Carlo scenarios alike. The crust is drawn from the run's seed, which a scenario states, so a nominal run is the same every time (the golden table holds); the done-when of E5 is that the magnetometer no longer measures the onboard model exactly, which off would not give. 0 is the truth as it was until S12.6 |
+| `env_field_interpolation` | env | stated | 1 | the design, S12.7a (E8; the developer's choice, unsigned): 1, linear in J2000, b = b0 + (b1 - b0) f with f the fraction of the step gone (l3_dist_row_08's field_interp); b1 is the field at the next refresh's position and Earth frame, taken one step ahead of the orbit without advancing it. 0 holds the field as the engine did until S12.6. The Sun, the Moon, the shadow, the density and the solar pressure stay held at the refresh before: measured over the 1 s step at 550 km, the worst of an orbit sampled every 97 s (adcs-sim tests/field_interpolation.rs): the Sun's direction from the spacecraft turns 1.3e-5 deg, the Moon's 1.2e-3 deg, the density changes by 8.1e-4 of itself, the solar pressure by 2e-10 of itself, and the sunlit fraction is a step at the shadow's edge, which the samples did not cross; held, the field was 0.190 deg off at t = k + 0.9 s and interpolated it is 1.9e-6 deg (dt 0.1 s). The field at the next refresh is taken from the orbit's own interpolant continued one step past its end, without advancing the orbit: 3e-7 nT from the field at the position the orbit then has |
 | `env_flight_epoch_span` | env | stated | [2.46068e+06, 2.4625e+06] | the design, DR-env-002 (the developer's reading, S12.4, unsigned): 2025.0 (2025-01-01 0 h UTC, MJD 60676, IGRF-14's epoch) to 2030.0 (MJD 62502, the end of its secular variation). The flight takes dUT1 and the pole (xp, yp) by telecommand, not from the EOP and leap-second files, so their expiry does not bear on it |
 | `env_force_drag` | env | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (drag: true) |
 | `env_force_srp` | env | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (srp: true) |
@@ -293,7 +297,7 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1038 not 
 | `vv_record_step_default` | vv | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(time, record_dt_s, 1.0)) |
 | `vv_run_duration_default` | vv | stated | 600 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(time, duration_s, 600.0)) |
 
-**Not computed (1038), by why:**
+**Not computed (1039), by why:**
 
 - no value, relation or pseudocode yet: 754 (act__cmg, act__vscmg, cas, cat, cf, cf_1, cf_4, cf_5, ci1, ci1_0, ci1_1, ci1_2, …)
 - computed during a run (generated into adcs-sim-core): 72 (act_cmg_model, act_rotor_set, act_rotor_telemetry, act_vscmg_gimbal_limits, act_vscmg_model, dyn_flexible_mode, dyn_initial_state, dyn_rigid_body, dyn_rotor_coupling, dyn_total_momentum, env_calendar_time, env_moon_fast, …)
@@ -307,7 +311,7 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1038 not 
 - its module has 5 functions and names none for this node (by its id or its output's symbol): 5 (design_sizing_mtq, gm_4, gm_5, gp_4, l3_budget_row_02)
 - computed during a run (generated into flight): 5 (env_time_frames, fsw_estimation, fsw_modes, fsw_steplaws, nav_onboard_orbit)
 - its module has 10 functions and names none for this node (by its id or its output's symbol): 4 (design_loop_converge, design_loop_redundancy, design_loop_robustness, fsw_param_mtq_Klqr)
-- its module has 4 functions and names none for this node (by its id or its output's symbol): 3 (fsw_clock, fsw_param_rw_Klqr, l3_fmr_row_07)
+- its module has 4 functions and names none for this node (by its id or its output's symbol): 4 (env_field_error, fsw_clock, fsw_param_rw_Klqr, l3_fmr_row_07)
 - its module has 7 functions and names none for this node (by its id or its output's symbol): 2 (catalogue_datasheet_derive, design_sizing_sensors)
 - its module has 3 functions and names none for this node (by its id or its output's symbol): 2 (design_sizing_rcs, l3_budget_row_05)
 - its module has 17 functions and names none for this node (by its id or its output's symbol): 2 (gw_2, l3_budget_row_01)
@@ -361,7 +365,7 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 1038 not 
 
 ## ais_img_3u
 
-From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1030 not computed, 187 stated. Closures: 33 blocked, 4 fail, 1 pass.
+From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1031 not computed, 191 stated. Closures: 33 blocked, 4 fail, 1 pass.
 
 | Closure | KPI | Answer | Why |
 |---|---|---|---|
@@ -435,6 +439,7 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1030 not 
 | `env_ap_default` | env | stated | 7 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (ap: 7.0) |
 | `env_case_orbit` | env | computed | 5738.99 (SI) | case_mean_motion(h) -> t |
 | `env_density_scale_default` | env | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (density_scale: 1.0) |
+| `env_dst_default` | env | stated | -10 | the design, S12.7b (E5; the developer's choice, unsigned): -10 nT, a quiet-time level (Gonzalez et al. 1994, J. Geophys. Res. 99(A4), 5771-5792 call Dst above -30 nT quiet, as I remember it; the paper was not to hand). The manual indices of env_f107_default, env_kp_default and env_ap_default are stated the same way: a scenario sets another value (engine.dst_nt; S12.15's storm levels use it, -200 nT being DR-env-005's storm case). The SW-All table (env_sw_all_table) holds no Dst and no Dst source is reachable here |
 | `env_earth_frame_build` | env | stated | 1 | the design, DR-env-002 (the developer's proposal S12.1, unsigned): truth on IAU 2006/2000A build A with EOP, linear interpolation; build A is the one with published vectors (ERFA c2t06a, IERS TN36). Builds B and C need the EOP 20 C04 series, which the snapshot does not hold: the engine refuses them by name. 0 keeps the loop's former GMST-only frame, whose field is then given the precession in front of it as before |
 | `env_eop_finals_expiry_mjd` | env | stated | 61714 | the design, finals2000A.all (astropy-iers-data 0.2026.11.9.0.35.9): the last row with Bulletin A pole and UT1 - UTC values is MJD 61714 (a prediction, flag P); its rows to MJD 61764 hold no values; the file states no expiry (not stated in the file), so this is the file's last day of data; MJD 61714 is a day in November 2027 |
 | `env_eop_snapshot_mjd` | env | stated | 61353 | the design, the developer's choice (DR-env-002 leaves the date to S12.2): 9 November 2026, the date in the version 0.2026.11.9.0.35.9 of the PyPI package astropy-iers-data that carries finals2000A.all and Leap_Second.dat; finals2000A.all states no date of its own (not stated in the file); MJD 61353 by the calendar |
@@ -442,7 +447,10 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1030 not 
 | `env_f107_default` | env | stated | 130 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (f107: 130.0) |
 | `env_f107a_default` | env | stated | 130 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (f107a: 130.0) |
 | `env_fast_zonal_degree` | env | stated | 6 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (zonal_max: 6) |
+| `env_field_crustal_rms` | env | stated | 30 | the design, S12.7b (E5; DR-env-005's magnitudes, the developer's, unsigned): 30 nT, inside the 20-50 nT the decision gives for the quiet field error; with the quiet Dst of env_dst_default (-10 nT) and the IGRF's own degrees 11 to 13 (9.5 nT RMS over an orbit) the quiet error is 32 nT RMS on average over 12 seeds (27 to 37 nT, measured over an orbit at 550 km by adcs-sim tests/field_error.rs), and at Dst -200 nT 201 nT (200 to 204). The roadmap's 20-50 nT is the whole quiet error; the split of it between the crust and the rest is the developer's |
 | `env_field_degree` | env | stated | 13 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (igrf_nmax: 13) |
+| `env_field_error_on` | env | stated | 1 | the design, S12.7b (E5; the developer's decision, unsigned): on, at the quiet values of env_dst_default and env_field_crustal_rms, in nominal and in Monte Carlo scenarios alike. The crust is drawn from the run's seed, which a scenario states, so a nominal run is the same every time (the golden table holds); the done-when of E5 is that the magnetometer no longer measures the onboard model exactly, which off would not give. 0 is the truth as it was until S12.6 |
+| `env_field_interpolation` | env | stated | 1 | the design, S12.7a (E8; the developer's choice, unsigned): 1, linear in J2000, b = b0 + (b1 - b0) f with f the fraction of the step gone (l3_dist_row_08's field_interp); b1 is the field at the next refresh's position and Earth frame, taken one step ahead of the orbit without advancing it. 0 holds the field as the engine did until S12.6. The Sun, the Moon, the shadow, the density and the solar pressure stay held at the refresh before: measured over the 1 s step at 550 km, the worst of an orbit sampled every 97 s (adcs-sim tests/field_interpolation.rs): the Sun's direction from the spacecraft turns 1.3e-5 deg, the Moon's 1.2e-3 deg, the density changes by 8.1e-4 of itself, the solar pressure by 2e-10 of itself, and the sunlit fraction is a step at the shadow's edge, which the samples did not cross; held, the field was 0.190 deg off at t = k + 0.9 s and interpolated it is 1.9e-6 deg (dt 0.1 s). The field at the next refresh is taken from the orbit's own interpolant continued one step past its end, without advancing the orbit: 3e-7 nT from the field at the position the orbit then has |
 | `env_flight_epoch_span` | env | stated | [2.46068e+06, 2.4625e+06] | the design, DR-env-002 (the developer's reading, S12.4, unsigned): 2025.0 (2025-01-01 0 h UTC, MJD 60676, IGRF-14's epoch) to 2030.0 (MJD 62502, the end of its secular variation). The flight takes dUT1 and the pole (xp, yp) by telecommand, not from the EOP and leap-second files, so their expiry does not bear on it |
 | `env_force_drag` | env | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (drag: true) |
 | `env_force_srp` | env | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (srp: true) |
@@ -658,7 +666,7 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1030 not 
 | `vv_record_step_default` | vv | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(time, record_dt_s, 1.0)) |
 | `vv_run_duration_default` | vv | stated | 600 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(time, duration_s, 600.0)) |
 
-**Not computed (1030), by why:**
+**Not computed (1031), by why:**
 
 - no value, relation or pseudocode yet: 754 (act__cmg, act__vscmg, cas, cat, cf, cf_1, cf_4, cf_5, ci1, ci1_0, ci1_1, ci1_2, …)
 - computed during a run (generated into adcs-sim-core): 72 (act_cmg_model, act_rotor_set, act_rotor_telemetry, act_vscmg_gimbal_limits, act_vscmg_model, dyn_flexible_mode, dyn_initial_state, dyn_rigid_body, dyn_rotor_coupling, dyn_total_momentum, env_calendar_time, env_moon_fast, …)
@@ -672,7 +680,7 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 1030 not 
 - its module has 5 functions and names none for this node (by its id or its output's symbol): 5 (design_sizing_mtq, gm_4, gm_5, gp_4, l3_budget_row_02)
 - computed during a run (generated into flight): 5 (env_time_frames, fsw_estimation, fsw_modes, fsw_steplaws, nav_onboard_orbit)
 - its module has 10 functions and names none for this node (by its id or its output's symbol): 4 (design_loop_converge, design_loop_redundancy, design_loop_robustness, fsw_param_mtq_Klqr)
-- its module has 4 functions and names none for this node (by its id or its output's symbol): 3 (fsw_clock, fsw_param_rw_Klqr, l3_fmr_row_07)
+- its module has 4 functions and names none for this node (by its id or its output's symbol): 4 (env_field_error, fsw_clock, fsw_param_rw_Klqr, l3_fmr_row_07)
 - its module has 7 functions and names none for this node (by its id or its output's symbol): 2 (catalogue_datasheet_derive, design_sizing_sensors)
 - its module has 3 functions and names none for this node (by its id or its output's symbol): 2 (design_sizing_rcs, l3_budget_row_05)
 - its module has 17 functions and names none for this node (by its id or its output's symbol): 2 (gw_2, l3_budget_row_01)
