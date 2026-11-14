@@ -86,7 +86,7 @@ class BuiltIn(unittest.TestCase):
                  "env_time_scales", "env_geodetic", "env_earth_frames", "env_iau2006", "env_tidal_eop"}
         # a later revision may replace a method (S12.4a: the leap-second status in env_time_scales): the method's origin then
         # names that revision, and the node's history still says S7.3 transcribed it, unsigned
-        replaced = {"env_time_scales": "S12.4a", "env_time_frames": "S12.6a", "l3_dist_row_08": "S12.6a"}   # S12.6a: the field is IGRF-14's
+        replaced = {"env_time_scales": "S12.4a", "env_time_frames": "S12.6a", "l3_dist_row_08": "S12.7a"}   # S12.6a: the field is IGRF-14's; S12.7a: and interpolated between refreshes
         for nid in moved:
             _k, x = self.nodes[nid]
             self.assertEqual(self.beh(nid), "method", nid)

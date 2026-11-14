@@ -89,3 +89,17 @@ pub fn field_eci_ecef(r: [f64; 3], c: [[f64; 3]; 3], gh: [f64; 195], nmax: i64) 
     b = crate::gen::truthfield::field_eci_at(lat, lon, h, c, gh, nmax);
     b
 }
+
+/// The field between two refreshes of the truth environment (S12.7a, E8): linear in J2000 from b0, the field at the refresh
+/// before, to b1, the field at the next refresh, f the fraction of the step [0, 1] already gone. The Sun, the Moon, the
+/// shadow, the density and the solar pressure stay held at the refresh before (env_field_interpolation says why).
+/// - b0: real[1][3] (passed a plain number)
+/// - b1: real[1][3] (passed a plain number)
+/// - f: real[1] (passed a plain number)
+/// - returns b: real[1][3] (passed a plain number)
+#[allow(clippy::too_many_arguments)]
+pub fn field_interp(b0: [f64; 3], b1: [f64; 3], f: f64) -> [f64; 3] {
+    let mut b: [f64; 3] = [0.0; 3];
+    b = [(b0[0] + ((b1[0] - b0[0]) * f)), (b0[1] + ((b1[1] - b0[1]) * f)), (b0[2] + ((b1[2] - b0[2]) * f))];
+    b
+}

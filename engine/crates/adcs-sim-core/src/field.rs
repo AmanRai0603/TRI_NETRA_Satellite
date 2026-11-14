@@ -25,3 +25,7 @@ pub fn eci(r_ecef: &V3, c_eci2ecef: &M3, g: &Gh, nmax: usize) -> V3 { truthfield
 pub fn eci_at(lat: f64, lon: f64, h: f64, c_eci2ecef: &M3, g: &Gh, nmax: usize) -> V3 {
     truthfield::field_eci_at(lat, lon, h, *c_eci2ecef, *g, nmax as i64)
 }
+
+/// The field between two refreshes, linear in J2000 from `b0` (the refresh before) to `b1` (the next), `f` the fraction of the step
+/// gone (env_field_interpolation, S12.7a).
+pub fn interp(b0: &V3, b1: &V3, f: f64) -> V3 { truthfield::field_interp(*b0, *b1, f) }

@@ -50,6 +50,10 @@ This is the working record of S12 (`docs/PLAN_2_0.md`, S12 Environment, frames, 
 - **The truth GNSS velocity and the onboard transport rate** differ by 1e-3 m/s (the onboard rate is about the ITRF z axis, the truth's about the CIP, 0.3 arcsec apart): far below the receiver's noise.
 - **`0.001 deg` of E4 is not a bound against a pole without nutation**: the CIP is 0.0022 deg from the IAU 1976 mean pole of date at 2027-01-01. The J2-pole test takes the pole from the IAU 2006/2000A X, Y series.
 
+## S12.7 where it stands
+
+Item 1 (E8, the truth field interpolated between refreshes) is committed with its golden table (78 of 80 scenarios moved, 3 verdicts changed) and the stored engine runs and campaigns re-flown; item 2 (E5, the truth field's error) is next; the twin's detumble_ais is re-flown and verify_work is run once at the end.
+
 ## Steps left, in order
 
 S12.7 to S12.10 and S12.12 to S12.18 of `docs/S12_INVENTORY.md` §6.

@@ -51,6 +51,7 @@
   "env_f107a_default": 130.0,
   "env_fast_zonal_degree": 6.0,
   "env_field_degree": 13.0,
+  "env_field_interpolation": 1.0,
   "env_flight_epoch_span": [
    2460676.5,
    2462502.5

@@ -11,7 +11,7 @@ function ok = run_all_tests()
          @t_torques, @t_plant_conservation, @t_cmg_plant, @t_mekf, @t_quest, @t_lqr_blob, ...
          @t_fmr_spin_down, @t_cmg_steering, @t_hal_link, @t_hal_codec, @t_select, @t_gen_bdot, @t_sun_spin_law, @t_sun_guidance, ...
          @t_sun_model, @t_st_chain, @t_sun_chain, @t_blob_decode, ...
-         @t_sizing, @t_modes_table, @t_leap_status, @t_epoch_span, @t_orbit_vs_pop, @t_short_runs, @t_campaign_draw, @t_metrics_evaluate, @t_flex_plant, ...
+         @t_sizing, @t_modes_table, @t_leap_status, @t_epoch_span, @t_orbit_vs_pop, @t_field_interp, @t_short_runs, @t_campaign_draw, @t_metrics_evaluate, @t_flex_plant, ...
          @t_solution_scenario, @t_coil_lag, @t_wheel_motor, @t_st_moon_blind, @t_gps_latency, @t_earth_radiation, ...
          @t_fidelity_refused, @t_chains_from_part, @t_streams, @t_checkpoint, @t_engine_parity, @t_physics_vectors, ...
          @test_trinetra_open};
@@ -536,6 +536,31 @@ function m = t_epoch_span()
     P = asils.config('nadir_hold_ais', fullfile(R, 'cases', 'ais_3u.csv'), struct('set', struct('engine__epoch_days', 344.28)));
     assert(P.jd0 > P.epoch_span(2), 'a season shift past the span is not refused');
     m = sprintf('mission.epoch %s refused by name; engine.epoch_days = 344.28 (past the span) flown; 27.0 inside [%.1f, %.1f]', strjoin(got, ', '), P.epoch_span(1), P.epoch_span(2));
+end
+
+function m = t_field_interp()
+    % S12.7a (E8; env_field_interpolation): the truth field between two refreshes (1 s) is linear in J2000 between the refresh before and
+    % the next, no longer held: at t = k + 0.9 s it is the field computed there; held, it would be the field at k, about 0.19 deg off.
+    set = struct('engine__duration_s', 12, 'time__dt_s', 0.1, 'time__record_dt_s', 0.1);
+    P = asils.config('fine_hold_img', 'cases/ais_img_3u.csv', struct('set', set));
+    assert(P.env.field_interp && P.env.dt_s == 1 && P.sim.dt == 0.1, 'env_field_interpolation states 1; refresh 1 s, dt 0.1 s');
+    rec = asils.run('fine_hold_img', 'cases/ais_img_3u.csv', 'set', set, 'quiet', true);
+    O = asils.orbit.init(P); gh = asils.models.frames.igrf_gh(asils.models.caltime.decimal_year(P.jd0));
+    ang = @(a, b) atan2(norm(cross(a, b)), dot(a, b))*180/pi;
+    worst = 0; held = 0; b_k = [];
+    for j = 1:numel(rec.t)
+        t = rec.t(j);
+        [r, v, O] = asils.orbit.state(O, t);
+        E = asils.orbit.env(O, t, P.jd0, r, v, gh, P.env.igrf_nmax); want = E.b_eci;
+        if abs(t - round(t)) < 1e-6, b_k = want; end
+        if abs((t - floor(t)) - 0.9) > 1e-6, continue, end
+        got = asils.la.dcm(rec.q(:, j)).' * rec.B(:, j);
+        worst = max(worst, ang(got, want));
+        held = max(held, ang(b_k, want));                 % what the held field (the refresh at k) would be
+    end
+    assert(worst < 0.005, 'the field at k + 0.9 s is %.5f deg from the field there', worst);
+    assert(held > 0.15 && held < 0.25, 'held it would be %.4f deg off at k + 0.9 s (about 0.19)', held);
+    m = sprintf('B at k + 0.9 s against the field there: %.1e deg; held it would be %.3f deg off', worst, held);
 end
 
 function m = t_orbit_vs_pop()

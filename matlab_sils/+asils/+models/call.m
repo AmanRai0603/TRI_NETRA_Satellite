@@ -2100,6 +2100,9 @@ function y = call(name, x)
         case 'truthfield::field_eci_ecef'
             [o1] = asils.models.truthfield.field_eci_ecef(reshape(x(1:3), 3, 1), reshape(x(4:12), 3, 3).', reshape(x(13:207), 195, 1), x(208));
             y = [reshape(o1, [], 1)];
+        case 'truthfield::field_interp'
+            [o1] = asils.models.truthfield.field_interp(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), x(7));
+            y = [reshape(o1, [], 1)];
         case 'fswbody::fsw_epoch_earth'
             [o1, o2] = asils.models.fswbody.fsw_epoch_earth(x(1));
             y = [double(o1); double(o2)];

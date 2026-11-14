@@ -80,13 +80,15 @@ function rec = run(scenarioId, caseFile, varargin)
     j = 0; tprint = 0;
     % a long run may be cut (a machine restarted): with o.checkpoint (a file) the loop's state is kept there every
     % o.checkpoint_s of wall time, and a run that finds it goes on from it (the same run: every state is in it)
+    env_step = rt.env*dt;                          % the refresh step the loop really takes (a whole number of control steps)
+    b_span = {};                                   % the field at the refresh before and at the next, while it is interpolated
     ckpt = asils.util.getf(o, 'checkpoint', ''); ckpt_every = asils.util.getf(o, 'checkpoint_s', 600);
     k0 = 0; wall0 = 0; tcp = tic;
     if ~isempty(ckpt) && exist(ckpt, 'file') == 2
         C_ = load(ckpt);
         k0 = C_.k + 1; wall0 = C_.wall;
         O = C_.O; U = C_.U; F = C_.F; bus = C_.bus; x = C_.x; R_ = C_.R_; a = C_.a; prop = C_.prop; eacc = C_.eacc;
-        b_eci = C_.b_eci; sun_rel = C_.sun_rel; moon_rel = C_.moon_rel; nu = C_.nu; v_rel = C_.v_rel; rho = C_.rho; psrp = C_.psrp; v_earth = C_.v_earth;
+        b_eci = C_.b_eci; b_span = C_.b_span; sun_rel = C_.sun_rel; moon_rel = C_.moon_rel; nu = C_.nu; v_rel = C_.v_rel; rho = C_.rho; psrp = C_.psrp; v_earth = C_.v_earth;
         log = C_.log; last_mode = C_.last_mode; j = C_.j; fdone = C_.fdone; ledger = C_.ledger; tau_prev = C_.tau_prev; t_prev = C_.t_prev;
         clear C_
         if ~o.quiet, fprintf('  resumed from %s at t = %.1f s\n', ckpt, k0*dt); end
@@ -96,9 +98,17 @@ function rec = run(scenarioId, caseFile, varargin)
         [r, v, O] = asils.orbit.state(O, t);
         if mod(k, rt.env) == 0
             E = asils.orbit.env(O, t, P.jd0, r, v, gh, P.env.igrf_nmax);
-            b_eci = E.b_eci; sun_rel = E.sun_rel; moon_rel = E.moon_rel; nu = E.nu; v_rel = E.v_rel; rho = E.rho; psrp = E.p_srp; v_earth = E.v_earth;
             O.W.sc.R_bi = asils.la.dcm(x.q).';               % attitude -> POP (box-wing / panel models read it)
+            % env_field_interpolation (S12.7a, E8): the field between this refresh and the next, linear in J2000 (the rest of the
+            % environment is held)
+            if P.env.field_interp && rt.env > 1
+                b_span = {t, E.b_eci, asils.orbit.field_ahead(O, t + env_step, P.jd0, gh, P.env.igrf_nmax)};
+            else
+                b_span = {};
+            end
+            b_eci = E.b_eci; sun_rel = E.sun_rel; moon_rel = E.moon_rel; nu = E.nu; v_rel = E.v_rel; rho = E.rho; psrp = E.p_srp; v_earth = E.v_earth;
         end
+        if ~isempty(b_span), b_eci = asils.models.truthfield.field_interp(b_span{2}, b_span{3}, (t - b_span{1})/env_step); end
         if ~isempty(faults), [U, fdone, log] = asils.faults.apply(faults, t, U, fdone, log); end
         rb = asils.la.dcm(x.q);
         % what the sensors see of the sky: sens_sky_view's sky_view
@@ -194,7 +204,7 @@ function rec = run(scenarioId, caseFile, varargin)
         H = asils.hal.pace(H, t);                  % real-time pacing for OILS / HILS
         if ~isempty(ckpt) && toc(tcp) > ckpt_every
             wall = wall0 + toc(tic_all); %#ok<NASGU>
-            save('-binary', [ckpt '.tmp'], 'k', 'wall', 'O', 'U', 'F', 'bus', 'x', 'R_', 'a', 'prop', 'eacc', 'b_eci', 'sun_rel', ...
+            save('-binary', [ckpt '.tmp'], 'k', 'wall', 'O', 'U', 'F', 'bus', 'x', 'R_', 'a', 'prop', 'eacc', 'b_eci', 'b_span', 'sun_rel', ...
                  'moon_rel', 'nu', 'v_rel', 'rho', 'psrp', 'v_earth', 'log', 'last_mode', 'j', 'fdone', 'ledger', 'tau_prev', 't_prev');
             movefile([ckpt '.tmp'], ckpt, 'f');
             tcp = tic;

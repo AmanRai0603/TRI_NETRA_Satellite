@@ -60,13 +60,8 @@ impl Truth {
         match self {
             Truth::Pop(o) => {
                 let x = o.context(t);
-                // the field in J2000, through POP's Earth frame: on a build with the CIO chain (A) C is already GCRF to ITRF, with
-                // the precession in it; only the gmst build turns about the pole of J2000 and needs the precession put in front
-                let cp = if o.world.build == adcs_pop::frames::Build::Gmst { mm(&x.c, &time::precession(jd0 + t/86400.0)) } else { x.c };
-                let re = mv(&cp, r);
-                let (lat, lon, h) = adcs_pop::geodetic::geodetic(&re);
                 let w = o.omega_e;
-                Env { b_eci: field::eci_at(lat, lon, h, &cp, gh, nmax), sun_rel: sub(&x.sun_eci, r), moon_rel: sub(&x.moon_eci, r), nu: ephem::shadow(r, &x.sun_eci),
+                Env { b_eci: pop_field(o, &x.c, t, jd0, r, gh, nmax), sun_rel: sub(&x.sun_eci, r), moon_rel: sub(&x.moon_eci, r), nu: ephem::shadow(r, &x.sun_eci),
                       v_rel: adcs_sim_core::gen::orbitfast::corotating_velocity(*r, *v, w), rho: x.rho, p_srp: x.p_srp, v_earth: x.v_earth }
             }
             Truth::Fast(o, jd0) => {
@@ -74,6 +69,20 @@ impl Truth {
                 let cm = time::eci2ecef(jd0 + t/86400.0);
                 Env { b_eci: field::eci(&mv(&cm, r), &cm, gh, nmax), sun_rel: sub(&xc.sun, r), moon_rel: sub(&xc.moon, r), nu: ephem::shadow(r, &xc.sun),
                       v_rel: orbit::corotating(r, v), rho: xc.rho, p_srp: xc.p_srp, v_earth: [0.0; 3] }
+            }
+        }
+    }
+    /// The field in J2000 [T] at t seconds, ahead of the orbit and without moving it (S12.7a, E8: the field at the next refresh, which
+    /// the field between two refreshes is interpolated to): the position and the Earth frame the orbit's own interpolants give at t,
+    /// past the step they are in when t is (`InLoop::peek`), or for the fast orbit a copy of the orbit advanced.
+    pub fn field_ahead(&self, t: f64, jd0: f64, gh: &field::Gh, nmax: usize) -> V3 {
+        match self {
+            Truth::Pop(o) => { let (r, _, x) = o.peek(t); pop_field(o, &x.c, t, jd0, &r, gh, nmax) }
+            Truth::Fast(o, jd0) => {
+                let mut ahead = *o;
+                let (r, _) = ahead.state(t);
+                let cm = time::eci2ecef(jd0 + t/86400.0);
+                field::eci(&mv(&cm, &r), &cm, gh, nmax)
             }
         }
     }
@@ -106,6 +115,16 @@ impl Truth {
             Truth::Fast(..) => None,
         }
     }
+}
+
+/// The field in J2000 [T] at POP's position r through POP's Earth frame c (the orbit's context at t): on a build with the CIO chain
+/// (A) c is already GCRF to ITRF, with the precession in it; only the gmst build turns about the pole of J2000 and needs the
+/// precession put in front.
+fn pop_field(o: &adcs_pop::accel::InLoop, c: &M3, t: f64, jd0: f64, r: &V3, gh: &field::Gh, nmax: usize) -> V3 {
+    let cp = if o.world.build == adcs_pop::frames::Build::Gmst { mm(c, &time::precession(jd0 + t/86400.0)) } else { *c };
+    let re = mv(&cp, r);
+    let (lat, lon, h) = adcs_pop::geodetic::geodetic(&re);
+    field::eci_at(lat, lon, h, &cp, gh, nmax)
 }
 
 /// The Earth frame a run flew and whether its data was valid to the end of the run (the manifest's `frame`).
@@ -589,6 +608,8 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
         st.time_base = if m.fixed_s.is_some() { "fixed latency (no OBC time)".into() } else { o.fsw.time_base().into() };
     }
     let mut held = Held::default();
+    let env_step = rt.env as f64*dt;          // the refresh step the loop really takes (a whole number of control steps)
+    let mut b_span: Option<(f64, V3, V3)> = None;     // the field at the refresh before and at the next, while it is interpolated
     let (mut ledger, mut tau_prev, mut t_prev) = (Ledger::default(), [0.0f64; 3], f64::NEG_INFINITY);
     ledger.sched_cross = vec![0; p.n_sched as usize];
     for k in 0..=rt.n {
@@ -596,9 +617,13 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
         let (r, v) = orb.state(t)?;
         if k % rt.env == 0 {
             let ev = orb.env(t, c.jd0, &r, &v, &gh, c.igrf_nmax);
+            // env_field_interpolation (S12.7a, E8): the field between this refresh and the next, linear in J2000 (the rest of the
+            // environment is held)
+            if c.field_interp && rt.env > 1 { b_span = Some((t, ev.b_eci, orb.field_ahead(t + env_step, c.jd0, &gh, c.igrf_nmax))); }
             b_eci = ev.b_eci; sun_rel = ev.sun_rel; moon_rel = ev.moon_rel; nu = ev.nu; v_rel = ev.v_rel; rho = ev.rho; psrp = ev.p_srp; v_earth = ev.v_earth;
             orb.set_attitude(transpose(&dcm(&x.q)));      // attitude -> POP (box-wing / panel models read it)
         }
+        if let Some((t0, b0, b1)) = b_span { b_eci = field::interp(&b0, &b1, (t - t0)/env_step); }
         u.faults(c, t, &mut fault_done, &mut log)?;
         let rb = dcm(&x.q);
         // what the sensors see of the sky: sens_sky_view's sky_view (the Earth's half-angle from the constants' R_E)

@@ -4895,3 +4895,29 @@ source = "IGRF-14 (IAGA V-MOD, 2024): the Gauss coefficients are those of the ex
 generate = []
 why = "the dipole rows use IGRF's reference radius, not R_E (E10): B0 is the coefficient set's, whose radius is a; carried to m3_0, m3_1 and m3_2 with the constants they call"
 
+
+[[revision]]
+id = "S12.7a"
+at = "2026-11-14T08:00:00Z"
+by = "the developer"
+about = "E8 of docs/S12_INVENTORY.md (S12.7; no owner decision): the truth environment is refreshed every env_refresh_step (1 s) and was held between refreshes; the field turns up to 0.21 deg/s along the orbit, so a held field is up to about 0.2 deg off, hidden only because the magnetometer samples on the refresh tick. The field is now interpolated linearly in J2000 between the refresh before and the next refresh (the developer's choice: the simplest rule whose error is second order in the step); the stated node env_field_interpolation (1) says so and the relation field_interp is the rule (the module of l3_dist_row_08). The Sun, the Moon, the shadow, the density and the solar pressure stay held at the refresh before, because they are slow: the numbers are in the node. Unsigned: the developer's revision"
+
+[[revision.node]]
+id = "env_field_interpolation"
+group = "env"
+parent = "m3"
+label = "Truth field between refreshes"
+behaviour = "stated"
+question = "How is the truth's magnetic field taken between two refreshes of the truth environment (env_refresh_step): 0 held at the refresh before, 1 linear in J2000 between the refresh before and the next refresh?"
+content = [["value", "number", "1"], ["value", "source", "S12.7a (E8; the developer's choice, unsigned): 1, linear in J2000, b = b0 + (b1 - b0) f with f the fraction of the step gone (l3_dist_row_08's field_interp); b1 is the field at the next refresh's position and Earth frame, taken one step ahead of the orbit without advancing it. 0 holds the field as the engine did until S12.6. The Sun, the Moon, the shadow, the density and the solar pressure stay held at the refresh before: measured over the 1 s step at 550 km, the worst of an orbit sampled every 97 s (adcs-sim tests/field_interpolation.rs): the Sun's direction from the spacecraft turns 1.3e-5 deg, the Moon's 1.2e-3 deg, the density changes by 8.1e-4 of itself, the solar pressure by 2e-10 of itself, and the sunlit fraction is a step at the shadow's edge, which the samples did not cross; held, the field was 0.190 deg off at t = k + 0.9 s and interpolated it is 1.9e-6 deg (dt 0.1 s). The field at the next refresh is taken from the orbit's own interpolant continued one step past its end, without advancing the orbit: 3e-7 nT from the field at the position the orbit then has"]]
+why = "the field turns by up to 0.21 deg/s along the orbit: a field held for env_refresh_step is up to 0.2 deg off between refreshes, which the magnetometer sampled on the refresh tick never showed (E8)"
+
+[[revision.method]]
+node = "l3_dist_row_08"
+pseudocode = "design/revisions/S12.7a/truthfield.pc"
+path = "env/truthfield.pc"
+transcribes = "design/revisions/S12.6a/truthfield.pc as S12.6a left it, with field_interp added: the field between two refreshes, linear in J2000 from the refresh before to the next"
+source = "linear interpolation (the developer's choice, S12.7a); IGRF-14 (IAGA V-MOD, 2024); WGS-84 (NIMA TR8350.2)"
+generate = ["adcs-sim-core"]
+uses = ["fsw/pseudocode/02_time_frames_models.pc", "fsw/pseudocode/02_igrf14.pc", "fsw/pseudocode/01_math.pc"]
+why = "the truth field's interpolation rule is the design's, not a line of the loop (E8)"

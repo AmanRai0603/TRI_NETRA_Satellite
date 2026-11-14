@@ -321,6 +321,11 @@ impl InLoop {
             let n2 = InLoop::advance(&mut self.world, &self.n1, self.h)?;
             self.n0 = std::mem::replace(&mut self.n1, n2);
         }
+        Ok(self.hermite(t))
+    }
+
+    /// The state at t inside the current step (cubic Hermite on the two nodes), the loop not advanced.
+    fn hermite(&self, t: f64) -> (V3, V3) {
         let (a, b) = (&self.n0, &self.n1);
         let h = b.t - a.t;
         let s = (t - a.t)/h;
@@ -332,7 +337,17 @@ impl InLoop {
             r[i] = h00*a.r[i] + h10*h*a.v[i] + h01*b.r[i] + h11*h*b.v[i];
             v[i] = h00*a.v[i] + h10*h*a.a[i] + h01*b.v[i] + h11*h*b.a[i];
         }
-        Ok((r, v))
+        (r, v)
+    }
+
+    /// The state and the environment's context at t, ahead of the loop and without moving it (S12.7a, E8: the field at the next
+    /// refresh): the current step's cubic Hermite and its Earth frame turned on, taken past the step's end when t is beyond it. For a
+    /// t a refresh step ahead of the loop's present (1 s of a step of 10 s) that is the interpolant's own continuation, a few
+    /// centimetres from where the loop will put the spacecraft there (tests/field_interpolation.rs measures it); the loop's nodes
+    /// do not move, so the next `state` finds the nodes it would have found.
+    pub fn peek(&self, t: f64) -> (V3, V3, EnvCtx) {
+        let (r, v) = self.hermite(t);
+        (r, v, self.context(t))
     }
 
     /// asils.orbit.context: Sun/Moon/P_srp linear, density log-linear, ECI->ECEF turned on from node 0 towards node 1

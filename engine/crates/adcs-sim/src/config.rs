@@ -50,7 +50,7 @@ pub struct Config {
     pub epoch_span: [f64; 2],
     /// space weather (asils.config P.env): F10.7, F10.7a, Kp, ap
     pub f107: f64, pub f107a: f64, pub kp: f64, pub ap: f64,
-    pub igrf_nmax: usize, pub env_dt_s: f64, pub env_on: [bool; 4],
+    pub igrf_nmax: usize, pub env_dt_s: f64, pub field_interp: bool, pub env_on: [bool; 4],
     pub mass_kg: f64, pub inertia: [[f64; 3]; 3], pub box_m: [f64; 3], pub cm_offset_m: [f64; 3], pub aref_m2: f64, pub cd: f64, pub refl: f64,
     pub sigma_n: f64, pub sigma_t: f64, pub vb_ratio: f64, pub spec_frac: f64, pub m_res: [f64; 3],
     pub duration_s: f64, pub dt: f64, pub record_dt: f64,
@@ -786,7 +786,7 @@ impl Config {
             orbit_model: if st.flag("env_orbit_precision_default")? { "pop" } else { "fast" }.into(),
             frame_build: frame_build(&st)?, epoch_span,
             f107: st.get("env_f107_default")?, f107a: st.get("env_f107a_default")?, kp: st.get("env_kp_default")?, ap: st.get("env_ap_default")?,
-            igrf_nmax: st.whole("env_field_degree", 1, 13)?, env_dt_s: st.get("env_refresh_step")?,
+            igrf_nmax: st.whole("env_field_degree", 1, 13)?, env_dt_s: st.get("env_refresh_step")?, field_interp: st.flag("env_field_interpolation")?,
             env_on: [st.flag("env_torque_gravity_gradient")?, st.flag("env_torque_aero")?, st.flag("env_torque_radiation")?, st.flag("env_torque_magnetic")?],
             mass_kg: v("mass.m"), inertia, box_m, cm_offset_m,
             aref_m2: v("surface.afr"), cd: v("surface.cd"), refl: v("surface.refl"), sigma_n: surf[0], sigma_t: surf[0], vb_ratio: surf[1], spec_frac: surf[2], m_res,
