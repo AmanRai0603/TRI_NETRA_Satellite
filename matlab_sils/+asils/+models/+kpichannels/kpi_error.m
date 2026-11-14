@@ -16,6 +16,6 @@ function [e, los] = kpi_error(q, qr, bs)
     end
     e = [(2 * dq(1)); (2 * dq(2)); (2 * dq(3))];
     b_true = asils.models.math.mat3t_vec(asils.models.math.dcm(q), bs);
-    h__630 = asils.models.math.mat3t_vec(asils.models.math.dcm(qr), bs);
-    los = asils.models.kpichannels.kpi_acosd((b_true(1)*h__630(1) + b_true(2)*h__630(2) + b_true(3)*h__630(3)));
+    h__639 = asils.models.math.mat3t_vec(asils.models.math.dcm(qr), bs);
+    los = asils.models.kpichannels.kpi_acosd((b_true(1)*h__639(1) + b_true(2)*h__639(2) + b_true(3)*h__639(3)));
 end

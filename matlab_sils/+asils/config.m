@@ -50,7 +50,8 @@ function P = config(scenarioId, caseFile, opts)
         'n', n, 'period_s', period_s, 'atmos', 'dtm2020', ...
         'model', ifelse_(st.flag('env_orbit_precision_default'), 'pop', 'fast'));
     P.env = struct('F107', st.get('env_f107_default'), 'F107a', st.get('env_f107a_default'), 'Kp', st.get('env_kp_default'), ...
-        'ap', st.get('env_ap_default'), 'igrf_nmax', st.whole('env_field_degree', 1, 13), 'dt_s', st.get('env_refresh_step'), 'field_interp', st.flag('env_field_interpolation'), ...
+        'ap', st.get('env_ap_default'), 'igrf_nmax', st.whole('env_field_degree', 1, 13), 'dt_s', st.get('env_refresh_step'), 'field_interp', st.flag('env_field_interpolation'), 'field_error', st.flag('env_field_error_on'), ...
+        'crust_rms_nt', st.get('env_field_crustal_rms'), 'dst_nt', st.get('env_dst_default'), ...
         'on', [st.flag('env_torque_gravity_gradient'), st.flag('env_torque_aero'), st.flag('env_torque_radiation'), st.flag('env_torque_magnetic')], ...
         'density_scale', st.get('env_density_scale_default'), 'frame_build', st.whole('env_earth_frame_build', 0, 3));
     P.sc = struct();
@@ -115,6 +116,9 @@ function P = apply_engine_(P, eng)
             case 'engine.f107a', P.env.F107a = x;
             case 'engine.kp', P.env.Kp = x;
             case 'engine.ap', P.env.ap = x;
+            case 'engine.dst_nt'
+                assert(x >= -2000 && x <= 100, 'asils:config:refused', '%s: %g nT, from -2000 to 100', k, x);
+                P.env.dst_nt = x;
             case 'engine.accommodation', P.sc.sigma_n = x; P.sc.sigma_t = x;
             case 'engine.refl', P.sc.refl = x;
             case 'engine.vb_ratio', P.sc.vb_ratio = x;

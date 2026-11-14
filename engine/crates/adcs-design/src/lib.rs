@@ -161,7 +161,7 @@ fn survey(root: &Path, case_file: &Path, sets: &[(String, String)]) -> Result<(C
     for kk in 0..n {
         let t = kk as f64*dt;
         let (r, vv) = orb.state(t)?;
-        let e = orb.env(t, c.jd0, &r, &vv, &gh, c.igrf_nmax);
+        let e = orb.env(t, c.jd0, &r, &vv, &gh, c.igrf_nmax, None);      // the demand survey is the IGRF's: no run's seed, so no crust
         bm[kk] = norm(&e.b_eci); nu[kk] = e.nu;
         for a in 0..4 {
             let (_, _, mode, sun_axis, roll_axis) = att[a];

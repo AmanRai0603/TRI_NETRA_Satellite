@@ -28,11 +28,11 @@ function [a] = tb_legendre(s, b, gm, nmax)
     a = zeros(3, 1);
     for m = (2):(((nmax + 1)) - 1)
         mf = m;
-        h__526 = (rb)^((mf + 1));
-        if ~isreal(h__526), h__526 = NaN; end
-        h__527 = (rho)^((mf - 1));
-        if ~isreal(h__527), h__527 = NaN; end
-        k = ((gm / h__526) * h__527);
+        h__535 = (rb)^((mf + 1));
+        if ~isreal(h__535), h__535 = NaN; end
+        h__536 = (rho)^((mf - 1));
+        if ~isreal(h__536), h__536 = NaN; end
+        k = ((gm / h__535) * h__536);
         i = ((0):((3) - 1)).';
         a((i) + 1) = (reshape(a((i) + 1), [], 1) + (k .* (((mf * p((m) + 1)) .* reshape(rs((i) + 1), [], 1)) + (dp((m) + 1) .* (reshape(rbh((i) + 1), [], 1) - (u .* reshape(rs((i) + 1), [], 1)))))));
     end

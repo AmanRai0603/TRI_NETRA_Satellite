@@ -30,8 +30,8 @@ function [q, ok, cr, cm, g] = st_quest_head(rold, dq, bs, fov, noise_cross, smea
         smag((i) + 1) = 1000000000;
     end
     ns = 0;
-    t__714 = ((0):((4000) - 1)).';
-    for s = t__714(logical((~((bs_eci(1) .* cr((t__714) + 1, 1) + bs_eci(2) .* cr((t__714) + 1, 2) + bs_eci(3) .* cr((t__714) + 1, 3)) <= cf)))).'
+    t__718 = ((0):((4000) - 1)).';
+    for s = t__718(logical((~((bs_eci(1) .* cr((t__718) + 1, 1) + bs_eci(2) .* cr((t__718) + 1, 2) + bs_eci(3) .* cr((t__718) + 1, 3)) <= cf)))).'
         if (ns < 12)
             sel((ns) + 1) = s;
             smag((ns) + 1) = cm((s) + 1);
@@ -53,18 +53,18 @@ function [q, ok, cr, cm, g] = st_quest_head(rold, dq, bs, fov, noise_cross, smea
     ok = (ns >= 3);
     if ok
         rm = asils.pc.mm((asils.models.math.dcm(dq)).', rold);
-        h__774 = 8;
-        if h__774 < 0, h__774 = NaN; else, h__774 = sqrt(h__774); end
-        sc = ((noise_cross * smear) * h__774);
+        h__783 = 8;
+        if h__783 < 0, h__783 = NaN; else, h__783 = sqrt(h__783); end
+        sc = ((noise_cross * smear) * h__783);
         bm = zeros(32, 3);
         rr = zeros(32, 3);
         for i = (0):((ns) - 1)
             r = (cr((sel((i) + 1)) + 1, :)).';
-            h__775 = asils.models.starcat.st_aberrate(r, vb);
-            v = [rm(1, 1)*h__775(1) + rm(1, 2)*h__775(2) + rm(1, 3)*h__775(3); rm(2, 1)*h__775(1) + rm(2, 2)*h__775(2) + rm(2, 3)*h__775(3); rm(3, 1)*h__775(1) + rm(3, 2)*h__775(2) + rm(3, 3)*h__775(3)];
-            [t__715, t__716] = asils.pc.stream_normal3(g);
-            n0 = t__715;
-            g = t__716;
+            h__784 = asils.models.starcat.st_aberrate(r, vb);
+            v = [rm(1, 1)*h__784(1) + rm(1, 2)*h__784(2) + rm(1, 3)*h__784(3); rm(2, 1)*h__784(1) + rm(2, 2)*h__784(2) + rm(2, 3)*h__784(3); rm(3, 1)*h__784(1) + rm(3, 2)*h__784(2) + rm(3, 3)*h__784(3)];
+            [t__719, t__720] = asils.pc.stream_normal3(g);
+            n0 = t__719;
+            g = t__720;
             e0 = (n0 * sc);
             e = (e0 - (v * (v(1)*e0(1) + v(2)*e0(2) + v(3)*e0(3))));
             bm((i) + 1, :) = asils.models.facets.unit_or_zero((v + e)).';

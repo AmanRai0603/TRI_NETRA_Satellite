@@ -30,16 +30,16 @@ pub fn radiation_torque(g: Facets, sb: [f64; 3], p: f64) -> [f64; 3] {
     let mut tau: [f64; 3] = [0.0; 3];
     tau = [0.0, 0.0, 0.0];
     {
-        let __end46: i64 = 6;
+        let __end50: i64 = 6;
         let mut j: i64 = 0;
-        while j < __end46 {
+        while j < __end50 {
             let mut c: f64 = rt::dot(sb, g.n[(j) as usize]);
             if (!(c <= 0.0)) {
                 let mut f: [f64; 3] = [0.0, 0.0, 0.0];
                 {
-                    let __end47: i64 = 3;
+                    let __end51: i64 = 3;
                     let mut k: i64 = 0;
-                    while k < __end47 {
+                    while k < __end51 {
                         f[(k) as usize] = ((((-(p)) * g.a[(j) as usize]) * c) * (((1.0 - g.rho_spec) * sb[(k) as usize]) + ((2.0 * ((g.rho_spec * c) + (g.rho_diff / 3.0))) * g.n[(j) as usize][(k) as usize])));
                         k += 1;
                     }

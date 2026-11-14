@@ -81,9 +81,9 @@ pub fn quad_currents(s: [f64; 3], p: SunHead, g: &mut rt::Stream) -> [f64; 4] {
         let mut a2: f64 = (p.a * p.a);
         i = [(s[2] * ((xp * yp) / a2)), (s[2] * ((xm * yp) / a2)), (s[2] * ((xm * ym) / a2)), (s[2] * ((xp * ym) / a2))];
         {
-            let __end194: i64 = 4;
+            let __end198: i64 = 4;
             let mut k: i64 = 0;
-            while k < __end194 {
+            while k < __end198 {
                 let mut z: f64 = rt::normal(&mut (*g));
                 i[(k) as usize] = (i[(k) as usize] + (p.noise * z));
                 k += 1;

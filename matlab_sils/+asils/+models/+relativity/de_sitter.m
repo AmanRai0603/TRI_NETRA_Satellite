@@ -12,12 +12,12 @@ function [a] = de_sitter(r, v, earth_helio_pos, earth_helio_vel, gamma)
     k = asils.models.de440.de440_constants();
     c = k.c;
     gms = k.gm_sun;
-    h__451 = (sqrt(earth_helio_pos(1)*earth_helio_pos(1) + earth_helio_pos(2)*earth_helio_pos(2) + earth_helio_pos(3)*earth_helio_pos(3)))^(3);
-    if ~isreal(h__451), h__451 = NaN; end
-    den = ((c * c) * h__451);
+    h__460 = (sqrt(earth_helio_pos(1)*earth_helio_pos(1) + earth_helio_pos(2)*earth_helio_pos(2) + earth_helio_pos(3)*earth_helio_pos(3)))^(3);
+    if ~isreal(h__460), h__460 = NaN; end
+    den = ((c * c) * h__460);
     ae = [(((-(gms)) * earth_helio_pos(1)) / den); (((-(gms)) * earth_helio_pos(2)) / den); (((-(gms)) * earth_helio_pos(3)) / den)];
-    h__452 = [earth_helio_vel(2)*ae(3) - earth_helio_vel(3)*ae(2); earth_helio_vel(3)*ae(1) - earth_helio_vel(1)*ae(3); earth_helio_vel(1)*ae(2) - earth_helio_vel(2)*ae(1)];
-    w = [h__452(2)*v(3) - h__452(3)*v(2); h__452(3)*v(1) - h__452(1)*v(3); h__452(1)*v(2) - h__452(2)*v(1)];
+    h__461 = [earth_helio_vel(2)*ae(3) - earth_helio_vel(3)*ae(2); earth_helio_vel(3)*ae(1) - earth_helio_vel(1)*ae(3); earth_helio_vel(1)*ae(2) - earth_helio_vel(2)*ae(1)];
+    w = [h__461(2)*v(3) - h__461(3)*v(2); h__461(3)*v(1) - h__461(1)*v(3); h__461(1)*v(2) - h__461(2)*v(1)];
     g = (1 + (2 * gamma));
     a = [(g * w(1)); (g * w(2)); (g * w(3))];
 end

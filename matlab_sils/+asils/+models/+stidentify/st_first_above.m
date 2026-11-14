@@ -9,27 +9,27 @@ function [lo, pa] = st_first_above(pa, np, x)
     lo = 0;
     lo = 0;
     hi = np;
-    n__650 = 64; k__649 = 0;
+    n__654 = 64; k__653 = 0;
     while true
         if (lo < hi)
             mid = (lo + fix(((hi - lo)) / (2)));
             left = (pa((mid) + 1) <= x);
             if left
-                h__744 = (mid + 1);
+                h__753 = (mid + 1);
             else
-                h__744 = lo;
+                h__753 = lo;
             end
-            lo = h__744;
+            lo = h__753;
             if left
-                h__745 = hi;
+                h__754 = hi;
             else
-                h__745 = mid;
+                h__754 = mid;
             end
-            hi = h__745;
+            hi = h__754;
         end
-        k__649 = k__649 + 1;
+        k__653 = k__653 + 1;
         if (~(lo < hi)), break; end
-        if k__649 >= n__650
+        if k__653 >= n__654
             break;
         end
     end

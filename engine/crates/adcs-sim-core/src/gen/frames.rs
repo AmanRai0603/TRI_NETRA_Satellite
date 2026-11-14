@@ -168,9 +168,9 @@ pub fn nut00b(t: f64) -> (f64, f64) {
     dpsi = 0.0;
     deps = 0.0;
     {
-        let __end62: i64 = 77;
+        let __end66: i64 = 77;
         let mut k: i64 = 0;
-        while k < __end62 {
+        while k < __end66 {
             let mut j: i64 = (76 - k);
             let mut arg: f64 = crate::pm::fmod((((((crate::gen::frames::DATA_NUT00B[(j) as usize][0] * el) + (crate::gen::frames::DATA_NUT00B[(j) as usize][1] * elp)) + (crate::gen::frames::DATA_NUT00B[(j) as usize][2] * f)) + (crate::gen::frames::DATA_NUT00B[(j) as usize][3] * d)) + (crate::gen::frames::DATA_NUT00B[(j) as usize][4] * om)), (2.0 * core::f64::consts::PI));
             let mut sa: f64 = crate::pm::sin(arg);
@@ -361,9 +361,9 @@ pub fn geodetic(r: [f64; 3]) -> (f64, f64, f64) {
     let mut nn: f64 = a;
     let mut hh: f64 = 0.0;
     {
-        let __end63: i64 = 3;
+        let __end67: i64 = 3;
         let mut k: i64 = 0;
-        while k < __end63 {
+        while k < __end67 {
             let mut sl: f64 = crate::pm::sin(la);
             nn = (a / crate::pm::sqrt((1.0 - ((e2 * sl) * sl))));
             hh = ((p / crate::pm::cos(la)) - nn);
@@ -386,9 +386,9 @@ pub fn igrf_gh(dy: f64) -> [f64; 195] {
     let mut gh: [f64; 195] = [0.0; 195];
     let mut i: i64 = 0;
     {
-        let __end64: i64 = 26;
+        let __end68: i64 = 26;
         let mut ii: i64 = 0;
-        while ii < __end64 {
+        while ii < __end68 {
             if (crate::gen::igrf14coeffs::DATA_IGRF14_YEAR[((ii + 1)) as usize] <= dy) {
                 i = (ii + 1);
             }
@@ -400,9 +400,9 @@ pub fn igrf_gh(dy: f64) -> [f64; 195] {
     }
     let mut f: f64 = ((dy - crate::gen::igrf14coeffs::DATA_IGRF14_YEAR[(i) as usize]) / (crate::gen::igrf14coeffs::DATA_IGRF14_YEAR[((i + 1)) as usize] - crate::gen::igrf14coeffs::DATA_IGRF14_YEAR[(i) as usize]));
     {
-        let __end65: i64 = 195;
+        let __end69: i64 = 195;
         let mut k: i64 = 0;
-        while k < __end65 {
+        while k < __end69 {
             gh[(k) as usize] = (crate::gen::igrf14coeffs::DATA_IGRF14_GH[(i) as usize][(k) as usize] + ((crate::gen::igrf14coeffs::DATA_IGRF14_GH[((i + 1)) as usize][(k) as usize] - crate::gen::igrf14coeffs::DATA_IGRF14_GH[(i) as usize][(k) as usize]) * f));
             k += 1;
         }
@@ -441,9 +441,9 @@ pub fn igrf_ned(gh: [f64; 195], lat: f64, lon: f64, alt_km: f64, nmax0: i64) -> 
     let mut cphi: [f64; 14] = [0.0; 14];
     let mut sphi: [f64; 14] = [0.0; 14];
     {
-        let __end66: i64 = (nmax + 1);
+        let __end70: i64 = (nmax + 1);
         let mut k: i64 = 1;
-        while k < __end66 {
+        while k < __end70 {
             cphi[(k) as usize] = crate::pm::cos(((k as f64) * lon));
             sphi[(k) as usize] = crate::pm::sin(((k as f64) * lon));
             k += 1;
@@ -463,9 +463,9 @@ pub fn igrf_ned(gh: [f64; 195], lat: f64, lon: f64, alt_km: f64, nmax0: i64) -> 
     let mut bt: f64 = 0.0;
     let mut bp: f64 = 0.0;
     {
-        let __end67: i64 = (pmax + 1);
+        let __end71: i64 = (pmax + 1);
         let mut pi_: i64 = 2;
-        while pi_ < __end67 {
+        while pi_ < __end71 {
             let mut ix: i64 = (pi_ - 1);
             if (n < m) {
                 m = 0;

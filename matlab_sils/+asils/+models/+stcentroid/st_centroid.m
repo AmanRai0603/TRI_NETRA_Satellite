@@ -21,16 +21,16 @@ function [spots, ns, img, work, ia, ib] = st_centroid(img, cam, work, ia, ib)
     if ~isempty(l)
         work((l) + 1) = reshape(img((l) + 1), [], 1);
     end
-    [t__624, t__625] = asils.models.stcentroid.st_median(work, np);
-    bg = t__624;
-    work = t__625;
+    [t__628, t__629] = asils.models.stcentroid.st_median(work, np);
+    bg = t__628;
+    work = t__629;
     l2 = ((0):((np) - 1)).';
     if ~isempty(l2)
         work((l2) + 1) = asils.pc.vfabs_((reshape(img((l2) + 1), [], 1) - bg));
     end
-    [t__626, t__627] = asils.models.stcentroid.st_median(work, np);
-    mad = t__626;
-    work = t__627;
+    [t__630, t__631] = asils.models.stcentroid.st_median(work, np);
+    mad = t__630;
+    work = t__631;
     sg = (1.4826 * mad);
     thr = (bg + (cam.k_sigma * sg));
     m = 0;
@@ -40,15 +40,15 @@ function [spots, ns, img, work, ia, ib] = st_centroid(img, cam, work, ia, ib)
             m = (m + 1);
         end
     end
-    [t__628, t__629, t__630, t__631] = asils.models.stcentroid.st_sort_desc(img, ia, ib, m);
-    passes = t__628;
-    img = t__629;
-    ia = t__630;
-    ib = t__631;
-    h__728 = cam.max_spots;
-    h__729 = 32;
-    if h__729 < h__728, h__728 = h__729; end
-    cap = h__728;
+    [t__632, t__633, t__634, t__635] = asils.models.stcentroid.st_sort_desc(img, ia, ib, m);
+    passes = t__632;
+    img = t__633;
+    ia = t__634;
+    ib = t__635;
+    h__737 = cam.max_spots;
+    h__738 = 32;
+    if h__738 < h__737, h__737 = h__738; end
+    cap = h__737;
     ns = 0;
     done = false;
     for q = (0):((m) - 1)
@@ -61,9 +61,9 @@ function [spots, ns, img, work, ia, ib] = st_centroid(img, cam, work, ia, ib)
                 yf = y;
                 near = false;
                 for s = (0):((ns) - 1)
-                    h__730 = (spots((s) + 1, 1) - xf);
-                    if h__730 < 0, h__730 = -h__730; elseif h__730 == 0, h__730 = 0; end
-                    if ((h__730 < 4) && (asils.pc.fabs((spots((s) + 1, 2) - yf)) < 4))
+                    h__739 = (spots((s) + 1, 1) - xf);
+                    if h__739 < 0, h__739 = -h__739; elseif h__739 == 0, h__739 = 0; end
+                    if ((h__739 < 4) && (asils.pc.fabs((spots((s) + 1, 2) - yf)) < 4))
                         near = true;
                     end
                 end
@@ -73,10 +73,10 @@ function [spots, ns, img, work, ia, ib] = st_centroid(img, cam, work, ia, ib)
                     sy = 0;
                     for c = (0):((5) - 1)
                         for r = (0):((5) - 1)
-                            h__731 = (img(((((((x + c) - 2) - 1) * n) + (((y + r) - 2) - 1))) + 1) - bg);
-                            h__732 = 0;
-                            if h__732 > h__731, h__731 = h__732; end
-                            w = h__731;
+                            h__740 = (img(((((((x + c) - 2) - 1) * n) + (((y + r) - 2) - 1))) + 1) - bg);
+                            h__741 = 0;
+                            if h__741 > h__740, h__740 = h__741; end
+                            w = h__740;
                             tot = (tot + w);
                             sx = (sx + ((c - 2) * w));
                             sy = (sy + ((r - 2) * w));

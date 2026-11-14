@@ -59,7 +59,7 @@ fn the_truth_orbits_field_in_j2000_has_the_references_magnitude() {
     let (cz, sz) = (0.7f64.cos(), 0.7f64.sin());
     let c: M3 = [[cz, sz, 0.0], [-sz, cz, 0.0], [0.0, 0.0, 1.0]];       // any rotation: the magnitude does not depend on it
     for (n, year, lat, lon, alt, v) in reference() {
-        let b = eci_at(lat.to_radians(), lon.to_radians(), alt * 1e3, &c, &gh(year), 13);
+        let b = eci_at(lat.to_radians(), lon.to_radians(), alt * 1e3, &c, &gh(year), 13, None);
         let mag = (b[0] * b[0] + b[1] * b[1] + b[2] * b[2]).sqrt() * 1e9;
         let want = (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]).sqrt();
         assert!((mag - want).abs() < 1.0, "point {n}: |B| {mag} vs ppigrf {want} nT");

@@ -9,6 +9,7 @@ use adcs_sim::config::Config;
 use adcs_sim::run::{self, Truth};
 use adcs_sim_core::la::*;
 use adcs_sim_core::{field, time};
+use field::ErrField;
 use std::path::PathBuf;
 
 fn root() -> PathBuf { PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../matlab_sils") }
@@ -36,11 +37,15 @@ fn fly_with(overrides: &[(&str, &str)], interp: bool) -> (Config, Vec<(f64, V3)>
     (c, rows)
 }
 
+/// The run's error field, as the run draws it (the crust from the run's seed): the truth the rows carry includes it.
+fn err_of(c: &Config) -> Option<ErrField> { c.field_error.then(|| ErrField::draw(c.seed, c.crust_rms_nt, c.alt_km, c.dst_nt)) }
+
 /// The field a fresh truth computes at t (the same orbit, the field evaluated at that instant: what a refresh at t would hold).
 fn field_there(c: &Config, times: &[f64]) -> Vec<V3> {
     let (mut orb, _) = Truth::new(c).unwrap();
     let gh = field::gh(time::decyear(c.jd0));
-    times.iter().map(|&t| { let (r, v) = orb.state(t).unwrap(); orb.env(t, c.jd0, &r, &v, &gh, c.igrf_nmax).b_eci }).collect()
+    let err = err_of(c);
+    times.iter().map(|&t| { let (r, v) = orb.state(t).unwrap(); orb.env(t, c.jd0, &r, &v, &gh, c.igrf_nmax, err.as_ref()).b_eci }).collect()
 }
 
 #[test]
@@ -98,9 +103,9 @@ fn the_rest_of_the_environment_is_slow_enough_to_hold() {
     let mut t = 0.0;
     while t < 5700.0 {
         let (r0, v0) = orb.state(t).unwrap();
-        let a = orb.env(t, c.jd0, &r0, &v0, &gh, c.igrf_nmax);
+        let a = orb.env(t, c.jd0, &r0, &v0, &gh, c.igrf_nmax, None);
         let (r1, v1) = orb.state(t + 1.0).unwrap();
-        let b = orb.env(t + 1.0, c.jd0, &r1, &v1, &gh, c.igrf_nmax);
+        let b = orb.env(t + 1.0, c.jd0, &r1, &v1, &gh, c.igrf_nmax, None);
         sun = sun.max(deg_between(&a.sun_rel, &b.sun_rel));
         moon = moon.max(deg_between(&a.moon_rel, &b.moon_rel));
         rho = rho.max((b.rho/a.rho - 1.0).abs());
@@ -119,14 +124,15 @@ fn the_next_refreshs_field_is_the_orbits_own_continuation_to_a_few_centimetres()
     let c = config(&[("engine.duration_s", "60")]);
     let (mut orb, _) = Truth::new(&c).unwrap();
     let gh = field::gh(time::decyear(c.jd0));
+    let err = err_of(&c);
     let mut worst: f64 = 0.0;
     for k in 0..400 {
         let t = k as f64;
         let (r, v) = orb.state(t).unwrap();
-        let _ = orb.env(t, c.jd0, &r, &v, &gh, c.igrf_nmax);
-        let ahead = orb.field_ahead(t + 1.0, c.jd0, &gh, c.igrf_nmax);
+        let _ = orb.env(t, c.jd0, &r, &v, &gh, c.igrf_nmax, err.as_ref());
+        let ahead = orb.field_ahead(t + 1.0, c.jd0, &gh, c.igrf_nmax, err.as_ref());
         let (r1, v1) = orb.state(t + 1.0).unwrap();
-        let there = orb.env(t + 1.0, c.jd0, &r1, &v1, &gh, c.igrf_nmax).b_eci;
+        let there = orb.env(t + 1.0, c.jd0, &r1, &v1, &gh, c.igrf_nmax, err.as_ref()).b_eci;
         worst = worst.max(norm(&sub(&ahead, &there))*1e9);
         let _ = (r1, v1);
     }

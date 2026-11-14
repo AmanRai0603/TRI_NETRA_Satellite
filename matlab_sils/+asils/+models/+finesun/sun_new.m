@@ -8,9 +8,9 @@ function [u, disp] = sun_new(d, disp, noise)
     u = asils.models.finesun.SunUnit_zero();
     u = asils.models.finesun.SunUnit_zero();
     for j = (0):((d.n) - 1)
-        [t__567, t__568] = asils.pc.stream_normal3(disp);
-        e = t__567;
-        disp = t__568;
+        [t__571, t__572] = asils.pc.stream_normal3(disp);
+        e = t__571;
+        disp = t__572;
         u.bias((j) + 1, :) = (e * d.bias_sigma).';
     end
     u.g = noise;

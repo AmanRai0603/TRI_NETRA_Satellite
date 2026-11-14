@@ -27,21 +27,21 @@ function [drawn, cr, cm, img, g, tx, ty, tk] = st_render(r_eh, cr, cm, nc, cam, 
     if ~isempty(l)
         img((l) + 1) = cam.bg;
     end
-    h__765 = 2;
-    if h__765 < 0, h__765 = NaN; else, h__765 = sqrt(h__765); end
-    cmin = cos((cam.fov * h__765));
+    h__774 = 2;
+    if h__774 < 0, h__774 = NaN; else, h__774 = sqrt(h__774); end
+    cmin = cos((cam.fov * h__774));
     s2 = ((2 * cam.psf_px) * cam.psf_px);
     drawn = 0;
     for k = (0):((nc) - 1)
-        h__766 = asils.models.starcat.st_aberrate((cr((k) + 1, :)).', vb);
-        v = [r_eh(1, 1)*h__766(1) + r_eh(1, 2)*h__766(2) + r_eh(1, 3)*h__766(3); r_eh(2, 1)*h__766(1) + r_eh(2, 2)*h__766(2) + r_eh(2, 3)*h__766(3); r_eh(3, 1)*h__766(1) + r_eh(3, 2)*h__766(2) + r_eh(3, 3)*h__766(3)];
+        h__775 = asils.models.starcat.st_aberrate((cr((k) + 1, :)).', vb);
+        v = [r_eh(1, 1)*h__775(1) + r_eh(1, 2)*h__775(2) + r_eh(1, 3)*h__775(3); r_eh(2, 1)*h__775(1) + r_eh(2, 2)*h__775(2) + r_eh(2, 3)*h__775(3); r_eh(3, 1)*h__775(1) + r_eh(3, 2)*h__775(2) + r_eh(3, 3)*h__775(3)];
         if (v(3) > cmin)
             x = (((cam.f * v(1)) / v(3)) + cam.c);
             y = (((cam.f * v(2)) / v(3)) + cam.c);
             if (~((((x < 6) || (y < 6)) || (x > (nf - 5))) || (y > (nf - 5))))
-                h__767 = (10)^(((-(0.4)) * (cm((k) + 1) - 6)));
-                if ~isreal(h__767), h__767 = NaN; end
-                fl = (cam.flux0 * h__767);
+                h__776 = (10)^(((-(0.4)) * (cm((k) + 1) - 6)));
+                if ~isreal(h__776), h__776 = NaN; end
+                fl = (cam.flux0 * h__776);
                 rx = round(x);
                 ry = round(y);
                 w = zeros(9, 9);
@@ -76,18 +76,18 @@ function [drawn, cr, cm, img, g, tx, ty, tk] = st_render(r_eh, cr, cm, nc, cam, 
     if noisy
         for l3 = (0):((np) - 1)
             v3 = img((l3) + 1);
-            [t__701, t__702] = asils.pc.stream_normal(g);
-            n1 = t__701;
-            g = t__702;
-            [t__703, t__704] = asils.pc.stream_normal(g);
-            n2 = t__703;
-            g = t__704;
-            h__768 = v3;
-            h__769 = 0;
-            if h__769 > h__768, h__768 = h__769; end
-            h__770 = h__768;
-            if h__770 < 0, h__770 = NaN; else, h__770 = sqrt(h__770); end
-            img((l3) + 1) = ((v3 + (h__770 * n1)) + (cam.read_noise * n2));
+            [t__705, t__706] = asils.pc.stream_normal(g);
+            n1 = t__705;
+            g = t__706;
+            [t__707, t__708] = asils.pc.stream_normal(g);
+            n2 = t__707;
+            g = t__708;
+            h__777 = v3;
+            h__778 = 0;
+            if h__778 > h__777, h__777 = h__778; end
+            h__779 = h__777;
+            if h__779 < 0, h__779 = NaN; else, h__779 = sqrt(h__779); end
+            img((l3) + 1) = ((v3 + (h__779 * n1)) + (cam.read_noise * n2));
         end
     end
 end

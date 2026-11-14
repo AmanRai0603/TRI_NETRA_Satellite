@@ -15,9 +15,9 @@ function [x, y] = xy06(t, fa)
         if (j == 2)
             pt((j) + 1) = (t * t);
         else
-            h__311 = (t)^(j);
-            if ~isreal(h__311), h__311 = NaN; end
-            pt((j) + 1) = h__311;
+            h__320 = (t)^(j);
+            if ~isreal(h__320), h__320 = NaN; end
+            pt((j) + 1) = h__320;
         end
     end
     sx = 0;

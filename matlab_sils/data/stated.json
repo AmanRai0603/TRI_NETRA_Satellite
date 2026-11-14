@@ -40,6 +40,7 @@
   "dyn_surface_vb_ratio": 0.05,
   "env_ap_default": 7.0,
   "env_density_scale_default": 1.0,
+  "env_dst_default": -10.0,
   "env_earth_frame_build": 1.0,
   "env_eop_finals_expiry_mjd": 61714.0,
   "env_eop_snapshot_mjd": 61353.0,
@@ -50,7 +51,9 @@
   "env_f107_default": 130.0,
   "env_f107a_default": 130.0,
   "env_fast_zonal_degree": 6.0,
+  "env_field_crustal_rms": 30.0,
   "env_field_degree": 13.0,
+  "env_field_error_on": 1.0,
   "env_field_interpolation": 1.0,
   "env_flight_epoch_span": [
    2460676.5,

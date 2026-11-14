@@ -1587,6 +1587,18 @@ function y = call(name, x)
         case 'facets::aero_torque'
             [o1] = asils.models.facets.aero_torque(reshape(x(1:9), 3, 3).', reshape(x(10:12), 3, 1), x(13), struct('n', {reshape(x(14:31), 3, 6).'}, 'a', {reshape(x(32:37), 6, 1)}, 'rho', {reshape(x(38:55), 3, 6).'}, 'sigma_n', {x(56)}, 'sigma_t', {x(57)}, 'vb_ratio', {x(58)}, 'rho_spec', {x(59)}, 'rho_diff', {x(60)}));
             y = [reshape(o1, [], 1)];
+        case 'fielderror::ring_current_ecef'
+            [o1] = asils.models.fielderror.ring_current_ecef(x(1), reshape(x(2:196), 195, 1));
+            y = [reshape(o1, [], 1)];
+        case 'fielderror::crust_draw'
+            [o1, io3] = asils.models.fielderror.crust_draw(x(1), x(2), reshape(x(3:8), 6, 1));
+            y = [reshape(o1, [], 1); reshape(io3, [], 1)];
+        case 'fielderror::crust_ned'
+            [o1] = asils.models.fielderror.crust_ned(reshape(x(1:245), 245, 1), x(246), x(247), x(248));
+            y = [reshape(o1, [], 1)];
+        case 'fielderror::field_error_eci_at'
+            [o1] = asils.models.fielderror.field_error_eci_at(x(1), x(2), x(3), reshape(x(4:12), 3, 3).', reshape(x(13:207), 195, 1), reshape(x(208:452), 245, 1), x(453));
+            y = [reshape(o1, [], 1)];
         case 'forcemodel::sils_forces'
             [o1] = asils.models.forcemodel.sils_forces(x(1));
             y = [[double(o1.grav_model); double(o1.grav_degree); double(o1.has_grav_order); double(o1.grav_order); double(o1.tb_on); double(o1.tb_model); double(o1.tb_nmax); double(o1.drag_on); double(o1.drag_model); double(o1.drag_panel); double(o1.drag_atmos); double(o1.has_drag_cd); double(o1.drag_cd); double(o1.drag_corotate); [double(o1.drag_gsi.tw); double(o1.drag_gsi.a_t); double(o1.drag_gsi.sig_n); double(o1.drag_gsi.sig_t)]; double(o1.srp_on); double(o1.srp_model); double(o1.srp_eclipse); double(o1.has_srp_cr); double(o1.srp_cr); double(o1.erp_on); double(o1.relativity_on); double(o1.solidtides); double(o1.oceantides); double(o1.has_empirical); reshape(o1.empirical, [], 1)]];
@@ -2102,6 +2114,12 @@ function y = call(name, x)
             y = [reshape(o1, [], 1)];
         case 'truthfield::field_interp'
             [o1] = asils.models.truthfield.field_interp(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), x(7));
+            y = [reshape(o1, [], 1)];
+        case 'truthfield::field_eci_err_at'
+            [o1] = asils.models.truthfield.field_eci_err_at(x(1), x(2), x(3), reshape(x(4:12), 3, 3).', reshape(x(13:207), 195, 1), x(208), reshape(x(209:453), 245, 1), x(454));
+            y = [reshape(o1, [], 1)];
+        case 'truthfield::field_eci_err_ecef'
+            [o1] = asils.models.truthfield.field_eci_err_ecef(reshape(x(1:3), 3, 1), reshape(x(4:12), 3, 3).', reshape(x(13:207), 195, 1), x(208), reshape(x(209:453), 245, 1), x(454));
             y = [reshape(o1, [], 1)];
         case 'fswbody::fsw_epoch_earth'
             [o1, o2] = asils.models.fswbody.fsw_epoch_earth(x(1));

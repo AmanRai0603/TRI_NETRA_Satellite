@@ -35,6 +35,13 @@ function rec = run(scenarioId, caseFile, varargin)
     %% the truth orbit and environment, the units, the plant, the flight software --------------------------
     O = asils.orbit.init(P);
     gh = asils.models.frames.igrf_gh(asils.models.caltime.decimal_year(P.jd0));
+    % env_field_error (S12.7b, E5): the truth field's error, the crust drawn from the run's seed (the stream 'field_error', the engine's), Dst
+    % the scenario's; the flight software never sees it
+    err = [];
+    if P.env.field_error
+        [gc_, ~] = asils.models.fielderror.crust_draw(P.env.crust_rms_nt, P.orbit.alt_km, asils.devices.stream(P.seed, 'field_error'));
+        err = struct('gc', gc_, 'dst', P.env.dst_nt);
+    end
     facets = asils.models.facets.facets_box(P.sc.box_m, P.sc.cm_offset_m, P.sc.sigma_n, P.sc.sigma_t, P.sc.vb_ratio, P.sc.refl, P.sc.spec_frac);
     U = asils.devices.init(dev, P.seed);
     nr = dev.mex.rec.n; ng = dev.mex.rec.ng;
@@ -97,12 +104,12 @@ function rec = run(scenarioId, caseFile, varargin)
         t = k*dt;
         [r, v, O] = asils.orbit.state(O, t);
         if mod(k, rt.env) == 0
-            E = asils.orbit.env(O, t, P.jd0, r, v, gh, P.env.igrf_nmax);
+            E = asils.orbit.env(O, t, P.jd0, r, v, gh, P.env.igrf_nmax, err);
             O.W.sc.R_bi = asils.la.dcm(x.q).';               % attitude -> POP (box-wing / panel models read it)
             % env_field_interpolation (S12.7a, E8): the field between this refresh and the next, linear in J2000 (the rest of the
             % environment is held)
             if P.env.field_interp && rt.env > 1
-                b_span = {t, E.b_eci, asils.orbit.field_ahead(O, t + env_step, P.jd0, gh, P.env.igrf_nmax)};
+                b_span = {t, E.b_eci, asils.orbit.field_ahead(O, t + env_step, P.jd0, gh, P.env.igrf_nmax, err)};
             else
                 b_span = {};
             end

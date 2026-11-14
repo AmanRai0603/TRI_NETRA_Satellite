@@ -39,9 +39,9 @@ pub fn geodetic5(r: [f64; 3]) -> (f64, f64, f64) {
     let mut la: f64 = crate::pm::atan2(r[2], (p * (1.0 - e2)));
     let mut hh: f64 = 0.0;
     {
-        let __end48: i64 = 5;
+        let __end52: i64 = 5;
         let mut k: i64 = 0;
-        while k < __end48 {
+        while k < __end52 {
             let mut sl: f64 = crate::pm::sin(la);
             let mut n: f64 = (a / crate::pm::sqrt((1.0 - ((e2 * sl) * sl))));
             hh = ((p / crate::pm::cos(la)) - n);
@@ -101,5 +101,42 @@ pub fn field_eci_ecef(r: [f64; 3], c: [[f64; 3]; 3], gh: [f64; 195], nmax: i64) 
 pub fn field_interp(b0: [f64; 3], b1: [f64; 3], f: f64) -> [f64; 3] {
     let mut b: [f64; 3] = [0.0; 3];
     b = [(b0[0] + ((b1[0] - b0[0]) * f)), (b0[1] + ((b1[1] - b0[1]) * f)), (b0[2] + ((b1[2] - b0[2]) * f))];
+    b
+}
+
+/// The truth field with its error (S12.7b, E5; env_field_error, DR-env-005): the IGRF field of field_eci_at plus the error field of
+/// fielderror's field_error_eci_at, at the same geodetic coordinates and Earth frame. gc is the crust's Gauss coefficients of the run
+/// and dst the ring current's Dst [nT]. The flight software never sees it: it flies the onboard model alone.
+/// - lat: real[1] (passed a plain number)
+/// - lon: real[1] (passed a plain number)
+/// - h: real[m] (passed in m)
+/// - c: real[1][3][3] (passed a plain number)
+/// - gh: real[1][195] (passed a plain number)
+/// - nmax: int (passed a whole number)
+/// - gc: real[1][245] (passed a plain number)
+/// - dst: real[1] (passed a plain number)
+/// - returns b: real[1][3] (passed a plain number)
+#[allow(clippy::too_many_arguments)]
+pub fn field_eci_err_at(lat: f64, lon: f64, h: f64, c: [[f64; 3]; 3], gh: [f64; 195], nmax: i64, gc: [f64; 245], dst: f64) -> [f64; 3] {
+    let mut b: [f64; 3] = [0.0; 3];
+    let mut b0: [f64; 3] = crate::gen::truthfield::field_eci_at(lat, lon, h, c, gh, nmax);
+    let mut be: [f64; 3] = crate::gen::fielderror::field_error_eci_at(lat, lon, h, c, gh, gc, dst);
+    b = [(b0[0] + be[0]), (b0[1] + be[1]), (b0[2] + be[2])];
+    b
+}
+
+/// The same at an Earth-fixed position, its geodetic coordinates by geodetic5 (the fast orbit's).
+/// - r: real[m][3] (passed in m)
+/// - c: real[1][3][3] (passed a plain number)
+/// - gh: real[1][195] (passed a plain number)
+/// - nmax: int (passed a whole number)
+/// - gc: real[1][245] (passed a plain number)
+/// - dst: real[1] (passed a plain number)
+/// - returns b: real[1][3] (passed a plain number)
+#[allow(clippy::too_many_arguments)]
+pub fn field_eci_err_ecef(r: [f64; 3], c: [[f64; 3]; 3], gh: [f64; 195], nmax: i64, gc: [f64; 245], dst: f64) -> [f64; 3] {
+    let mut b: [f64; 3] = [0.0; 3];
+    let (mut lat, mut lon, mut h) = crate::gen::truthfield::geodetic5(r);
+    b = crate::gen::truthfield::field_eci_err_at(lat, lon, h, c, gh, nmax, gc, dst);
     b
 }

@@ -58,7 +58,7 @@ fn the_field_in_eci_is_igrf_at_the_itrf_position() {
     let mut worst: f64 = 0.0;
     for t in [0.0, 7.0, 333.0, 1234.5] {
         let (r, v) = orb.state(t).unwrap();
-        let b = orb.env(t, c.jd0, &r, &v, &gh, c.igrf_nmax).b_eci;
+        let b = orb.env(t, c.jd0, &r, &v, &gh, c.igrf_nmax, None).b_eci;
         // independently: to ITRF by build A, geodetic position, IGRF north-east-down, to ECEF, back to ECI by C^T
         let ca = reference_c(&c, t);
         let re = mv(&ca, &r);

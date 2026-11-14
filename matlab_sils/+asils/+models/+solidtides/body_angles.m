@@ -9,8 +9,8 @@ function [r, phi, lam] = body_angles(rb)
     phi = 0;
     lam = 0;
     r = asils.models.gravity.onorm(rb);
-    h__473 = asin((rb(3) / r));
-    if ~isreal(h__473), h__473 = NaN; end
-    phi = h__473;
+    h__482 = asin((rb(3) / r));
+    if ~isreal(h__482), h__482 = NaN; end
+    phi = h__482;
     lam = atan2(rb(2), rb(1));
 end

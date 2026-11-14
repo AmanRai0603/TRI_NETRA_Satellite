@@ -50,7 +50,7 @@ pub struct Config {
     pub epoch_span: [f64; 2],
     /// space weather (asils.config P.env): F10.7, F10.7a, Kp, ap
     pub f107: f64, pub f107a: f64, pub kp: f64, pub ap: f64,
-    pub igrf_nmax: usize, pub env_dt_s: f64, pub field_interp: bool, pub env_on: [bool; 4],
+    pub igrf_nmax: usize, pub env_dt_s: f64, pub field_interp: bool, pub field_error: bool, pub crust_rms_nt: f64, pub dst_nt: f64, pub env_on: [bool; 4],
     pub mass_kg: f64, pub inertia: [[f64; 3]; 3], pub box_m: [f64; 3], pub cm_offset_m: [f64; 3], pub aref_m2: f64, pub cd: f64, pub refl: f64,
     pub sigma_n: f64, pub sigma_t: f64, pub vb_ratio: f64, pub spec_frac: f64, pub m_res: [f64; 3],
     pub duration_s: f64, pub dt: f64, pub record_dt: f64,
@@ -265,9 +265,9 @@ pub const CASE_UNMODELLED: [(&str, &str); 4] = [
     ("resources.nif", "the OBC data interfaces are not checked by the design loop yet (the data budget is B2.4)"),
 ];
 
-pub const ENGINE_KEYS: [&str; 22] = ["engine.orbit", "engine.inertia_scale", "engine.cm_offset_m", "engine.m_res", "engine.density_scale", "engine.duration_s",
+pub const ENGINE_KEYS: [&str; 23] = ["engine.orbit", "engine.inertia_scale", "engine.cm_offset_m", "engine.m_res", "engine.density_scale", "engine.duration_s",
     "engine.orbit_step_s", "engine.zonal_max", "engine.igrf_nmax", "engine.f107", "engine.f107a", "engine.kp", "engine.ap", "engine.accommodation", "engine.refl", "engine.mass_kg",
-    "engine.vb_ratio", "engine.spec_frac", "engine.epoch_days", "engine.ltan_h", "engine.alt_km", "engine.inertia_products"];
+    "engine.vb_ratio", "engine.spec_frac", "engine.epoch_days", "engine.ltan_h", "engine.alt_km", "engine.inertia_products", "engine.dst_nt"];
 
 /// The surface model's settings when no `--set engine.*` changes them (recorded in every run's
 /// manifest under "assumptions"): momentum accommodation, the ratio of the re-emitted to the
@@ -604,6 +604,7 @@ fn apply_engine(cfg: &mut Config, eng: &[(String, String)]) -> Result<(), Error>
             "engine.f107a" => cfg.f107a = x,
             "engine.kp" => cfg.kp = x,
             "engine.ap" => cfg.ap = x,
+            "engine.dst_nt" => cfg.dst_nt = x,
             "engine.accommodation" => { cfg.sigma_n = x; cfg.sigma_t = x; }
             "engine.refl" => cfg.refl = x,
             "engine.vb_ratio" => cfg.vb_ratio = x,
@@ -711,6 +712,7 @@ impl Config {
         within("engine.f107a", self.f107a, 0.0, 400.0)?;
         within("engine.kp", self.kp, 0.0, 9.0)?;
         within("engine.ap", self.ap, 0.0, 400.0)?;
+        within("engine.dst_nt", self.dst_nt, -2000.0, 100.0)?;
         within("engine.accommodation", self.sigma_n, 0.0, 1.0)?;
         within("engine.vb_ratio", self.vb_ratio, 0.0, 1.0)?;
         within("engine.spec_frac", self.spec_frac, 0.0, 1.0)?;
@@ -786,7 +788,8 @@ impl Config {
             orbit_model: if st.flag("env_orbit_precision_default")? { "pop" } else { "fast" }.into(),
             frame_build: frame_build(&st)?, epoch_span,
             f107: st.get("env_f107_default")?, f107a: st.get("env_f107a_default")?, kp: st.get("env_kp_default")?, ap: st.get("env_ap_default")?,
-            igrf_nmax: st.whole("env_field_degree", 1, 13)?, env_dt_s: st.get("env_refresh_step")?, field_interp: st.flag("env_field_interpolation")?,
+            igrf_nmax: st.whole("env_field_degree", 1, 13)?, env_dt_s: st.get("env_refresh_step")?, field_interp: st.flag("env_field_interpolation")?, field_error: st.flag("env_field_error_on")?,
+            crust_rms_nt: st.get("env_field_crustal_rms")?, dst_nt: st.get("env_dst_default")?,
             env_on: [st.flag("env_torque_gravity_gradient")?, st.flag("env_torque_aero")?, st.flag("env_torque_radiation")?, st.flag("env_torque_magnetic")?],
             mass_kg: v("mass.m"), inertia, box_m, cm_offset_m,
             aref_m2: v("surface.afr"), cd: v("surface.cd"), refl: v("surface.refl"), sigma_n: surf[0], sigma_t: surf[0], vb_ratio: surf[1], spec_frac: surf[2], m_res,

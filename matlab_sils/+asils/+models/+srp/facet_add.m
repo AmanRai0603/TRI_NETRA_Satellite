@@ -23,11 +23,11 @@ function [g] = facet_add(f, kind, n, a, alpha, rho_s, rho_d, axis, dbl)
         g.rho_d((k) + 1) = rho_d;
         g.axis((k) + 1, :) = axis.';
         if dbl
-            h__484 = 1;
+            h__493 = 1;
         else
-            h__484 = 0;
+            h__493 = 0;
         end
-        g.dbl((k) + 1) = h__484;
+        g.dbl((k) + 1) = h__493;
         g.nf = (k + 1);
     end
 end

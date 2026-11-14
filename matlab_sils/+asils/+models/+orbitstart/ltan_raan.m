@@ -10,11 +10,11 @@ function [raan] = ltan_raan(sun, ltan_h)
     turn = (2 * pi);
     m = rem(x, turn);
     if (m < 0)
-        h__448 = turn;
-        if h__448 < 0, h__448 = -h__448; elseif h__448 == 0, h__448 = 0; end
-        h__447 = (m + h__448);
+        h__457 = turn;
+        if h__457 < 0, h__457 = -h__457; elseif h__457 == 0, h__457 = 0; end
+        h__456 = (m + h__457);
     else
-        h__447 = m;
+        h__456 = m;
     end
-    raan = h__447;
+    raan = h__456;
 end

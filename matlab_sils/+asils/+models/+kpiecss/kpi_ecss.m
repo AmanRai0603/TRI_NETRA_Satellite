@@ -30,9 +30,9 @@ function [nout, e, t, idx, sums, cnt, out] = kpi_ecss(k, los, e, bs, t, idx, ni,
             cnt((bk) + 1) = 0;
         end
         for i = (0):((ni) - 1)
-            [t__521, t__522] = asils.models.kpiecss.kpi_ecss_vec(e, idx((i) + 1), los, b);
-            v = t__521;
-            e = t__522;
+            [t__525, t__526] = asils.models.kpiecss.kpi_ecss_vec(e, idx((i) + 1), los, b);
+            v = t__525;
+            e = t__526;
             if ((isfinite(v(1)) && isfinite(v(2))) && isfinite(v(3)))
                 bk = asils.models.kpiecss.kpi_ecss_block(t((idx((i) + 1)) + 1), t0, delta);
                 sums(((3 * bk)) + 1) = (sums(((3 * bk)) + 1) + v(1));
@@ -43,15 +43,15 @@ function [nout, e, t, idx, sums, cnt, out] = kpi_ecss(k, los, e, bs, t, idx, ni,
         end
         if (k == 0)
             for i = (0):((ni) - 1)
-                [t__523, t__524] = asils.models.kpiecss.kpi_ecss_vec(e, idx((i) + 1), los, b);
-                v = t__523;
-                e = t__524;
+                [t__527, t__528] = asils.models.kpiecss.kpi_ecss_vec(e, idx((i) + 1), los, b);
+                v = t__527;
+                e = t__528;
                 bk = asils.models.kpiecss.kpi_ecss_block(t((idx((i) + 1)) + 1), t0, delta);
                 if ((((cnt((bk) + 1) > 0) && isfinite(v(1))) && isfinite(v(2))) && isfinite(v(3)))
                     r = (1 / cnt((bk) + 1));
                     m = [(sums(((3 * bk)) + 1) * r); (sums((((3 * bk) + 1)) + 1) * r); (sums((((3 * bk) + 2)) + 1) * r)];
-                    h__635 = (v - m);
-                    out((nout) + 1) = (sqrt(h__635(1)*h__635(1) + h__635(2)*h__635(2) + h__635(3)*h__635(3)) * (180 / pi));
+                    h__644 = (v - m);
+                    out((nout) + 1) = (sqrt(h__644(1)*h__644(1) + h__644(2)*h__644(2) + h__644(3)*h__644(3)) * (180 / pi));
                     nout = (nout + 1);
                 end
             end
@@ -78,8 +78,8 @@ function [nout, e, t, idx, sums, cnt, out] = kpi_ecss(k, los, e, bs, t, idx, ni,
                     rb = (1 / cnt(((kb + s)) + 1));
                     ma = [(sums(((3 * kb)) + 1) * ra); (sums((((3 * kb) + 1)) + 1) * ra); (sums((((3 * kb) + 2)) + 1) * ra)];
                     mb = [(sums(((3 * (kb + s))) + 1) * rb); (sums((((3 * (kb + s)) + 1)) + 1) * rb); (sums((((3 * (kb + s)) + 2)) + 1) * rb)];
-                    h__636 = (mb - ma);
-                    out((nout) + 1) = (sqrt(h__636(1)*h__636(1) + h__636(2)*h__636(2) + h__636(3)*h__636(3)) * (180 / pi));
+                    h__645 = (mb - ma);
+                    out((nout) + 1) = (sqrt(h__645(1)*h__645(1) + h__645(2)*h__645(2) + h__645(3)*h__645(3)) * (180 / pi));
                     nout = (nout + 1);
                 end
             end

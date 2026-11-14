@@ -22,34 +22,34 @@ function [has_gyro, has_st, has_sun, has_es, has_gps, n_heads] = fsw_sensor_set(
     has_gps = 0;
     n_heads = 0;
     if gyro
-        h__568 = 1;
+        h__577 = 1;
     else
-        h__568 = 0;
+        h__577 = 0;
     end
-    has_gyro = h__568;
+    has_gyro = h__577;
     if st
-        h__569 = 1;
+        h__578 = 1;
     else
-        h__569 = 0;
+        h__578 = 0;
     end
-    has_st = h__569;
+    has_st = h__578;
     if (sun || css)
-        h__570 = 1;
+        h__579 = 1;
     else
-        h__570 = 0;
+        h__579 = 0;
     end
-    has_sun = h__570;
+    has_sun = h__579;
     if es
-        h__571 = 1;
+        h__580 = 1;
     else
-        h__571 = 0;
+        h__580 = 0;
     end
-    has_es = h__571;
+    has_es = h__580;
     if gps
-        h__572 = 1;
+        h__581 = 1;
     else
-        h__572 = 0;
+        h__581 = 0;
     end
-    has_gps = h__572;
+    has_gps = h__581;
     n_heads = nh;
 end

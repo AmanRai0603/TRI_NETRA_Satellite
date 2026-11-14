@@ -16,8 +16,8 @@ function [st_bs, st_noise_cross, st_noise_roll, st_latency] = fsw_star_tracker(n
     st_noise_roll = 0;
     st_latency = 0;
     st_bs = zeros(2, 3);
-    t__515 = ((0):((2) - 1)).';
-    for h = t__515(logical((t__515 < nh))).'
+    t__519 = ((0):((2) - 1)).';
+    for h = t__519(logical((t__519 < nh))).'
         k = ((0):((3) - 1)).';
         st_bs((h) + 1, (k) + 1) = ((bs((h) + 1, (k) + 1)).').';
     end

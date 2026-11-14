@@ -12,8 +12,8 @@ function [q_old, ht, hq] = st_delayed(ht, hq, hn, latency, t, q_true)
     q_old = zeros(4, 1);
     tl = (t - latency);
     k = (-(1));
-    t__709 = ((0):((hn) - 1)).';
-    for i = t__709(logical((ht((t__709) + 1) <= (tl + 1e-9)))).'
+    t__713 = ((0):((hn) - 1)).';
+    for i = t__713(logical((ht((t__713) + 1) <= (tl + 1e-9)))).'
         k = i;
     end
     if (k < 0)

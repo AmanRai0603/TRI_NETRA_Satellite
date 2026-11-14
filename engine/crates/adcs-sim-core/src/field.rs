@@ -2,7 +2,8 @@
 //! synthesis (`gen::frames::igrf_gh`, `igrf_ned`: the flight software's model and table, one copy) at the engine's
 //! geodetic coordinates, back to J2000 (`gen::truthfield`, the method of l3_dist_row_08). What is left here is the
 //! engine's call of it, by the names the engine has always used.
-use crate::gen::{frames, truthfield};
+use crate::gen::{fielderror, frames, truthfield};
+use crate::rng::{stream_id, Rng};
 use crate::la::*;
 
 /// The Gauss coefficients at a date, 195 [nT].
@@ -17,13 +18,36 @@ pub fn geodetic(r: &V3) -> (f64, f64, f64) { truthfield::geodetic5(*r) }
 /// Field north-east-down [nT] (Schmidt semi-normalised recursion, geodetic input).
 pub fn ned(g: &Gh, lat: f64, lon: f64, alt_km: f64, nmax: usize) -> V3 { frames::igrf_ned(*g, lat, lon, alt_km, nmax as i64) }
 
-/// Field in ECI [T] at an ECEF position, given the ECI->ECEF matrix.
-pub fn eci(r_ecef: &V3, c_eci2ecef: &M3, g: &Gh, nmax: usize) -> V3 { truthfield::field_eci_ecef(*r_ecef, *c_eci2ecef, *g, nmax as i64) }
+/// Field in ECI [T] at an ECEF position, given the ECI->ECEF matrix, with the truth's error field when given.
+pub fn eci(r_ecef: &V3, c_eci2ecef: &M3, g: &Gh, nmax: usize, e: Option<&ErrField>) -> V3 {
+    match e {
+        Some(e) => truthfield::field_eci_err_ecef(*r_ecef, *c_eci2ecef, *g, nmax as i64, e.gc, e.dst),
+        None => truthfield::field_eci_ecef(*r_ecef, *c_eci2ecef, *g, nmax as i64),
+    }
+}
 
 /// Field in ECI [T] at geodetic (lat, lon [rad], h [m]) -- asils.env.field with the geodetic coordinates supplied by
 /// the caller (the engine passes POP's op.geodetic).
-pub fn eci_at(lat: f64, lon: f64, h: f64, c_eci2ecef: &M3, g: &Gh, nmax: usize) -> V3 {
-    truthfield::field_eci_at(lat, lon, h, *c_eci2ecef, *g, nmax as i64)
+pub fn eci_at(lat: f64, lon: f64, h: f64, c_eci2ecef: &M3, g: &Gh, nmax: usize, e: Option<&ErrField>) -> V3 {
+    match e {
+        Some(e) => truthfield::field_eci_err_at(lat, lon, h, *c_eci2ecef, *g, nmax as i64, e.gc, e.dst),
+        None => truthfield::field_eci_at(lat, lon, h, *c_eci2ecef, *g, nmax as i64),
+    }
+}
+
+/// The truth field's error of a run (env_field_error, S12.7b; DR-env-005): the crust's Gauss coefficients above the IGRF's degree 13,
+/// drawn from the run's seed (the stream `field_error`, as the twin's `asils.devices.stream(seed, 'field_error')`), and the ring
+/// current's Dst [nT]. The truth field adds it; the flight software never sees it.
+#[derive(Clone, Copy, Debug)]
+pub struct ErrField { pub gc: [f64; 245], pub dst: f64 }
+
+impl ErrField {
+    /// The error of the run with this seed: the crust's field `rms_nt` [nT] (root-mean-square magnitude) at the orbit's radius, the
+    /// altitude `alt_km`, and Dst.
+    pub fn draw(seed: u64, rms_nt: f64, alt_km: f64, dst_nt: f64) -> ErrField {
+        let mut g = Rng::new(seed, stream_id("field_error")).stream();
+        ErrField { gc: fielderror::crust_draw(rms_nt, alt_km, &mut g), dst: dst_nt }
+    }
 }
 
 /// The field between two refreshes, linear in J2000 from `b0` (the refresh before) to `b1` (the next), `f` the fraction of the step

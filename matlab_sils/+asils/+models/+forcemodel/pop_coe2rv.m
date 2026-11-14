@@ -15,9 +15,9 @@ function [r, v] = pop_coe2rv(a, e, inc, raan, argp, nu, mu)
     p = (a * (1 - (e * e)));
     rmag = (p / (1 + (e * cos(nu))));
     r_pf = [(rmag * cos(nu)); (rmag * sin(nu)); 0];
-    h__270 = (mu / p);
-    if h__270 < 0, h__270 = NaN; else, h__270 = sqrt(h__270); end
-    k = h__270;
+    h__279 = (mu / p);
+    if h__279 < 0, h__279 = NaN; else, h__279 = sqrt(h__279); end
+    k = h__279;
     v_pf = [(k * (-(sin(nu)))); (k * (e + cos(nu))); 0];
     co = cos(raan);
     so = sin(raan);

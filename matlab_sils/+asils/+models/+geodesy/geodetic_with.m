@@ -20,16 +20,16 @@ function [lat, lon, alt] = geodetic_with(r, re, f)
     la = atan2(z, (p * (1 - e2)));
     for k = (0):((5) - 1)
         sph = sin(la);
-        h__271 = (1 - (e2 * (sph * sph)));
-        if h__271 < 0, h__271 = NaN; else, h__271 = sqrt(h__271); end
-        n = (re / h__271);
+        h__280 = (1 - (e2 * (sph * sph)));
+        if h__280 < 0, h__280 = NaN; else, h__280 = sqrt(h__280); end
+        n = (re / h__280);
         al = ((p / cos(la)) - n);
         la = atan2(z, (p * (1 - ((e2 * n) / (n + al)))));
     end
     sph2 = sin(la);
-    h__272 = (1 - (e2 * (sph2 * sph2)));
-    if h__272 < 0, h__272 = NaN; else, h__272 = sqrt(h__272); end
-    n2 = (re / h__272);
+    h__281 = (1 - (e2 * (sph2 * sph2)));
+    if h__281 < 0, h__281 = NaN; else, h__281 = sqrt(h__281); end
+    n2 = (re / h__281);
     alt = ((p / cos(la)) - n2);
     lat = la;
 end

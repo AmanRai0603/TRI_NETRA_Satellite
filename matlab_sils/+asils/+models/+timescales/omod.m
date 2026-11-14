@@ -23,13 +23,13 @@ function [r] = omod(x, y)
     end
     if ((x ~= y) && (y ~= 0))
         if (y < 0)
-            h__539 = r;
-            if h__539 < 0, h__539 = -h__539; elseif h__539 == 0, h__539 = 0; end
-            r = (-(h__539));
+            h__548 = r;
+            if h__548 < 0, h__548 = -h__548; elseif h__548 == 0, h__548 = 0; end
+            r = (-(h__548));
         else
-            h__540 = r;
-            if h__540 < 0, h__540 = -h__540; elseif h__540 == 0, h__540 = 0; end
-            r = h__540;
+            h__549 = r;
+            if h__549 < 0, h__549 = -h__549; elseif h__549 == 0, h__549 = 0; end
+            r = h__549;
         end
     end
 end

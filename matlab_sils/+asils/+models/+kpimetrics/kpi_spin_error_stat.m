@@ -14,18 +14,18 @@ function [v, spin_z, idx, w, tmp] = kpi_spin_error_stat(spin_z, idx, ni, spin_dp
     v = 0;
     k = 0;
     for i = (0):((ni) - 1)
-        h__638 = spin_z((idx((i) + 1)) + 1);
-        if h__638 < 0, h__638 = -h__638; elseif h__638 == 0, h__638 = 0; end
-        h__639 = (h__638 - spin_dps);
-        if h__639 < 0, h__639 = -h__639; elseif h__639 == 0, h__639 = 0; end
-        x = h__639;
+        h__647 = spin_z((idx((i) + 1)) + 1);
+        if h__647 < 0, h__647 = -h__647; elseif h__647 == 0, h__647 = 0; end
+        h__648 = (h__647 - spin_dps);
+        if h__648 < 0, h__648 = -h__648; elseif h__648 == 0, h__648 = 0; end
+        x = h__648;
         if isfinite(x)
             w((k) + 1) = x;
             k = (k + 1);
         end
     end
-    [t__536, t__537, t__538] = asils.models.kpistats.kpi_stat_of(w, k, st, tmp);
-    v = t__536;
-    w = t__537;
-    tmp = t__538;
+    [t__540, t__541, t__542] = asils.models.kpistats.kpi_stat_of(w, k, st, tmp);
+    v = t__540;
+    w = t__541;
+    tmp = t__542;
 end

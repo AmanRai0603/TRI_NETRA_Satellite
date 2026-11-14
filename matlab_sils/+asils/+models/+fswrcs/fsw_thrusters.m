@@ -20,8 +20,8 @@ function [n, rcs_tau, rcs_mib, rcs_res] = fsw_thrusters(fitted, nc, tau, mib, re
     rcs_res = 0;
     if fitted
         n = nc;
-        t__511 = ((0):((6) - 1)).';
-        for c = t__511(logical((t__511 < nc))).'
+        t__515 = ((0):((6) - 1)).';
+        for c = t__515(logical((t__515 < nc))).'
             k = ((0):((3) - 1)).';
             rcs_tau((c) + 1, (k) + 1) = ((tau((c) + 1, (k) + 1)).').';
         end

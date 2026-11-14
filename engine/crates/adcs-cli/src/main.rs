@@ -18,7 +18,7 @@
 //!
 //! Scenario ids are matlab_sils/data/scenarios/*.json (or a path); the case defaults to
 //! cases/<scenario.case>.csv. Overrides: `--set fsw.rw_bandwidth=0.5` edits the scenario,
-//! `--set engine.duration_s=600` (also density_scale, orbit_step_s, zonal_max, igrf_nmax) the engine.
+//! `--set engine.duration_s=600` (also density_scale, orbit_step_s, zonal_max, igrf_nmax, dst_nt) the engine.
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 mod args;
 mod cli;

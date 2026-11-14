@@ -49,9 +49,9 @@ pub fn sun_new(d: SunDesc, disp: &mut rt::Stream, noise: rt::Stream) -> SunUnit 
     let mut u: SunUnit = SunUnit::default();
     u = SunUnit::default();
     {
-        let __end111: i64 = d.n;
+        let __end115: i64 = d.n;
         let mut j: i64 = 0;
-        while j < __end111 {
+        while j < __end115 {
             let mut e: [f64; 3] = rt::normal3(&mut (*disp));
             u.bias[(j) as usize] = rt::vscale(e, d.bias_sigma);
             j += 1;
@@ -79,9 +79,9 @@ pub fn sun_sample(u: &mut SunUnit, d: SunDesc, s_body: [f64; 3], nu: f64) -> (bo
         let mut cm: f64 = (-(2.0));
         let mut jm: i64 = 0;
         {
-            let __end112: i64 = d.n;
+            let __end116: i64 = d.n;
             let mut j: i64 = 0;
-            while j < __end112 {
+            while j < __end116 {
                 let mut c: f64 = rt::dot(s_body, d.normals[(j) as usize]);
                 if (c > cm) {
                     cm = c;

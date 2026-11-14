@@ -15,7 +15,7 @@ current = "no crustal or external field in the truth"
 choice = "A truth-only error field: a Dst-scaled external dipole (the ring current) plus a crustal term of stated RMS, dispersed per Monte Carlo draw. The magnitudes are from the roadmap's cited ranges (E5): RMS 20-50 nT quiet, 100-500 nT at Dst -200 nT. These magnitudes are the developer's, unsigned. S12.1 (the developer's proposal, unsigned)."
 rationale = "It reproduces the order of the missing error without a file the repository does not hold."
 consequences = "Magnetometer and magnetic-control runs read a field the onboard model does not know; campaigns draw the error per seed."
-sets = ["a truth-only error-field node and its dispersion (to be stated in S12.7 as env_field_error)"]
+sets = ["env_field_error (the truth-only error field: the ring current's Dst-scaled uniform dipole-aligned field and the crust's random Gauss coefficients of the degrees 14 to 20, drawn from the run's seed)", "env_dst_default (-10 nT, quiet)", "env_field_crustal_rms (30 nT at the orbit)", "env_field_error_on (1: on at the quiet values in nominal scenarios)"]
 revisit_when = "a crustal table (WMM-HR or EMM) is added to the repository"
 signature = {}
 

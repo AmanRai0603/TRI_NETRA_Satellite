@@ -8,7 +8,7 @@ function [y] = dtc_interp(x)
     n = (10729 * 24);
     lo = 0;
     hi = n;
-    n__506 = 64; k__505 = 0;
+    n__510 = 64; k__509 = 0;
     while true
         mid = fix(((lo + hi)) / (2));
         if (asils.models.jb2008.dtc_hour(mid) <= x)
@@ -16,9 +16,9 @@ function [y] = dtc_interp(x)
         else
             hi = mid;
         end
-        k__505 = k__505 + 1;
+        k__509 = k__509 + 1;
         if (lo >= hi), break; end
-        if k__505 >= n__506
+        if k__509 >= n__510
             break;
         end
     end
@@ -26,10 +26,10 @@ function [y] = dtc_interp(x)
     if (lo > 0)
         i = (lo - 1);
     end
-    h__318 = i;
-    h__319 = (n - 2);
-    if h__319 < h__318, h__318 = h__319; end
-    i = h__318;
+    h__327 = i;
+    h__328 = (n - 2);
+    if h__328 < h__327, h__327 = h__328; end
+    i = h__327;
     x0 = asils.models.jb2008.dtc_hour(i);
     x1 = asils.models.jb2008.dtc_hour((i + 1));
     y0 = D__DTCFILE((fix((i) / (24))) + 1, ((rem(i, 24) + 2)) + 1);

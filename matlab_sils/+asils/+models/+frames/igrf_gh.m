@@ -9,8 +9,8 @@ function [gh] = igrf_gh(dy)
     D__IGRF14_GH = asils.models.igrf14coeffs.IGRF14_GH();
     D__IGRF14_YEAR = asils.models.igrf14coeffs.IGRF14_YEAR();
     i = 0;
-    t__516 = ((0):((26) - 1)).';
-    for ii = t__516(logical((D__IGRF14_YEAR(((t__516 + 1)) + 1) <= dy))).'
+    t__520 = ((0):((26) - 1)).';
+    for ii = t__520(logical((D__IGRF14_YEAR(((t__520 + 1)) + 1) <= dy))).'
         i = (ii + 1);
     end
     if (i >= 26)

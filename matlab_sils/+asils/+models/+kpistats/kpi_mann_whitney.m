@@ -84,10 +84,10 @@ function [n1, n2, u, z, p, a, b] = kpi_mann_whitney(a, b)
         f2 = n2;
         ntot = (f1 + f2);
         u1 = (r1 - ((f1 * (f1 + 1)) / 2));
-        h__661 = u1;
-        h__662 = ((f1 * f2) - u1);
-        if h__662 < h__661, h__661 = h__662; end
-        u = h__661;
+        h__670 = u1;
+        h__671 = ((f1 * f2) - u1);
+        if h__671 < h__670, h__670 = h__671; end
+        u = h__670;
         mu = ((f1 * f2) / 2);
         var = (((f1 * f2) / 12) * ((ntot + 1) - (ties / (ntot * (ntot - 1)))));
         if (var <= 0)
@@ -95,18 +95,18 @@ function [n1, n2, u, z, p, a, b] = kpi_mann_whitney(a, b)
             p = 1;
         else
             z = 0;
-            h__663 = (u1 - mu);
-            if h__663 < 0, h__663 = -h__663; elseif h__663 == 0, h__663 = 0; end
-            if (h__663 > 0.5)
-                h__664 = (u1 - mu);
-                if h__664 < 0, h__664 = -h__664; elseif h__664 == 0, h__664 = 0; end
-                h__665 = var;
-                if h__665 < 0, h__665 = NaN; else, h__665 = sqrt(h__665); end
-                z = ((h__664 - 0.5) / h__665);
+            h__672 = (u1 - mu);
+            if h__672 < 0, h__672 = -h__672; elseif h__672 == 0, h__672 = 0; end
+            if (h__672 > 0.5)
+                h__673 = (u1 - mu);
+                if h__673 < 0, h__673 = -h__673; elseif h__673 == 0, h__673 = 0; end
+                h__674 = var;
+                if h__674 < 0, h__674 = NaN; else, h__674 = sqrt(h__674); end
+                z = ((h__673 - 0.5) / h__674);
             end
-            h__666 = 2;
-            if h__666 < 0, h__666 = NaN; else, h__666 = sqrt(h__666); end
-            p = (1 - erf((z / h__666)));
+            h__675 = 2;
+            if h__675 < 0, h__675 = NaN; else, h__675 = sqrt(h__675); end
+            p = (1 - erf((z / h__675)));
         end
     end
 end

@@ -8,9 +8,9 @@ function [n] = onorm(v)
     scl = 0;
     sum = 1;
     for i = (0):((3) - 1)
-        h__274 = v((i) + 1);
-        if h__274 < 0, h__274 = -h__274; elseif h__274 == 0, h__274 = 0; end
-        t = h__274;
+        h__283 = v((i) + 1);
+        if h__283 < 0, h__283 = -h__283; elseif h__283 == 0, h__283 = 0; end
+        t = h__283;
         if (scl == t)
             sum = (sum + 1);
         elseif (scl < t)
@@ -23,7 +23,7 @@ function [n] = onorm(v)
             sum = (sum + (q2 * q2));
         end
     end
-    h__275 = sum;
-    if h__275 < 0, h__275 = NaN; else, h__275 = sqrt(h__275); end
-    n = (scl * h__275);
+    h__284 = sum;
+    if h__284 < 0, h__284 = NaN; else, h__284 = sqrt(h__284); end
+    n = (scl * h__284);
 end

@@ -11,7 +11,7 @@ function ok = run_all_tests()
          @t_torques, @t_plant_conservation, @t_cmg_plant, @t_mekf, @t_quest, @t_lqr_blob, ...
          @t_fmr_spin_down, @t_cmg_steering, @t_hal_link, @t_hal_codec, @t_select, @t_gen_bdot, @t_sun_spin_law, @t_sun_guidance, ...
          @t_sun_model, @t_st_chain, @t_sun_chain, @t_blob_decode, ...
-         @t_sizing, @t_modes_table, @t_leap_status, @t_epoch_span, @t_orbit_vs_pop, @t_field_interp, @t_short_runs, @t_campaign_draw, @t_metrics_evaluate, @t_flex_plant, ...
+         @t_sizing, @t_modes_table, @t_leap_status, @t_epoch_span, @t_orbit_vs_pop, @t_field_interp, @t_field_error, @t_short_runs, @t_campaign_draw, @t_metrics_evaluate, @t_flex_plant, ...
          @t_solution_scenario, @t_coil_lag, @t_wheel_motor, @t_st_moon_blind, @t_gps_latency, @t_earth_radiation, ...
          @t_fidelity_refused, @t_chains_from_part, @t_streams, @t_checkpoint, @t_engine_parity, @t_physics_vectors, ...
          @test_trinetra_open};
@@ -546,12 +546,13 @@ function m = t_field_interp()
     assert(P.env.field_interp && P.env.dt_s == 1 && P.sim.dt == 0.1, 'env_field_interpolation states 1; refresh 1 s, dt 0.1 s');
     rec = asils.run('fine_hold_img', 'cases/ais_img_3u.csv', 'set', set, 'quiet', true);
     O = asils.orbit.init(P); gh = asils.models.frames.igrf_gh(asils.models.caltime.decimal_year(P.jd0));
+    err = struct('gc', asils.models.fielderror.crust_draw(P.env.crust_rms_nt, P.orbit.alt_km, asils.devices.stream(P.seed, 'field_error')), 'dst', P.env.dst_nt);
     ang = @(a, b) atan2(norm(cross(a, b)), dot(a, b))*180/pi;
     worst = 0; held = 0; b_k = [];
     for j = 1:numel(rec.t)
         t = rec.t(j);
         [r, v, O] = asils.orbit.state(O, t);
-        E = asils.orbit.env(O, t, P.jd0, r, v, gh, P.env.igrf_nmax); want = E.b_eci;
+        E = asils.orbit.env(O, t, P.jd0, r, v, gh, P.env.igrf_nmax, err); want = E.b_eci;
         if abs(t - round(t)) < 1e-6, b_k = want; end
         if abs((t - floor(t)) - 0.9) > 1e-6, continue, end
         got = asils.la.dcm(rec.q(:, j)).' * rec.B(:, j);
@@ -561,6 +562,58 @@ function m = t_field_interp()
     assert(worst < 0.005, 'the field at k + 0.9 s is %.5f deg from the field there', worst);
     assert(held > 0.15 && held < 0.25, 'held it would be %.4f deg off at k + 0.9 s (about 0.19)', held);
     m = sprintf('B at k + 0.9 s against the field there: %.1e deg; held it would be %.3f deg off', worst, held);
+end
+
+function m = t_field_error()
+    % S12.7b (E5; env_field_error): the truth field's error, the crust drawn from the run's seed and the ring current's Dst. The draw and
+    % the crust's field equal the independent Python reference (tests/data/field_error_reference.txt, the standard library alone); two
+    % seeds draw different crusts; and the twin's run flies the same field as the engine's value for value, at the quiet Dst and at -200 nT.
+    L = strsplit(strtrim(fileread(fullfile(asils.util.root(), '..', 'tests', 'data', 'field_error_reference.txt'))), sprintf('\n'));
+    L = L(cellfun(@(l) ~isempty(l) && l(1) ~= '#', L));
+    nd = 0; worst = 0; worst_nt = 0; gc1 = [];
+    for i = 1:numel(L)
+        w = strsplit(strtrim(L{i}), ' ');
+        if strcmp(w{1}, 'draw')
+            seed = str2double(w{2}); rms = str2double(w{3}); alt = str2double(w{4});
+            ref = sscanf(L{i + 1}, '%f');
+            gc = asils.models.fielderror.crust_draw(rms, alt, asils.devices.stream(seed, 'field_error'));
+            assert(numel(gc) == numel(ref) && numel(ref) == str2double(w{5}), 'the draw has %d coefficients', numel(ref));
+            worst = max(worst, max(abs(gc(:) - ref(:))./max(abs(ref(:)), 1e-3)));
+            if seed == 1, gc1 = gc; end
+            nd = nd + 1;
+        elseif strcmp(w{1}, 'point')
+            v = cellfun(@str2double, w(2:end));
+            got = asils.models.fielderror.crust_ned(gc1, v(2)*pi/180, v(3)*pi/180, v(4));
+            worst_nt = max(worst_nt, norm(got(:) - v(5:7).'));
+        end
+    end
+    assert(nd == 3 && worst < 1e-12, 'the draw against the Python reference: %d draws, worst relative difference %.2e', nd, worst);
+    assert(worst_nt < 1e-4, 'the crust''s field against the Python reference: %.2e nT', worst_nt);
+    a = asils.models.fielderror.crust_draw(30, 550, asils.devices.stream(1, 'field_error'));
+    b = asils.models.fielderror.crust_draw(30, 550, asils.devices.stream(2, 'field_error'));
+    assert(isequal(a, gc1) && ~isequal(a, b) && norm(a - b) > 1, 'one seed one crust, two seeds two crusts');
+    R = asils.util.root(); out = tempname(); mkdir(out); c = onCleanup(@() rmdir(out, 's'));
+    dB = zeros(1, 2); mx = 0;
+    for k = 1:2
+        dst = [-10, -200]; opt = '';
+        if k == 2, opt = '--set engine.dst_nt=-200'; end
+        [rc, txt] = system(sprintf('ADCS_ROOT=''%s'' ''%s'' run fine_hold_img --set engine.duration_s=10 %s --out ''%s'' --quiet', R, asils.util.engine(), opt, fullfile(out, sprintf('eng%d', k))));
+        assert(rc == 0, 'engine: %s', txt);
+        set = struct('engine__duration_s', 10); if k == 2, set.engine__dst_nt = -200; end
+        rec = asils.run('fine_hold_img', 'cases/ais_img_3u.csv', 'set', set, 'quiet', true);
+        asils.rec.write(rec, fullfile(out, sprintf('twin%d', k)));
+        A = csv_(fullfile(out, sprintf('twin%d', k), 'channels.csv')); E = csv_(fullfile(out, sprintf('eng%d', k), 'channels.csv'));
+        for nm = {'B_x_T', 'B_y_T', 'B_z_T'}
+            a_ = A.(nm{1}); e_ = E.(nm{1});
+            mx = max(mx, max(abs(a_ - e_)./max(abs(e_), 1e-12)));
+        end
+        dB(k) = norm([E.B_x_T(end); E.B_y_T(end); E.B_z_T(end)]);
+        if k == 1, B1 = [E.B_x_T, E.B_y_T, E.B_z_T]; else, B2 = [E.B_x_T, E.B_y_T, E.B_z_T]; end
+    end
+    assert(mx < 1e-7, 'the twin''s field differs from the engine''s by %.2e relative', mx);
+    storm = max(sqrt(sum((B2 - B1).^2, 2)))*1e9;
+    assert(storm > 150 && storm < 250, 'Dst -200 nT against -10 nT moves the field by %.0f nT (about 190)', storm);
+    m = sprintf('draw = the Python reference to %.1e, the crust''s field to %.1e nT; twin = engine in B to %.1e (Dst -10 and -200; the storm moves B by %.0f nT)', worst, worst_nt, mx, storm);
 end
 
 function m = t_orbit_vs_pop()

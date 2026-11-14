@@ -47,6 +47,7 @@ pub mod earthir;
 pub mod eclipse;
 pub mod elements;
 pub mod facets;
+pub mod fielderror;
 pub mod gravgrad;
 pub mod moonfast;
 pub mod orbitfast;

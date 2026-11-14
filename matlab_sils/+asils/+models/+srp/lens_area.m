@@ -10,27 +10,27 @@ function [ar] = lens_area(d, r1, r2)
         ar = 0;
     elseif (d <= asils.pc.fabs((r1 - r2)))
         if (r2 < r1)
-            h__487 = r2;
+            h__496 = r2;
         else
-            h__487 = r1;
+            h__496 = r1;
         end
-        m = h__487;
+        m = h__496;
         ar = (pi * (m * m));
     else
         a = ((((d * d) + (r1 * r1)) - (r2 * r2)) / (2 * d));
         h2 = ((r1 * r1) - (a * a));
         if (h2 > 0)
-            h__488 = h2;
+            h__497 = h2;
         else
-            h__488 = 0;
+            h__497 = 0;
         end
-        h__489 = h__488;
-        if h__489 < 0, h__489 = NaN; else, h__489 = sqrt(h__489); end
-        h = h__489;
-        h__490 = acos((a / r1));
-        if ~isreal(h__490), h__490 = NaN; end
-        h__491 = acos(((d - a) / r2));
-        if ~isreal(h__491), h__491 = NaN; end
-        ar = ((((r1 * r1) * h__490) + ((r2 * r2) * h__491)) - (d * h));
+        h__498 = h__497;
+        if h__498 < 0, h__498 = NaN; else, h__498 = sqrt(h__498); end
+        h = h__498;
+        h__499 = acos((a / r1));
+        if ~isreal(h__499), h__499 = NaN; end
+        h__500 = acos(((d - a) / r2));
+        if ~isreal(h__500), h__500 = NaN; end
+        ar = ((((r1 * r1) * h__499) + ((r2 * r2) * h__500)) - (d * h));
     end
 end

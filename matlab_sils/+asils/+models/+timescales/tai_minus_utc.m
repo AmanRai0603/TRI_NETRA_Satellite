@@ -17,9 +17,9 @@ function [n, status] = tai_minus_utc(jd_utc)
         end
     end
     if (jd_utc > asils.models.timescales.mjd2jd(D__LEAP_DAT_EXPIRY(4)))
-        h__543 = 1;
+        h__552 = 1;
     else
-        h__543 = 0;
+        h__552 = 0;
     end
-    status = h__543;
+    status = h__552;
 end

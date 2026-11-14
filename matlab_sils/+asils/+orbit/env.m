@@ -1,12 +1,13 @@
-function E = env(O, t, jd0, r, v, gh, nmax)
+function E = env(O, t, jd0, r, v, gh, nmax, err)
 %ASILS.ORBIT.ENV  The environment at time t on the POP orbit (r, v): the field in J2000, the Sun and the Moon from the
 %   spacecraft, the sunlit fraction, the atmosphere-relative velocity, the density and the Sun's pressure (the engine's
 %   run.rs Truth::env). The models are the design's, generated into +asils/+models.
-%   E = asils.orbit.env(O, t, P.jd0, r, v, gh, P.env.igrf_nmax)
+%   E = asils.orbit.env(O, t, P.jd0, r, v, gh, P.env.igrf_nmax, err)     (err: the run's field error, optional; S12.7b)
 %   Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
+    if nargin < 8, err = []; end
     X = asils.orbit.context(O, t);
     % the field in J2000, through POP's Earth frame (asils.orbit.field_at)
-    E.b_eci = asils.orbit.field_at(O, X, t, jd0, r, gh, nmax);
+    E.b_eci = asils.orbit.field_at(O, X, t, jd0, r, gh, nmax, err);
     E.sun_rel = X.sun_eci - r; E.moon_rel = X.moon_eci - r;
     E.nu = asils.models.shadow.shadow_fraction(r, X.sun_eci);
     E.v_rel = asils.models.orbitfast.corotating_velocity(r, v, O.omega_e);

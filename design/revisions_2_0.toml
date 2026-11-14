@@ -4921,3 +4921,68 @@ source = "linear interpolation (the developer's choice, S12.7a); IGRF-14 (IAGA V
 generate = ["adcs-sim-core"]
 uses = ["fsw/pseudocode/02_time_frames_models.pc", "fsw/pseudocode/02_igrf14.pc", "fsw/pseudocode/01_math.pc"]
 why = "the truth field's interpolation rule is the design's, not a line of the loop (E8)"
+
+[[revision]]
+id = "S12.7b"
+at = "2026-11-14T10:00:00Z"
+by = "the developer"
+about = "E5 of docs/S12_INVENTORY.md (S12.7; decision DR-env-005, owner question 6, the default): the truth field had nothing the onboard model lacks but the IGRF's degrees 11 to 13, so the magnetometer measured the onboard model almost exactly (9.5 nT RMS over an orbit at 550 km, measured by adcs-sim tests/field_error.rs). A new truth-only node, env_field_error, adds the two terms of the decision's default to the truth field (l3_dist_row_08's field_eci_err_at): the ring current's uniform external field, a dipole-aligned field of Dst nT (Dst a stated scenario quantity: the SW-All table holds no Dst and no Dst source is reachable here), and the crust, random Gauss coefficients of the degrees 14 to 20 scaled to a stated root-mean-square field at the orbit's radius and drawn from the run's seed (the stream 'field_error', so a Monte Carlo draw, whose runs carry seeds of their own, has a crust of its own, and the engine and the twin draw the same values). The magnitudes (RMS 20-50 nT quiet, 100-500 nT at Dst -200 nT) are DR-env-005's, the developer's, unsigned; the form (the dipole-aligned uniform field, the flat spectrum at the orbit over the degrees 14 to 20) is the developer's. Nominal (non-campaign) scenarios fly the error ON at its quiet values (env_field_error_on = 1): the run's seed is stated, so the draw is the same every time and the golden table stays reproducible, and the done-when is that the magnetometer no longer measures the onboard model exactly. The flight software never sees the error. Unsigned: the developer's revision"
+
+[[revision.node]]
+id = "env_field_error"
+group = "env"
+parent = "m3"
+label = "Truth field error (ring current and crust)"
+behaviour = "method"
+question = "What field does the truth have that the onboard model does not, the ring current's uniform external field for a Dst and the crust's random field above the IGRF's degree 13 for a stated root-mean-square value, and how is the crust drawn from the run's seed?"
+why = "DR-env-005: the truth field's error against the onboard model (E5), a node of its own whose relations the truth field adds (l3_dist_row_08), never seen by the flight software"
+
+[[revision.method]]
+node = "env_field_error"
+pseudocode = "design/revisions/S12.7b/fielderror.pc"
+path = "env/fielderror.pc"
+transcribes = "design/revisions/S12.7b/fielderror.pc (new): ring_current_ecef (Dst along the geomagnetic dipole axis, uniform), crust_draw (Gauss coefficients of the degrees 14 to 20, Gaussian, the variance of each degree set so that every degree carries an equal share of the stated mean-square field at the orbit's radius), crust_ned (the IGRF's recursion over those degrees), field_error_eci_at (both terms, in J2000)"
+source = "the Dessler-Parker-Sckopke relation for the ring current's field at the Earth's centre, dB/B0 = -(2/3) E_R/E_M (Dessler and Parker 1959, J. Geophys. Res. 64(12), 2239-2252; Sckopke 1966, J. Geophys. Res. 71(13), 3125-3130): cited from memory, the papers were not to hand and the equation was not checked against them; the Dst index is taken as that disturbance (its magnetopause-current and induced-current parts are left out, so Dst here is the ring current's field alone) and the field as uniform at the orbit; Lowes (1966), J. Geophys. Res. 71(8), 2179-2189, the mean square of a spherical-harmonic field over a sphere, <B^2> = sum_n (n + 1) (a/r)^(2n+4) sum_m (g^2 + h^2), a = 6371.2 km: cited from memory, not checked against the paper; the magnitudes are DR-env-005's (the developer's, unsigned); the form is the developer's choice"
+generate = ["adcs-sim-core"]
+uses = ["spec/physics/constants.pc"]
+why = "the truth's field error as the design's relations, generated into the engine and the twin (E5)"
+
+[[revision.method]]
+node = "l3_dist_row_08"
+pseudocode = "design/revisions/S12.7b/truthfield.pc"
+path = "env/truthfield.pc"
+transcribes = "design/revisions/S12.7a/truthfield.pc as S12.7a left it, with field_eci_err_at and field_eci_err_ecef added: the IGRF field plus the error field of env_field_error, at the same coordinates and frame"
+source = "IGRF-14 (IAGA V-MOD, 2024); WGS-84 (NIMA TR8350.2); env_field_error (S12.7b)"
+generate = ["adcs-sim-core"]
+uses = ["fsw/pseudocode/02_time_frames_models.pc", "fsw/pseudocode/02_igrf14.pc", "fsw/pseudocode/01_math.pc", "env/fielderror.pc"]
+why = "the truth field adds the error field (E5, DR-env-005)"
+
+[[revision.node]]
+id = "env_dst_default"
+group = "env"
+parent = "m3"
+label = "Dst of a run (quiet default)"
+behaviour = "stated"
+question = "What Dst index [nT] does a run's ring current have when a scenario states none (engine.dst_nt)?"
+content = [["value", "number", "-10"], ["value", "source", "S12.7b (E5; the developer's choice, unsigned): -10 nT, a quiet-time level (Gonzalez et al. 1994, J. Geophys. Res. 99(A4), 5771-5792 call Dst above -30 nT quiet, as I remember it; the paper was not to hand). The manual indices of env_f107_default, env_kp_default and env_ap_default are stated the same way: a scenario sets another value (engine.dst_nt; S12.15's storm levels use it, -200 nT being DR-env-005's storm case). The SW-All table (env_sw_all_table) holds no Dst and no Dst source is reachable here"]]
+why = "Dst as a stated scenario quantity with a quiet default, as the manual space-weather indices are (E5)"
+
+[[revision.node]]
+id = "env_field_crustal_rms"
+group = "env"
+parent = "m3"
+label = "Crustal field's root-mean-square value at the orbit"
+behaviour = "stated"
+question = "What root-mean-square value [nT] of the magnitude of the crust's random field, the Gauss coefficients above the IGRF's degree 13, does a run's truth carry at the orbit's radius?"
+content = [["value", "number", "30"], ["value", "source", "S12.7b (E5; DR-env-005's magnitudes, the developer's, unsigned): 30 nT, inside the 20-50 nT the decision gives for the quiet field error; with the quiet Dst of env_dst_default (-10 nT) and the IGRF's own degrees 11 to 13 (9.5 nT RMS over an orbit) the quiet error is 32 nT RMS on average over 12 seeds (27 to 37 nT, measured over an orbit at 550 km by adcs-sim tests/field_error.rs), and at Dst -200 nT 201 nT (200 to 204). The roadmap's 20-50 nT is the whole quiet error; the split of it between the crust and the rest is the developer's"]]
+why = "the crust's stated RMS (E5)"
+
+[[revision.node]]
+id = "env_field_error_on"
+group = "env"
+parent = "m3"
+label = "Truth field error on"
+behaviour = "stated"
+question = "Does the truth field carry its error (env_field_error: the ring current's Dst and the crust) in a run, 1 on, 0 off (the truth is then the IGRF to degree 13 alone)?"
+content = [["value", "number", "1"], ["value", "source", "S12.7b (E5; the developer's decision, unsigned): on, at the quiet values of env_dst_default and env_field_crustal_rms, in nominal and in Monte Carlo scenarios alike. The crust is drawn from the run's seed, which a scenario states, so a nominal run is the same every time (the golden table holds); the done-when of E5 is that the magnetometer no longer measures the onboard model exactly, which off would not give. 0 is the truth as it was until S12.6"]]
+why = "whether the error is on in a run, stated (E5)"

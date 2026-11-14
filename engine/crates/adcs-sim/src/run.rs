@@ -56,18 +56,18 @@ impl Truth {
     }
     /// asils.run's env refresh: field at the POP position (op.geodetic), Sun, shadow,
     /// atmosphere-relative velocity, density and SRP pressure.
-    pub fn env(&self, t: f64, jd0: f64, r: &V3, v: &V3, gh: &field::Gh, nmax: usize) -> Env {
+    pub fn env(&self, t: f64, jd0: f64, r: &V3, v: &V3, gh: &field::Gh, nmax: usize, e: Option<&field::ErrField>) -> Env {
         match self {
             Truth::Pop(o) => {
                 let x = o.context(t);
                 let w = o.omega_e;
-                Env { b_eci: pop_field(o, &x.c, t, jd0, r, gh, nmax), sun_rel: sub(&x.sun_eci, r), moon_rel: sub(&x.moon_eci, r), nu: ephem::shadow(r, &x.sun_eci),
+                Env { b_eci: pop_field(o, &x.c, t, jd0, r, gh, nmax, e), sun_rel: sub(&x.sun_eci, r), moon_rel: sub(&x.moon_eci, r), nu: ephem::shadow(r, &x.sun_eci),
                       v_rel: adcs_sim_core::gen::orbitfast::corotating_velocity(*r, *v, w), rho: x.rho, p_srp: x.p_srp, v_earth: x.v_earth }
             }
             Truth::Fast(o, jd0) => {
                 let xc = o.context(t);
                 let cm = time::eci2ecef(jd0 + t/86400.0);
-                Env { b_eci: field::eci(&mv(&cm, r), &cm, gh, nmax), sun_rel: sub(&xc.sun, r), moon_rel: sub(&xc.moon, r), nu: ephem::shadow(r, &xc.sun),
+                Env { b_eci: field::eci(&mv(&cm, r), &cm, gh, nmax, e), sun_rel: sub(&xc.sun, r), moon_rel: sub(&xc.moon, r), nu: ephem::shadow(r, &xc.sun),
                       v_rel: orbit::corotating(r, v), rho: xc.rho, p_srp: xc.p_srp, v_earth: [0.0; 3] }
             }
         }
@@ -75,14 +75,14 @@ impl Truth {
     /// The field in J2000 [T] at t seconds, ahead of the orbit and without moving it (S12.7a, E8: the field at the next refresh, which
     /// the field between two refreshes is interpolated to): the position and the Earth frame the orbit's own interpolants give at t,
     /// past the step they are in when t is (`InLoop::peek`), or for the fast orbit a copy of the orbit advanced.
-    pub fn field_ahead(&self, t: f64, jd0: f64, gh: &field::Gh, nmax: usize) -> V3 {
+    pub fn field_ahead(&self, t: f64, jd0: f64, gh: &field::Gh, nmax: usize, e: Option<&field::ErrField>) -> V3 {
         match self {
-            Truth::Pop(o) => { let (r, _, x) = o.peek(t); pop_field(o, &x.c, t, jd0, &r, gh, nmax) }
+            Truth::Pop(o) => { let (r, _, x) = o.peek(t); pop_field(o, &x.c, t, jd0, &r, gh, nmax, e) }
             Truth::Fast(o, jd0) => {
                 let mut ahead = *o;
                 let (r, _) = ahead.state(t);
                 let cm = time::eci2ecef(jd0 + t/86400.0);
-                field::eci(&mv(&cm, &r), &cm, gh, nmax)
+                field::eci(&mv(&cm, &r), &cm, gh, nmax, e)
             }
         }
     }
@@ -120,11 +120,11 @@ impl Truth {
 /// The field in J2000 [T] at POP's position r through POP's Earth frame c (the orbit's context at t): on a build with the CIO chain
 /// (A) c is already GCRF to ITRF, with the precession in it; only the gmst build turns about the pole of J2000 and needs the
 /// precession put in front.
-fn pop_field(o: &adcs_pop::accel::InLoop, c: &M3, t: f64, jd0: f64, r: &V3, gh: &field::Gh, nmax: usize) -> V3 {
+fn pop_field(o: &adcs_pop::accel::InLoop, c: &M3, t: f64, jd0: f64, r: &V3, gh: &field::Gh, nmax: usize, e: Option<&field::ErrField>) -> V3 {
     let cp = if o.world.build == adcs_pop::frames::Build::Gmst { mm(c, &time::precession(jd0 + t/86400.0)) } else { *c };
     let re = mv(&cp, r);
     let (lat, lon, h) = adcs_pop::geodetic::geodetic(&re);
-    field::eci_at(lat, lon, h, &cp, gh, nmax)
+    field::eci_at(lat, lon, h, &cp, gh, nmax, e)
 }
 
 /// The Earth frame a run flew and whether its data was valid to the end of the run (the manifest's `frame`).
@@ -562,6 +562,8 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
     // ---- orbit and environment truth: the POP port (as asils.orbit) or the analytic model ----
     let (mut orb, raan) = Truth::new(c)?;
     let gh = field::gh(time::decyear(c.jd0));
+    // env_field_error (S12.7b, E5): the truth field's error, the crust drawn from the run's seed, Dst the scenario's; the flight software never sees it
+    let err = c.field_error.then(|| field::ErrField::draw(seed, c.crust_rms_nt, c.alt_km, c.dst_nt));
     let facets = Facets::boxed(&c.box_m, &c.cm_offset_m, c.sigma_n, c.sigma_t, c.vb_ratio, c.refl, c.spec_frac);
 
     // ---- dispersed units (one draw per run) ----
@@ -616,10 +618,10 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
         let t = k as f64*dt;
         let (r, v) = orb.state(t)?;
         if k % rt.env == 0 {
-            let ev = orb.env(t, c.jd0, &r, &v, &gh, c.igrf_nmax);
+            let ev = orb.env(t, c.jd0, &r, &v, &gh, c.igrf_nmax, err.as_ref());
             // env_field_interpolation (S12.7a, E8): the field between this refresh and the next, linear in J2000 (the rest of the
             // environment is held)
-            if c.field_interp && rt.env > 1 { b_span = Some((t, ev.b_eci, orb.field_ahead(t + env_step, c.jd0, &gh, c.igrf_nmax))); }
+            if c.field_interp && rt.env > 1 { b_span = Some((t, ev.b_eci, orb.field_ahead(t + env_step, c.jd0, &gh, c.igrf_nmax, err.as_ref()))); }
             b_eci = ev.b_eci; sun_rel = ev.sun_rel; moon_rel = ev.moon_rel; nu = ev.nu; v_rel = ev.v_rel; rho = ev.rho; psrp = ev.p_srp; v_earth = ev.v_earth;
             orb.set_attitude(transpose(&dcm(&x.q)));      // attitude -> POP (box-wing / panel models read it)
         }

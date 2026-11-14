@@ -12,8 +12,8 @@ function [q] = c2ixys(x, y, s)
     if (r2v > 0)
         e = atan2(y, x);
     end
-    h__312 = (r2v / (1 - r2v));
-    if h__312 < 0, h__312 = NaN; else, h__312 = sqrt(h__312); end
-    d = atan(h__312);
+    h__321 = (r2v / (1 - r2v));
+    if h__321 < 0, h__321 = NaN; else, h__321 = sqrt(h__321); end
+    d = atan(h__321);
     q = asils.pc.mm(asils.pc.mm(asils.models.earthframes.rot3((-((e + s)))), asils.models.earthframes.rot2(d)), asils.models.earthframes.rot3(e));
 end

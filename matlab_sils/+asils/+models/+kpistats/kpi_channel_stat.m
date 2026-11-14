@@ -19,8 +19,8 @@ function [v, ch, idx, w, tmp] = kpi_channel_stat(ch, idx, ni, st, w, tmp)
             m = (m + 1);
         end
     end
-    [t__551, t__552, t__553] = asils.models.kpistats.kpi_stat_of(w, m, st, tmp);
-    v = t__551;
-    w = t__552;
-    tmp = t__553;
+    [t__555, t__556, t__557] = asils.models.kpistats.kpi_stat_of(w, m, st, tmp);
+    v = t__555;
+    w = t__556;
+    tmp = t__557;
 end

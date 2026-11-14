@@ -30,10 +30,10 @@ function [ok, q, valid, dq, q_old, u, ht, hq, cr, cm] = st_sample(u, d, ht, hq, 
     valid = zeros(2, 1);
     dq = zeros(2, 4);
     q_old = zeros(4, 1);
-    [t__717, t__718, t__719] = asils.models.sttracker.st_delayed(ht, hq, hn, d.latency, t, q_true);
-    q_old = t__717;
-    ht = t__718;
-    hq = t__719;
+    [t__721, t__722, t__723] = asils.models.sttracker.st_delayed(ht, hq, hn, d.latency, t, q_true);
+    q_old = t__721;
+    ht = t__722;
+    hq = t__723;
     slow = (sqrt(w(1)*w(1) + w(2)*w(2) + w(3)*w(3)) < d.max_rate);
     smear = (1 + (sqrt(w(1)*w(1) + w(2)*w(2) + w(3)*w(3)) / d.noise_rate_ref));
     rold = asils.models.math.dcm(q_old);
@@ -42,26 +42,26 @@ function [ok, q, valid, dq, q_old, u, ht, hq, cr, cm] = st_sample(u, d, ht, hq, 
     valid = [false; false];
     dq = zeros(2, 4);
     for h = (0):((d.nh) - 1)
-        [t__720, t__721] = asils.models.sttracker.st_head_valid(u, d, h, t, sun_b, moon_b, nadir_b, earth_ang, slow);
-        valid((h) + 1) = t__720;
-        u = t__721;
+        [t__724, t__725] = asils.models.sttracker.st_head_valid(u, d, h, t, sun_b, moon_b, nadir_b, earth_ang, slow);
+        valid((h) + 1) = t__724;
+        u = t__725;
         dq((h) + 1, :) = asils.models.math.qmult((u.q_mis((h) + 1, :)).', (u.q_bias((h) + 1, :)).').';
         g = u.g;
         if (d.model == 1)
-            [t__722, t__723, t__724, t__725, t__726] = asils.models.sttracker.st_quest_head(rold, (dq((h) + 1, :)).', (d.bs((h) + 1, :)).', d.fov, d.noise_cross, smear, cr, cm, valid((h) + 1), g, vb);
-            qh = t__722;
-            enough = t__723;
-            cr = t__724;
-            cm = t__725;
-            g = t__726;
+            [t__726, t__727, t__728, t__729, t__730] = asils.models.sttracker.st_quest_head(rold, (dq((h) + 1, :)).', (d.bs((h) + 1, :)).', d.fov, d.noise_cross, smear, cr, cm, valid((h) + 1), g, vb);
+            qh = t__726;
+            enough = t__727;
+            cr = t__728;
+            cm = t__729;
+            g = t__730;
             if (enough && valid((h) + 1))
                 ok((h) + 1) = true;
                 q((h) + 1, :) = qh.';
             end
         elseif (d.model == 0)
-            [t__727, t__728] = asils.models.sttracker.st_noise_head(q_old, (dq((h) + 1, :)).', (d.bs((h) + 1, :)).', d.noise_cross, d.noise_roll, smear, g, vb);
-            qn = t__727;
-            g = t__728;
+            [t__731, t__732] = asils.models.sttracker.st_noise_head(q_old, (dq((h) + 1, :)).', (d.bs((h) + 1, :)).', d.noise_cross, d.noise_roll, smear, g, vb);
+            qn = t__731;
+            g = t__732;
             if valid((h) + 1)
                 ok((h) + 1) = true;
                 q((h) + 1, :) = qn.';

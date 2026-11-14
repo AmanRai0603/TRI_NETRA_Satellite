@@ -53,7 +53,7 @@ fn the_truth_tracker_is_shifted_by_the_barycentric_velocity_and_the_flight_softw
         let gh = field::gh(time::decyear(c.jd0));
         for t in [0.0, 300.0] {
             let (r, v) = orb.state(t).unwrap();
-            let v_earth = orb.env(t, c.jd0, &r, &v, &gh, c.igrf_nmax).v_earth;
+            let v_earth = orb.env(t, c.jd0, &r, &v, &gh, c.igrf_nmax, None).v_earth;
             let vb = [v[0] + v_earth[0], v[1] + v_earth[1], v[2] + v_earth[2]];
             let jd = c.jd0 + t/86400.0;
             assert!((norm(&v_earth) - 29.8e3).abs() < 1.0e3, "the Earth's speed from the ephemeris: {} m/s", norm(&v_earth));
